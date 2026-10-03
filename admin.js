@@ -74,5 +74,20 @@
     });
   };
 
+  A.sections.claims = async () => {
+    const el = document.getElementById('claims'); const ms = await A.members(); const name = id => FY.esc(ms.find(m => m.id === id)?.nickname || '?');
+    const cs = (await FY.q('claim').select('*').eq('state', 'pending').order('created_at')).data || [];
+    el.innerHTML = `<h2>Claims waiting</h2>${cs.length ? cs.map(c => {
+      const p = c.payload; const what = p.type === 'points' ? `${p.points} ${FY.esc(p.type_key)} points` : `${name(p.payer_id)} owes ${name(p.payee_id)} ${p.amount}`;
+      return `<div class="row card"><span><strong>${name(c.member_id)}</strong> asks for ${what}<br><span class="muted">${FY.esc(p.note || '')}</span></span>
+        <button class="pink" data-c="${c.id}" data-ok="1">Approve</button><button class="ghost" data-c="${c.id}" data-ok="0">Reject</button></div>`; }).join('')
+      : '<p class="muted">Nothing waiting.</p>'}`;
+    el.querySelectorAll('button[data-c]').forEach(b => b.addEventListener('click', async () => {
+      b.disabled = true;
+      try { await FY.rpc('decide_claim', { p_claim: b.dataset.c, p_approve: b.dataset.ok === '1' }); FY.toast(b.dataset.ok === '1' ? 'Approved.' : 'Rejected.'); await A.reload(); }
+      catch (e) { FY.toast(e.message); b.disabled = false; }
+    }));
+  };
+
   await A.reload();
 })().catch(e => { if (e.message !== 'not leader') FY.toast(e.message); });
