@@ -1,5 +1,7 @@
 -- ===== Farmyard Hub schema. Idempotent: safe to re-run. =====
--- pg_cron is enabled by RAY in the dashboard (Database → Extensions) before this runs.
+-- pg_cron: enabled here so the paste is self-contained (Supabase docs: create extension pg_cron with schema pg_catalog).
+create extension if not exists pg_cron with schema pg_catalog;
+grant usage on schema cron to postgres;
 create schema if not exists fy;
 grant usage on schema fy to anon, authenticated;
 
