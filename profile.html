@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · Profile</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header id="fy-header"></header>
+<main class="wrap stack" id="main"><p class="muted">Loading…</p></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script>
+<script>
+(async function () {
+  const main = document.getElementById('main');
+  if (!FY.wired) { main.innerHTML = '<p class="muted">Not wired to the database yet.</p>'; return; }
+  if (!(await FY.session())) { main.innerHTML = '<h1>Your profile</h1><p>Sign in to see your points and IOUs.</p><p><button class="pink" id="in">Sign in with Discord</button></p>'; document.getElementById('in').addEventListener('click', () => FY.signIn()); return; }
+  const me = await FY.me();
+  if (!me) { main.innerHTML = '<h1>No profile yet</h1><p>Ask RAY for your claim link, then open it while signed in.</p>'; return; }
+  const names = {}; ((await FY.q('v_members_public').select('id,nickname,avatar')).data || []).forEach(m => names[m.id] = m);
+  const AVATARS = ['hen','cock','pig','sheep','goat','cow'];
+
+  async function render() {
+    const pts = (await FY.q('v_standings').select('type_key,points').eq('member_id', me.id)).data || [];
+    const ious = await FY.rpc('my_ious');
+    const live = s => ['open','marked_paid','disputed'].includes(s);
+    const owe = ious.filter(i => i.payer_id === me.id && live(i.state));
+    const owed = ious.filter(i => i.payee_id === me.id && live(i.state));
+    const closed = ious.filter(i => !live(i.state)).slice(0, 10);
+    const label = { open: 'open', marked_paid: 'marked paid', confirmed: 'confirmed', disputed: 'disputed', settled: 'squared up' };
+    const who = id => `${FY.avatar(names[id]?.avatar)}${FY.esc(names[id]?.nickname || '?')}`;
+    const rowOwe = i => `<div class="row card"><span>You owe ${who(i.payee_id)} <strong class="num">${i.amount}</strong> · ${label[i.state]}</span>
+      ${i.state === 'open' ? `<button class="teal" data-t="marked_paid" data-id="${i.id}">Mark paid</button>` : ''}</div>`;
+    const rowOwed = i => `<div class="row card"><span>${who(i.payer_id)} owes you <strong class="num">${i.amount}</strong> · ${label[i.state]}</span>
+      ${i.state === 'marked_paid' ? `<button class="pink" data-t="confirmed" data-id="${i.id}">Confirm</button><button class="ghost" data-t="disputed" data-id="${i.id}">Dispute</button>` : ''}</div>`;
+
+    main.innerHTML = `
+      <section class="row"><span style="font-size:0">${FY.avatar(me.avatar)}</span><h1>${FY.esc(me.nickname)}</h1></section>
+      <section class="card"><h2>Points</h2><div class="row">${pts.map(p => `<span><span class="muted">${FY.esc(p.type_key)}</span> ${FY.fmt(p.points)}</span>`).join('')}</div></section>
+      <section class="stack"><h2>You owe</h2>${owe.length ? owe.map(rowOwe).join('') : '<p class="muted">Nothing. Clean slate.</p>'}</section>
+      <section class="stack"><h2>Owed to you</h2>${owed.length ? owed.map(rowOwed).join('') : '<p class="muted">Nobody owes you. Yet.</p>'}</section>
+      <section class="card stack"><h2>Something wrong?</h2>
+        <form id="claim" class="stack">
+          <div class="field"><label for="ctype">Claim</label><select id="ctype"><option value="points">Points I should have</option><option value="iou">An IOU that is missing</option></select></div>
+          <div class="field" id="f-points"><label for="cpts">Poker points</label><input id="cpts" type="number" min="1" value="1"></div>
+          <div class="field" id="f-iou" hidden><label for="cpayer">Who owes whom</label>
+            <div class="row"><select id="cpayer">${Object.values(names).map(m => `<option value="${m.id}">${FY.esc(m.nickname)}</option>`).join('')}</select><span>owes</span>
+            <select id="cpayee">${Object.values(names).map(m => `<option value="${m.id}">${FY.esc(m.nickname)}</option>`).join('')}</select><input id="camt" type="number" min="1" value="1" style="width:5em"></div></div>
+          <div class="field"><label for="cnote">What happened</label><input id="cnote" required placeholder="e.g. side pot on the 12th"></div>
+          <button class="teal">Send to RAY</button>
+        </form></section>
+      <section class="card stack"><h2>Edit profile</h2>
+        <form id="edit" class="stack">
+          <div class="field"><label for="nick">Nickname</label><input id="nick" value="${FY.esc(me.nickname)}" required maxlength="24"></div>
+          <div class="field"><label for="av">Animal</label><select id="av">${AVATARS.map(a => `<option ${a === me.avatar ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
+          <div class="field"><label for="cc">chess.com username</label><input id="cc" value="${FY.esc(me.chesscom_username || '')}" maxlength="40"></div>
+          <button class="teal">Save</button>
+        </form></section>
+      ${closed.length ? `<section class="stack"><h2 class="muted">Recent, closed</h2>${closed.map(i => `<p class="muted">${who(i.payer_id)} → ${who(i.payee_id)} ${i.amount} · ${label[i.state]}</p>`).join('')}</section>` : ''}`;
+
+    main.querySelectorAll('button[data-t]').forEach(b => b.addEventListener('click', async () => {
+      b.disabled = true;
+      try { await FY.rpc('iou_transition', { p_iou: b.dataset.id, p_to: b.dataset.t }); FY.toast({ marked_paid: 'Marked paid. Waiting for their tick.', confirmed: 'Confirmed. Squared.', disputed: 'Disputed. RAY will sort it.' }[b.dataset.t]); await render(); }
+      catch (e) { FY.toast(e.message); b.disabled = false; }
+    }));
+    const ctype = document.getElementById('ctype');
+    ctype.addEventListener('change', () => { document.getElementById('f-points').hidden = ctype.value !== 'points'; document.getElementById('f-iou').hidden = ctype.value !== 'iou'; });
+    document.getElementById('claim').addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const note = document.getElementById('cnote').value.trim();
+      const payload = ctype.value === 'points'
+        ? { type: 'points', type_key: 'poker', points: Number(document.getElementById('cpts').value), note }
+        : { type: 'iou', payer_id: document.getElementById('cpayer').value, payee_id: document.getElementById('cpayee').value, amount: Number(document.getElementById('camt').value), note };
+      if (payload.type === 'iou' && payload.payer_id === payload.payee_id) return FY.toast('Pick two different people.');
+      try { await FY.rpc('raise_claim', { p_payload: payload }); FY.toast('Sent. RAY will approve or reject it.'); ev.target.reset(); }
+      catch (e) { FY.toast(e.message); }
+    });
+    document.getElementById('edit').addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const { error } = await FY.q('member').update({ nickname: document.getElementById('nick').value.trim(), avatar: document.getElementById('av').value, chesscom_username: document.getElementById('cc').value.trim() || null }).eq('id', me.id);
+      if (error) return FY.toast(error.message);
+      Object.assign(me, { nickname: document.getElementById('nick').value.trim(), avatar: document.getElementById('av').value });
+      FY.toast('Saved.'); await render();
+    });
+  }
+  await render();
+})();
+</script>
+</body>
+</html>
