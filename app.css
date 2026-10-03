@@ -1,0 +1,48 @@
+/* Farmyard Hub — tokens from the Farmyard Colour Template (Claude Design, 2026-10-03).
+   Rule from the template: pink acts, teal frames. Teal borders, pink content inside them. */
+:root{
+  --fy-bg:#161826; --fy-surface:#232532; --fy-surface-2:#2b2e3f;
+  --fy-text:#e9e9ed; --fy-text-body:#e4e7f5; --fy-text-secondary:#cfd3e5; --fy-text-label:#b2b6ca;
+  --neon-pink:#ff3fa4; --neon-pink-hover:#ffb3dc; --neon-pink-link:#ff8ccb;
+  --neon-teal:#5fd3cf; --rule-teal:rgba(95,211,207,.35);
+  --haze-pink:rgba(45,15,34,.85); --haze-teal:rgba(27,74,74,.45);
+  --glow-pink:0 0 6px var(--neon-pink),0 0 14px rgba(255,63,164,.55);
+  --glow-teal:0 0 6px var(--neon-teal),0 0 14px rgba(95,211,207,.45);
+  --shadow-sm:0 0 0 1px #3f424d; --shadow-md:0 0 0 1px #595d6c,0 6px 18px rgba(0,0,0,.55);
+  --radius-sm:4px; --radius-md:8px; --radius-lg:14px;
+  --owes:#ff3fa4; --owed:#5fd3cf;
+  --font-body:'Inter',system-ui,-apple-system,sans-serif; --font-heading:'Inter',system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fy-bg);color:var(--fy-text-body);font-family:var(--font-body);font-size:16px;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding:16px}
+h1,h2,h3{font-family:var(--font-heading);font-weight:500;color:var(--fy-text);margin:0 0 8px;text-wrap:balance}
+h1{font-size:clamp(28px,6vw,40px)} h2{font-size:22px} h3{font-size:17px}
+a{color:var(--neon-pink-link)} a:hover{color:var(--neon-pink-hover)}
+.muted{color:var(--fy-text-label)} .num{font-variant-numeric:tabular-nums}
+.bar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--rule-teal);background:var(--haze-teal)}
+.bar a{color:var(--fy-text-secondary);text-decoration:none} .bar a:hover{color:var(--neon-teal)}
+.brand{font-weight:600;color:var(--neon-pink)!important;text-shadow:var(--glow-pink);margin-right:auto}
+button,.btn{font:inherit;border-radius:var(--radius-md);padding:8px 14px;cursor:pointer;border:1px solid var(--rule-teal);background:var(--fy-surface);color:var(--fy-text)}
+button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--neon-teal);outline-offset:2px}
+.pink{background:var(--neon-pink);color:#161826;border-color:transparent;font-weight:600} .pink:hover{background:var(--neon-pink-hover)}
+.teal{background:transparent;color:var(--neon-teal);border-color:var(--neon-teal)} .teal:hover{box-shadow:var(--glow-teal)}
+.ghost{background:transparent;color:var(--fy-text-secondary)}
+button[disabled]{opacity:.5;cursor:default}
+.card{background:var(--fy-surface);border:1px solid var(--rule-teal);border-radius:var(--radius-lg);padding:14px 16px}
+.stack{display:grid;gap:12px} .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.switcher{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.tab{border-radius:999px;padding:6px 14px;background:transparent;color:var(--fy-text-secondary);border:1px solid var(--rule-teal)}
+.tab[aria-selected="true"]{background:var(--neon-pink);color:#161826;border-color:transparent;box-shadow:var(--glow-pink)}
+.table{width:100%;border-collapse:collapse} .table th,.table td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--rule-teal);vertical-align:middle}
+.table th{color:var(--fy-text-label);font-weight:500;font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+.table td.pts{text-align:right;font-weight:600;color:var(--fy-text)}
+.avatar{width:48px;height:48px;border-radius:50%;border:2px solid var(--neon-teal);background:var(--fy-surface-2);vertical-align:middle;margin-right:10px}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;color:#161826}
+.badge.owes{background:var(--owes)} .badge.owed{background:var(--owed)}
+.field{display:grid;gap:4px} .field label{color:var(--fy-text-label);font-size:13px}
+input,select,textarea{font:inherit;background:var(--fy-surface-2);color:var(--fy-text);border:1px solid var(--rule-teal);border-radius:var(--radius-md);padding:8px 10px;min-width:0}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--fy-surface);border:1px solid var(--neon-teal);box-shadow:var(--glow-teal);border-radius:var(--radius-md);padding:10px 14px;z-index:10}
+.tablewrap{overflow-x:auto}
+@media (prefers-reduced-motion:no-preference){.tab,button{transition:background .15s,box-shadow .15s}}
