@@ -250,7 +250,7 @@ begin
   select league_id, event_id, member_id, -points, 'correction' from fy.score_entry where event_id = p_event;
   update fy.iou set state = 'settled', state_changed_at = now()
   where event_id = p_event and state in ('open','marked_paid','disputed');
-  update fy.event set voided_at = now(), note = coalesce(note || ' · ', '') || 'voided: ' || coalesce(p_note, '')
+  update fy.event set voided_at = now(), note = coalesce(note || ' · ', '') || 'voided' || coalesce(': ' || p_note, '')
   where id = p_event;
 end $$;
 
@@ -349,6 +349,8 @@ begin
   select * into me from fy.member where user_id = auth.uid();
   if me.id is null then raise exception 'sign in first' using errcode = '42501'; end if;
   if coalesce(p_payload->>'type', '') not in ('points','iou') then raise exception 'claim type must be points or iou'; end if;
+  if p_payload->>'type' = 'points' and coalesce(p_payload->>'points', '') !~ '^[0-9]{1,4}$' then raise exception 'points must be a whole number'; end if;
+  if p_payload->>'type' = 'iou' and coalesce(p_payload->>'amount', '') !~ '^[0-9]{1,4}$' then raise exception 'amount must be a whole number'; end if;
   insert into fy.claim (league_id, member_id, payload) values (fy._league(), me.id, p_payload) returning id into v_id;
   return v_id;
 end $$;

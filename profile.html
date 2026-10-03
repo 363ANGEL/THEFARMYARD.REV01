@@ -27,7 +27,7 @@
     const live = s => ['open','marked_paid','disputed'].includes(s);
     const owe = ious.filter(i => i.payer_id === me.id && live(i.state));
     const owed = ious.filter(i => i.payee_id === me.id && live(i.state));
-    const closed = ious.filter(i => !live(i.state)).slice(0, 10);
+    const closed = ious.filter(i => !live(i.state) && (i.payer_id === me.id || i.payee_id === me.id)).slice(0, 10);
     const label = { open: 'open', marked_paid: 'marked paid', confirmed: 'confirmed', disputed: 'disputed', settled: 'squared up' };
     const who = id => `${FY.avatar(names[id]?.avatar)}${FY.esc(names[id]?.nickname || '?')}`;
     const rowOwe = i => `<div class="row card"><span>You owe ${who(i.payee_id)} <strong class="num">${i.amount}</strong> · ${label[i.state]}</span>
@@ -73,14 +73,16 @@
         ? { type: 'points', type_key: 'poker', points: Number(document.getElementById('cpts').value), note }
         : { type: 'iou', payer_id: document.getElementById('cpayer').value, payee_id: document.getElementById('cpayee').value, amount: Number(document.getElementById('camt').value), note };
       if (payload.type === 'iou' && payload.payer_id === payload.payee_id) return FY.toast('Pick two different people.');
-      try { await FY.rpc('raise_claim', { p_payload: payload }); FY.toast('Sent. RAY will approve or reject it.'); ev.target.reset(); }
+      const btn = ev.submitter || ev.target.querySelector('button'); btn.disabled = true;
+      try { await FY.rpc('raise_claim', { p_payload: payload }); FY.toast('Sent. RAY will approve or reject it.'); ev.target.reset(); ctype.dispatchEvent(new Event('change')); }
       catch (e) { FY.toast(e.message); }
+      finally { btn.disabled = false; }
     });
     document.getElementById('edit').addEventListener('submit', async ev => {
       ev.preventDefault();
       const { error } = await FY.q('member').update({ nickname: document.getElementById('nick').value.trim(), avatar: document.getElementById('av').value, chesscom_username: document.getElementById('cc').value.trim() || null }).eq('id', me.id);
       if (error) return FY.toast(error.message);
-      Object.assign(me, { nickname: document.getElementById('nick').value.trim(), avatar: document.getElementById('av').value });
+      Object.assign(me, { nickname: document.getElementById('nick').value.trim(), avatar: document.getElementById('av').value, chesscom_username: document.getElementById('cc').value.trim() || null });
       FY.toast('Saved.'); await render();
     });
   }
