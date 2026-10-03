@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · Tables</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header id="fy-header"></header>
+<main class="wrap">
+  <h1>League tables</h1>
+  <div class="switcher" id="switcher" role="tablist"></div>
+  <div class="tablewrap">
+    <table class="table" aria-live="polite">
+      <thead><tr><th>#</th><th>Member</th><th class="pts">Points</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="3" class="muted">Loading…</td></tr></tbody>
+    </table>
+  </div>
+  <p class="muted" id="footnote"></p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+(async function () {
+  const rows = document.getElementById('rows'), sw = document.getElementById('switcher'), fn = document.getElementById('footnote');
+  if (!FY.wired) { rows.innerHTML = '<tr><td colspan="3" class="muted">Not wired to the database yet.</td></tr>'; return; }
+  const types = (await FY.q('event_type').select('key,label,overall_weight').order('key')).data || [];
+  const tabs = [...types.map(t => ({ key: t.key, label: t.label })), { key: 'overall', label: 'Overall' }];
+  let current = (location.hash || '#poker').slice(1);
+  if (!tabs.some(t => t.key === current)) current = 'poker';
+
+  function drawTabs() {
+    sw.innerHTML = tabs.map(t => `<button class="tab" role="tab" data-key="${t.key}" aria-selected="${t.key === current}">${FY.esc(t.label)}</button>`).join('');
+    sw.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => { current = b.dataset.key; location.hash = current; drawTabs(); load(); }));
+  }
+  async function load() {
+    rows.innerHTML = '<tr><td colspan="3" class="muted">Loading…</td></tr>';
+    const badges = {};
+    ((await FY.q('v_badges').select('member_id,owes,owed')).data || []).forEach(b => badges[b.member_id] = b);
+    let data;
+    if (current === 'overall') {
+      data = (await FY.q('v_overall').select('*').order('points', { ascending: false })).data || [];
+      fn.textContent = 'Overall = points × the weight set for each activity.';
+    } else {
+      data = (await FY.q('v_standings').select('*').eq('type_key', current).order('points', { ascending: false }).order('nickname')).data || [];
+      fn.textContent = current === 'poker' ? 'Winner takes all. Points = buy-ins collected.' : '';
+    }
+    if (!data.length) { rows.innerHTML = '<tr><td colspan="3" class="muted">No standings yet.</td></tr>'; return; }
+    rows.innerHTML = data.map((r, i) => {
+      const b = badges[r.member_id];
+      const badge = b ? (b.owes > 0 ? `<span class="badge owes">owes ${b.owes}</span>` : b.owed > 0 ? `<span class="badge owed">owed ${b.owed}</span>` : '') : '';
+      return `<tr><td class="num">${i + 1}</td><td>${FY.avatar(r.avatar)}${FY.esc(r.nickname)}${badge}</td><td class="pts">${FY.fmt(r.points)}</td></tr>`;
+    }).join('');
+  }
+  drawTabs(); load();
+})();
+</script>
+</body>
+</html>
