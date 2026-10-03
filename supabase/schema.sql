@@ -156,3 +156,253 @@ create or replace view fy.v_netting as
 grant select on fy.v_members_public, fy.v_standings, fy.v_overall, fy.v_badges to anon, authenticated;
 -- v_netting and v_live_iou are deliberately NOT granted: views run as their owner and would
 -- bypass the iou row-level security. The leader reads netting through fy.netting() (Task 4).
+
+-- 3. Functions ---------------------------------------------------------------
+-- Every write goes through here. All are security definer and check the caller.
+
+create or replace function fy.me() returns fy.member
+language sql stable security definer set search_path = fy, public as $$
+  select * from fy.member where user_id = auth.uid() limit 1;
+$$;
+
+create or replace function fy.is_leader() returns boolean
+language sql stable security definer set search_path = fy, public as $$
+  select exists (select 1 from fy.member where user_id = auth.uid() and role = 'leader');
+$$;
+
+-- Used by the member read policy: a policy on fy.member cannot query fy.member itself
+-- (infinite recursion), so the check lives in a security-definer function.
+create or replace function fy.is_member() returns boolean
+language sql stable security definer set search_path = fy, public as $$
+  select exists (select 1 from fy.member where user_id = auth.uid());
+$$;
+
+create or replace function fy._league() returns uuid
+language sql stable set search_path = fy, public as $$
+  select id from fy.league where slug = 'farmyard';
+$$;
+
+create or replace function fy._require_leader() returns fy.member
+language plpgsql stable security definer set search_path = fy, public as $$
+declare m fy.member;
+begin
+  select * into m from fy.member where user_id = auth.uid() and role = 'leader';
+  if m.id is null then raise exception 'not allowed' using errcode = '42501'; end if;
+  return m;
+end $$;
+
+create or replace function fy.create_member(p_nickname text, p_avatar text) returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare v_id uuid;
+begin
+  perform fy._require_leader();
+  insert into fy.member (league_id, nickname, avatar) values (fy._league(), p_nickname, coalesce(p_avatar,'hen'))
+  returning id into v_id;
+  return v_id;
+end $$;
+
+create or replace function fy.issue_claim_link(p_member_id uuid) returns text
+language plpgsql security definer set search_path = fy, public as $$
+declare v_token text;
+begin
+  perform fy._require_leader();
+  insert into fy.claim_link (member_id) values (p_member_id) returning token into v_token;
+  return v_token;
+end $$;
+
+create or replace function fy.claim_profile(p_token text) returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare v_member uuid; v_discord text; n int;
+begin
+  if auth.uid() is null then raise exception 'sign in first' using errcode = '42501'; end if;
+  if exists (select 1 from fy.member where user_id = auth.uid()) then
+    raise exception 'already claimed a profile' using errcode = '23505';
+  end if;
+  -- Burn the token first, in one statement: two accounts racing on the same link cannot both pass.
+  update fy.claim_link set used_at = now()
+  where token = p_token and used_at is null
+  returning member_id into v_member;
+  if v_member is null then raise exception 'link used or unknown' using errcode = 'P0002'; end if;
+  -- The Discord user id lives in auth.identities, not in the JWT.
+  select provider_id into v_discord from auth.identities
+  where user_id = auth.uid() and provider = 'discord' limit 1;
+  update fy.member set user_id = auth.uid(), discord_id = v_discord
+  where id = v_member and user_id is null;
+  get diagnostics n = row_count;
+  if n = 0 then raise exception 'link used or unknown' using errcode = 'P0002'; end if;
+  return v_member;
+end $$;
+
+create or replace function fy.void_event(p_event uuid, p_note text default null) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare e fy.event;
+begin
+  perform fy._require_leader();
+  select * into e from fy.event where id = p_event for update;
+  if e.id is null then raise exception 'no such event' using errcode = 'P0002'; end if;
+  if e.voided_at is not null then raise exception 'already voided'; end if;
+  insert into fy.score_entry (league_id, event_id, member_id, points, reason)
+  select league_id, event_id, member_id, -points, 'correction' from fy.score_entry where event_id = p_event;
+  update fy.iou set state = 'settled', state_changed_at = now()
+  where event_id = p_event and state in ('open','marked_paid','disputed');
+  update fy.event set voided_at = now(), note = coalesce(note || ' · ', '') || 'voided: ' || coalesce(p_note, '')
+  where id = p_event;
+end $$;
+
+create or replace function fy.netting() returns setof fy.v_netting
+language sql stable security definer set search_path = fy, public as $$
+  select * from fy.v_netting where fy.is_leader();
+$$;
+
+create or replace function fy.recent_events(p_limit int default 10) returns setof fy.event
+language sql stable security definer set search_path = fy, public as $$
+  select * from fy.event where fy.is_leader() order by played_at desc limit p_limit;
+$$;
+
+create or replace function fy.record_poker_result(
+  p_players jsonb, p_winner uuid, p_played_at timestamptz default now(), p_note text default null
+) returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_event uuid; v_total int := 0; p record; v_winner_present boolean := false;
+begin
+  leader := fy._require_leader();
+  if jsonb_typeof(p_players) <> 'array' or jsonb_array_length(p_players) < 2 then
+    raise exception 'need at least two players';
+  end if;
+  for p in select (x->>'member_id')::uuid as member_id, (x->>'buy_ins')::int as buy_ins
+           from jsonb_array_elements(p_players) x loop
+    if p.buy_ins is null or p.buy_ins <= 0 then raise exception 'buy-ins must be at least 1'; end if;
+    if not exists (select 1 from fy.member where id = p.member_id and league_id = fy._league()) then
+      raise exception 'unknown player %', p.member_id;
+    end if;
+    if p.member_id = p_winner then v_winner_present := true; end if;
+    v_total := v_total + p.buy_ins;
+  end loop;
+  if not v_winner_present then raise exception 'winner must be one of the players'; end if;
+
+  insert into fy.event (league_id, type_key, played_at, entered_by, note)
+  values (fy._league(), 'poker', coalesce(p_played_at, now()), leader.id, p_note) returning id into v_event;
+
+  insert into fy.score_entry (league_id, event_id, member_id, points, reason)
+  values (fy._league(), v_event, p_winner, v_total, 'result');
+
+  insert into fy.iou (league_id, event_id, payer_id, payee_id, amount)
+  select fy._league(), v_event, (x->>'member_id')::uuid, p_winner, (x->>'buy_ins')::int
+  from jsonb_array_elements(p_players) x
+  where (x->>'member_id')::uuid <> p_winner;
+
+  return v_event;
+end $$;
+
+create or replace function fy.iou_transition(p_iou uuid, p_to text) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; i fy.iou; ok boolean := false;
+begin
+  select * into me from fy.member where user_id = auth.uid();
+  if me.id is null then raise exception 'sign in first' using errcode = '42501'; end if;
+  select * into i from fy.iou where id = p_iou for update;
+  if i.id is null then raise exception 'no such IOU' using errcode = 'P0002'; end if;
+  if i.state in ('confirmed','settled') then raise exception 'already closed'; end if;
+
+  if me.role = 'leader' then
+    ok := p_to in ('open','marked_paid','confirmed','disputed');
+  elsif me.id = i.payer_id then
+    ok := (i.state = 'open' and p_to = 'marked_paid');
+  elsif me.id = i.payee_id then
+    ok := (i.state = 'marked_paid' and p_to in ('confirmed','disputed'));
+  end if;
+  if not ok then raise exception 'not allowed' using errcode = '42501'; end if;
+
+  update fy.iou set state = p_to, state_changed_at = now() where id = p_iou;
+end $$;
+
+create or replace function fy.settle_pair(p_a uuid, p_b uuid) returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_id uuid;
+begin
+  leader := fy._require_leader();
+  insert into fy.settlement (league_id, member_a, member_b, recorded_by)
+  values (fy._league(), p_a, p_b, leader.id) returning id into v_id;
+  update fy.iou set state = 'settled', settlement_id = v_id, state_changed_at = now()
+  where state in ('open','marked_paid','disputed')
+    and ((payer_id = p_a and payee_id = p_b) or (payer_id = p_b and payee_id = p_a));
+  return v_id;
+end $$;
+
+create or replace function fy.raise_claim(p_payload jsonb) returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; v_id uuid;
+begin
+  select * into me from fy.member where user_id = auth.uid();
+  if me.id is null then raise exception 'sign in first' using errcode = '42501'; end if;
+  if p_payload->>'type' not in ('points','iou') then raise exception 'claim type must be points or iou'; end if;
+  insert into fy.claim (league_id, member_id, payload) values (fy._league(), me.id, p_payload) returning id into v_id;
+  return v_id;
+end $$;
+
+create or replace function fy.decide_claim(p_claim uuid, p_approve boolean) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; c fy.claim; v_event uuid;
+begin
+  leader := fy._require_leader();
+  select * into c from fy.claim where id = p_claim and state = 'pending' for update;
+  if c.id is null then raise exception 'no pending claim' using errcode = 'P0002'; end if;
+  if p_approve then
+    if c.payload->>'type' = 'points' then
+      insert into fy.event (league_id, type_key, entered_by, note)
+      values (fy._league(), c.payload->>'type_key', leader.id, 'claim ' || c.id) returning id into v_event;
+      insert into fy.score_entry (league_id, event_id, member_id, points, reason)
+      values (fy._league(), v_event, c.member_id, (c.payload->>'points')::int, 'claim');
+    else
+      insert into fy.iou (league_id, payer_id, payee_id, amount)
+      values (fy._league(), (c.payload->>'payer_id')::uuid, (c.payload->>'payee_id')::uuid, (c.payload->>'amount')::int);
+    end if;
+  end if;
+  update fy.claim set state = case when p_approve then 'approved' else 'rejected' end,
+                      decided_by = leader.id, decided_at = now() where id = p_claim;
+end $$;
+
+create or replace function fy.set_league(p_public_badges boolean, p_auto_confirm_days int) returns void
+language plpgsql security definer set search_path = fy, public as $$
+begin
+  perform fy._require_leader();
+  update fy.league set public_badges = coalesce(p_public_badges, public_badges),
+                      auto_confirm_days = coalesce(p_auto_confirm_days, auto_confirm_days)
+  where id = fy._league();
+end $$;
+
+create or replace function fy.set_weight(p_key text, p_weight numeric) returns void
+language plpgsql security definer set search_path = fy, public as $$
+begin
+  perform fy._require_leader();
+  update fy.event_type set overall_weight = p_weight where league_id = fy._league() and key = p_key;
+end $$;
+
+create or replace function fy.auto_confirm_ious() returns int
+language plpgsql security definer set search_path = fy, public as $$
+declare n int;
+begin
+  update fy.iou i set state = 'confirmed', state_changed_at = now()
+  from fy.league l
+  where i.league_id = l.id and i.state = 'marked_paid'
+    and i.state_changed_at < now() - make_interval(days => l.auto_confirm_days);
+  get diagnostics n = row_count;
+  return n;
+end $$;
+
+create or replace function fy.my_ious() returns setof fy.iou
+language sql stable security definer set search_path = fy, public as $$
+  select i.* from fy.iou i join fy.member m on m.user_id = auth.uid()
+  where i.payer_id = m.id or i.payee_id = m.id or m.role = 'leader'
+  order by i.created_at desc;
+$$;
+
+-- Expose RPCs. PostgREST only sees functions in exposed schemas; RAY adds fy to
+-- API → Exposed schemas in the dashboard (Task 6).
+grant execute on function fy.me, fy.is_leader, fy.is_member, fy.claim_profile, fy.iou_transition, fy.raise_claim, fy.my_ious to authenticated;
+grant execute on function fy.create_member, fy.issue_claim_link, fy.record_poker_result, fy.void_event, fy.netting, fy.recent_events,
+  fy.settle_pair, fy.decide_claim, fy.set_league, fy.set_weight to authenticated;
+revoke all on function fy.auto_confirm_ious from public;
+
+-- Nightly auto-confirm at 00:10 UTC. pg_cron upserts by job name, so this is re-runnable.
+select cron.schedule('fy_auto_confirm', '10 0 * * *', $$select fy.auto_confirm_ious()$$);
