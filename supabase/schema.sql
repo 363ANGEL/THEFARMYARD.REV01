@@ -108,3 +108,51 @@ select l.id, v.key, v.label, v.w from fy.league l,
   (values ('poker','Poker',1), ('chess','Chess',1), ('super6','Super 6',0)) as v(key,label,w)
 where l.slug = 'farmyard'
 on conflict do nothing;
+
+-- 2. Views -----------------------------------------------------------------
+create or replace view fy.v_members_public as
+  select id, league_id, nickname, avatar from fy.member;
+
+-- Every score_entry has an event (decide_claim creates one for approved points claims),
+-- so standings are a sum over events of each type.
+create or replace view fy.v_standings as
+  select m.league_id, t.key as type_key, m.id as member_id, m.nickname, m.avatar,
+         coalesce((
+           select sum(s.points) from fy.score_entry s
+           join fy.event e on e.id = s.event_id
+           where s.member_id = m.id and e.type_key = t.key and e.league_id = m.league_id
+         ), 0)::int as points
+  from fy.member m
+  join fy.event_type t on t.league_id = m.league_id;
+
+create or replace view fy.v_overall as
+  select s.league_id, s.member_id, s.nickname, s.avatar,
+         sum(s.points * t.overall_weight)::numeric(10,2) as points
+  from fy.v_standings s
+  join fy.event_type t on t.league_id = s.league_id and t.key = s.type_key
+  group by s.league_id, s.member_id, s.nickname, s.avatar;
+
+-- Live IOU = still counts against the payer.
+create or replace view fy.v_live_iou as
+  select * from fy.iou where state in ('open','marked_paid','disputed');
+
+create or replace view fy.v_badges as
+  select m.league_id, m.id as member_id,
+         coalesce((select sum(amount) from fy.v_live_iou i where i.payer_id = m.id), 0)::int as owes,
+         coalesce((select sum(amount) from fy.v_live_iou i where i.payee_id = m.id), 0)::int as owed
+  from fy.member m
+  join fy.league l on l.id = m.league_id
+  where l.public_badges;
+
+create or replace view fy.v_netting as
+  select league_id,
+         least(payer_id, payee_id) as member_a,
+         greatest(payer_id, payee_id) as member_b,
+         sum(case when payer_id < payee_id then amount else -amount end)::int as net
+  from fy.v_live_iou
+  group by league_id, least(payer_id, payee_id), greatest(payer_id, payee_id);
+-- net > 0 means member_a owes member_b that many buy-ins; net < 0 the other way.
+
+grant select on fy.v_members_public, fy.v_standings, fy.v_overall, fy.v_badges to anon, authenticated;
+-- v_netting and v_live_iou are deliberately NOT granted: views run as their owner and would
+-- bypass the iou row-level security. The leader reads netting through fy.netting() (Task 4).
