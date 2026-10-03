@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · Claim your profile</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header id="fy-header"></header>
+<main class="wrap stack">
+  <h1>Claim your profile</h1>
+  <div class="card stack" id="box"><p class="muted">Checking your link…</p></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script>
+<script>
+(async function () {
+  const box = document.getElementById('box');
+  // The token rides in the URL through the whole OAuth round trip (Discord's in-app browser may
+  // hand off to another browser, so storage cannot be relied on). sessionStorage is a fallback only.
+  let token = new URLSearchParams(location.search).get('t');
+  if (!token) { try { token = sessionStorage.getItem('fy_claim_token'); } catch (e) {} }
+  if (!FY.wired) { box.innerHTML = '<p class="muted">Not wired to the database yet.</p>'; return; }
+  if (!token || !/^[0-9a-f]{32}$/.test(token)) { box.innerHTML = '<p>No claim link here. Ask RAY for yours.</p>'; return; }
+  try { sessionStorage.setItem('fy_claim_token', token); } catch (e) {}
+  const session = await FY.session();
+  if (!session) {
+    box.innerHTML = `<p>Sign in with Discord to claim the profile RAY made for you.</p><p><button class="pink" id="go">Sign in with Discord</button></p>`;
+    document.getElementById('go').addEventListener('click', () => FY.signIn(`${FY_CONFIG.SITE_URL}/claim.html?t=${token}`));
+    return;
+  }
+  try {
+    const id = await FY.rpc('claim_profile', { p_token: token });
+    try { sessionStorage.removeItem('fy_claim_token'); } catch (e) {}
+    const { data: m } = await FY.q('member').select('nickname,avatar').eq('id', id).single();
+    box.innerHTML = `<p>${FY.avatar(m.avatar)} You are <strong>${FY.esc(m.nickname)}</strong>. Welcome to the Farmyard.</p><p><a class="btn pink" href="profile.html">Go to your profile</a></p>`;
+  } catch (e) {
+    const msg = /already claimed/.test(e.message) ? 'This Discord account already has a profile. <a href="profile.html">Open it</a>.'
+      : 'This link has been used. Ask RAY for a new one.';
+    box.innerHTML = `<p>${msg}</p>`;
+  }
+})();
+</script>
+</body>
+</html>
