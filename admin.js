@@ -38,5 +38,41 @@
     }));
   };
 
+  A.sections.result = async () => {
+    const el = document.getElementById('result'); const ms = await A.members();
+    el.innerHTML = `<h2>Enter a poker night</h2>
+      <form id="night" class="stack">
+        <div class="field"><label for="played">Played</label><input id="played" type="date" value="${new Date().toISOString().slice(0,10)}" required></div>
+        <div class="tablewrap"><table class="table"><thead><tr><th>Played?</th><th>Member</th><th>Buy-ins</th><th>Winner</th></tr></thead><tbody>
+        ${ms.map(m => `<tr><td><input type="checkbox" class="pl" value="${m.id}" id="pl-${m.id}"></td><td><label for="pl-${m.id}">${FY.avatar(m.avatar)}${FY.esc(m.nickname)}</label></td>
+          <td><input type="number" class="bi" data-id="${m.id}" min="1" value="1" style="width:5em"></td><td><input type="radio" name="winner" value="${m.id}"></td></tr>`).join('')}
+        </tbody></table></div>
+        <div class="field"><label for="note">Note</label><input id="note" maxlength="120" placeholder="optional"></div>
+        <button class="pink">Record night</button>
+      </form><p class="muted">Winner takes all. Points = buy-ins collected. Each loser gets an IOU to the winner for their buy-ins.</p>
+      <h3>Recent nights</h3><div id="recent" class="stack"></div>`;
+    const recent = await FY.rpc('recent_events', { p_limit: 8 });
+    el.querySelector('#recent').innerHTML = recent.length ? recent.map(e => `<div class="row card"><span>${new Date(e.played_at).toLocaleDateString('en-GB')} · ${FY.esc(e.type_key)}${e.note ? ' · ' + FY.esc(e.note) : ''}${e.voided_at ? ' · <strong>voided</strong>' : ''}</span>
+      ${e.voided_at ? '' : `<button class="ghost" data-void="${e.id}">Void</button>`}</div>`).join('') : '<p class="muted">No nights yet.</p>';
+    el.querySelectorAll('button[data-void]').forEach(b => b.addEventListener('click', async () => {
+      // No confirm() in some viewers: two taps within 5 seconds.
+      if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = 'Tap again to void'; setTimeout(() => { b.dataset.armed = ''; b.textContent = 'Void'; }, 5000); return; }
+      b.disabled = true;
+      try { await FY.rpc('void_event', { p_event: b.dataset.void, p_note: 'voided by RAY' }); FY.toast('Night voided. Points reversed, IOUs closed.'); await A.reload(); }
+      catch (e) { FY.toast(e.message); b.disabled = false; }
+    }));
+    el.querySelector('#night').addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const players = [...el.querySelectorAll('.pl:checked')].map(c => ({ member_id: c.value, buy_ins: Number(el.querySelector(`.bi[data-id="${c.value}"]`).value) }));
+      const winner = el.querySelector('input[name=winner]:checked')?.value;
+      if (players.length < 2) return FY.toast('Tick at least two players.');
+      if (!winner || !players.some(p => p.member_id === winner)) return FY.toast('Pick the winner from the players.');
+      try {
+        await FY.rpc('record_poker_result', { p_players: players, p_winner: winner, p_played_at: new Date(el.querySelector('#played').value).toISOString(), p_note: el.querySelector('#note').value || null });
+        FY.toast(`Recorded. ${players.reduce((s, p) => s + p.buy_ins, 0)} points to the winner.`); await A.reload();
+      } catch (e) { FY.toast(e.message); }
+    });
+  };
+
   await A.reload();
 })().catch(e => { if (e.message !== 'not leader') FY.toast(e.message); });
