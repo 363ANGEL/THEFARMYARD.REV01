@@ -31,7 +31,7 @@
     el.querySelectorAll('button[data-link]').forEach(b => b.addEventListener('click', async () => {
       try {
         const tok = await FY.rpc('issue_claim_link', { p_member_id: b.dataset.link });
-        const url = `${FY_CONFIG.SITE_URL}/claim.html?t=${tok}`;
+        const url = `${location.origin}/claim.html?t=${tok}`;
         const box = el.querySelector('#linkbox'); box.hidden = false; el.querySelector('#linkout').value = url;
         el.querySelector('#copylink').onclick = () => navigator.clipboard.writeText(url).then(() => FY.toast('Copied.'), () => { el.querySelector('#linkout').select(); });
       } catch (e) { FY.toast(e.message); }
@@ -39,4 +39,4 @@
   };
 
   await A.reload();
-})();
+})().catch(e => { if (e.message !== 'not leader') FY.toast(e.message); });

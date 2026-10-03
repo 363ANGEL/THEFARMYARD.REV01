@@ -27,19 +27,22 @@
   const session = await FY.session();
   if (!session) {
     box.innerHTML = `<p>Sign in with Discord to claim the profile RAY made for you.</p><p><button class="pink" id="go">Sign in with Discord</button></p>`;
-    document.getElementById('go').addEventListener('click', () => FY.signIn(`${FY_CONFIG.SITE_URL}/claim.html?t=${token}`));
+    document.getElementById('go').addEventListener('click', () => FY.signIn(`${location.origin}${location.pathname}?t=${token}`));
     return;
   }
+  let id;
   try {
-    const id = await FY.rpc('claim_profile', { p_token: token });
-    try { sessionStorage.removeItem('fy_claim_token'); } catch (e) {}
-    const { data: m } = await FY.q('member').select('nickname,avatar').eq('id', id).single();
-    box.innerHTML = `<p>${FY.avatar(m.avatar)} You are <strong>${FY.esc(m.nickname)}</strong>. Welcome to the Farmyard.</p><p><a class="btn pink" href="profile.html">Go to your profile</a></p>`;
+    id = await FY.rpc('claim_profile', { p_token: token });
   } catch (e) {
-    const msg = /already claimed/.test(e.message) ? 'This Discord account already has a profile. <a href="profile.html">Open it</a>.'
-      : 'This link has been used. Ask RAY for a new one.';
-    box.innerHTML = `<p>${msg}</p>`;
+    if (/already claimed/.test(e.message)) box.innerHTML = '<p>This Discord account already has a profile. <a href="profile.html">Open it</a>.</p>';
+    else if (/link used|unknown/.test(e.message)) box.innerHTML = '<p>This link has been used. Ask RAY for a new one.</p>';
+    else { FY.toast(e.message); box.innerHTML = `<p>Something went wrong: ${FY.esc(e.message)}. Try again, or ask RAY.</p>`; }
+    return;
   }
+  try { sessionStorage.removeItem('fy_claim_token'); } catch (e) {}
+  const { data: m, error } = await FY.q('member').select('nickname,avatar').eq('id', id).single();
+  if (error || !m) { box.innerHTML = '<p>You are claimed in. <a class="btn pink" href="profile.html">Go to your profile</a></p>'; return; }
+  box.innerHTML = `<p>${FY.avatar(m.avatar)} You are <strong>${FY.esc(m.nickname)}</strong>. Welcome to the Farmyard.</p><p><a class="btn pink" href="profile.html">Go to your profile</a></p>`;
 })();
 </script>
 </body>

@@ -31,7 +31,7 @@
     },
     q(table) { return sb.from(table); },
     avatar(key) {
-      const k = /^[a-z]+$/.test(key || '') ? key : 'hen';
+      const k = ['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].includes(key) ? key : 'hen';
       return `<img class="avatar" src="assets/avatars/${k}.svg" alt="${k}" width="48" height="48">`;
     },
     fmt(n) { return `<span class="num">${Number(n)}</span>`; },
@@ -42,7 +42,7 @@
       clearTimeout(FY._tt); FY._tt = setTimeout(() => { t.hidden = true; }, 4000);
     },
     async requireLeader() {
-      const ok = wired && await FY.rpc('is_leader');
+      let ok = false; try { ok = wired && await FY.rpc('is_leader'); } catch (e) { ok = false; }
       if (!ok) { document.body.innerHTML = '<main class="wrap"><h1>Leader only</h1><p>Sign in as RAY to use this page.</p><p><a href="tables.html">Back to the tables</a></p></main>'; throw new Error('not leader'); }
     },
     esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }

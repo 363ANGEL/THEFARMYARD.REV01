@@ -163,7 +163,8 @@ grant select on fy.v_members_public, fy.v_standings, fy.v_overall, fy.v_badges t
 
 create or replace function fy.me() returns fy.member
 language sql stable security definer set search_path = fy, public as $$
-  select * from fy.member where user_id = auth.uid() limit 1;
+  select id, league_id, nickname, avatar, user_id, null::text, role, chesscom_username, created_at
+  from fy.member where user_id = auth.uid() limit 1;
 $$;
 
 create or replace function fy.is_leader() returns boolean
@@ -412,6 +413,7 @@ $$;
 -- Expose RPCs. PostgREST only sees functions in exposed schemas; RAY adds fy to
 -- API → Exposed schemas in the dashboard (Task 6).
 grant execute on function fy.me, fy.is_leader, fy.is_member, fy.claim_profile, fy.iou_transition, fy.raise_claim, fy.my_ious to authenticated;
+grant execute on function fy.is_leader, fy.is_member, fy.me to anon;
 grant execute on function fy.create_member, fy.issue_claim_link, fy.record_poker_result, fy.void_event, fy.netting, fy.recent_events,
   fy.settle_pair, fy.decide_claim, fy.set_league, fy.set_weight to authenticated;
 revoke all on function fy.auto_confirm_ious from public;
