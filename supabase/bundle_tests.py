@@ -11,6 +11,7 @@ bundle = "\n".join([
     schema,
     tests,
     "rollback;",
+    "select 'ALL TESTS PASSED' as result;",
     "",
 ])
 (here / "test.bundle.sql").write_text(bundle, encoding="utf-8")

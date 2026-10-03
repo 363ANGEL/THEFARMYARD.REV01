@@ -18,7 +18,7 @@ create table if not exists fy.member (
   league_id uuid not null references fy.league(id),
   nickname text not null,
   avatar text not null default 'hen',
-  user_id uuid unique references auth.users(id),
+  user_id uuid unique references auth.users(id) on delete set null,
   discord_id text,
   role text not null default 'member' check (role in ('leader','member')),
   chesscom_username text,
@@ -29,6 +29,7 @@ create table if not exists fy.member (
 -- Claim tokens live apart from member so no page can ever read them.
 create table if not exists fy.claim_link (
   token text primary key default replace(gen_random_uuid()::text, '-', ''),
+  league_id uuid not null references fy.league(id),
   member_id uuid not null references fy.member(id),
   created_at timestamptz not null default now(),
   used_at timestamptz
@@ -206,7 +207,10 @@ language plpgsql security definer set search_path = fy, public as $$
 declare v_token text;
 begin
   perform fy._require_leader();
-  insert into fy.claim_link (member_id) values (p_member_id) returning token into v_token;
+  insert into fy.claim_link (member_id, league_id)
+  select id, league_id from fy.member where id = p_member_id
+  returning token into v_token;
+  if v_token is null then raise exception 'unknown member' using errcode = 'P0002'; end if;
   return v_token;
 end $$;
 
@@ -269,6 +273,9 @@ begin
   if jsonb_typeof(p_players) <> 'array' or jsonb_array_length(p_players) < 2 then
     raise exception 'need at least two players';
   end if;
+  if (select count(distinct x->>'member_id') from jsonb_array_elements(p_players) x) <> jsonb_array_length(p_players) then
+    raise exception 'a player is listed twice';
+  end if;
   for p in select (x->>'member_id')::uuid as member_id, (x->>'buy_ins')::int as buy_ins
            from jsonb_array_elements(p_players) x loop
     if p.buy_ins is null or p.buy_ins <= 0 then raise exception 'buy-ins must be at least 1'; end if;
@@ -318,9 +325,14 @@ end $$;
 
 create or replace function fy.settle_pair(p_a uuid, p_b uuid) returns uuid
 language plpgsql security definer set search_path = fy, public as $$
-declare leader fy.member; v_id uuid;
+declare leader fy.member; v_id uuid; n int;
 begin
   leader := fy._require_leader();
+  if p_a = p_b then raise exception 'pick two different members'; end if;
+  select count(*) into n from fy.iou
+  where state in ('open','marked_paid','disputed')
+    and ((payer_id = p_a and payee_id = p_b) or (payer_id = p_b and payee_id = p_a));
+  if n = 0 then raise exception 'nothing to square'; end if;
   insert into fy.settlement (league_id, member_a, member_b, recorded_by)
   values (fy._league(), p_a, p_b, leader.id) returning id into v_id;
   update fy.iou set state = 'settled', settlement_id = v_id, state_changed_at = now()
@@ -335,7 +347,7 @@ declare me fy.member; v_id uuid;
 begin
   select * into me from fy.member where user_id = auth.uid();
   if me.id is null then raise exception 'sign in first' using errcode = '42501'; end if;
-  if p_payload->>'type' not in ('points','iou') then raise exception 'claim type must be points or iou'; end if;
+  if coalesce(p_payload->>'type', '') not in ('points','iou') then raise exception 'claim type must be points or iou'; end if;
   insert into fy.claim (league_id, member_id, payload) values (fy._league(), me.id, p_payload) returning id into v_id;
   return v_id;
 end $$;
@@ -418,8 +430,13 @@ alter table fy.iou enable row level security;
 alter table fy.settlement enable row level security;
 alter table fy.claim enable row level security;
 
-grant select on fy.league, fy.event_type, fy.event, fy.score_entry to anon, authenticated;
-grant select on fy.member, fy.iou, fy.settlement, fy.claim to authenticated;
+-- Anon reads the league, event types and the views only; raw events and scores are for members.
+grant select on fy.league, fy.event_type to anon, authenticated;
+revoke select on fy.event, fy.score_entry from anon;
+grant select on fy.event, fy.score_entry to authenticated;
+grant select on fy.iou, fy.settlement, fy.claim to authenticated;
+-- Column-level: every member column except discord_id, which only the leader's SQL editor sees.
+grant select (id, league_id, nickname, avatar, user_id, role, chesscom_username, created_at) on fy.member to authenticated;
 grant update (nickname, avatar, chesscom_username) on fy.member to authenticated;
 
 drop policy if exists league_read on fy.league;

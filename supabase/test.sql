@@ -33,6 +33,7 @@ $$;
 
 do $$
 declare ray uuid; sock uuid; pants uuid; tok text; tok2 text; ev uuid; n int; i fy.iou; d text;
+        cp uuid; iou1 uuid; iou2 uuid; st text; r int;
 begin
   select id into ray from fy.member where nickname = 'RAY';
 
@@ -79,7 +80,8 @@ begin
 
   -- Review focus 3: claim link works once, then never, for anyone.
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
-  assert fy.claim_profile(tok) = sock, 'Sock claims Sock';
+  cp := fy.claim_profile(tok);
+  assert cp = sock, 'Sock claims Sock';
   perform pg_temp.as_owner();
   select discord_id into d from fy.member where id = sock; assert d = '222', 'Discord id from auth.identities, got ' || coalesce(d, 'null');
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');  -- a stranger with the same link
@@ -97,7 +99,8 @@ begin
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
   tok2 := fy.issue_claim_link(pants);
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
-  assert fy.claim_profile(tok2) = pants, 'stranger becomes Pants via a fresh link';
+  cp := fy.claim_profile(tok2);
+  assert cp = pants, 'stranger becomes Pants via a fresh link';
 
   -- Review focus 4: wrong actor on an IOU.
   perform pg_temp.as_owner();
@@ -153,7 +156,8 @@ begin
   perform fy.iou_transition(i.id, 'marked_paid');
   perform pg_temp.as_owner();
   update fy.iou set state_changed_at = now() - interval '15 days' where id = i.id;
-  assert fy.auto_confirm_ious() = 1, 'one row auto-confirmed';
+  n := fy.auto_confirm_ious();
+  assert n = 1, 'one row auto-confirmed, got ' || n;
 
   -- Claims: points claim lands as a score entry on approval.
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
@@ -177,6 +181,126 @@ begin
   assert d::int = 0, 'Pants back to 0 after void';
   select count(*) into n from fy.iou where event_id = ev and state = 'settled'; assert n = 1, 'voided night IOU closed';
   select count(*) into n from fy.event where id = ev and voided_at is not null; assert n = 1, 'event stamped voided';
+
+  -- ===== Fix round 1 additions =====
+
+  -- Payee path by a NON-leader: Pants (user 3, claimed) wins, Sock (user 2) loses and pays.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  ev := fy.record_poker_result(jsonb_build_array(jsonb_build_object('member_id', pants, 'buy_ins', 1),
+                                                 jsonb_build_object('member_id', sock, 'buy_ins', 2)), pants);
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  select id into iou1 from fy.my_ious() where event_id = ev;
+  perform fy.iou_transition(iou1, 'marked_paid');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');  -- Pants, the payee, not a leader
+  perform fy.iou_transition(iou1, 'confirmed');
+  perform pg_temp.as_owner();
+  select state into st from fy.iou where id = iou1; assert st = 'confirmed', 'payee confirms, got ' || st;
+
+  -- Dispute path: payee disputes, then the leader rules it back to open.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  ev := fy.record_poker_result(jsonb_build_array(jsonb_build_object('member_id', pants, 'buy_ins', 1),
+                                                 jsonb_build_object('member_id', sock, 'buy_ins', 1)), pants);
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  select id into iou2 from fy.my_ious() where event_id = ev;
+  perform fy.iou_transition(iou2, 'marked_paid');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  perform fy.iou_transition(iou2, 'disputed');
+  perform pg_temp.as_owner();
+  select state into st from fy.iou where id = iou2; assert st = 'disputed', 'payee disputes, got ' || st;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  perform fy.iou_transition(iou2, 'open');
+  perform pg_temp.as_owner();
+  select state into st from fy.iou where id = iou2; assert st = 'open', 'leader rules open, got ' || st;
+
+  -- A non-leader (Sock) cannot use any leader function.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  begin
+    perform fy.record_poker_result(jsonb_build_array(jsonb_build_object('member_id', sock, 'buy_ins', 1),
+                                                     jsonb_build_object('member_id', pants, 'buy_ins', 1)), sock);
+    raise exception 'should have failed: non-leader record_poker_result';
+  exception when others then
+    if sqlerrm <> 'not allowed' then raise; end if;
+  end;
+  begin
+    perform fy.void_event(ev, 'nope');
+    raise exception 'should have failed: non-leader void_event';
+  exception when others then
+    if sqlerrm <> 'not allowed' then raise; end if;
+  end;
+  begin
+    perform fy.settle_pair(sock, pants);
+    raise exception 'should have failed: non-leader settle_pair';
+  exception when others then
+    if sqlerrm <> 'not allowed' then raise; end if;
+  end;
+  cp := fy.raise_claim('{"type":"points","type_key":"poker","points":1,"note":"try"}');
+  begin
+    perform fy.decide_claim(cp, true);
+    raise exception 'should have failed: non-leader decide_claim';
+  exception when others then
+    if sqlerrm <> 'not allowed' then raise; end if;
+  end;
+  begin
+    perform fy.raise_claim('{"points":1}');
+    raise exception 'should have failed: claim with no type';
+  exception when others then
+    if sqlerrm not like 'claim type must be%' then raise; end if;
+  end;
+
+  -- Sock cannot promote themselves (role is not in the column-level update grant).
+  begin
+    update fy.member set role = 'leader' where id = sock;
+    raise exception 'should have failed: self-promotion';
+  exception when insufficient_privilege then null; end;
+
+  -- discord_id is hidden from members; other columns still read fine.
+  begin
+    select discord_id into d from fy.member limit 1;
+    raise exception 'should have failed: discord_id readable';
+  exception when insufficient_privilege then null; end;
+  select nickname into d from fy.member where id = sock; assert d = 'The Sock', 'members can read nicknames';
+
+  -- Anon cannot read raw scores or events; the standings view still works.
+  perform pg_temp.as_anon();
+  begin
+    select count(*) into n from fy.score_entry;
+    raise exception 'should have failed: anon reads score_entry';
+  exception when insufficient_privilege then null; end;
+  begin
+    select count(*) into n from fy.event;
+    raise exception 'should have failed: anon reads event';
+  exception when insufficient_privilege then null; end;
+  select count(*) into n from fy.v_standings where type_key = 'poker'; assert n = 3, 'anon still reads standings';
+
+  -- Leader-side guards: duplicate player, unknown member for a claim link, bad settle_pair.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  select count(*) into r from fy.event;
+  begin
+    perform fy.record_poker_result(jsonb_build_array(jsonb_build_object('member_id', ray, 'buy_ins', 1),
+                                                     jsonb_build_object('member_id', ray, 'buy_ins', 1)), ray);
+    raise exception 'should have failed: duplicate player';
+  exception when others then
+    if sqlerrm not like 'a player is listed twice%' then raise; end if;
+  end;
+  select count(*) into n from fy.event; assert n = r, 'duplicate-player night must not create an event';
+  begin
+    perform fy.issue_claim_link(gen_random_uuid());
+    raise exception 'should have failed: unknown member link';
+  exception when others then
+    if sqlerrm not like 'unknown member%' then raise; end if;
+  end;
+  begin
+    perform fy.settle_pair(ray, ray);
+    raise exception 'should have failed: settle a member with themselves';
+  exception when others then
+    if sqlerrm not like 'pick two different%' then raise; end if;
+  end;
+  begin
+    perform fy.settle_pair(pants, ray);  -- already settled earlier, nothing live left
+    raise exception 'should have failed: nothing to square';
+  exception when others then
+    if sqlerrm not like 'nothing to square%' then raise; end if;
+  end;
 
   raise notice 'ALL TESTS PASSED';
 end $$;
