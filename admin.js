@@ -89,5 +89,36 @@
     }));
   };
 
+  A.sections.settle = async () => {
+    const el = document.getElementById('settle'); const ms = await A.members(); const name = id => FY.esc(ms.find(m => m.id === id)?.nickname || '?');
+    const net = (await FY.rpc('netting')).filter(n => n.net !== 0);
+    el.innerHTML = `<h2>Square up</h2><p class="muted">Net position between each pair. Squaring up closes every live IOU between them.</p>
+      ${net.length ? net.map(n => { const [a, b] = n.net > 0 ? [n.member_a, n.member_b] : [n.member_b, n.member_a];
+        return `<div class="row card"><span>${name(a)} owes ${name(b)} <strong class="num">${Math.abs(n.net)}</strong> net</span><button class="teal" data-a="${a}" data-b="${b}">Squared up</button></div>`; }).join('')
+      : '<p class="muted">Everyone is square.</p>'}`;
+    el.querySelectorAll('button[data-a]').forEach(b => b.addEventListener('click', async () => {
+      b.disabled = true;
+      try { await FY.rpc('settle_pair', { p_a: b.dataset.a, p_b: b.dataset.b }); FY.toast('Squared. Their IOUs are closed.'); await A.reload(); }
+      catch (e) { FY.toast(e.message); b.disabled = false; }
+    }));
+  };
+
+  A.sections.settings = async () => {
+    const el = document.getElementById('settings');
+    const league = (await FY.q('league').select('*').single()).data;
+    const types = (await FY.q('event_type').select('key,label,overall_weight').order('key')).data || [];
+    el.innerHTML = `<h2>Settings</h2>
+      <div class="row"><label><input type="checkbox" id="pb" ${league.public_badges ? 'checked' : ''}> Show owes / owed badges on the tables</label></div>
+      <div class="row"><label for="acd">Auto-confirm after</label><input id="acd" type="number" min="1" max="60" value="${league.auto_confirm_days}" style="width:5em"><span>days</span><button class="teal" id="saveleague">Save</button></div>
+      <h3>Overall table weights</h3>
+      ${types.map(t => `<div class="row"><span style="min-width:7em">${FY.esc(t.label)}</span><input type="number" step="0.5" min="0" value="${t.overall_weight}" data-w="${t.key}" style="width:5em"><button class="ghost" data-savew="${t.key}">Save</button></div>`).join('')}`;
+    el.querySelector('#saveleague').addEventListener('click', async () => {
+      try { await FY.rpc('set_league', { p_public_badges: el.querySelector('#pb').checked, p_auto_confirm_days: Number(el.querySelector('#acd').value) }); FY.toast('Saved.'); } catch (e) { FY.toast(e.message); }
+    });
+    el.querySelectorAll('button[data-savew]').forEach(b => b.addEventListener('click', async () => {
+      try { await FY.rpc('set_weight', { p_key: b.dataset.savew, p_weight: Number(el.querySelector(`input[data-w="${b.dataset.savew}"]`).value) }); FY.toast('Saved.'); } catch (e) { FY.toast(e.message); }
+    }));
+  };
+
   await A.reload();
 })().catch(e => { if (e.message !== 'not leader') FY.toast(e.message); });
