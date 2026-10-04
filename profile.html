@@ -61,7 +61,7 @@
 
     main.querySelectorAll('button[data-t]').forEach(b => b.addEventListener('click', async () => {
       // Only "Confirm" is irreversible: two taps within 5 seconds.
-      if (b.dataset.t === 'confirmed' && b.dataset.armed !== '1') { const was = b.textContent; b.dataset.armed = '1'; b.textContent = 'Sure?'; setTimeout(() => { b.dataset.armed = ''; b.textContent = was; }, 5000); return; }
+      if (b.dataset.t === 'confirmed' && b.dataset.armed !== '1') { const was = b.textContent; b.dataset.armed = '1'; b.textContent = 'Tap again to confirm'; setTimeout(() => { b.dataset.armed = ''; b.textContent = was; }, 5000); return; }
       b.disabled = true;
       try { await FY.rpc('iou_transition', { p_iou: b.dataset.id, p_to: b.dataset.t }); FY.toast({ marked_paid: 'Marked paid. Waiting for their tick.', confirmed: 'Confirmed. Squared.', disputed: 'Disputed. RAY will sort it.' }[b.dataset.t]); await render(); }
       catch (e) { FY.toast(e.message); b.disabled = false; }

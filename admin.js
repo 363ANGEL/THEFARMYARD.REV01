@@ -102,7 +102,7 @@
       <button class="pink" data-d="${i.id}" data-to="confirmed">Rule paid</button><button class="ghost" data-d="${i.id}" data-to="open">Rule unpaid</button></div>`).join('') : '<p class="muted">No disputes.</p>'}`;
     el.querySelectorAll('button[data-d]').forEach(b => b.addEventListener('click', async () => {
       // Only "Rule paid" is irreversible: two taps within 5 seconds.
-      if (b.dataset.to === 'confirmed' && b.dataset.armed !== '1') { const was = b.textContent; b.dataset.armed = '1'; b.textContent = 'Sure?'; setTimeout(() => { b.dataset.armed = ''; b.textContent = was; }, 5000); return; }
+      if (b.dataset.to === 'confirmed' && b.dataset.armed !== '1') { const was = b.textContent; b.dataset.armed = '1'; b.textContent = 'Tap again to rule paid'; setTimeout(() => { b.dataset.armed = ''; b.textContent = was; }, 5000); return; }
       b.disabled = true;
       try { await FY.rpc('iou_transition', { p_iou: b.dataset.d, p_to: b.dataset.to }); FY.toast(b.dataset.to === 'confirmed' ? 'Ruled paid.' : 'Ruled unpaid. Back to open.'); await A.reload(); }
       catch (e) { FY.toast(e.message); b.disabled = false; }
@@ -119,7 +119,7 @@
       : '<p class="muted">Everyone is square.</p>'}`;
     el.querySelectorAll('button[data-a]').forEach(b => b.addEventListener('click', async () => {
       // Squaring up closes every live IOU and can't be undone: two taps within 5 seconds.
-      if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = 'Sure?'; setTimeout(() => { b.dataset.armed = ''; b.textContent = 'Squared up'; }, 5000); return; }
+      if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = 'Tap again to square up'; setTimeout(() => { b.dataset.armed = ''; b.textContent = 'Squared up'; }, 5000); return; }
       b.disabled = true;
       try { await FY.rpc('settle_pair', { p_a: b.dataset.a, p_b: b.dataset.b }); FY.toast('Squared. Their IOUs are closed.'); await A.reload(); }
       catch (e) { FY.toast(e.message); b.disabled = false; }
