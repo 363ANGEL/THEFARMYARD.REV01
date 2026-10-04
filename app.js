@@ -21,7 +21,7 @@
       return data && data.id ? data : null;
     },
     signIn(redirectTo) {
-      return sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: redirectTo || location.href } });
+      return sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: redirectTo || location.href.split('#')[0] } });
     },
     async signOut() { await sb.auth.signOut(); location.reload(); },
     async rpc(name, args) {

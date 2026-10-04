@@ -16,7 +16,7 @@ create table if not exists fy.league (
 create table if not exists fy.member (
   id uuid primary key default gen_random_uuid(),
   league_id uuid not null references fy.league(id),
-  nickname text not null,
+  nickname text not null check (char_length(btrim(nickname)) between 1 and 24),
   avatar text not null default 'hen',
   user_id uuid unique references auth.users(id) on delete set null,
   discord_id text,
@@ -25,6 +25,13 @@ create table if not exists fy.member (
   created_at timestamptz not null default now(),
   unique (league_id, nickname)
 );
+
+-- Re-run safety: "create table if not exists" skips an existing table, so add the nickname check there too.
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'member_nickname_check' and conrelid = 'fy.member'::regclass) then
+    alter table fy.member add constraint member_nickname_check check (char_length(btrim(nickname)) between 1 and 24);
+  end if;
+end $$;
 
 -- Claim tokens live apart from member so no page can ever read them.
 create table if not exists fy.claim_link (
@@ -198,7 +205,7 @@ language plpgsql security definer set search_path = fy, public as $$
 declare v_id uuid;
 begin
   perform fy._require_leader();
-  insert into fy.member (league_id, nickname, avatar) values (fy._league(), p_nickname, coalesce(p_avatar,'hen'))
+  insert into fy.member (league_id, nickname, avatar) values (fy._league(), btrim(p_nickname), coalesce(p_avatar,'hen'))
   returning id into v_id;
   return v_id;
 end $$;
@@ -208,6 +215,8 @@ language plpgsql security definer set search_path = fy, public as $$
 declare v_token text;
 begin
   perform fy._require_leader();
+  -- A new link burns any older unused one for the same member.
+  update fy.claim_link set used_at = now() where member_id = p_member_id and used_at is null;
   insert into fy.claim_link (member_id, league_id)
   select id, league_id from fy.member where id = p_member_id
   returning token into v_token;
@@ -354,8 +363,8 @@ begin
   select * into me from fy.member where user_id = auth.uid();
   if me.id is null then raise exception 'sign in first' using errcode = '42501'; end if;
   if coalesce(p_payload->>'type', '') not in ('points','iou') then raise exception 'claim type must be points or iou'; end if;
-  if p_payload->>'type' = 'points' and coalesce(p_payload->>'points', '') !~ '^[0-9]{1,4}$' then raise exception 'points must be a whole number'; end if;
-  if p_payload->>'type' = 'iou' and coalesce(p_payload->>'amount', '') !~ '^[0-9]{1,4}$' then raise exception 'amount must be a whole number'; end if;
+  if p_payload->>'type' = 'points' and coalesce(p_payload->>'points', '') !~ '^[1-9][0-9]{0,3}$' then raise exception 'points must be a whole number, 1 to 9999'; end if;
+  if p_payload->>'type' = 'iou' and coalesce(p_payload->>'amount', '') !~ '^[1-9][0-9]{0,3}$' then raise exception 'amount must be a whole number, 1 to 9999'; end if;
   insert into fy.claim (league_id, member_id, payload) values (fy._league(), me.id, p_payload) returning id into v_id;
   return v_id;
 end $$;

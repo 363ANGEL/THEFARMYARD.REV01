@@ -60,6 +60,8 @@
       ${closed.length ? `<section class="stack"><h2 class="muted">Recent, closed</h2>${closed.map(i => `<p class="muted">${who(i.payer_id)} → ${who(i.payee_id)} ${i.amount} · ${label[i.state]}</p>`).join('')}</section>` : ''}`;
 
     main.querySelectorAll('button[data-t]').forEach(b => b.addEventListener('click', async () => {
+      // Only "Confirm" is irreversible: two taps within 5 seconds.
+      if (b.dataset.t === 'confirmed' && b.dataset.armed !== '1') { const was = b.textContent; b.dataset.armed = '1'; b.textContent = 'Sure?'; setTimeout(() => { b.dataset.armed = ''; b.textContent = was; }, 5000); return; }
       b.disabled = true;
       try { await FY.rpc('iou_transition', { p_iou: b.dataset.id, p_to: b.dataset.t }); FY.toast({ marked_paid: 'Marked paid. Waiting for their tick.', confirmed: 'Confirmed. Squared.', disputed: 'Disputed. RAY will sort it.' }[b.dataset.t]); await render(); }
       catch (e) { FY.toast(e.message); b.disabled = false; }
@@ -80,6 +82,7 @@
     });
     document.getElementById('edit').addEventListener('submit', async ev => {
       ev.preventDefault();
+      if (!document.getElementById('nick').value.trim()) return FY.toast("Nickname can't be blank");
       const { error } = await FY.q('member').update({ nickname: document.getElementById('nick').value.trim(), avatar: document.getElementById('av').value, chesscom_username: document.getElementById('cc').value.trim() || null }).eq('id', me.id);
       if (error) return FY.toast(error.message);
       Object.assign(me, { nickname: document.getElementById('nick').value.trim(), avatar: document.getElementById('av').value, chesscom_username: document.getElementById('cc').value.trim() || null });

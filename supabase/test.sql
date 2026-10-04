@@ -33,7 +33,7 @@ $$;
 
 do $$
 declare ray uuid; sock uuid; pants uuid; tok text; tok2 text; ev uuid; n int; i fy.iou; d text;
-        cp uuid; iou1 uuid; iou2 uuid; st text; r int;
+        cp uuid; iou1 uuid; iou2 uuid; st text; r int; spare uuid; ta text; tb text;
 begin
   select id into ray from fy.member where nickname = 'RAY';
 
@@ -350,6 +350,52 @@ begin
   perform pg_temp.as_owner();
   select count(*) into n from fy.member where nickname = 'Hacker'; assert n = 0, 'no Hacker member may exist';
   select count(*) into n from fy.score_entry where points = 99; assert n = 0, 'no 99-point score may exist';
+
+  -- ===== Final fix wave =====
+
+  -- A new claim link burns the old one. A fourth account with no profile tries both.
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+  values ('00000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'latecomer@test.local', '', '{"provider":"discord"}', '{}', now(), now());
+  insert into auth.identities (user_id, provider, provider_id, identity_data, last_sign_in_at, created_at, updated_at)
+  values ('00000000-0000-0000-0000-000000000004', 'discord', '444', '{"sub":"444"}', now(), now(), now());
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  spare := fy.create_member('Spare', 'cow');
+  ta := fy.issue_claim_link(spare);
+  tb := fy.issue_claim_link(spare);
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000004');
+  begin
+    perform fy.claim_profile(ta);
+    raise exception 'should have failed: old link after a new one was issued';
+  exception when others then
+    if sqlerrm not like 'link used%' then raise; end if;
+  end;
+  cp := fy.claim_profile(tb);
+  assert cp = spare, 'the newest link still works';
+
+  -- Claims refuse zero, for points and for IOU amounts.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  begin
+    perform fy.raise_claim('{"type":"points","type_key":"poker","points":0,"note":"nothing"}');
+    raise exception 'should have failed: zero-point claim';
+  exception when others then
+    if sqlerrm not like '%1 to 9999%' then raise; end if;
+  end;
+  begin
+    perform fy.raise_claim('{"type":"iou","payer_id":"00000000-0000-0000-0000-000000000002","payee_id":"00000000-0000-0000-0000-000000000003","amount":0,"note":"nothing"}');
+    raise exception 'should have failed: zero-amount claim';
+  exception when others then
+    if sqlerrm not like '%1 to 9999%' then raise; end if;
+  end;
+
+  -- A blank or whitespace nickname is refused by the database (check_violation, 23514); real ones are trimmed.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  begin
+    perform fy.create_member('   ', 'hen');
+    raise exception 'should have failed: blank nickname';
+  exception when check_violation then null; end;
+  perform fy.create_member('  Trimmed  ', 'goat');
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.member where nickname = 'Trimmed'; assert n = 1, 'nickname stored trimmed';
 
   raise notice 'ALL TESTS PASSED';
 end $$;
