@@ -279,6 +279,11 @@ begin
   if jsonb_typeof(p_players) <> 'array' or jsonb_array_length(p_players) < 2 then
     raise exception 'need at least two players';
   end if;
+  -- Checked before the duplicate count: count(distinct) skips nulls, so a missing member_id would be miscounted.
+  if exists (select 1 from jsonb_array_elements(p_players) x
+             where x->>'member_id' is null or x->>'buy_ins' is null) then
+    raise exception 'each player needs member_id and buy_ins';
+  end if;
   if (select count(distinct x->>'member_id') from jsonb_array_elements(p_players) x) <> jsonb_array_length(p_players) then
     raise exception 'a player is listed twice';
   end if;
@@ -445,6 +450,8 @@ revoke select on fy.event, fy.score_entry from anon;
 grant select on fy.event, fy.score_entry to authenticated;
 grant select on fy.iou, fy.settlement, fy.claim to authenticated;
 -- Column-level: every member column except discord_id, which only the leader's SQL editor sees.
+-- Revoke first: a re-run over an old table-wide grant must end with the column grant only.
+revoke select on fy.member from authenticated;
 grant select (id, league_id, nickname, avatar, user_id, role, chesscom_username, created_at) on fy.member to authenticated;
 grant update (nickname, avatar, chesscom_username) on fy.member to authenticated;
 
@@ -783,6 +790,55 @@ begin
   exception when others then
     if sqlerrm not like 'nothing to square%' then raise; end if;
   end;
+
+  -- ===== Task 18 hardening =====
+
+  -- A player entry with no member_id or no buy_ins is rejected with its own message (not "listed twice").
+  select count(*) into r from fy.event;
+  begin
+    perform fy.record_poker_result(jsonb_build_array(jsonb_build_object('member_id', ray, 'buy_ins', 1),
+                                                     jsonb_build_object('buy_ins', 1)), ray);
+    raise exception 'should have failed: player without member_id';
+  exception when others then
+    if sqlerrm <> 'each player needs member_id and buy_ins' then raise; end if;
+  end;
+  begin
+    perform fy.record_poker_result(jsonb_build_array(jsonb_build_object('member_id', ray, 'buy_ins', 1),
+                                                     jsonb_build_object('member_id', sock)), ray);
+    raise exception 'should have failed: player without buy_ins';
+  exception when others then
+    if sqlerrm <> 'each player needs member_id and buy_ins' then raise; end if;
+  end;
+  select count(*) into n from fy.event; assert n = r, 'malformed-player nights must not create an event';
+
+  -- Members cannot write tables directly, create members, or read claim tokens.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  begin
+    insert into fy.score_entry (league_id, member_id, points, reason) values (fy._league(), sock, 99, 'result');
+    raise exception 'member must not insert score_entry';
+  exception when insufficient_privilege then null; end;
+  begin
+    update fy.iou set state = 'confirmed';
+    raise exception 'member must not update iou directly';
+  exception when insufficient_privilege then null; end;
+  begin
+    perform fy.create_member('Hacker', 'goat');
+    raise exception 'member must not create members';
+  exception when others then
+    if sqlerrm <> 'not allowed' then raise; end if;
+  end;
+  begin
+    select count(*) into n from fy.claim_link;
+    raise exception 'claim_link must be unreadable by members';
+  exception when insufficient_privilege then null; end;
+  perform pg_temp.as_anon();
+  begin
+    select count(*) into n from fy.claim_link;
+    raise exception 'claim_link must be unreadable by anon';
+  exception when insufficient_privilege then null; end;
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.member where nickname = 'Hacker'; assert n = 0, 'no Hacker member may exist';
+  select count(*) into n from fy.score_entry where points = 99; assert n = 0, 'no 99-point score may exist';
 
   raise notice 'ALL TESTS PASSED';
 end $$;

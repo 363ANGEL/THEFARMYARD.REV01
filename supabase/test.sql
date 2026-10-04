@@ -302,5 +302,54 @@ begin
     if sqlerrm not like 'nothing to square%' then raise; end if;
   end;
 
+  -- ===== Task 18 hardening =====
+
+  -- A player entry with no member_id or no buy_ins is rejected with its own message (not "listed twice").
+  select count(*) into r from fy.event;
+  begin
+    perform fy.record_poker_result(jsonb_build_array(jsonb_build_object('member_id', ray, 'buy_ins', 1),
+                                                     jsonb_build_object('buy_ins', 1)), ray);
+    raise exception 'should have failed: player without member_id';
+  exception when others then
+    if sqlerrm <> 'each player needs member_id and buy_ins' then raise; end if;
+  end;
+  begin
+    perform fy.record_poker_result(jsonb_build_array(jsonb_build_object('member_id', ray, 'buy_ins', 1),
+                                                     jsonb_build_object('member_id', sock)), ray);
+    raise exception 'should have failed: player without buy_ins';
+  exception when others then
+    if sqlerrm <> 'each player needs member_id and buy_ins' then raise; end if;
+  end;
+  select count(*) into n from fy.event; assert n = r, 'malformed-player nights must not create an event';
+
+  -- Members cannot write tables directly, create members, or read claim tokens.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  begin
+    insert into fy.score_entry (league_id, member_id, points, reason) values (fy._league(), sock, 99, 'result');
+    raise exception 'member must not insert score_entry';
+  exception when insufficient_privilege then null; end;
+  begin
+    update fy.iou set state = 'confirmed';
+    raise exception 'member must not update iou directly';
+  exception when insufficient_privilege then null; end;
+  begin
+    perform fy.create_member('Hacker', 'goat');
+    raise exception 'member must not create members';
+  exception when others then
+    if sqlerrm <> 'not allowed' then raise; end if;
+  end;
+  begin
+    select count(*) into n from fy.claim_link;
+    raise exception 'claim_link must be unreadable by members';
+  exception when insufficient_privilege then null; end;
+  perform pg_temp.as_anon();
+  begin
+    select count(*) into n from fy.claim_link;
+    raise exception 'claim_link must be unreadable by anon';
+  exception when insufficient_privilege then null; end;
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.member where nickname = 'Hacker'; assert n = 0, 'no Hacker member may exist';
+  select count(*) into n from fy.score_entry where points = 99; assert n = 0, 'no 99-point score may exist';
+
   raise notice 'ALL TESTS PASSED';
 end $$;

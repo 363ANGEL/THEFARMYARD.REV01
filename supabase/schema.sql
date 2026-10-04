@@ -276,6 +276,11 @@ begin
   if jsonb_typeof(p_players) <> 'array' or jsonb_array_length(p_players) < 2 then
     raise exception 'need at least two players';
   end if;
+  -- Checked before the duplicate count: count(distinct) skips nulls, so a missing member_id would be miscounted.
+  if exists (select 1 from jsonb_array_elements(p_players) x
+             where x->>'member_id' is null or x->>'buy_ins' is null) then
+    raise exception 'each player needs member_id and buy_ins';
+  end if;
   if (select count(distinct x->>'member_id') from jsonb_array_elements(p_players) x) <> jsonb_array_length(p_players) then
     raise exception 'a player is listed twice';
   end if;
@@ -442,6 +447,8 @@ revoke select on fy.event, fy.score_entry from anon;
 grant select on fy.event, fy.score_entry to authenticated;
 grant select on fy.iou, fy.settlement, fy.claim to authenticated;
 -- Column-level: every member column except discord_id, which only the leader's SQL editor sees.
+-- Revoke first: a re-run over an old table-wide grant must end with the column grant only.
+revoke select on fy.member from authenticated;
 grant select (id, league_id, nickname, avatar, user_id, role, chesscom_username, created_at) on fy.member to authenticated;
 grant update (nickname, avatar, chesscom_username) on fy.member to authenticated;
 

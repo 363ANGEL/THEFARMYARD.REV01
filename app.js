@@ -49,6 +49,17 @@
   };
   window.FY = FY;
 
+  // Session expiry / sign-out in another tab: reload so the page drops member-only content.
+  // Only when a session existed before, so a page that loads signed out can never reload-loop.
+  if (sb) {
+    let hadSession = false;
+    sb.auth.getSession().then(({ data }) => { if (data.session) hadSession = true; });
+    sb.auth.onAuthStateChange((ev, session) => {
+      if (session) hadSession = true;
+      else if (ev === 'SIGNED_OUT' && hadSession) location.reload();
+    });
+  }
+
   // Shared header: sign-in state. Pages include <header id="fy-header"></header>.
   document.addEventListener('DOMContentLoaded', async () => {
     const h = document.getElementById('fy-header');

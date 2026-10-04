@@ -52,8 +52,12 @@
       </form><p class="muted">Winner takes all. Points = buy-ins collected. Each loser gets an IOU to the winner for their buy-ins.</p>
       <h3>Recent nights</h3><div id="recent" class="stack"></div>`;
     const recent = await FY.rpc('recent_events', { p_limit: 8 });
-    el.querySelector('#recent').innerHTML = recent.length ? recent.map(e => `<div class="row card"><span>${new Date(e.played_at).toLocaleDateString('en-GB')} · ${FY.esc(e.type_key)}${e.note ? ' · ' + FY.esc(e.voided_at ? e.note.replace(/(^| · )voided.*$/, '') : e.note) : ''}${e.voided_at ? ' · <strong>voided</strong>' : ''}</span>
-      ${e.voided_at ? '' : `<button class="ghost" data-void="${e.id}">Void</button>`}</div>`).join('') : '<p class="muted">No nights yet.</p>';
+    el.querySelector('#recent').innerHTML = recent.length ? recent.map(e => {
+      // A night voided with no original note stores just 'voided…'; strip first, then test the stripped value.
+      const note = e.voided_at ? String(e.note || '').replace(/(^| · )voided.*$/, '') : (e.note || '');
+      return `<div class="row card"><span>${new Date(e.played_at).toLocaleDateString('en-GB')} · ${FY.esc(e.type_key)}${note ? ' · ' + FY.esc(note) : ''}${e.voided_at ? ' · <strong>voided</strong>' : ''}</span>
+      ${e.voided_at ? '' : `<button class="ghost" data-void="${e.id}">Void</button>`}</div>`;
+    }).join('') : '<p class="muted">No nights yet.</p>';
     el.querySelectorAll('button[data-void]').forEach(b => b.addEventListener('click', async () => {
       // No confirm() in some viewers: two taps within 5 seconds.
       if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = 'Tap again to void'; setTimeout(() => { b.dataset.armed = ''; b.textContent = 'Void'; }, 5000); return; }
