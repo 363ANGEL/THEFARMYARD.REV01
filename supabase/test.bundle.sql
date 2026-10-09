@@ -1240,6 +1240,10 @@ begin
   tbl := fy.poker_start();
   pj := fy.poker_current(); assert pj->>'status' = 'starting', 'new table is starting';
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  -- Pants, a second member who did not start it, gets the same starting table back (not null), by RPC and by RLS.
+  pj := fy.poker_current();
+  assert pj->>'id' = tbl::text and pj->>'status' = 'starting' and pj->>'started_by' = sock::text, 'second member sees the starting table';
+  select count(*) into n from fy.poker_table where id = tbl; assert n = 1, 'RLS: second member reads the starting table';
   begin perform fy.poker_start(); raise exception 'should have failed: second live table';
   exception when others then if sqlerrm not like '%already open%' then raise; end if; end;
   -- Nobody sits before the link is in; only the initiator or the leader sets it; the link must be a PokerNow game.
@@ -1260,6 +1264,20 @@ begin
   assert d = 'https://www.pokernow.com/games/pglabc123', 'take_seat returns the link';
   begin perform fy.poker_take_seat(tbl, 4, 'Again'); raise exception 'should have failed: second seat';
   exception when others then if sqlerrm not like '%already have a seat%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  -- The second member, not seated and not the initiator, sees the open table, its link and Sock's seat:
+  -- through poker_current (what the page reads) and through RLS on the tables (what Realtime checks before a ping).
+  pj := fy.poker_current();
+  assert pj->>'id' = tbl::text and pj->>'status' = 'open', 'second member sees the open table';
+  assert pj->>'started_by' = sock::text, 'and it is Sock''s table, not theirs';
+  assert pj->>'pokernow_url' = 'https://www.pokernow.com/games/pglabc123', 'second member gets the link';
+  assert jsonb_array_length(pj->'seats') = 1 and pj->'seats'->0->>'member_id' = sock::text and (pj->'seats'->0->>'seat_no')::int = 3, 'second member sees the taken seat';
+  select count(*) into n from fy.poker_table where id = tbl and status = 'open'; assert n = 1, 'RLS: second member reads the open table';
+  select count(*) into n from fy.poker_seat where table_id = tbl and member_id = sock; assert n = 1, 'RLS: second member reads the seats';
+  -- A signed-in account with no profile reads neither table.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000005');
+  select count(*) into n from fy.poker_table; assert n = 0, 'RLS: no-profile account reads no tables';
+  select count(*) into n from fy.poker_seat; assert n = 0, 'RLS: no-profile account reads no seats';
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
   begin perform fy.poker_take_seat(tbl, 3, 'Pants'); raise exception 'should have failed: seat taken';
   exception when others then if sqlerrm not like '%seat is taken%' then raise; end if; end;

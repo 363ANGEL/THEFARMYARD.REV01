@@ -1,7 +1,7 @@
 /* Poker room. One shared table per league: the initiator starts it, pastes the PokerNow link, members take seats,
    the initiator files the docket. All state lives in the database (fy.poker_*); this page reads it with
    poker_current / poker_board / poker_debts and writes through the poker_* RPCs.
-   Realtime pings trigger a refetch; if Realtime is not live, the page polls every 5 seconds. */
+   Every screen polls every 5 seconds while visible; Realtime pings make the refetch instant. */
 (async function () {
   const main = document.getElementById('main');
   if (!FY.wired) { main.innerHTML = '<p class="muted">Not wired to the database yet.</p>'; return; }
@@ -85,7 +85,12 @@
     let s1 = '', sub1 = '';
     if (!c) s1 = `<a id="start" class="pk-btn green" href="${START_URL}" target="_blank" rel="noopener">START</a>`;
     else if (canManage) s1 = '<button type="button" id="close" class="pk-btn red">CLOSE</button>';
-    else { s1 = '<span class="pk-btn green off">START</span><span class="pk-btn red off">CLOSE</span>'; sub1 = `${nick(c.started_by)} has tonight's table. Take a seat below.`; }
+    else {
+      s1 = '<span class="pk-btn green off">START</span><span class="pk-btn red off">CLOSE</span>';
+      // Members see the table only once it is open (handoff); until then say so, rather than "take a seat below" over nothing.
+      sub1 = c.status === 'open' ? `${nick(c.started_by)} has tonight's table. Take a seat below.`
+                                 : `${nick(c.started_by)} is setting up tonight's table. It opens here when the PokerNow link is in.`;
+    }
     if (S.nickCopied && canManage) sub1 = `Your yard name "${esc(me.nickname)}" is copied. Paste it into PokerNow's Nickname box.`;
     let s2 = '';
     if (c && canManage) {
@@ -346,17 +351,28 @@
     }
     if (key !== S.key) { S.key = key; refreshBoard(); }
   }
-  let rtLive = false, pollT = null, kickT = null;
-  // Not live: poll every 5s. Live: Realtime does the work; a slow poll is only a safety net (e.g. table missing from the publication).
-  const setPoll = live => { clearInterval(pollT); pollT = setInterval(refresh, live ? 30000 : 5000); };
+  // Every screen polls poker_current every 5s while it is visible. A member who did not start the table has no
+  // actions of their own that refetch, so they must never depend on Realtime alone: a channel can report SUBSCRIBED
+  // and still deliver nothing (socket dropped by a phone in the background, pings filtered by RLS), and missed pings
+  // are never replayed. Realtime pings only make the refetch instant. A hidden tab skips the poll and refetches the
+  // moment it is shown again.
+  let pollT = null, kickT = null;
   const kick = () => { clearTimeout(kickT); kickT = setTimeout(refresh, 150); };
+  const startPoll = () => { clearInterval(pollT); pollT = setInterval(() => { if (!document.hidden) refresh(); }, 5000); };
+  const wake = () => { if (document.hidden) return; refresh(true); refreshBoard(); startPoll(); };
+  document.addEventListener('visibilitychange', wake);
+  window.addEventListener('pageshow', ev => { if (ev.persisted) wake(); });   // page restored from the back-forward cache
+  window.addEventListener('online', wake);
   try {
+    // Realtime checks RLS (is_member) as the socket's user: hand it this session's token before joining.
+    const ses = await FY.session();
+    if (ses && FY.sb.realtime && FY.sb.realtime.setAuth) { const r = FY.sb.realtime.setAuth(ses.access_token); if (r && r.catch) r.catch(() => {}); }
     FY.sb.channel('poker-room')
       .on('postgres_changes', { event: '*', schema: 'fy', table: 'poker_table' }, kick)
       .on('postgres_changes', { event: '*', schema: 'fy', table: 'poker_seat' }, kick)
-      .subscribe(st => { rtLive = st === 'SUBSCRIBED'; setPoll(rtLive); });
+      .subscribe(st => { if (st === 'SUBSCRIBED') kick(); });   // (re)joined: catch up on anything missed meanwhile
   } catch (e) { console.warn(e); }
-  setPoll(false);                                  // 5s until Realtime confirms it is live
+  startPoll();
   setInterval(renderRecent, 15000);                // "x min left to change"
   setInterval(refreshBoard, 60000);
 
