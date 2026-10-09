@@ -37,10 +37,11 @@ do $$ begin
     alter table fy.member add constraint member_nickname_check check (char_length(btrim(nickname)) between 1 and 24);
   end if;
   -- Revolut pay-me link: https only, revolut.me only (it ends up in an href).
-  if not exists (select 1 from pg_constraint where conname = 'member_revolut_url_check' and conrelid = 'fy.member'::regclass) then
+  alter table fy.member drop constraint if exists member_revolut_url_check;
+  begin
     alter table fy.member add constraint member_revolut_url_check
-      check (revolut_url is null or revolut_url ~ '^https://revolut\.me/[A-Za-z0-9._~@-]+/?([?#].*)?$');
-  end if;
+      check (revolut_url is null or revolut_url ~ '^https://revolut\.me/[A-Za-z0-9._-]+$');
+  end;
 end $$;
 
 -- Claim tokens live apart from member so no page can ever read them.
@@ -1368,6 +1369,10 @@ begin
   begin update fy.member set revolut_url = 'javascript:alert(1)' where id = sock; raise exception 'should have failed: bad revolut link';
   exception when check_violation then null; end;
   begin update fy.member set revolut_url = 'http://revolut.me/thesock' where id = sock; raise exception 'should have failed: http revolut link';
+  exception when check_violation then null; end;
+  begin update fy.member set revolut_url = 'https://revolut.me/thesock?x=1' where id = sock; raise exception 'should have failed: extra path or query';
+  exception when check_violation then null; end;
+  begin update fy.member set revolut_url = 'https://revolut.me/thesock/' where id = sock; raise exception 'should have failed: trailing slash';
   exception when check_violation then null; end;
   assert (fy.me()).revolut_url = 'https://revolut.me/thesock', 'me() carries the link';
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');

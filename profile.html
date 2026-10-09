@@ -34,7 +34,7 @@
     const GBP = 5, groups = {};
     owe.forEach(i => { const g = groups[i.payee_id] || (groups[i.payee_id] = { open: 0, ids: [], waiting: 0 });
       if (i.state === 'open') { g.open += i.amount; g.ids.push(i.id); } else g.waiting += i.amount; });
-    const revLink = (url, gbp) => { const m = /^https:\/\/revolut\.me\/([A-Za-z0-9._~@-]+)/.exec(url || ''); return m ? `https://revolut.me/${m[1]}/${gbp}gbp` : null; };
+    const revLink = (url, gbp) => { const m = /^https:\/\/revolut\.me\/([A-Za-z0-9._-]+)$/.exec(url || ''); return m ? `https://revolut.me/${m[1]}/${gbp}gbp` : null; };
     const settleRow = pid => { const g = groups[pid], link = revLink(rev[pid], g.open * GBP);
       return `<div class="row card"><span>You owe ${who(pid)} <strong class="num">£${g.open * GBP}</strong>${g.waiting ? ` <span class="muted">· £${g.waiting * GBP} marked paid, waiting</span>` : ''}</span>
         ${g.open ? `${link ? `<a class="btn teal" href="${FY.esc(link)}" target="_blank" rel="noopener" style="text-decoration:none">Pay on Revolut</a>` : '<span class="muted">No Revolut link yet</span>'}
@@ -104,7 +104,7 @@
       ev.preventDefault();
       if (!document.getElementById('nick').value.trim()) return FY.toast("Nickname can't be blank");
       const rv = document.getElementById('rv').value.trim() || null;
-      if (rv && !/^https:\/\/revolut\.me\/[A-Za-z0-9._~@-]+\/?([?#].*)?$/.test(rv)) return FY.toast('Revolut link should look like https://revolut.me/yourname');
+      if (rv && !/^https:\/\/revolut\.me\/[A-Za-z0-9._-]+$/.test(rv)) return FY.toast('Revolut link must be exactly https://revolut.me/yourname');
       const { error } = await FY.q('member').update({ nickname: document.getElementById('nick').value.trim(), avatar: document.getElementById('av').value, chesscom_username: document.getElementById('cc').value.trim() || null, revolut_url: rv }).eq('id', me.id);
       if (error) return FY.toast(error.message);
       Object.assign(me, { nickname: document.getElementById('nick').value.trim(), avatar: document.getElementById('av').value, chesscom_username: document.getElementById('cc').value.trim() || null, revolut_url: rv });

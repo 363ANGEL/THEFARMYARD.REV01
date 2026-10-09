@@ -550,6 +550,10 @@ begin
   exception when check_violation then null; end;
   begin update fy.member set revolut_url = 'http://revolut.me/thesock' where id = sock; raise exception 'should have failed: http revolut link';
   exception when check_violation then null; end;
+  begin update fy.member set revolut_url = 'https://revolut.me/thesock?x=1' where id = sock; raise exception 'should have failed: extra path or query';
+  exception when check_violation then null; end;
+  begin update fy.member set revolut_url = 'https://revolut.me/thesock/' where id = sock; raise exception 'should have failed: trailing slash';
+  exception when check_violation then null; end;
   assert (fy.me()).revolut_url = 'https://revolut.me/thesock', 'me() carries the link';
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
   select revolut_url into d from fy.member where id = sock; assert d = 'https://revolut.me/thesock', 'members read pay-me links';
