@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Barn Poker</title>
+<link rel="stylesheet" href="_ds/nocturne-a28ab075-f4d3-4cef-b265-31ac322e3ab1/styles.css">
+<script src="_ds/nocturne-a28ab075-f4d3-4cef-b265-31ac322e3ab1/_ds_bundle.js"></script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yellowtail&family=Special+Elite&display=swap">
+<style>
+:root { --color-accent-300: var(--neon-pink-link); --color-accent-200: var(--neon-pink-hover); --color-accent-800: #4a1a38; --color-accent-900: #2d0f22; --color-neutral-800: #1b4a4a; --color-neutral-700: var(--neon-teal); --color-divider: var(--neon-teal); }
+body { margin: 0; background: var(--fy-bg); }
+@keyframes boxBreathe { 0%, 100% { box-shadow: 0 0 0 rgba(95,211,207,0); border-color: rgba(242,251,251,.4); } 50% { box-shadow: 0 0 6px rgba(95,211,207,.55), 0 0 16px rgba(95,211,207,.25), inset 0 0 6px rgba(95,211,207,.15); border-color: rgba(242,251,251,.9); } }
+@keyframes stampIn { from { opacity: 0; transform: rotate(-14deg) scale(1.8); } to { opacity: .82; transform: rotate(-14deg) scale(1); } }
+@media (max-width: 1100px) { [data-table-row] { grid-template-columns: minmax(0, 1fr) !important; } [data-table-card] { grid-column: auto !important; } [data-docket-box] { height: auto !important; min-height: 0 !important; overflow: visible !important; } }
+@keyframes crownFlash { 0%, 100% { opacity: 1; filter: brightness(1.15); } 45% { opacity: .35; filter: brightness(.8); } 55% { opacity: 1; filter: brightness(1.4); } 70% { opacity: .6; } }
+@keyframes handSpin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes antRun { to { stroke-dashoffset: -26; } }
+@keyframes bulbChase { to { stroke-dashoffset: -21.2058; } }
+@keyframes edgeFlick { 0%, 14%, 16%, 17.5%, 41%, 43%, 44%, 45%, 46.5%, 71%, 73%, 100% { opacity: 1; } 15%, 17%, 42%, 44.5%, 45.5%, 72% { opacity: .12; } }
+[data-step-btns] { zoom: 1.15; }
+@media (max-width: 1400px) { [data-step-btns] { zoom: 1; } }
+@media (max-width: 1100px) { [data-step-btns] { zoom: .9; } }
+@media (max-width: 800px) { [data-step-btns] { zoom: .8; } }
+@media (max-width: 520px) { [data-step-btns] { zoom: .7; } }
+[data-poker-sign] { zoom: .99; }
+@media (max-width: 1400px) { [data-poker-sign] { zoom: .84; } }
+@media (max-width: 1100px) { [data-poker-sign] { zoom: .69; } }
+@media (max-width: 800px) { [data-poker-sign] { zoom: .55; right: 12px !important; } }
+@media (max-width: 520px) { [data-poker-sign] { zoom: .43; right: 8px !important; } }
+@keyframes signSway { from { transform: rotate(3.5deg); } to { transform: rotate(10deg); } }
+@keyframes marq { 0% { background-position: 0 0; } 50% { background-position: 7px 0; opacity: .55; } }
+@keyframes letterFlick { 0%, 91%, 93%, 96%, 100% { opacity: 1; } 92%, 95% { opacity: .18; } }
+@keyframes popIn { from { opacity: 0; margin-bottom: -8px; } to { opacity: 1; margin-bottom: 0; } }
+@keyframes vcBreathe { 0%, 100% { opacity: .55; text-shadow: 0 0 2px var(--neon-teal); } 50% { opacity: 1; text-shadow: 0 0 8px var(--neon-teal), 0 0 22px rgba(95,211,207,.75), 0 0 40px rgba(95,211,207,.35); } }
+@keyframes tubeFlicker { 0%, 100% { opacity: 1; } 8% { opacity: .35; } 10% { opacity: 1; } 14% { opacity: .5; } 16% { opacity: 1; } 42% { opacity: 1; } 44% { opacity: .3; } 47% { opacity: 1; } 70% { opacity: .85; } 72% { opacity: 1; } }
+.btn-ghost, .tag-accent, .tag-outline { border-color: var(--neon-pink) !important; color: var(--neon-pink); box-shadow: var(--glow-pink); text-shadow: 0 0 6px var(--neon-pink); }
+.card { border: 1px solid var(--neon-teal) !important; box-shadow: var(--glow-teal), inset 0 0 8px rgba(95,211,207,.25) !important; }
+.tag-neutral { border: 1px solid var(--neon-teal); color: var(--neon-teal); box-shadow: 0 0 5px var(--neon-teal); }
+i.ph { text-shadow: 0 0 6px currentColor; }
+</style>
+</helmet>
+<sc-if value="{{ loggedOut }}" hint-placeholder-val="{{ true }}">
+<main style="min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: clamp(24px, 5vw, 72px); background: radial-gradient(900px 600px at 80% 10%, var(--haze-pink), transparent 60%), radial-gradient(700px 500px at 0% 100%, var(--haze-teal), transparent 60%), var(--fy-bg); color: var(--color-text); font-family: var(--font-body);">
+  <img src="assets/hank-oink.png" alt="Hank" style="width: min(60vw, 260px); height: auto; display: block; animation: charBreath 6s ease-in-out infinite;">
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
+    <h1 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(36px, 5vw, 56px); line-height: 1.02; letter-spacing: -.02em; margin: 0;">The Farmyard.</h1>
+    <p style="font-size: 15px; line-height: 1.5; margin: 0; color: var(--color-neutral-300); max-width: 40ch; text-wrap: balance;">Members only. Hank checks the door.</p>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 12px; width: min(100%, 360px); padding: 22px; border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal);">
+    <button type="button" onClick="{{ login }}" class="btn btn-primary" style="min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; white-space: nowrap;"><i class="ph ph-discord-logo" style="font-size: 20px;"></i>Sign in with Discord</button>
+    <span style="font-size: 12px; line-height: 1.5; color: var(--color-neutral-400); text-align: center;">Discord is just the key. No passwords. Who you are in the yard is up to you.</span>
+    <div class="rule-teal" style="margin: 4px 0;"></div>
+    <span style="font-size: 12px; color: var(--color-neutral-400); text-align: center;">Not on the list yet? <a href="https://the-farmyard.com">Join the waitlist</a></span>
+  </div>
+</main>
+</sc-if>
+<sc-if value="{{ onboarding }}" hint-placeholder-val="{{ false }}">
+<main style="min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: clamp(24px, 5vw, 72px); background: radial-gradient(900px 600px at 80% 10%, var(--haze-pink), transparent 60%), radial-gradient(700px 500px at 0% 100%, var(--haze-teal), transparent 60%), var(--fy-bg); color: var(--color-text); font-family: var(--font-body);">
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
+    <span class="kicker">Door's open</span>
+    <h1 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(30px, 4vw, 44px); line-height: 1.05; letter-spacing: -.02em; margin: 0; text-wrap: balance;">What does Hank call you?</h1>
+  </div>
+  <form onSubmit="{{ finishOnboard }}" style="display: flex; flex-direction: column; gap: 18px; width: min(100%, 520px); padding: 22px; border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal);">
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--color-neutral-400);">Yard name<input class="input" value="{{ draftName }}" onChange="{{ setDraftName }}" placeholder="e.g. Russ" required="{{ true }}" maxlength="16" style="min-height: 44px; font-size: 16px; border-color: var(--neon-teal);"></label>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <span style="font-size: 12px; color: var(--color-neutral-400);">Your character</span>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px;">
+        <sc-for list="{{ characters }}" as="c" hint-placeholder-count="7"><button type="button" onClick="{{ c.pick }}" aria-label="{{ c.name }}" style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 4px; background: transparent; border: 1px solid {{ c.border }}; border-radius: 10px; box-shadow: {{ c.shadow }}; cursor: pointer; color: var(--color-text); font-family: inherit;"><div style="width: 64px; height: 64px; border-radius: 50%; border: 1.5px solid var(--neon-teal); box-shadow: 0 0 6px rgba(95,211,207,.6); display: grid; place-items: center; overflow: hidden;"><div style="width: 100%; height: 100%; background: {{ c.bgImg }} center / contain no-repeat; display: grid; place-items: center;"><i class="ph ph-question" style="color: var(--color-neutral-400); font-size: 22px; display: {{ c.qDisplay }};"></i></div></div><span style="font-size: 12px; white-space: nowrap;">{{ c.name }}</span></button></sc-for>
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;"><button type="submit" class="btn btn-primary" style="min-height: 44px; white-space: nowrap;">Into the yard</button><span style="font-size: 12px; color: var(--color-neutral-400);">Up to 16 characters. Change any of this later in Profile.</span></div>
+  </form>
+</main>
+</sc-if>
+<sc-if value="{{ loggedIn }}" hint-placeholder-val="{{ false }}">
+<div style="width: 100%; min-height: 100vh; box-sizing: border-box; padding: 16px; overflow-x: auto;">
+  <div style="height: calc(100vh - 32px); min-height: 640px; display: grid; grid-template-columns: 232px minmax(0,1fr); min-width: 860px; background: radial-gradient(900px 500px at 85% -10%, color-mix(in srgb, var(--color-accent-900) 70%, transparent), transparent 60%), var(--color-bg); border: 1px solid var(--neon-teal); box-shadow: 0 0 6px var(--neon-teal), 0 0 14px color-mix(in srgb, var(--neon-teal) 45%, transparent), inset 0 0 18px color-mix(in srgb, var(--neon-teal) 20%, transparent); border-radius: 12px; overflow: hidden;">
+    <div style="border-right: 1px solid var(--neon-teal); box-shadow: 4px 0 10px -4px var(--neon-teal); padding: 12px 8px; display: flex; flex-direction: column; gap: 1px;">
+      <div style="display: flex; align-items: center; gap: 6px; padding: 0 2px 6px;"><img src="assets/hank-oink.png" alt="Farmyard" style="width: 96px; height: 96px; object-fit: contain; display: block; flex: none; filter: drop-shadow(0 0 10px rgba(224,21,127,.7));"><div style="font-family: var(--font-heading); font-size: 20px; letter-spacing: -.01em;">The Farmyard</div></div>
+      <div style="margin: 4px 6px 8px; border-top: 1px solid color-mix(in srgb, var(--neon-teal) 35%, transparent);"></div>
+      <sc-for list="{{ homeNav }}" as="r" hint-placeholder-count="2"><button type="button" onClick="{{ r.go }}" style="display: flex; gap: 10px; align-items: center; padding: 5px 6px; border-radius: 6px; font-size: 14px; color: {{ r.vColor }}; text-shadow: {{ r.vTextGlow }}; background: transparent; box-shadow: {{ r.vShadow }}; border: 1px solid {{ r.vBorder }}; box-sizing: border-box; width: 100%; text-align: left; cursor: pointer; font-family: inherit;"><i class="{{ r.icon }}" style="color: {{ r.iconColor }};"></i><span style="flex: 1;">{{ r.name }}</span><span style="font-size: 12px; color: var(--color-neutral-400);">{{ r.n }}</span></button></sc-for>
+      <div style="padding: 10px 6px 2px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400);">Sections</div>
+      <sc-for list="{{ mediaNav }}" as="r" hint-placeholder-count="2"><button type="button" onClick="{{ r.go }}" style="display: flex; gap: 10px; align-items: center; padding: 5px 6px; border-radius: 6px; font-size: 14px; color: {{ r.vColor }}; text-shadow: {{ r.vTextGlow }}; background: transparent; box-shadow: {{ r.vShadow }}; border: 1px solid {{ r.vBorder }}; box-sizing: border-box; width: 100%; text-align: left; cursor: pointer; font-family: inherit;"><i class="{{ r.icon }}" style="color: {{ r.iconColor }};"></i><span style="flex: 1;">{{ r.name }}</span><span style="font-size: 12px; color: var(--color-neutral-400);">{{ r.n }}</span></button></sc-for>
+      <div style="flex: 1;"></div>
+      <div style="margin: 0 6px; border-top: 1px solid color-mix(in srgb, var(--neon-teal) 35%, transparent);"></div>
+      <div style="padding: 10px 6px 8px; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--neon-teal); text-shadow: 0 0 6px var(--neon-teal), 0 0 14px rgba(95,211,207,.6); white-space: pre; animation: {{ vcAnim }};"><sc-for list="{{ vcLetters }}" as="L" hint-placeholder-count="0"><span style="opacity: {{ L.op }};">{{ L.ch }}</span></sc-for></div>
+      <sc-for list="{{ voiceNav }}" as="r" hint-placeholder-count="2"><button type="button" onClick="{{ r.go }}" style="display: flex; gap: 10px; align-items: center; padding: {{ r.pad }}; margin-top: {{ r.mt }}; border-radius: {{ r.rad }}; font-size: {{ r.fs }}; font-weight: {{ r.fw }}; letter-spacing: {{ r.ls }}; color: {{ r.vColor }}; text-shadow: {{ r.vTextGlow }}; background: transparent; box-shadow: {{ r.vShadow }}; border: {{ r.bw }} solid {{ r.vBorder }}; box-sizing: border-box; width: 100%; text-align: left; cursor: pointer; font-family: inherit;"><i class="{{ r.icon }}" style="font-size: 13px; color: {{ r.chColor }}; text-shadow: {{ r.chGlow }};"></i><span style="flex: 1;">{{ r.label }}<sc-if value="{{ r.sub }}" hint-placeholder-val="{{ false }}"><span style="display: block; font-size: 11px; font-weight: 400; letter-spacing: 0; text-shadow: none;">{{ r.sub }}</span></sc-if></span><sc-if value="{{ r.showN }}" hint-placeholder-val="{{ true }}"><span style="font-size: 12px; color: var(--color-neutral-400);">{{ r.n }}</span></sc-if><sc-if value="{{ r.phone }}" hint-placeholder-val="{{ false }}"><i class="ph ph-phone-x" style="color: var(--color-neutral-400);"></i></sc-if></button>
+<sc-if value="{{ r.tip }}" hint-placeholder-val="{{ false }}"><div style="margin: 6px 6px 0; padding: 8px 10px; border: 1px solid #9eeae6; border-radius: 6px; box-shadow: 0 0 4px var(--neon-teal), 0 0 10px rgba(95,211,207,.4); font-size: 12px; line-height: 1.4; color: #c8f4f2; text-shadow: 0 0 4px rgba(95,211,207,.5); animation: payDrop .25s ease-out;">Click <strong>Join Voice</strong> in Discord to confirm.</div></sc-if></sc-for>
+      <div style="margin: 10px 6px 0; border-top: 1px solid color-mix(in srgb, var(--neon-teal) 35%, transparent);"></div>
+      <button type="button" onClick="{{ goProfile }}" style="display: flex; gap: 10px; align-items: center; padding: 6px 4px; margin-top: 8px; box-sizing: border-box; border-radius: 8px; font-size: 13px; color: var(--color-text); background: {{ profileBg }}; box-shadow: {{ profileShadow }}; border: 0; width: 100%; text-align: left; cursor: pointer; font-family: inherit;"><div style="width: 56px; height: 56px; border-radius: 50%; border: 1.5px solid var(--neon-teal); box-shadow: 0 0 6px rgba(95,211,207,.6); overflow: hidden; flex: none;"><div role="img" aria-label="Your character" style="width: 100%; height: 100%; background: {{ meBgImg }} center / contain no-repeat;"></div></div><span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ meName }}</span><i class="ph ph-gear" style="color: var(--color-neutral-400); font-size: 24px;"></i></button>
+    </div>
+    <div style="padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0; overflow-y: auto; background-color: transparent; background-image: radial-gradient(640px 460px at 0% 100%, rgba(10,158,67,.2), transparent 70%), radial-gradient(600px 440px at 100% 0%, rgba(224,21,127,.16), transparent 70%), radial-gradient(520px 380px at 100% 100%, rgba(10,158,67,.08), transparent 70%); background-attachment: scroll;">
+      <sc-if value="{{ isYard }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 28px; margin: 0; letter-spacing: -.01em;">Dashboard</h2>
+        <span class="tag tag-neutral" style="white-space: nowrap;">12 inside</span>
+      </div>
+      <div style="display: flex; gap: 28px; align-items: center; flex-wrap: wrap;">
+        <img src="assets/hank-oink.png" alt="Hank" style="width: var(--char-card); height: var(--char-card); object-fit: contain; display: block; flex: none; animation: charBreath 6s ease-in-out infinite;">
+        <div style="display: flex; flex-direction: column; gap: 8px; flex: 1 1 280px; min-width: 0;">
+          <p style="font-family: var(--font-heading); font-size: 22px; line-height: 1.25; margin: 0; max-width: 34ch; text-wrap: balance;">Evening. Lounge is <span style="color: var(--neon-teal); text-shadow: 0 0 8px var(--neon-teal);">5 deep</span>, seven in the Arcade, and Hank's doing trivia at 8.</p>
+          <p style="font-size: 14px; line-height: 1.55; margin: 0; color: var(--color-neutral-300); max-width: 52ch;">Pick a room on the left, or jump into whatever's busiest.</p>
+        </div>
+      </div>
+      <div style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400); margin-top: 6px;">Tonight in the yard</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+        <sc-for list="{{ tonight }}" as="t" hint-placeholder-count="4"><button type="button" onClick="{{ t.go }}" class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 6px; text-align: left; cursor: pointer; font-family: inherit; color: var(--color-text);"><div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;"><i class="{{ t.icon }}" style="color: var(--color-accent); font-size: 20px;"></i><span style="font-size: 12px; color: var(--color-neutral-400); white-space: nowrap;">{{ t.n }}</span></div><div style="font-family: var(--font-heading); font-size: 17px; margin-top: 10px;">{{ t.name }}</div><div style="font-size: 13px; color: var(--color-neutral-300);">{{ t.note }}</div></button></sc-for>
+      </div>
+      </sc-if>
+      <sc-if value="{{ isFloor }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 28px; margin: 0; letter-spacing: -.01em;">Arcade</h2>
+        <span class="tag tag-accent" style="white-space: nowrap;">7 playing now</span><div style="flex: 1;"></div>
+        <button type="button" class="btn btn-ghost" style="white-space: nowrap;">Add a game</button><button type="button" class="btn btn-primary" style="white-space: nowrap;">Open a table</button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
+        <sc-for list="{{ games }}" as="g" hint-placeholder-count="6"><div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 6px;"><div style="display: flex; justify-content: space-between; gap: 8px; align-items: center;"><span class="tag tag-neutral" style="white-space: nowrap;">{{ g.src }}</span><span style="font-size: 12px; color: var(--color-neutral-400); white-space: nowrap;">{{ g.n }}</span></div><div style="font-family: var(--font-heading); font-size: 17px; margin-top: 10px;">{{ g.name }}</div><div style="font-size: 13px; color: var(--color-neutral-300);">{{ g.note }}</div></div></sc-for>
+      </div>
+      <div style="margin-top: auto; display: flex; gap: 16px; align-items: center; padding: 10px 14px; border: 1px solid var(--neon-teal); box-shadow: 0 0 6px var(--neon-teal), 0 0 14px color-mix(in srgb, var(--neon-teal) 45%, transparent); border-radius: 8px; font-size: 14px;"><i class="ph ph-plugs-connected" style="color: var(--color-accent); font-size: 20px;"></i><span style="flex: 1;">Voice by Discord. Games from Steam, itch and the browser. You bring the boys.</span><a href="#">Change providers</a></div>
+      </sc-if>
+      <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 28px; margin: 0; letter-spacing: -.01em;">Profile</h2><div style="flex: 1;"></div>
+        <button type="button" onClick="{{ logout }}" class="btn btn-ghost" style="white-space: nowrap;">Leave the yard</button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; align-items: start;">
+        <div style="display: flex; flex-direction: column; gap: 14px; padding: 16px; border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal);">
+          <span class="kicker">Who you are in the yard</span>
+          <div style="display: flex; gap: 16px; align-items: center;"><div role="img" aria-label="Your character" style="width: var(--char-host); height: var(--char-host); background: {{ meBgImg }} center / contain no-repeat; flex: none;"></div><label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--color-neutral-400); flex: 1; min-width: 0;">Yard name<input class="input" value="{{ meName }}" onChange="{{ setName }}" maxlength="16" style="min-height: 40px; border-color: var(--neon-teal);"></label></div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-size: 12px; color: var(--color-neutral-400);">Character</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px;">
+              <sc-for list="{{ characters }}" as="c" hint-placeholder-count="7"><button type="button" onClick="{{ c.pick }}" aria-label="{{ c.name }}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 2px; background: transparent; border: 1px solid {{ c.border }}; border-radius: 8px; box-shadow: {{ c.shadow }}; cursor: pointer; color: var(--color-text); font-family: inherit;"><div style="width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid var(--neon-teal); box-shadow: 0 0 6px rgba(95,211,207,.6); display: grid; place-items: center; overflow: hidden;"><div style="width: 100%; height: 100%; background: {{ c.bgImg }} center / contain no-repeat; display: grid; place-items: center;"><i class="ph ph-question" style="color: var(--color-neutral-400); font-size: 18px; display: {{ c.qDisplay }};"></i></div></div><span style="font-size: 11px; white-space: nowrap;">{{ c.name }}</span></button></sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal);">
+          <span class="kicker">Linked accounts</span>
+          <p style="margin: 0; font-size: 13px; line-height: 1.5; color: var(--color-neutral-300);">Each link opens a room. Nothing's shared with the yard except what the room needs.</p>
+          <sc-for list="{{ links }}" as="l" hint-placeholder-count="5"><div style="display: flex; gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--rule-teal);"><i class="{{ l.icon }}" style="font-size: 22px; color: {{ l.iconColor }}; flex: none;"></i><div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px;"><span style="font-size: 14px;">{{ l.name }}</span><span style="font-size: 12px; color: var(--color-neutral-400);">{{ l.unlocks }}</span></div><button type="button" onClick="{{ l.toggle }}" class="{{ l.btnClass }}" style="min-height: 32px; font-size: 12px; white-space: nowrap;">{{ l.btnLabel }}</button></div></sc-for>
+        </div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ isPoker }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; min-height: 0;">
+        
+        <div style="flex: 1;"></div>
+        <sc-if value="{{ hasGame }}" hint-placeholder-val="{{ false }}"><a href="{{ gameUrl }}" target="_blank" rel="noopener" class="btn btn-primary" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; text-decoration: none;"><i class="ph ph-arrow-square-out"></i>{{ seatCta }}</a></sc-if>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start;">
+        <div style="display: flex; flex-direction: column; gap: 14px; min-width: 0; flex: 3 1 360px;">
+          <div style="position: relative; margin-top: 44px; display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 2px solid rgba(158,234,230,.72); border-radius: 14px; box-shadow: 0 0 3px rgba(95,211,207,.7), 0 0 9px rgba(95,211,207,.55), 0 0 22px rgba(95,211,207,.3), 0 0 48px rgba(95,211,207,.12), inset 0 0 3px rgba(95,211,207,.7), inset 0 0 11px rgba(95,211,207,.2), 0 0 60px rgba(95,211,207,.1);">
+            <span class="kicker" style="align-self: flex-start; color: #c8f4f2; text-shadow: 0 0 6px var(--neon-teal);">Game checklist</span>
+            <div aria-hidden="false" data-poker-sign="1" style="position: absolute; right: 22px; top: -14px; z-index: 3; transform-origin: 78% 0; transform: rotate(5deg); animation: signSway 6s ease-in-out infinite alternate;">
+              <span style="position: absolute; left: 26%; top: 0; width: 1px; height: 22px; background: #9eeae6; opacity: .75; transform: translateY(-4px) rotate(-12deg); transform-origin: 50% 100%;"></span>
+              <span style="position: absolute; right: 18%; top: 0; width: 1px; height: 22px; background: #9eeae6; opacity: .75; transform: translateY(-4px) rotate(10deg); transform-origin: 50% 100%;"></span>
+              <div style="position: relative; display: flex; align-items: center; gap: 6px; padding: 22px 36px 20px 96px; border-radius: 8px; background: #07090a; border: 2px solid var(--neon-green-tube); border-left-color: transparent; box-shadow: 0 0 4px var(--neon-green-tube), 0 0 12px var(--neon-green), 0 0 28px rgba(10,158,67,.5), inset 0 0 8px rgba(10,158,67,.45), 0 10px 22px rgba(0,0,0,.55); margin-top: 20px;">
+                
+        <span aria-hidden="true" style="position: absolute; left: -2px; top: -2px; bottom: -2px; width: 16px; box-sizing: border-box; border: 2px solid var(--neon-green-tube); border-right: 0; border-radius: 8px 0 0 8px; box-shadow: -2px 0 4px var(--neon-green-tube), -8px 0 12px rgba(10,158,67,.55), inset 2px 0 8px rgba(10,158,67,.45); animation: edgeFlick 13s linear infinite;"></span>
+                <svg viewBox="0 0 100 110" aria-hidden="true" style="position: absolute; z-index: 2; left: -18px; top: -34px; width: 124px; overflow: visible; transform: rotate(-14deg); pointer-events: none;"><path d="M50 6 C40 24 8 40 8 64 C8 78 19 87 31 87 C39 87 45 83 48 78 C47 89 42 97 34 102 L66 102 C58 97 53 89 52 78 C55 83 61 87 69 87 C81 87 92 78 92 64 C92 40 60 24 50 6 Z" transform="translate(16 18) scale(.68)" vector-effect="non-scaling-stroke" fill="#07090a" stroke="#07090a" stroke-width="15" stroke-linejoin="round"></path><path d="M50 6 C40 24 8 40 8 64 C8 78 19 87 31 87 C39 87 45 83 48 78 C47 89 42 97 34 102 L66 102 C58 97 53 89 52 78 C55 83 61 87 69 87 C81 87 92 78 92 64 C92 40 60 24 50 6 Z" transform="translate(16 18) scale(.68)" vector-effect="non-scaling-stroke" fill="none" stroke="var(--neon-red-tube)" stroke-width="2.6" stroke-linejoin="round" style="filter: drop-shadow(0 0 3px var(--neon-red-tube)) drop-shadow(0 0 8px var(--neon-red));"></path></svg>
+        <h2 data-sign-title="1" style="font-family: var(--font-heading); font-weight: 600; font-size: 19px; margin: 0; letter-spacing: .26em; color: var(--neon-green-text); text-shadow: 0 0 4px var(--neon-green-tube), 0 0 12px var(--neon-green), 0 0 28px rgba(10,158,67,.6);">POKER R<span style="animation: letterFlick 9s 2s infinite;">O</span>OM</h2>
+              </div>
+            </div>
+            <sc-for list="{{ hostSteps }}" as="st" hint-placeholder-count="4"><div style="display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 6px 10px; align-items: start; font-size: 13px; line-height: 1.45;"><span style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--neon-teal); color: var(--neon-teal); display: grid; place-items: center; font-size: 11px;">{{ st.n }}</span><span style="min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px;"><span>{{ st.text }} <a href="{{ st.href }}" target="_blank" rel="noopener" style="white-space: nowrap;">{{ st.link }}</a></span><sc-if value="{{ st.sub }}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; font-style: italic; color: var(--color-neutral-400);">{{ st.sub }}</span></sc-if></span><span data-step-btns="1" style="grid-column: 2; display: flex; flex-wrap: wrap; gap: 11px; justify-content: flex-start; padding: 10px 0 12px;"><sc-if value="{{ st.cta }}" hint-placeholder-val="{{ false }}"><a href="{{ st.href }}" onClick="{{ st.onCta }}" target="_blank" rel="noopener" class="btn btn-primary" style="width: 110px; min-height: 36px; padding: 0; font-size: 12px; letter-spacing: .06em; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; box-sizing: border-box;">{{ st.cta }}</a></sc-if><sc-if value="{{ st.isStart }}" hint-placeholder-val="{{ false }}"><span style="display: {{ st.startDisp }};"><a href="{{ st.href }}" onClick="{{ st.onCta }}" target="_blank" rel="noopener" class="btn" style="{{ st.startStyle }}" style-hover="{{ st.startHover }}">START</a></span><span style="display: {{ st.closeDisp }};"><button type="button" onClick="{{ st.onClose }}" style="{{ st.closeStyle }}">CLOSE</button></span></sc-if><sc-if value="{{ st.gameBox }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ pasteHint }}" hint-placeholder-val="{{ false }}"><span style="flex: 1 1 100%; order: 9; font-size: 11px; color: #c8f4f2; text-shadow: 0 0 6px var(--neon-teal);">Your browser blocked reading the clipboard. Press Ctrl+V (⌘V on Mac) in the box, then ENTER.</span></sc-if><input class="input" ref="{{ gameRef }}" value="{{ gameDraft }}" onChange="{{ setGameDraft }}" onKeyDown="{{ gameKey }}" placeholder="(CLICK, PASTE &amp; ENTER)" style="flex: 1 1 0; min-width: 0; min-height: 36px; padding: 0 10px; font-size: 12px; border-color: var(--neon-teal); box-sizing: border-box;"><button type="button" onClick="{{ pasteGame }}" class="btn btn-primary" style="width: 110px; min-height: 36px; padding: 0; font-size: 12px; letter-spacing: .06em; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; box-sizing: border-box;">{{ pasteLabel }}</button><button type="button" onClick="{{ enterGame }}" style="{{ enterStyle }}">ENTER</button></sc-if></span></div></sc-for>
+          </div>
+          <div data-table-row="1" style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 14px; align-items: stretch;">
+          <sc-if value="{{ tableOpen }}" hint-placeholder-val="{{ false }}">
+          <div data-table-card="1" style="grid-column: {{ tableSpan }}; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 16px; border: 2px solid #9eeae6; border-radius: 14px; box-shadow: var(--tube-teal);">
+            <span class="kicker" style="color: #c8f4f2; text-shadow: 0 0 6px var(--neon-teal);">Tonight's table</span>
+            <div style="position: relative; width: 100%; aspect-ratio: 1.75 / 1; margin: 4px 0;">
+              <div style="position: absolute; left: 22%; right: 22%; top: 25%; bottom: 25%; border-radius: 50%; background: #121a1c; box-shadow: 0 0 0 1px rgba(158,234,230,.3), 0 10px 30px rgba(0,0,0,.6);"></div>
+              <div style="position: absolute; left: 23.4%; right: 23.4%; top: 27.5%; bottom: 27.5%; border-radius: 50%; border: 1.5px solid #9eeae6; box-shadow: 0 0 3px var(--neon-teal), 0 0 9px rgba(95,211,207,.45), inset 0 0 3px var(--neon-teal), inset 0 0 14px rgba(95,211,207,.2); background: radial-gradient(ellipse at 50% 40%, rgba(95,211,207,.16), rgba(95,211,207,.04) 55%, transparent 78%), repeating-linear-gradient(45deg, rgba(158,234,230,.035) 0 1px, transparent 1px 9px), repeating-linear-gradient(-45deg, rgba(158,234,230,.035) 0 1px, transparent 1px 9px), #0a1a1a;"></div>
+              <div style="position: absolute; left: 25.5%; right: 25.5%; top: 31.5%; bottom: 31.5%; border-radius: 50%; border: 1px solid rgba(158,234,230,.14);"></div>
+              <div style="position: absolute; left: 50%; top: 35%; transform: translateX(-50%); min-width: 16%; padding: 4px 14px; border-radius: 999px; border: 1px solid rgba(158,234,230,.4); background: rgba(10,26,26,.8); text-align: center; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: #c8f4f2; text-shadow: 0 0 6px rgba(95,211,207,.6); box-sizing: border-box;">1000 Buy-In</div>
+              <div style="position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                <span style="font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: rgba(158,234,230,.45); white-space: nowrap;">No Limit Texas Hold'em</span>
+                <sc-if value="{{ hasGame }}" hint-placeholder-val="{{ false }}"><a href="{{ gameUrl }}" target="_blank" rel="noopener" class="neon-btn" style="height: 28px; min-width: 0; padding: 0 12px; font-size: 10px;">OPEN TABLE</a></sc-if>
+              </div>
+              <sc-for list="{{ tableSeats }}" as="s" hint-placeholder-count="10">
+                <div style="position: absolute; left: {{ s.x }}; top: {{ s.y }}; transform: translate(-50%, -50%); width: 14%; height: auto; box-sizing: border-box; border-radius: 4px; border: 1px {{ s.line }} {{ s.border }}; box-shadow: {{ s.glow }}; background: {{ s.bg }}; color: {{ s.color }}; text-shadow: {{ s.textGlow }}; display: flex; align-items: center; justify-content: center; cursor: {{ s.cursor }}; pointer-events: {{ s.pe }}; transition: border-color .2s, color .2s, box-shadow .2s;" onClick="{{ s.pick }}" style-hover="color: #f2fbfb; text-shadow: 0 0 6px rgba(255,255,255,.7);">
+                  <span style="position: absolute; left: 5px; top: 2px; font-size: 10px; color: rgba(158,234,230,.45); font-variant-numeric: tabular-nums;">{{ s.no }}</span>
+                  <span style="display: flex; flex-direction: column; align-items: center; gap: 1px; width: 100%; min-width: 0; max-width: 100%; padding: 0 2px; box-sizing: border-box;"><sc-if value="{{ s.dash }}" hint-placeholder-val="{{ true }}"><span style="position: relative; width: min(57px, 100%); aspect-ratio: 1; display: grid; place-items: center; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums;"><svg aria-hidden="true" viewBox="0 0 57 57" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; filter: drop-shadow(0 0 3px currentColor) drop-shadow(0 0 1px currentColor);"><circle cx="28.5" cy="28.5" r="27" style="fill: none; stroke: currentColor; stroke-width: {{ s.baseW }}; stroke-dasharray: {{ s.baseDash }}; stroke-linecap: round; opacity: {{ s.baseOp }};"></circle><circle cx="28.5" cy="28.5" r="27" style="fill: none; stroke: #fff8e0; stroke-width: 4.2; stroke-dasharray: 0 21.2058; stroke-linecap: round; opacity: {{ s.chaseOp }}; animation: {{ s.ants }};"></circle></svg>{{ s.circNo }}</span></sc-if><sc-if value="{{ s.img }}" hint-placeholder-val="{{ false }}"><span role="img" aria-label="{{ s.label }}" style="position: relative; width: min(57px, 100%); aspect-ratio: 1; display: block; box-sizing: border-box; border-radius: 50%; border: 2px solid var(--neon-pink-tube); background: #0a1a1a; box-shadow: var(--glow-pink);"><span style="position: absolute; left: 50%; bottom: -2px; width: 166%; height: 166%; transform: translateX(-50%); background: {{ s.imgBg }}; filter: drop-shadow(0 2px 4px rgba(0,0,0,.6));"></span></span></sc-if><span style="font-size: 10px; font-weight: 600; letter-spacing: {{ s.ls }}; color: inherit; text-shadow: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">{{ s.label }}</span><sc-if value="{{ s.chips }}" hint-placeholder-val="{{ false }}"><span style="font-size: 9px; color: var(--color-neutral-400); font-variant-numeric: tabular-nums;">{{ s.chips }}</span></sc-if></span>
+                </div>
+              </sc-for>
+              <sc-if value="{{ seatPop }}" hint-placeholder-val="{{ false }}">
+                <div style="position: absolute; left: {{ popLeft }}; top: {{ popTop }}; bottom: {{ popBottom }}; transform: translateX({{ popTx }}); z-index: 3; animation: popIn .5s ease-out; width: 256px; max-width: 76%; box-sizing: border-box; display: flex; flex-direction: column; gap: 12.5px; padding: 17.5px; border-radius: 12px; border: 2px solid #f2fbfb; background: rgba(11,22,23,.92); backdrop-filter: blur(3px); box-shadow: 0 0 4px rgba(95,211,207,.6), 0 0 12px rgba(95,211,207,.25), inset 0 0 18px rgba(95,211,207,.08), 0 12px 30px rgba(0,0,0,.5);">
+                  <sc-if value="{{ seatChoosing }}" hint-placeholder-val="{{ true }}"><label style="display: flex; flex-direction: column; gap: 6.5px; font-size: 11px; line-height: 1.5; letter-spacing: .06em; color: #eef7f7; text-shadow: 0 0 5px rgba(95,211,207,.55);">FARMYARD NAME<div style="display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 15px; box-sizing: border-box; border-radius: 6px; border: 1px solid rgba(242,251,251,.25); background: rgba(242,251,251,.04); font-size: 14px; color: rgba(255,255,255,.65);"><i class="ph-light ph-lock-simple" style="font-size: 21px; color: var(--neon-red-tube); text-shadow: var(--text-glow-red);"></i><span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ myName }}</span></div></label><label style="display: flex; flex-direction: column; gap: 6.5px; font-size: 11px; line-height: 1.5; letter-spacing: .06em; color: #eef7f7; text-shadow: 0 0 5px rgba(95,211,207,.55);">TABLE NAME<div style="display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 15px; box-sizing: border-box; border-radius: 6px; border: 1px solid rgba(242,251,251,.55); background: rgba(10,18,19,.85); animation: boxBreathe 3s ease-in-out infinite;"><i class="ph-light ph-lock-simple-open" style="font-size: 21px; color: var(--neon-green-tube); text-shadow: var(--text-glow-green);"></i><input value="{{ tableName }}" onChange="{{ setTableName }}" maxlength="16" placeholder="{{ myName }}" style="flex: 1; min-width: 0; min-height: 40px; padding: 0; border: 0; outline: none; background: transparent; font-family: inherit; font-size: 14px; color: {{ tableNameColor }};"></div><span style="font-size: 10px; letter-spacing: 0; color: var(--color-neutral-400); text-shadow: none;">Try an Alt Tag On? (Just for the table)</span></label></sc-if><sc-if value="{{ seatCopied }}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 6px 0 2px; animation: fadeIn .6s ease-out;">
+                    <span style="position: relative; width: 58px; height: 58px; box-sizing: border-box; border-radius: 50%; border: 2px solid #f2fbfb; box-shadow: 0 0 6px rgba(95,211,207,.6), 0 0 16px rgba(95,211,207,.25), inset 0 0 8px rgba(95,211,207,.2);">
+                      <span style="position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: #f2fbfb;"></span>
+                      <span style="position: absolute; left: 50%; bottom: 50%; width: 2.5px; height: 15px; margin-left: -1.25px; border-radius: 2px; background: #f2fbfb; transform-origin: 50% 100%; animation: handSpin 16s linear infinite;"></span>
+                      <span style="position: absolute; left: 50%; bottom: 50%; width: 1.5px; height: 21px; margin-left: -.75px; border-radius: 2px; background: #9eeae6; box-shadow: 0 0 4px var(--neon-teal); transform-origin: 50% 100%; animation: handSpin 1.6s linear infinite;"></span>
+                    </span>
+                    <span style="font-size: 34px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: #f2fbfb; text-shadow: 0 0 6px rgba(95,211,207,.7), 0 0 16px rgba(95,211,207,.35);">{{ seatCount }}</span>
+                  </div></sc-if>
+                  <button type="button" onClick="{{ takeSeat }}" style="{{ takeSeatStyle }}">TAKE THE SEAT</button>
+                  <sc-if value="{{ seatCopied }}" hint-placeholder-val="{{ false }}"><div style="padding: 9px 11px; border: 1px solid #9eeae6; border-radius: 6px; box-shadow: 0 0 4px var(--neon-teal), 0 0 10px rgba(95,211,207,.4); font-size: 13px; line-height: 1.75; text-align: center; color: #c8f4f2; text-shadow: 0 0 4px rgba(95,211,207,.5);">Your table name has been copied to your clipboard.<span style="display: block; height: .8em;"></span><span style="display: block; white-space: nowrap; font-size: 12px; letter-spacing: 0;">TAKE <span style="color: var(--neon-green-tube); text-shadow: var(--text-glow-green);">SEAT {{ seatNo }}</span> ON POKERNOW.</span></div></sc-if>
+                  <span style="position: absolute; left: {{ arrowLeft }}; top: {{ arrowTop }}; bottom: {{ arrowBottom }}; width: 14px; height: 14px; transform: translateX(-50%) rotate({{ arrowRot }}); background: rgba(11,22,23,.9); border-right: 2px solid #f2fbfb; border-bottom: 2px solid #f2fbfb;"></span>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+          </sc-if>
+          <sc-if value="{{ isSeated }}" hint-placeholder-val="{{ false }}">
+          <div style="min-width: 0; display: flex; justify-content: center; padding: 0; animation: fadeIn .6s ease-out;">
+          <div data-docket-box="1" style="position: relative; width: 100%; max-width: 480px; height: 0; min-height: 100%; overflow-y: auto; box-sizing: border-box; border: 2px solid #9eeae6; border-radius: 12px; box-shadow: 0 0 3px rgba(95,211,207,.7), 0 0 10px rgba(95,211,207,.45), 0 0 26px rgba(95,211,207,.2), inset 0 0 3px rgba(95,211,207,.6), inset 0 0 12px rgba(95,211,207,.14);">
+            <div style="padding: 16px 18px 14px; display: flex; flex-direction: column; gap: 14px;">
+              <div style="display: flex; align-items: baseline; gap: 12px;">
+                <span style="flex: 1; font-size: 15px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: #c8f4f2; text-shadow: 0 0 6px var(--neon-teal), 0 0 16px rgba(95,211,207,.4);">Table Docket</span>
+                <span style="font-size: 18px; font-weight: 800; letter-spacing: .06em; font-variant-numeric: tabular-nums; color: var(--neon-red-text, #ff8a96); text-shadow: 0 0 4px var(--neon-red-tube), 0 0 12px var(--neon-red);">No. {{ cardNo }}</span>
+              </div>
+              <div style="display: flex; flex-direction: column;">
+                <div style="display: grid; grid-template-columns: minmax(0, 1fr) 104px 44px; padding: 0 0 6px; border-bottom: 1px solid rgba(95,211,207,.5); font-size: 10px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #c8f4f2; text-shadow: 0 0 5px var(--neon-teal);">
+                  <span>Who played</span><span style="text-align: center;">Buy-ins</span><span style="text-align: center;">Won</span>
+                </div>
+                <sc-for list="{{ resultRows }}" as="r" hint-placeholder-count="5">
+                  <div style="display: grid; grid-template-columns: minmax(0, 1fr) 104px 44px; align-items: center; min-height: 40px; border-bottom: 1px solid rgba(95,211,207,.18); opacity: {{ r.op }};">
+                    <button type="button" onClick="{{ r.toggle }}" style="display: flex; gap: 10px; align-items: center; min-width: 0; padding: 0; background: transparent; border: 0; color: #c8f4f2; cursor: pointer; text-align: left; font-family: inherit; font-size: 14px;"><span style="flex: none; width: 16px; height: 16px; box-sizing: border-box; border-radius: 4px; border: 1.5px solid {{ r.boxBorder }}; background: {{ r.boxBg }}; box-shadow: 0 0 6px {{ r.boxBorder }};"></span><span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ r.name }}</span></button>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 6px;"><button type="button" onClick="{{ r.dec }}" aria-label="Less" style="width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid rgba(95,211,207,.6); background: transparent; color: #c8f4f2; cursor: pointer; font-size: 15px; line-height: 1; padding: 0;">−</button><span style="width: 18px; text-align: center; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; color: #c8f4f2; text-shadow: 0 0 6px var(--neon-teal);">{{ r.buyIns }}</span><button type="button" onClick="{{ r.inc }}" aria-label="More" style="width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid rgba(95,211,207,.6); background: transparent; color: #c8f4f2; cursor: pointer; font-size: 15px; line-height: 1; padding: 0;">+</button></div>
+                    <div style="display: grid; place-items: center;"><button type="button" onClick="{{ r.win }}" aria-label="Winner" style="width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid {{ r.winBorder }}; background: transparent; color: {{ r.winColor }}; box-shadow: {{ r.winGlow }}; cursor: pointer; display: grid; place-items: center; padding: 0;"><i class="ph-fill ph-crown" style="font-size: 15px;"></i></button></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display: flex; gap: 12px; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+                
+                <button type="button" onClick="{{ saveResult }}" disabled="{{ saveDisabled }}" style="{{ fileStyle }}">File docket</button>
+              </div>
+            </div>
+            <sc-if value="{{ savedFlash }}" hint-placeholder-val="{{ false }}"><span style="position: absolute; right: 22px; top: 40%; padding: 4px 14px; border: 3px solid var(--neon-red-tube); border-radius: 8px; transform: rotate(-12deg); color: var(--neon-red-text, #ff8a96); background: rgba(15,20,22,.6); font-size: 26px; font-weight: 900; letter-spacing: .12em; text-shadow: 0 0 6px var(--neon-red-tube), 0 0 16px var(--neon-red); box-shadow: 0 0 6px var(--neon-red-tube), 0 0 18px var(--neon-red), inset 0 0 8px rgba(168,0,22,.5); pointer-events: none; animation: stampIn .35s cubic-bezier(.2,1.6,.4,1);">FILED</span></sc-if>
+          </div>
+          </div>
+          </sc-if>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: stretch;">
+<div style="flex: 3 1 360px; min-width: 0; box-sizing: border-box; padding: 6px; border: 1px solid rgba(232,38,58,.8); border-radius: 14px; box-shadow: 0 0 3px rgba(232,38,58,.7), 0 0 9px rgba(168,0,22,.6), 0 0 22px rgba(168,0,22,.34), 0 0 44px rgba(168,0,22,.13), inset 0 0 3px rgba(232,38,58,.65), inset 0 0 11px rgba(168,0,22,.24);">
+          <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px 14px 14px; border: 1px solid rgba(95,211,207,.55); border-radius: 9px; box-shadow: 0 0 4px rgba(95,211,207,.4), inset 0 0 4px rgba(95,211,207,.25);">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center;">
+              
+              <span style="font-family: 'Yellowtail', cursive; font-size: clamp(26px, 6vw, 40px); line-height: 1.3; white-space: nowrap; color: #2fc765; display: inline-block; transform: skewX(12deg); transform-origin: 50% 70%; text-shadow: 0 0 4px var(--neon-green-tube), 0 0 12px var(--neon-green), 0 0 28px rgba(10,158,67,.55); padding: 0 8px;">Poker League Board</span>
+              <span style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; row-gap: 6px; margin-top: 8px; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; color: #c8f4f2; text-shadow: 0 0 5px var(--neon-teal);"><span style="padding: 0 22px;">Season 1 (Oct - Dec)</span><span style="padding: 0 22px; border-left: 1px solid rgba(95,211,207,.55); border-right: 1px solid rgba(95,211,207,.55); color: var(--neon-pink-text); text-shadow: var(--text-glow-pink);">total games = {{ leagueGames }}</span><span style="padding: 0 22px;">total buy-ins = {{ leagueBuyins }}</span></span>
+            </div>
+            <div style="display: flex; flex-direction: column; overflow-x: auto;">
+              <div style="display: grid; grid-template-columns: 34px minmax(90px, 1fr) 72px 56px 72px 72px; border-top: 1px solid; border-bottom: 1px solid; border-color: rgba(95,211,207,.55); box-shadow: 0 0 4px rgba(95,211,207,.45); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #c8f4f2; text-shadow: 0 0 5px var(--neon-teal);">
+                <span style="padding: 7px 0; text-align: center;">Pos</span><span style="padding: 7px 10px; border-left: 1px solid; border-color: rgba(95,211,207,.55); box-shadow: 0 0 4px rgba(95,211,207,.45);">Player</span><span style="padding: 7px 0; text-align: center; border-left: 1px solid; border-color: rgba(95,211,207,.55); box-shadow: 0 0 4px rgba(95,211,207,.45);">Played</span><span style="padding: 7px 0; text-align: center; border-left: 1px solid; border-color: rgba(95,211,207,.55); box-shadow: 0 0 4px rgba(95,211,207,.45);">Won</span><span style="padding: 7px 0; text-align: center; border-left: 1px solid; border-color: rgba(95,211,207,.55); box-shadow: 0 0 4px rgba(95,211,207,.45);">Buy-ins</span><span style="padding: 7px 0; text-align: center; border-left: 1px solid; border-color: rgba(95,211,207,.55); box-shadow: 0 0 4px rgba(95,211,207,.45);">£</span>
+              </div>
+              <sc-for list="{{ leagueRows }}" as="l" hint-placeholder-count="6">
+                <div style="display: grid; grid-template-columns: 34px minmax(90px, 1fr) 72px 56px 72px 72px; align-items: center; min-height: 38px; font-size: 13px; font-variant-numeric: tabular-nums; border-bottom: 1px solid rgba(95,211,207,.28);">
+                  <span style="text-align: center; font-size: 12px; font-weight: 700; color: #c8f4f2; text-shadow: 0 0 5px var(--neon-teal);">{{ l.pos }}</span>
+                  <span style="align-self: stretch; display: flex; align-items: center; gap: 6px; min-width: 0; padding: 0 10px; border-left: 1px solid rgba(95,211,207,.4);"><span style="flex: none; width: 26px; display: grid; place-items: center;"><sc-if value="{{ l.lead }}" hint-placeholder-val="{{ false }}"><i class="ph-fill ph-crown" style="font-size: 20px; color: #ffc933; text-shadow: 0 0 4px #ffb300, 0 0 12px rgba(255,179,0,.8), 0 0 24px rgba(255,160,0,.5); animation: crownFlash 1.6s ease-in-out infinite;"></i></sc-if><i class="{{ l.arrowIcon }}" aria-hidden="true" style="display: {{ l.arrowDisp }}; font-size: 13px; opacity: {{ l.arrowOp }}; color: {{ l.arrowColor }}; text-shadow: {{ l.arrowGlow }};"></i></span><span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ l.name }}</span></span>
+                  <span style="align-self: stretch; display: grid; place-items: center; border-left: 1px solid rgba(95,211,207,.4); color: var(--color-neutral-300);">{{ l.played }}</span>
+                  <span style="align-self: stretch; display: grid; place-items: center; border-left: 1px solid rgba(95,211,207,.4); color: var(--color-neutral-300);">{{ l.won }}</span>
+                  <span style="align-self: stretch; display: grid; place-items: center; border-left: 1px solid rgba(95,211,207,.4); color: var(--color-neutral-300);">{{ l.buyins }}</span>
+                  <span style="align-self: stretch; display: grid; place-items: center; border-left: 1px solid rgba(95,211,207,.4); font-size: 12px; font-weight: 600; white-space: nowrap; color: {{ l.balColor }};">{{ l.bal }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <span style="font-size: 11px; line-height: 1.5; letter-spacing: .04em; color: var(--color-neutral-400); text-align: center; text-wrap: pretty;">Ranked by buy-ins per win (fewer is better). £ = what you're up or down once the IOUs are settled.</span>
+          </div>
+          </div>
+          <div style="flex: 2 1 280px; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px; padding: 16px; border: 2px solid rgba(158,234,230,.72); border-radius: 14px; box-shadow: 0 0 3px rgba(95,211,207,.7), 0 0 9px rgba(95,211,207,.55), 0 0 22px rgba(95,211,207,.3), 0 0 48px rgba(95,211,207,.12), inset 0 0 3px rgba(95,211,207,.7), inset 0 0 11px rgba(95,211,207,.2), 0 0 60px rgba(95,211,207,.1);">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-bottom: 6px;"><span class="kicker" style="flex: 1; font-size: 18px; font-weight: 800; letter-spacing: .22em; color: var(--neon-pink-text); text-shadow: var(--text-glow-pink), 0 0 24px rgba(224,21,127,.4);"><sc-for list="{{ dbLetters }}" as="L" hint-placeholder-count="0"><span style="opacity: {{ L.op }}; white-space: pre;">{{ L.ch }}</span></sc-for></span></div>
+            <div style="display: grid; grid-template-columns: minmax(64px, 1fr) minmax(0, 1.5fr) 64px; border-top: 1px solid; border-bottom: 1px solid; border-color: rgba(95,211,207,.55); box-shadow: 0 0 4px rgba(95,211,207,.45); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #c8f4f2; text-shadow: 0 0 5px var(--neon-teal);"><span style="padding: 7px 10px;">Player</span><span style="padding: 7px 10px; border-left: 1px solid; border-color: rgba(95,211,207,.55);">Owes</span><span style="padding: 7px 0; text-align: center; border-left: 1px solid; border-color: rgba(95,211,207,.55);">Total</span></div>
+            <sc-for list="{{ debts }}" as="d" hint-placeholder-count="4"><div style="display: grid; grid-template-columns: minmax(64px, 1fr) minmax(0, 1.5fr) 64px; align-items: stretch; min-height: 38px; font-size: 13px; border-bottom: 1px solid rgba(95,211,207,.28);"><span style="display: flex; align-items: center; padding: 0 10px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ d.name }}</span><span style="display: flex; align-items: center; padding: 6px 10px; border-left: 1px solid rgba(95,211,207,.4); color: var(--color-neutral-300); min-width: 0; line-height: 1.35;">{{ d.to }}</span><span style="display: flex; align-items: center; justify-content: center; white-space: nowrap; border-left: 1px solid rgba(95,211,207,.4); font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--neon-pink-text); text-shadow: var(--text-glow-pink);">{{ d.amount }}</span></div></sc-for>
+            <a href="Barn%20Profile.dc.html#settle" style="align-self: flex-end; margin-top: 12px; min-height: 32px; padding: 0 16px; display: inline-flex; align-items: center; gap: 7px; box-sizing: border-box; border: 2px solid var(--neon-red-tube); border-radius: 8px; background: transparent; color: var(--neon-red-text); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; text-decoration: none; text-shadow: var(--text-glow-red); box-shadow: 0 0 4px var(--neon-red-tube), 0 0 14px var(--neon-red), inset 0 0 8px rgba(168,0,22,.4);"><i class="ph ph-hand-coins"></i>Settle up</a>
+            <sc-if value="{{ hasRecent }}" hint-placeholder-val="{{ false }}"><span class="kicker" style="padding-top: 12px;">Just filed</span></sc-if>
+            <sc-for list="{{ nights }}" as="n" hint-placeholder-count="0"><sc-if value="{{ n.editable }}" hint-placeholder-val="{{ false }}"><div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 6px 0; border-top: 1px solid var(--rule-teal); font-size: 12px;"><span style="flex: 1; min-width: 120px;"><span style="color: var(--neon-pink);">{{ n.winner }}</span> <span style="color: var(--color-neutral-400);">beat</span> {{ n.others }} · {{ n.timeLeft }}</span><button type="button" onClick="{{ n.edit }}" class="btn btn-ghost" style="min-height: 32px; padding: 0 10px; font-size: 12px; white-space: nowrap;">Edit</button><button type="button" onClick="{{ n.undo }}" class="btn btn-ghost" style="min-height: 32px; padding: 0 10px; font-size: 12px; white-space: nowrap; color: var(--neon-pink);">Undo</button></div></sc-if></sc-for>
+          </div>
+</div>
+        </div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ isOther }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 28px; margin: 0; letter-spacing: -.01em;">{{ roomName }}</h2>
+      </div>
+      <div style="flex: 1; display: grid; place-items: center; border: 1px dashed var(--neon-teal); border-radius: 12px; color: var(--color-neutral-400); font-size: 14px; min-height: 240px;">{{ roomName }} — not built yet</div>
+      </sc-if>
+    </div>
+    <div style="display: none;">
+      <div style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400); padding: 0 2px 6px; white-space: nowrap;">In the yard — {{ onlineCount }}</div>
+      <sc-for list="{{ online }}" as="m" hint-placeholder-count="5"><div style="display: flex; gap: 8px; align-items: center; padding: 3px 2px; font-size: 13px; min-width: 0;"><div style="position: relative; flex: none;"><div style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-accent-800); display: grid; place-items: center; font-size: 10px;">{{ m.i }}</div><span style="position: absolute; right: -1px; bottom: -1px; width: 8px; height: 8px; border-radius: 50%; background: var(--neon-teal); box-shadow: 0 0 5px var(--neon-teal); border: 1.5px solid var(--color-bg);"></span></div><div style="flex: 1; min-width: 0; line-height: 1.25;"><div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ m.name }}</div><div style="font-size: 11px; color: var(--color-neutral-400); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ m.doing }}</div></div></div></sc-for>
+      <div style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400); padding: 12px 2px 6px; white-space: nowrap;">Offline — {{ offlineCount }}</div>
+      <sc-for list="{{ offline }}" as="m" hint-placeholder-count="3"><div style="display: flex; gap: 8px; align-items: center; padding: 3px 2px; font-size: 13px; min-width: 0; opacity: .5;"><div style="position: relative; flex: none;"><div style="width: 24px; height: 24px; border-radius: 50%; background: var(--color-neutral-800); display: grid; place-items: center; font-size: 10px;">{{ m.i }}</div><span style="position: absolute; right: -1px; bottom: -1px; width: 8px; height: 8px; border-radius: 50%; background: var(--color-neutral-600); border: 1.5px solid var(--color-bg);"></span></div><div style="flex: 1; min-width: 0; line-height: 1.25;"><div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ m.name }}</div><div style="font-size: 11px; color: var(--color-neutral-400); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ m.doing }}</div></div></div></sc-for>
+    </div>
+  </div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { seated: false, seatCopied: false, seatCount: 8, showRecord: false, showJoin: false, showGameId: true, started: false, gameUrl: '', gameDraft: '', copied: false, savedFlash: false, picks: { Hank: 1, Dmitri: 2, Tali: 1, Beck: 1 }, winner: 'Dmitri', nights: [{ id: 1, date: '27 Sep', winner: 'Tali', others: 'Hank, Jo, Russ', points: 5 }, { id: 2, date: '20 Sep', winner: 'Dmitri', others: 'Hank, Tali, Beck, Jo', points: 7 }, { id: 3, date: '13 Sep', winner: 'Hank', others: 'Dmitri, Russ', points: 3 }], now: Date.now(), voiceTip: false, voice: null, room: 'poker', user: null, step: 'in', name: 'Jo', character: 'hank', links: { discord: true } };
+  CHARACTERS = [
+    { id: 'hank', name: 'Hank', img: 'assets/hank-oink.png' },
+    { id: 'chick', name: 'The Chick', img: 'assets/lot-yfronts.webp' },
+    { id: 'c3', name: 'Character 3' }, { id: 'c4', name: 'Character 4' }, { id: 'c5', name: 'Character 5' }, { id: 'c6', name: 'Character 6' }, { id: 'c7', name: 'Character 7' }
+  ];
+  LINKS = [
+    { id: 'discord', name: 'Discord', icon: 'ph ph-discord-logo', unlocks: 'Your key · Lounge voice', locked: true },
+    { id: 'spotify', name: 'Spotify', icon: 'ph ph-spotify-logo', unlocks: 'Queue tracks on the Jukebox' },
+    { id: 'steam', name: 'Steam', icon: 'ph ph-steam-logo', unlocks: 'Arcade lobbies · show what you\'re playing' },
+    { id: 'itch', name: 'itch.io', icon: 'ph ph-game-controller', unlocks: 'High-score sync for browser games' },
+    { id: 'revolut', name: 'Revolut', icon: 'ph ph-hand-coins', unlocks: 'Auction bids and tips' }
+  ];
+  MEMBERS = [
+    { i: 'HK', name: 'Hank', doing: 'Hosting trivia', on: true },
+    { i: 'DM', name: 'Dmitri', doing: 'Barn Brawl', on: true },
+    { i: 'JO', name: 'Jo', doing: 'In Lounge', on: true },
+    { i: 'TL', name: 'Tali', doing: 'Tractor Derby', on: true },
+    { i: 'BK', name: 'Beck', doing: 'In Lounge', on: true },
+    { i: 'RS', name: 'Russ', doing: 'Jukebox', on: true },
+    { i: 'AN', name: 'Ana', doing: 'Last seen 2h ago', on: false },
+    { i: 'MX', name: 'Maximilian T.', doing: 'Last seen yesterday', on: false },
+    { i: 'PQ', name: 'Priya', doing: 'Last seen Mon', on: false }
+  ];
+  seatPositions(n) { return Array.from({ length: n }, (_, i) => { const a = Math.PI / 2 + i * 2 * Math.PI / n; return [(50 + 54 * Math.cos(a)).toFixed(1) + '%', (50 + 54 * Math.sin(a)).toFixed(1) + '%']; }); }
+  SEATED = { 0: { i: 'HK', name: 'Hank', stack: '1,420' }, 1: { i: 'DM', name: 'Dmitri', stack: '860' }, 3: { i: 'TL', name: 'Tali', stack: '1,100' }, 6: { i: 'BK', name: 'Beck', stack: '620' } };
+  GBP = 5;
+  REVOLUT = { Hank: 'https://revolut.me/hank', Dmitri: 'https://revolut.me/dmitri', Tali: 'https://revolut.me/tali', Jo: 'https://revolut.me/jo' };
+  copyText(t) {
+    const fallback = () => { try { const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;'; document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, t.length); const ok = document.execCommand('copy'); ta.remove(); return ok; } catch (e) { return false; } };
+    const ok = fallback();
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).catch(() => {});
+    return ok;
+  }
+  SEAT_XY = [[62,89],[38,89],[16,76],[10.5,50],[16,24],[38,11],[62,11],[84,24],[89.5,50],[84,76]];
+  pokerVals() {
+    const B = { width: 110, minHeight: 36, padding: 0, fontSize: 12, letterSpacing: '.06em', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', boxSizing: 'border-box', fontWeight: 600, borderRadius: 6, fontFamily: 'inherit', transition: 'all .2s' };
+    const st = this.state, meN = st.name || 'You', atTable = new Set([...(st.seated || (st.seatCopied && (st.seatCount ?? 10) <= 8) ? [meN] : []), ...(st.joined || []).map(p => p[0])]);
+    const players = [{ name: meN }, ...this.MEMBERS.filter(m => m.name !== st.name)].filter(p => atTable.has(p.name));
+    const picked = Object.entries(st.picks).filter(([nm, n]) => n > 0 && atTable.has(nm)), total = picked.reduce((a, [, n]) => a + n, 0);
+    const winnerIn = picked.some(([n]) => n === st.winner), ready = picked.length >= 2 && winnerIn;
+    const setPick = (name, fn) => this.setState(s => { const n = Math.max(0, fn(s.picks[name] || 0)); return { picks: { ...s.picks, [name]: n }, winner: n === 0 && s.winner === name ? null : s.winner }; });
+    const resultRows = players.map((p, idx) => { const n = st.picks[p.name] || 0, inGame = n > 0, isWin = st.winner === p.name && inGame;
+      return { no: String(idx + 1).padStart(2, '0'), name: p.name, buyIns: n, buyInsInk: n || '–', tick: inGame ? '✓' : '', inkColor: inGame ? '#1d3a8a' : 'rgba(34,51,44,.45)', circleInk: isWin ? '#b0322c' : 'rgba(34,51,44,.35)', op: inGame ? 1 : .55, boxBorder: inGame ? 'var(--neon-teal)' : 'var(--rule-teal)', boxBg: inGame ? 'var(--neon-teal)' : 'transparent',
+        winBorder: isWin ? 'var(--neon-pink)' : 'var(--rule-teal)', winColor: isWin ? 'var(--neon-pink)' : 'var(--color-neutral-400)', winGlow: isWin ? 'var(--glow-pink)' : 'none',
+        toggle: () => setPick(p.name, v => v > 0 ? 0 : 1), inc: () => setPick(p.name, v => v + 1), dec: () => setPick(p.name, v => v - 1),
+        win: () => { if (!inGame) setPick(p.name, () => 1); this.setState({ winner: p.name }); } }; });
+    const losers = picked.filter(([n]) => n !== st.winner);
+    const resultSummary = !picked.length ? 'Tick who played and set their buy-ins.' : !winnerIn ? `${picked.length} played · pick the winner` : `${st.winner} takes ${total} pts (£${total * this.GBP}) · ${losers.map(([n, b]) => `${n} owes £${b * this.GBP}`).join(', ')}`;
+    return {
+      tableSeats: (() => { const me = st.name || 'You', ch = this.CHARACTERS.find(c => c.id === st.character) || this.CHARACTERS[0], sel = st.seatIdx ?? 0;
+        const taken = Array(10).fill(null); if (st.seated) taken[sel] = [st.seatName || me, st.picks[me] || 1, ch.img];
+        (st.joined || []).forEach(p => { const k = taken.indexOf(null); if (k >= 0) taken[k] = p; });
+        const choosing = (st.started || !!st.linkEntered) && !st.seated;
+        return this.SEAT_XY.map(([x, y], n) => { const p = taken[n], pick = () => { if (choosing && !p && !st.seatCopied) this.setState({ seatIdx: n, popReady: true }); };
+          if (p) return { cursor: 'default', pe: 'none', ants: 'none', baseW: 2, baseDash: '5 8', baseOp: 1, chaseOp: 0, dash: false, circNo: '', pick, no: p[2] ? '' : n + 1, x: x + '%', y: y + '%', h: p[2] ? '32%' : '14%', img: p[2] || '', imgBg: p[2] ? `url("${p[2]}") center bottom / contain no-repeat` : 'none', label: p[0], chips: p[2] ? '' : (p[1] * 1000).toLocaleString('en-GB'), ls: '0', line: 'solid', border: p[2] ? 'transparent' : '#9eeae6', glow: p[2] ? 'none' : '0 0 4px rgba(95,211,207,.45), inset 0 0 6px rgba(95,211,207,.15)', bg: p[2] ? 'transparent' : 'rgba(10,26,26,.85)', color: '#c8f4f2', textGlow: '0 0 5px rgba(95,211,207,.6)' };
+          const lit = choosing && n === sel;
+          return { cursor: choosing ? 'pointer' : 'default', pe: choosing ? 'auto' : 'none', ants: lit ? 'bulbChase .75s steps(3) infinite' : 'none', baseW: lit ? 3.4 : 2, baseDash: lit ? '0 7.0686' : '5 8', baseOp: lit ? .45 : 1, chaseOp: lit ? 1 : 0, dash: true, pick, no: '', circNo: n + 1, x: x + '%', y: y + '%', h: '32%', img: '', imgBg: 'none', label: 'SIT', chips: '', ls: '.2em', line: 'solid', border: 'transparent', glow: 'none', bg: 'transparent', color: lit ? '#f2fbfb' : 'rgba(223,231,232,.45)', textGlow: lit ? '0 0 6px rgba(255,255,255,.7)' : 'none' }; }); })(),
+      ...(() => { const [x, y] = this.SEAT_XY[st.seatIdx ?? 0], above = y > 40, shift = x <= 12 ? 15 : x <= 20 ? 25 : x >= 88 ? 85 : x >= 80 ? 75 : 50;
+        return { popLeft: x + '%', popTx: -shift + '%', popTop: above ? 'auto' : (y + 9) + '%', popBottom: above ? (100 - y + 9) + '%' : 'auto', arrowLeft: shift + '%', arrowTop: above ? 'auto' : '-9px', arrowBottom: above ? '-9px' : 'auto', arrowRot: above ? '45deg' : '225deg' }; })(),
+      tablePot: (total * 1000).toLocaleString('en-GB'),
+      tableOpen: !!st.started || !!st.linkEntered, seatPop: (!!st.started || !!st.linkEntered) && !st.seated && !!st.popReady, myName: st.name || 'You', tableName: st.tableName ?? (st.name || 'You'), tableNameColor: st.tableName === undefined ? 'rgba(255,255,255,.45)' : '#ffffff', setTableName: e => this.setState({ tableName: e.target.value }), seatCopied: !!st.seatCopied, seatChoosing: !st.seatCopied, seatCount: st.seatCount ?? 10, seatNo: (st.seatIdx ?? 0) + 1,
+      takeSeatStyle: st.seatCopied
+        ? { width: '100%', minHeight: 42, marginTop: 10, borderRadius: 8, fontFamily: 'inherit', fontSize: 13, fontWeight: 700, letterSpacing: '.12em', background: 'transparent', cursor: 'default', pointerEvents: 'none', border: '2px solid rgba(10,158,67,.38)', color: 'rgba(63,224,127,.38)', boxShadow: 'none', textShadow: 'none' }
+        : { width: '100%', minHeight: 42, marginTop: 10, borderRadius: 8, fontFamily: 'inherit', fontSize: 13, fontWeight: 700, letterSpacing: '.12em', background: 'transparent', cursor: 'pointer', border: '2px solid var(--neon-green-tube)', color: 'var(--neon-green-text)', boxShadow: 'var(--glow-green)', textShadow: 'var(--text-glow-green)' },
+      takeSeat: () => { if (st.seatCopied) return; const tn = ((st.tableName ?? st.name) || '').trim() || st.name || ''; this.copyText(tn); const url = st.gameUrl || 'https://www.pokernow.com/start-game';
+        this.setState({ seatCopied: true, seatCount: 10 }); clearInterval(this.seatTick);
+        this.seatTick = setInterval(() => this.setState(s => ({ seatCount: Math.max(0, (s.seatCount ?? 10) - 1) })), 1000);
+        this.seatOpen = setTimeout(() => { clearInterval(this.seatTick); window.open(url, '_blank', 'noopener'); this.setState({ seated: true, seatCopied: false, seatName: tn }); }, 10000); }, hasGame: !!st.gameUrl, gameUrl: st.gameUrl || 'No game yet. Start one above.', setGameUrl: e => this.setState({ gameUrl: e.target.value }), copyLabel: st.copied ? 'Copied' : 'Copy link', pasteLabel: st.pasted ? 'PASTED' : 'PASTE',
+      enterStyle: (st.gameDraft || '').trim()
+        ? { width: 110, minHeight: 36, padding: 0, fontFamily: 'inherit', fontSize: 12, fontWeight: 600, letterSpacing: '.06em', borderRadius: 6, boxSizing: 'border-box', background: 'transparent', cursor: 'pointer', border: '1px solid var(--neon-pink-tube)', color: 'var(--neon-pink-text)', textShadow: 'var(--text-glow-pink)', boxShadow: 'var(--glow-pink)', transition: 'all .25s' }
+        : { width: 110, minHeight: 36, padding: 0, fontFamily: 'inherit', fontSize: 12, fontWeight: 600, letterSpacing: '.06em', borderRadius: 6, boxSizing: 'border-box', background: 'transparent', cursor: 'default', pointerEvents: 'none', border: '1px solid rgba(224,21,127,.35)', color: 'rgba(255,127,191,.38)', textShadow: 'none', boxShadow: 'none', transition: 'all .25s' },
+      gameDraft: st.gameDraft, setGameDraft: e => this.setState({ gameDraft: e.target.value }), enterGame: () => this.setState(s => ({ gameUrl: s.gameDraft.trim() || s.gameUrl || 'https://www.pokernow.com/games/', linkEntered: true, seated: false, seatCopied: false, popReady: false })), gameKey: e => { if (e.key === 'Enter') this.setState(s => ({ gameUrl: s.gameDraft.trim() || s.gameUrl || 'https://www.pokernow.com/games/', linkEntered: true, seated: false, seatCopied: false, popReady: false })); },
+      pasteGame: async () => { let t = ''; try { t = (await navigator.clipboard.readText()) || ''; } catch (e) {} if (t.trim()) { this.setState({ gameDraft: t.trim(), pasted: true }); setTimeout(() => this.setState({ pasted: false }), 1500); return; } const el = this.gameInput; if (el) { el.focus(); el.select(); } this.setState({ pasteHint: true }); clearTimeout(this.phT); this.phT = setTimeout(() => this.setState({ pasteHint: false }), 3500); },
+      gameRef: el => { this.gameInput = el; }, pasteHint: !!st.pasteHint,
+      copyGame: () => { navigator.clipboard && navigator.clipboard.writeText(st.gameUrl); this.setState({ copied: true }); setTimeout(() => this.setState({ copied: false }), 1500); },
+      seatCta: 'Open the table', seatedLabel: `${picked.length} of ${players.length} playing`, hostName: 'Hank',
+      hostSteps: [
+        { n: 1, text: 'Start a New Table', link: '', sub: st.nickCopied ? `Your yard name "${st.name}" is copied. Paste it into PokerNow's Nickname box.` : '', isStart: true, href: 'https://www.pokernow.com/start-game',
+          startDisp: st.started ? 'none' : 'contents', closeDisp: st.started ? 'contents' : 'none',
+          startStyle: st.started ? { ...B, background: 'transparent', color: 'rgba(63,224,127,.38)', border: '2px solid rgba(10,158,67,.38)', boxShadow: 'inset 0 0 4px rgba(255,255,255,.04)', textShadow: 'none', pointerEvents: 'none', cursor: 'default' } : { ...B, background: 'transparent', color: 'var(--neon-green-text)', border: '2px solid var(--neon-green-tube)', boxShadow: 'var(--glow-green)', textShadow: 'var(--text-glow-green)', transition: 'all .2s' },
+          startHover: { animation: 'tubeFlicker 1.4s steps(1, end) infinite', boxShadow: '0 0 6px var(--neon-green), 0 0 18px var(--neon-green), 0 0 40px rgba(10,158,67,.65), inset 0 0 10px rgba(10,158,67,.8)' },
+          closeStyle: st.started ? { ...B, background: 'transparent', color: 'var(--neon-red-text)', border: '2px solid var(--neon-red-tube)', boxShadow: 'var(--glow-red)', textShadow: 'var(--text-glow-red)', letterSpacing: '.14em', fontWeight: 700, cursor: 'pointer' } : { ...B, background: 'transparent', color: 'rgba(232,38,58,.38)', border: '1px solid rgba(168,0,22,.35)', boxShadow: 'inset 0 0 4px rgba(255,255,255,.05)', textShadow: 'none', pointerEvents: 'none', cursor: 'default' },
+          onClose: () => { clearInterval(this.seatTick); clearTimeout(this.seatOpen); clearTimeout(this.popT); this.setState({ popReady: false, linkEntered: false }); this.setState({ seatIdx: 0, tableName: undefined, seatName: '', started: false, seated: false, seatCopied: false, gameUrl: '', gameDraft: '', nickCopied: false }); },
+          onCta: e => { e.preventDefault(); clearTimeout(this.popT); this.setState({ started: true, seated: false, seatCopied: false, popReady: false }); this.popT = setTimeout(() => this.setState({ popReady: true }), 1500); } },
+        { n: 2, hidden: !st.showGameId, text: 'Confirm PokerNow Game ID', link: '', gameBox: true, sub: '' },
+        { n: 3, text: 'Take a Seat and Play', link: '', sub: 'Click SIT on Tonight\'s table, then join on PokerNow.' },
+        { n: 4, text: 'Initiator Files the Docket', link: '', sub: 'After the last hand, tick who played, set buy-ins, crown the winner.' },
+        { n: 5, text: 'Settle Up', link: '', sub: 'Losers pay the winner on Revolut from Poker debts.' },
+        { n: 9, hidden: true, text: 'Everyone joins with their yard name. Voice is in the', link: 'Live channel', href: 'https://discord.com/channels/1490100899920740483/1527009971999608902', },
+        { n: 9, hidden: true, text: 'After each table, record the game here. Winner takes the points.', link: '', href: '#' }
+      ].filter(x => !x.hidden).map((x, k) => ({ ...x, n: k + 1 })),
+      tableSpan: (!!st.seated || (!!st.seatCopied && (st.seatCount ?? 10) <= 8)) ? 'auto' : '1 / -1', isSeated: !!st.seated || (!!st.seatCopied && (st.seatCount ?? 10) <= 8), docketDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }), docketSig: st.seatName || st.name || 'You',
+      fileStyle: ready ? { minHeight: 40, padding: '0 20px', border: '2px solid var(--neon-green-tube)', borderRadius: 8, background: 'transparent', color: 'var(--neon-green-text)', fontFamily: 'inherit', fontSize: 13, fontWeight: 800, letterSpacing: '.14em', textTransform: 'uppercase', cursor: 'pointer', textShadow: 'var(--text-glow-green)', boxShadow: '0 0 4px var(--neon-green-tube), 0 0 14px var(--neon-green), inset 0 0 8px rgba(10,158,67,.35)' } : { minHeight: 40, padding: '0 20px', border: '2px solid rgba(95,211,207,.25)', borderRadius: 8, background: 'transparent', color: 'rgba(200,244,242,.35)', fontFamily: 'inherit', fontSize: 13, fontWeight: 800, letterSpacing: '.14em', textTransform: 'uppercase', cursor: 'not-allowed' },
+      ...(() => { const build = (list) => { const tally = {}; players.forEach(p => tally[p.name] = { played: 0, won: 0, pts: 0, buyins: 0, bal: 0 });
+        list.forEach(n => { const picks = n.picks || (() => { const o = (n.others || '').split(', ').filter(Boolean), pk = {}; o.forEach(x => pk[x] = 1); pk[n.winner] = Math.max(1, n.points - o.length); return pk; })();
+          const pot = Object.values(picks).reduce((a, b) => a + b, 0);
+          Object.entries(picks).forEach(([nm, b]) => { const t = tally[nm] || (tally[nm] = { played: 0, won: 0, pts: 0, buyins: 0, bal: 0 }); t.played++; t.buyins += b; if (nm === n.winner) { t.won++; t.pts += pot; t.bal += (pot - b) * this.GBP; } else t.bal -= b * this.GBP; }); });
+        return Object.entries(tally).filter(([, t]) => t.played > 0).sort((a, b) => { const ra = a[1].won ? a[1].buyins / a[1].won : Infinity, rb = b[1].won ? b[1].buyins / b[1].won : Infinity; return ra - rb || b[1].won - a[1].won || a[1].buyins - b[1].buyins || b[1].bal - a[1].bal || a[0].localeCompare(b[0]); }); };
+        const rows = build(st.nights), prevPos = {}; build(st.nights.slice(1)).forEach(([nm], i) => prevPos[nm] = i);
+        return { leagueGames: st.nights.length, leagueBuyins: rows.reduce((a, [, t]) => a + t.buyins, 0), leagueRows: rows.map(([nm, t], i) => { const mv = prevPos[nm] === undefined ? 0 : prevPos[nm] - i; return { arrowIcon: mv > 0 ? 'ph-bold ph-arrow-up' : 'ph-bold ph-arrow-down', arrowOp: mv === 0 ? 0 : 1, arrowDisp: i === 0 && t.won > 0 ? 'none' : 'block', arrowColor: mv > 0 ? '#3fd978' : '#ff3b52', arrowGlow: mv > 0 ? '0 0 6px var(--neon-green-tube), 0 0 12px var(--neon-green)' : '0 0 6px var(--neon-red-tube), 0 0 12px var(--neon-red)', pos: String(i + 1).padStart(2, '0'), name: nm, lead: i === 0 && t.won > 0, played: t.played, won: t.won, buyins: t.buyins, bal: t.bal === 0 ? '–' : (t.bal > 0 ? '+£' : '−£') + Math.abs(t.bal), balColor: t.bal > 0 ? 'var(--neon-green-tube)' : t.bal < 0 ? 'var(--neon-pink-text)' : 'var(--color-neutral-400)' }; }) }; })(),
+      ...(() => { const owe = {}; st.nights.forEach(n => { const pk = n.picks || (() => { const o = (n.others || '').split(', ').filter(Boolean), q = {}; o.forEach(x => q[x] = 1); return q; })();
+          Object.entries(pk).forEach(([nm, b]) => { if (nm === n.winner) return; const t = owe[nm] || (owe[nm] = { total: 0, to: {} }); t.total += b * this.GBP; t.to[n.winner] = (t.to[n.winner] || 0) + b * this.GBP; }); });
+        return { debts: Object.entries(owe).sort((a, b) => b[1].total - a[1].total).map(([nm, t]) => ({ name: nm, total: t.total, amount: '£' + t.total, to: Object.keys(t.to).join(', ') })), hasRecent: st.nights.some(n => n.savedAt && 15 * 60000 - (st.now - n.savedAt) > 0) }; })(),
+      cardNo: String(st.nights.length + 1).padStart(3, '0'), resultRows, resultSummary, saveDisabled: !ready, savedFlash: st.savedFlash,
+      saveResult: () => { if (!ready) return; const d = new Date(); this.setState(s => ({ nights: [{ id: d.getTime(), savedAt: d.getTime(), picks: { ...s.picks }, date: d.getDate() + ' ' + d.toLocaleString('en-GB', { month: 'short' }), winner: s.winner, others: losers.map(([n]) => n).join(', '), points: total }, ...s.nights], picks: {}, winner: null, savedFlash: true, now: d.getTime() })); setTimeout(() => this.setState({ savedFlash: false }), 4000); },
+      nights: st.nights.map(n => { const left = n.savedAt ? 15 * 60000 - (st.now - n.savedAt) : 0, mins = Math.ceil(left / 60000);
+        const myBuy = n.picks && n.picks[st.name] ? n.picks[st.name] : (n.others || '').split(', ').includes(st.name) ? 1 : 0, iOwe = n.winner !== st.name && myBuy > 0, link = this.REVOLUT[n.winner];
+        return { ...n, iOwe, unpaid: !(st.paid || {})[n.id], oweGbp: myBuy * this.GBP, payHref: link ? `${link}/${myBuy * this.GBP}gbp` : '#', paid: !!(st.paid || {})[n.id], markPaid: () => this.setState(s => ({ paid: { ...(s.paid || {}), [n.id]: true } })), editable: left > 0, timeLeft: mins <= 1 ? 'Under a minute left to change' : `${mins} min left to change`,
+          undo: () => this.setState(s => ({ nights: s.nights.filter(x => x.id !== n.id) })),
+          edit: () => this.setState(s => ({ picks: { ...n.picks }, winner: n.winner, nights: s.nights.filter(x => x.id !== n.id) })) }; })
+    };
+  }
+  online() { const me = this.state.step === 'in' ? [{ i: (this.state.name || 'Y').slice(0, 2).toUpperCase(), name: this.state.name || 'You', doing: 'Dashboard', on: true }] : []; return [...me, ...this.MEMBERS.filter(m => m.on)]; }
+  offline() { return this.MEMBERS.filter(m => !m.on); }
+  characters() {
+    return this.CHARACTERS.map(c => { const on = this.state.character === c.id; return { ...c, bgImg: c.img ? `url("${c.img}")` : 'none', qDisplay: c.img ? 'none' : 'block', pick: () => this.setState({ character: c.id }),
+      border: on ? 'var(--neon-pink)' : 'transparent', shadow: on ? 'var(--glow-pink)' : 'none' }; });
+  }
+  links() {
+    return this.LINKS.map(l => { const on = !!this.state.links[l.id]; return { ...l, iconColor: on ? 'var(--neon-teal)' : 'var(--color-neutral-400)',
+      btnClass: on ? 'btn btn-ghost' : 'btn btn-primary', btnLabel: l.locked ? 'Connected' : on ? 'Unlink' : 'Connect',
+      toggle: () => { if (l.locked) return; this.setState(s => ({ links: { ...s.links, [l.id]: !s.links[l.id] } })); } }; });
+  }
+  PAGES = {"yard":"Barn Home.dc.html","floor":"Barn Arcade.dc.html","poker":"Barn Poker.dc.html","profile":"Barn Profile.dc.html"};
+  DISCORD = { guild: '1490100899920740483', lounge: '1527009971999608902', parked: '1490100901464248321' };
+  goRoom(k) { if (k === 'lounge' || k === 'parked') { this.setState({ voice: k, voiceTip: true }); clearTimeout(this.tipT); this.tipT = setTimeout(() => this.setState({ voiceTip: false }), 6000); const d = this.DISCORD; if (!/^YOUR_|_ID$/.test(d.guild + d[k])) window.open(`https://discord.com/channels/${d.guild}/${d[k]}`, '_blank', 'noopener'); return; } const p = this.PAGES[k]; if (p && p !== this.PAGES[this.state.room]) location.href = encodeURI(p); else this.setState({ room: k }); }
+  VC = 'Voice channel';
+  vcSchedule() {
+    this.vcT = setTimeout(() => {
+      const idx = [...this.VC].map((c, i) => c === ' ' ? -1 : i).filter(i => i >= 0);
+      const i = idx[Math.floor(Math.random() * idx.length)];
+      const seq = [[0, .12], [70, 1], [160, .3], [230, 1], [420, .1], [520, 1]].slice(0, Math.random() < .5 ? 2 : 6);
+      seq.forEach(([t, op]) => setTimeout(() => this.setState({ vcFlick: op < 1 ? { i, op } : null }), t));
+      this.vcSchedule();
+    }, 5000 + Math.random() * 11000);
+  }
+  DB = 'Poker debts';
+  dbSchedule() {
+    this.dbT = setTimeout(() => {
+      const idx = [...this.DB].map((c, i) => c === ' ' ? -1 : i).filter(i => i >= 0), i = idx[Math.floor(Math.random() * idx.length)];
+      const seq = [[0, .12], [70, 1], [160, .3], [230, 1], [420, .1], [520, 1]].slice(0, Math.random() < .5 ? 2 : 6);
+      seq.forEach(([t, op]) => setTimeout(() => this.setState({ dbFlick: op < 1 ? { i, op } : null }), t));
+      this.dbSchedule();
+    }, 4000 + Math.random() * 9000);
+  }
+  componentDidMount() { this.vcSchedule(); this.dbSchedule(); document.body.classList.add('farmyard'); this.tick = setInterval(() => this.setState({ now: Date.now() }), 15000); }
+  componentWillUnmount() { clearTimeout(this.vcT); clearTimeout(this.dbT); clearInterval(this.tick); }
+  ROOMS = {
+    yard: { name: 'Dashboard', icon: 'ph ph-squares-four', n: '' },
+    lounge: { name: 'LIVE CHANNEL', icon: 'ph ph-speaker-high', n: 5, note: 'Voice via Discord' },
+    parked: { name: 'MUTED CHANNEL', icon: 'ph ph-speaker-slash', n: 0, note: 'Idle voice' },
+    floor: { name: 'Arcade', icon: 'ph ph-game-controller', n: 7, note: '6 cabinets · 7 playing' },
+    scores: { name: 'High scores', icon: 'ph ph-trophy', n: '', note: 'Dmitri leads' },
+    movies: { name: 'Movie night', icon: 'ph ph-film-slate', n: '', note: 'Fri 9pm' },
+    jukebox: { name: 'Jukebox', icon: 'ph ph-music-notes', n: 1, note: 'Queue is 12 deep' },
+    poker: { name: 'Poker', icon: 'ph ph-club', n: 4, note: 'Hold\'em on PokerNow · Fri 9pm' }
+  };
+  nav(keys) {
+    return keys.map(k => { const r = this.ROOMS[k], on = (k === 'lounge' || k === 'parked') ? this.state.voice === k : this.state.room === k; return { ...r, go: () => this.goRoom(k),
+      bg: on ? 'color-mix(in srgb, var(--neon-pink) 14%, transparent)' : 'transparent',
+      shadow: on ? 'inset 0 0 0 1px var(--neon-pink), 0 0 6px var(--neon-pink), 0 0 14px color-mix(in srgb, var(--neon-pink) 55%, transparent)' : 'none',
+      vColor: on ? 'var(--neon-pink-text)' : 'var(--color-neutral-400)', vTextGlow: on ? 'var(--text-glow-pink)' : '0 0 6px currentColor', vShadow: on ? 'var(--glow-pink)' : 'none', vBorder: on ? 'var(--neon-pink-tube)' : 'transparent',
+      iconColor: on ? 'var(--color-accent)' : 'var(--color-neutral-400)' }; });
+  }
+  renderVals() {
+    const room = this.state.room;
+    return {
+      homeNav: this.nav(['yard']), voiceNav: this.nav(['lounge', 'parked']).map((v, i) => ({ ...v, tip: !!this.state.voiceTip && this.state.voice === ['lounge', 'parked'][i], pad: '5px 6px', mt: '0px', rad: '6px', fs: '14px', fw: 400, ls: '0', bw: '1px', label: v.name, sub: '', showN: true, phone: false, ...(i === 1 ? { label: 'MUTED', sub: 'on Discord', pad: '8px', mt: '6px', rad: '8px', fs: '13px', fw: 700, ls: '.14em', bw: '2px', ...(this.state.voice === 'parked' ? { vColor: 'var(--neon-red-text)', vTextGlow: 'var(--text-glow-red)', vShadow: 'var(--glow-red)', vBorder: 'var(--neon-red-tube)' } : { vColor: 'rgba(232,38,58,.4)', vTextGlow: 'none', vShadow: 'none', vBorder: 'rgba(168,0,22,.4)' }) } : {}), ...(i === 0 ? { label: 'LIVE', sub: 'via Discord', showN: false, phone: true, pad: '8px', mt: '4px', rad: '8px', fs: '13px', fw: 700, ls: '.14em', bw: '2px', ...(this.state.voice === 'lounge' ? { vColor: 'var(--neon-green-text)', vTextGlow: 'var(--text-glow-green)', vShadow: 'var(--glow-green)', vBorder: 'var(--neon-green-tube)' } : { vColor: 'rgba(63,224,127,.4)', vTextGlow: 'none', vShadow: 'none', vBorder: 'rgba(10,158,67,.4)' }) } : {}), chColor: i === 0 ? 'var(--neon-green-text)' : 'var(--neon-red-text)', chGlow: i === 0 ? 'var(--text-glow-green)' : 'var(--text-glow-red)' })), mediaNav: this.nav(['movies', 'jukebox', 'floor', 'poker', 'scores']),
+      loggedOut: this.state.step === 'out', onboarding: this.state.step === 'onboard', loggedIn: this.state.step === 'in',
+      login: () => this.setState({ step: 'onboard' }), logout: () => { location.href = 'Barn%20Sign-in.dc.html'; },
+      finishOnboard: (e) => { e.preventDefault(); if (!this.state.name.trim()) return; this.setState({ step: 'in' }); },
+      draftName: this.state.name, setDraftName: (e) => this.setState({ name: e.target.value }), setName: (e) => this.setState({ name: e.target.value }),
+      characters: this.characters(), links: this.links(),
+      meName: this.state.name || 'You', meBgImg: `url("${(this.CHARACTERS.find(c => c.id === this.state.character) || {}).img || 'assets/hank-oink.png'}")`,
+      isProfile: room === 'profile', goProfile: () => this.goRoom('profile'),
+      profileBg: room === 'profile' ? 'color-mix(in srgb, var(--neon-pink) 14%, transparent)' : 'transparent',
+      profileShadow: room === 'profile' ? 'inset 0 0 0 1px var(--neon-pink), 0 0 6px var(--neon-pink)' : 'none',
+      isYard: room === 'yard', isFloor: room === 'floor', isPoker: room === 'poker', ...this.pokerVals(),
+      isOther: !['yard', 'floor', 'profile', 'poker'].includes(room), roomName: (this.ROOMS[room] || {}).name || '',
+      tonight: ['lounge', 'floor', 'poker', 'jukebox', 'movies'].map(k => ({ ...this.ROOMS[k], n: this.ROOMS[k].n ? this.ROOMS[k].n + ' in' : '', go: () => this.goRoom(k) })),
+      games: [
+        { name: 'Tractor Derby', src: 'Browser', n: '4 playing', note: 'Drop-in races, no install' },
+        { name: 'Barn Brawl', src: 'Steam', n: '3 playing', note: 'Lobby up, join from here' },
+        { name: 'Pixel Pigs', src: 'itch', n: 'Open', note: 'Co-op platformer' },
+        { name: 'Hay Hockey', src: 'Browser', n: '2 playing', note: 'Quick matches' },
+        { name: 'Coop Defense', src: 'Steam', n: 'Open', note: 'Four-player wave survival' },
+        { name: 'Trivia Night', src: 'Built-in', n: 'Fri 8pm', note: 'Hosted by Hank' }
+      ],
+      vcAnim: this.state.voice ? 'none' : 'vcBreathe 4s ease-in-out infinite', vcLetters: [...this.VC].map((ch, i) => ({ ch, op: this.state.vcFlick && this.state.vcFlick.i === i ? this.state.vcFlick.op : 1 })), voiceTip: this.state.voiceTip, voiceText: this.state.voice === 'lounge' ? 'LIVE' : 'OFF AIR', voiceIcon: this.state.voice === 'lounge' ? 'ph ph-microphone' : 'ph ph-microphone-slash',
+      voiceColor: this.state.voice === 'lounge' ? 'var(--neon-green-text)' : 'var(--neon-red-text)', voiceGlow: this.state.voice === 'lounge' ? 'var(--text-glow-green)' : 'var(--text-glow-red)', voiceBorder: this.state.voice === 'lounge' ? 'var(--neon-green-tube)' : 'var(--neon-red-tube)', voiceBoxGlow: this.state.voice === 'lounge' ? 'var(--glow-green)' : 'var(--glow-red)',
+      dbLetters: [...this.DB].map((ch, i) => ({ ch, op: this.state.dbFlick && this.state.dbFlick.i === i ? this.state.dbFlick.op : 1 })),
+      online: this.online(), offline: this.offline(), onlineCount: this.online().length, offlineCount: this.offline().length
+    };
+  }
+}
+</script>
+</body>
+</html>
