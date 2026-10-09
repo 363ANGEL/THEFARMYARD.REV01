@@ -28,8 +28,19 @@
     const owe = ious.filter(i => i.payer_id === me.id && live(i.state));
     const owed = ious.filter(i => i.payee_id === me.id && live(i.state));
     const closed = ious.filter(i => !live(i.state) && (i.payer_id === me.id || i.payee_id === me.id)).slice(0, 10);
-    const label = { open: 'open', marked_paid: 'marked paid', confirmed: 'confirmed', disputed: 'disputed', settled: 'squared up' };
     const who = id => `${FY.avatar(names[id]?.avatar)}${FY.esc(names[id]?.nickname || '?')}`;
+    const rev = {}; ((await FY.q('member').select('id,revolut_url')).data || []).forEach(m => rev[m.id] = m.revolut_url);
+    // Settle up: what I still owe (state open), grouped by payee. £ = buy-ins x 5 (league constant).
+    const GBP = 5, groups = {};
+    owe.forEach(i => { const g = groups[i.payee_id] || (groups[i.payee_id] = { open: 0, ids: [], waiting: 0 });
+      if (i.state === 'open') { g.open += i.amount; g.ids.push(i.id); } else g.waiting += i.amount; });
+    const revLink = (url, gbp) => { const m = /^https:\/\/revolut\.me\/([A-Za-z0-9._-]+)$/.exec(url || ''); return m ? `https://revolut.me/${m[1]}/${gbp}gbp` : null; };
+    const settleRow = pid => { const g = groups[pid], link = revLink(rev[pid], g.open * GBP);
+      return `<div class="row card"><span>You owe ${who(pid)} <strong class="num">£${g.open * GBP}</strong>${g.waiting ? ` <span class="muted">· £${g.waiting * GBP} marked paid, waiting</span>` : ''}</span>
+        ${g.open ? `${link ? `<a class="btn teal" href="${FY.esc(link)}" target="_blank" rel="noopener" style="text-decoration:none">Pay on Revolut</a>` : '<span class="muted">No Revolut link yet</span>'}
+        <button class="teal" data-paid="${g.ids.join(',')}">Mark paid</button>` : ''}</div>`; };
+    const settlePayees = Object.keys(groups).filter(pid => groups[pid].open || groups[pid].waiting);
+    const label = { open: 'open', marked_paid: 'marked paid', confirmed: 'confirmed', disputed: 'disputed', settled: 'squared up' };
     const rowOwe = i => `<div class="row card"><span>You owe ${who(i.payee_id)} <strong class="num">${i.amount}</strong> · ${label[i.state]}</span>
       ${i.state === 'open' ? `<button class="teal" data-t="marked_paid" data-id="${i.id}">Mark paid</button>` : ''}</div>`;
     const rowOwed = i => `<div class="row card"><span>${who(i.payer_id)} owes you <strong class="num">${i.amount}</strong> · ${label[i.state]}</span>
@@ -38,6 +49,8 @@
     main.innerHTML = `
       <section class="row"><span style="font-size:0">${FY.avatar(me.avatar)}</span><h1>${FY.esc(me.nickname)}</h1></section>
       <section class="card"><h2>Points</h2><div class="row">${pts.map(p => `<span><span class="muted">${FY.esc(p.type_key)}</span> ${FY.fmt(p.points)}</span>`).join('')}</div></section>
+      <section class="stack" id="settle"><h2>Settle up</h2>${settlePayees.length ? settlePayees.map(settleRow).join('') : '<p class="muted">Nothing to settle.</p>'}
+        <p class="muted">Pay on Revolut, then tap Mark paid. They confirm and it is squared.</p></section>
       <section class="stack"><h2>You owe</h2>${owe.length ? owe.map(rowOwe).join('') : '<p class="muted">Nothing. Clean slate.</p>'}</section>
       <section class="stack"><h2>Owed to you</h2>${owed.length ? owed.map(rowOwed).join('') : '<p class="muted">Nobody owes you. Yet.</p>'}</section>
       <section class="card stack"><h2>Something wrong?</h2>
@@ -55,6 +68,7 @@
           <div class="field"><label for="nick">Nickname</label><input id="nick" value="${FY.esc(me.nickname)}" required maxlength="24"></div>
           <div class="field"><label for="av">Animal</label><select id="av">${AVATARS.map(a => `<option ${a === me.avatar ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
           <div class="field"><label for="cc">chess.com username</label><input id="cc" value="${FY.esc(me.chesscom_username || '')}" maxlength="40"></div>
+          <div class="field"><label for="rv">Revolut pay-me link</label><input id="rv" type="url" value="${FY.esc(me.revolut_url || '')}" maxlength="120" placeholder="https://revolut.me/yourname"></div>
           <button class="teal">Save</button>
         </form></section>
       ${closed.length ? `<section class="stack"><h2 class="muted">Recent, closed</h2>${closed.map(i => `<p class="muted">${who(i.payer_id)} → ${who(i.payee_id)} ${i.amount} · ${label[i.state]}</p>`).join('')}</section>` : ''}`;
@@ -66,6 +80,12 @@
       try { await FY.rpc('iou_transition', { p_iou: b.dataset.id, p_to: b.dataset.t }); FY.toast({ marked_paid: 'Marked paid. Waiting for their tick.', confirmed: 'Confirmed. Squared.', disputed: 'Disputed. RAY will sort it.' }[b.dataset.t]); await render(); }
       catch (e) { FY.toast(e.message); b.disabled = false; }
     }));
+    main.querySelectorAll('button[data-paid]').forEach(b => b.addEventListener('click', async () => {
+      b.disabled = true;
+      try { for (const id of b.dataset.paid.split(',')) await FY.rpc('iou_transition', { p_iou: id, p_to: 'marked_paid' }); FY.toast('Marked paid. Waiting for their tick.'); await render(); }
+      catch (e) { FY.toast(e.message); await render(); }
+    }));
+    if (location.hash === '#settle' && !render.scrolled) { render.scrolled = true; document.getElementById('settle')?.scrollIntoView(); }
     const ctype = document.getElementById('ctype');
     ctype.addEventListener('change', () => { document.getElementById('f-points').hidden = ctype.value !== 'points'; document.getElementById('f-iou').hidden = ctype.value !== 'iou'; });
     document.getElementById('claim').addEventListener('submit', async ev => {
@@ -83,9 +103,11 @@
     document.getElementById('edit').addEventListener('submit', async ev => {
       ev.preventDefault();
       if (!document.getElementById('nick').value.trim()) return FY.toast("Nickname can't be blank");
-      const { error } = await FY.q('member').update({ nickname: document.getElementById('nick').value.trim(), avatar: document.getElementById('av').value, chesscom_username: document.getElementById('cc').value.trim() || null }).eq('id', me.id);
+      const rv = document.getElementById('rv').value.trim() || null;
+      if (rv && !/^https:\/\/revolut\.me\/[A-Za-z0-9._-]+$/.test(rv)) return FY.toast('Revolut link must be exactly https://revolut.me/yourname');
+      const { error } = await FY.q('member').update({ nickname: document.getElementById('nick').value.trim(), avatar: document.getElementById('av').value, chesscom_username: document.getElementById('cc').value.trim() || null, revolut_url: rv }).eq('id', me.id);
       if (error) return FY.toast(error.message);
-      Object.assign(me, { nickname: document.getElementById('nick').value.trim(), avatar: document.getElementById('av').value, chesscom_username: document.getElementById('cc').value.trim() || null });
+      Object.assign(me, { nickname: document.getElementById('nick').value.trim(), avatar: document.getElementById('av').value, chesscom_username: document.getElementById('cc').value.trim() || null, revolut_url: rv });
       FY.toast('Saved.'); await render();
     });
   }

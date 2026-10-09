@@ -34,6 +34,7 @@ $$;
 do $$
 declare ray uuid; sock uuid; pants uuid; tok text; tok2 text; ev uuid; n int; i fy.iou; d text;
         cp uuid; iou1 uuid; iou2 uuid; st text; r int; spare uuid; ta text; tb text;
+        tbl uuid; tbl2 uuid; pj jsonb; ev2 uuid;
 begin
   select id into ray from fy.member where nickname = 'RAY';
 
@@ -396,6 +397,171 @@ begin
   perform fy.create_member('  Trimmed  ', 'goat');
   perform pg_temp.as_owner();
   select count(*) into n from fy.member where nickname = 'Trimmed'; assert n = 1, 'nickname stored trimmed';
+
+  -- ===== Poker room =====
+  -- Users: 1 RAY (leader), 2 Sock, 3 Pants, 4 Spare. User 5 is a signed-in account with no profile.
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+  values ('00000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'nobody@test.local', '', '{"provider":"discord"}', '{}', now(), now());
+  perform pg_temp.as_owner();
+  select id into sock from fy.member where nickname = 'The Sock';
+  select id into pants from fy.member where nickname = 'Pants';
+  select id into spare from fy.member where nickname = 'Spare';
+
+  -- A signed-in account with no profile cannot start, read or sit.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000005');
+  begin perform fy.poker_start(); raise exception 'should have failed: no profile starts a table';
+  exception when others then if sqlerrm not like '%sign in first%' then raise; end if; end;
+  assert fy.poker_current() is null, 'no profile reads no table';
+  assert fy.poker_board() is null, 'no profile reads no board';
+  assert fy.poker_debts() is null, 'no profile reads no debts';
+
+  -- Sock starts a table; Pants cannot start a second one.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  tbl := fy.poker_start();
+  pj := fy.poker_current(); assert pj->>'status' = 'starting', 'new table is starting';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  begin perform fy.poker_start(); raise exception 'should have failed: second live table';
+  exception when others then if sqlerrm not like '%already open%' then raise; end if; end;
+  -- Nobody sits before the link is in; only the initiator or the leader sets it; the link must be a PokerNow game.
+  begin perform fy.poker_take_seat(tbl, 1, 'Pants'); raise exception 'should have failed: table not open';
+  exception when others then if sqlerrm not like '%not open%' then raise; end if; end;
+  begin perform fy.poker_set_link(tbl, 'https://www.pokernow.com/games/pglabc123'); raise exception 'should have failed: not initiator';
+  exception when others then if sqlerrm not like '%not allowed%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  begin perform fy.poker_set_link(tbl, 'javascript:alert(1)'); raise exception 'should have failed: bad link';
+  exception when others then if sqlerrm not like '%not a PokerNow%' then raise; end if; end;
+  begin perform fy.poker_set_link(tbl, 'https://evil.example/games/abc'); raise exception 'should have failed: wrong host';
+  exception when others then if sqlerrm not like '%not a PokerNow%' then raise; end if; end;
+  perform fy.poker_set_link(tbl, 'https://www.pokernow.com/games/pglabc123');
+  pj := fy.poker_current(); assert pj->>'status' = 'open', 'link opens the table';
+
+  -- Seats: one each, no double-booking, 1 to 10, name 1 to 24.
+  d := fy.poker_take_seat(tbl, 3, 'Sockie');
+  assert d = 'https://www.pokernow.com/games/pglabc123', 'take_seat returns the link';
+  begin perform fy.poker_take_seat(tbl, 4, 'Again'); raise exception 'should have failed: second seat';
+  exception when others then if sqlerrm not like '%already have a seat%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  begin perform fy.poker_take_seat(tbl, 3, 'Pants'); raise exception 'should have failed: seat taken';
+  exception when others then if sqlerrm not like '%seat is taken%' then raise; end if; end;
+  begin perform fy.poker_take_seat(tbl, 11, 'Pants'); raise exception 'should have failed: seat 11';
+  exception when others then if sqlerrm not like '%1 to 10%' then raise; end if; end;
+  begin perform fy.poker_take_seat(tbl, 5, '   '); raise exception 'should have failed: blank name';
+  exception when others then if sqlerrm not like '%table name%' then raise; end if; end;
+  perform fy.poker_take_seat(tbl, 4, 'Pantsy');
+  pj := fy.poker_current(); assert jsonb_array_length(pj->'seats') = 2, 'two seats show';
+  assert pj->'seats'->0->>'nickname' = 'The Sock' and pj->'seats'->1->>'table_name' = 'Pantsy', 'seat roster carries names';
+  -- Leaving frees the seat; the member can sit again.
+  perform fy.poker_leave_seat(tbl);
+  pj := fy.poker_current(); assert jsonb_array_length(pj->'seats') = 1, 'leaving frees the seat';
+  perform fy.poker_take_seat(tbl, 4, 'Pantsy');
+  -- Seats cannot be written around the RPCs.
+  begin insert into fy.poker_seat (table_id, seat_no, member_id, table_name) values (tbl, 9, pants, 'x'); raise exception 'should have failed: direct seat insert';
+  exception when insufficient_privilege then null; end;
+
+  -- Docket: only the initiator or the leader; only seated players; needs a winner among them.
+  begin perform fy.poker_file_docket(tbl, jsonb_build_array(jsonb_build_object('member_id', sock, 'buy_ins', 1), jsonb_build_object('member_id', pants, 'buy_ins', 2)), sock);
+    raise exception 'should have failed: Pants is not the initiator';
+  exception when others then if sqlerrm not like '%not allowed%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  begin perform fy.poker_file_docket(tbl, jsonb_build_array(jsonb_build_object('member_id', sock, 'buy_ins', 1), jsonb_build_object('member_id', spare, 'buy_ins', 2)), sock);
+    raise exception 'should have failed: Spare is not seated';
+  exception when others then if sqlerrm not like '%seated%' then raise; end if; end;
+  ev := fy.poker_file_docket(tbl, jsonb_build_array(jsonb_build_object('member_id', sock, 'buy_ins', 1), jsonb_build_object('member_id', pants, 'buy_ins', 2)), sock);
+  perform pg_temp.as_owner();
+  select amount into n from fy.iou where event_id = ev and payer_id = pants and payee_id = sock; assert n = 2, 'Pants owes Sock 2';
+  select entered_by::text into d from fy.event where id = ev; assert d = sock::text, 'filed by the initiator, not the leader';
+  select points into n from fy.score_entry where event_id = ev and member_id = sock; assert n = 3, 'Sock gets the pot of 3';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  begin perform fy.poker_file_docket(tbl, jsonb_build_array(jsonb_build_object('member_id', sock, 'buy_ins', 1), jsonb_build_object('member_id', pants, 'buy_ins', 2)), sock);
+    raise exception 'should have failed: filed twice';
+  exception when others then if sqlerrm not like '%already filed%' then raise; end if; end;
+
+  -- Board and debts see the night; the undo list is for the filer and the leader only, with the buy-ins to edit.
+  pj := fy.poker_board(now() - interval '1 day', now() + interval '1 day');
+  assert (pj->>'games')::int >= 1, 'board counts the game';
+  assert exists (select 1 from jsonb_array_elements(pj->'rows') x where x->>'nickname' = 'The Sock' and (x->>'won')::int >= 1), 'winner is on the board';
+  assert jsonb_array_length(pj->'recent') = 1, 'filer sees the fresh docket';
+  assert (pj->'recent'->0->'picks'->>(sock::text))::int = 1 and (pj->'recent'->0->'picks'->>(pants::text))::int = 2, 'picks come back for Edit';
+  assert (pj->'recent'->0->>'left_secs')::int between 1 and 900, 'window counts down';
+  pj := fy.poker_debts();
+  assert exists (select 1 from jsonb_array_elements(pj) x where x->>'nickname' = 'Pants' and (x->>'total')::int >= 2), 'Pants shows as owing';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000004');
+  assert jsonb_array_length(fy.poker_board(now() - interval '1 day', now() + interval '1 day')->'recent') = 0, 'other members do not see the undo list';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  assert jsonb_array_length(fy.poker_board(now() - interval '1 day', now() + interval '1 day')->'recent') = 1, 'leader sees it';
+
+  -- Undo: not by a bystander; the filer can; then the docket can be filed again (Edit).
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  begin perform fy.poker_undo_docket(tbl); raise exception 'should have failed: bystander undo';
+  exception when others then if sqlerrm not like '%not allowed%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  perform fy.poker_undo_docket(tbl);
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.event where id = ev and voided_at is not null; assert n = 1, 'undo voids the event';
+  select count(*) into n from fy.iou where event_id = ev and state = 'settled'; assert n = 1, 'undo closes its IOU';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  ev2 := fy.poker_file_docket(tbl, jsonb_build_array(jsonb_build_object('member_id', sock, 'buy_ins', 2), jsonb_build_object('member_id', pants, 'buy_ins', 2)), pants);
+  -- Back-date the filing: past 15 minutes nobody can undo it.
+  perform pg_temp.as_owner();
+  update fy.event set created_at = now() - interval '16 minutes' where id = ev2;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  begin perform fy.poker_undo_docket(tbl); raise exception 'should have failed: window shut';
+  exception when others then if sqlerrm not like '%15 minutes%' then raise; end if; end;
+  assert jsonb_array_length(fy.poker_board(now() - interval '1 day', now() + interval '1 day')->'recent') = 0, 'window shut, no Edit / Undo';
+
+  -- Close: not a bystander; the initiator can; a new table can then start.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  begin perform fy.poker_close(tbl); raise exception 'should have failed: bystander close';
+  exception when others then if sqlerrm not like '%not allowed%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  perform fy.poker_close(tbl);
+  assert fy.poker_current() is null, 'closed table is gone';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  tbl2 := fy.poker_start();
+  assert tbl2 <> tbl, 'a new table starts after close';
+  -- The leader may set the link and close someone else's table.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  perform fy.poker_set_link(tbl2, 'https://www.pokernow.club/games/pgl-xyz_9');
+  perform fy.poker_close(tbl2);
+  -- A table left over from yesterday neither shows nor blocks a new one.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000004');
+  tbl := fy.poker_start();
+  perform pg_temp.as_owner();
+  update fy.poker_table set created_at = now() - interval '13 hours' where id = tbl;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  assert fy.poker_current() is null, 'stale table is not shown';
+  tbl2 := fy.poker_start();
+  perform pg_temp.as_owner();
+  select status into st from fy.poker_table where id = tbl; assert st = 'closed', 'stale table auto-closed';
+
+  -- record_poker_result and void_event are still leader-only; the internals are not callable at all.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  begin perform fy.record_poker_result(jsonb_build_array(jsonb_build_object('member_id', sock, 'buy_ins', 1), jsonb_build_object('member_id', pants, 'buy_ins', 1)), sock);
+    raise exception 'should have failed: member records a night directly';
+  exception when others then if sqlerrm not like '%not allowed%' then raise; end if; end;
+  begin perform fy.void_event(ev2); raise exception 'should have failed: member voids directly';
+  exception when others then if sqlerrm not like '%not allowed%' then raise; end if; end;
+  begin perform fy._record_poker_result(sock, '[]'::jsonb, sock); raise exception 'should have failed: internal function';
+  exception when insufficient_privilege then null; end;
+
+  -- Revolut link: the owner sets it, bad ones are refused, other members can read it.
+  update fy.member set revolut_url = 'https://revolut.me/thesock' where id = sock;
+  begin update fy.member set revolut_url = 'javascript:alert(1)' where id = sock; raise exception 'should have failed: bad revolut link';
+  exception when check_violation then null; end;
+  begin update fy.member set revolut_url = 'http://revolut.me/thesock' where id = sock; raise exception 'should have failed: http revolut link';
+  exception when check_violation then null; end;
+  begin update fy.member set revolut_url = 'https://revolut.me/thesock?x=1' where id = sock; raise exception 'should have failed: extra path or query';
+  exception when check_violation then null; end;
+  begin update fy.member set revolut_url = 'https://revolut.me/thesock/' where id = sock; raise exception 'should have failed: trailing slash';
+  exception when check_violation then null; end;
+  assert (fy.me()).revolut_url = 'https://revolut.me/thesock', 'me() carries the link';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  select revolut_url into d from fy.member where id = sock; assert d = 'https://revolut.me/thesock', 'members read pay-me links';
+  update fy.member set revolut_url = 'https://revolut.me/pants' where id = sock;
+  perform pg_temp.as_owner();
+  select revolut_url into d from fy.member where id = sock; assert d = 'https://revolut.me/thesock', 'cannot set another member''s link';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000005');
+  select count(*) into n from fy.member; assert n = 0, 'no-profile account still reads no members';
 
   raise notice 'ALL TESTS PASSED';
 end $$;
