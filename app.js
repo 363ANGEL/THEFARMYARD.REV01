@@ -70,6 +70,7 @@
     h.innerHTML = `<nav class="bar">
       <a href="index.html" class="brand">The Farmyard</a>
       <a href="tables.html">Tables</a>
+      <a href="poker.html">Poker</a>
       ${s ? `<a href="profile.html">${me ? FY.esc(me.nickname) : 'Profile'}</a>` : ''}
       ${me && me.role === 'leader' ? '<a href="admin.html">Admin</a>' : ''}
       ${s ? '<button id="fy-out" class="ghost">Sign out</button>' : '<button id="fy-in" class="pink">Sign in with Discord</button>'}

@@ -1,0 +1,149 @@
+/* The Farmyard — brand style sheet. Loads on top of Nocturne styles.css. */
+
+:root {
+  /* Neon */
+  --neon-pink: #e0157f;             /* glow colour (deepened Oct 2026) */
+  --neon-pink-tube: #ff7fbf;        /* lit tube / border */
+  --neon-pink-text: #ffc4e1;        /* lit lettering */
+  --neon-pink-link: #ff8ccb;
+  --neon-pink-hover: #ffb3dc;
+  --neon-teal: #5fd3cf;
+  --neon-amber: #ff9a1f;            /* Vegas Vickie hair (ref 10): seat card */
+  --neon-amber-tube: #ffc45c;
+  --neon-amber-text: #ffd98a;
+  --neon-green: #0a9e43;            /* LIVE, START */
+  --neon-green-tube: #3fe07f;
+  --neon-green-text: #9ff5bf;
+  --neon-red: #a80016;              /* exit-sign red: CLOSE, OFF AIR */
+  --neon-red-tube: #e8263a;
+  --neon-red-text: #ff9aa5;
+  --color-accent: var(--neon-pink); /* overrides Nocturne blurple */
+
+  /* Ground */
+  --fy-bg: #161826;                 /* = --color-bg; also the character disc */
+  --fy-surface: #232532;
+  --haze-pink: rgba(45,15,34,.85);
+  --haze-teal: rgba(27,74,74,.45);
+
+  /* Text */
+  --fy-text: #e9e9ed;
+  --fy-text-body: #e4e7f5;          /* neutral-200 */
+  --fy-text-secondary: #cfd3e5;     /* neutral-300 */
+  --fy-text-label: #b2b6ca;         /* neutral-400 */
+
+  /* Character art palette (baked into images) */
+  --art-pink: #ff2fa0;
+  --art-cyan: #3fe0e0;
+  --art-gold: #d98a12;              /* tiger-eye */
+  --art-cream: #f1e9d2;
+  --art-disc: #161826;
+
+  /* Glow recipes */
+  --glow-pink: 0 0 3px var(--neon-pink), 0 0 8px rgba(224,21,127,.55), 0 0 16px rgba(224,21,127,.2), inset 0 0 4px rgba(224,21,127,.4);
+  --glow-green: 0 0 4px var(--neon-green), 0 0 12px var(--neon-green), 0 0 26px rgba(10,158,67,.45), inset 0 0 6px rgba(10,158,67,.6);
+  --glow-red: 0 0 4px var(--neon-red), 0 0 12px var(--neon-red), 0 0 26px rgba(168,0,22,.45), inset 0 0 6px rgba(168,0,22,.6);
+  /* Module tubes: 2px border + three outer layers + inner glow. No white core. */
+  --tube-pink: 0 0 3px var(--neon-pink), 0 0 8px rgba(224,21,127,.6), 0 0 18px rgba(224,21,127,.25), inset 0 0 3px rgba(224,21,127,.5), inset 0 0 8px rgba(224,21,127,.18);
+  --tube-teal: 0 0 4px var(--neon-teal), 0 0 10px var(--neon-teal), 0 0 24px rgba(95,211,207,.42), 0 0 52px rgba(95,211,207,.18), inset 0 0 4px var(--neon-teal), inset 0 0 14px rgba(95,211,207,.26);
+  --text-glow-pink: 0 0 4px var(--neon-pink), 0 0 10px rgba(224,21,127,.6);
+  --text-glow-green: 0 0 6px var(--neon-green), 0 0 12px var(--neon-green);
+  --text-glow-red: 0 0 6px var(--neon-red), 0 0 12px var(--neon-red);
+  --glow-teal: 0 0 6px var(--neon-teal), 0 0 14px rgba(95,211,207,.45);
+  --rule-teal: rgba(95,211,207,.35);
+
+  /* Character sizes */
+  --char-hero: 531px;
+  --char-card: 175px;
+  --char-host: 96px;                /* smallest full-colour art */
+  --char-list: 75px;                /* face mark from here down */
+  --char-avatar: 48px;
+}
+
+/* Page ground with the two hazes */
+html, body { margin: 0; min-height: 100%; }
+body {
+  background:
+    radial-gradient(900px 600px at 80% 10%, var(--haze-pink), transparent 60%),
+    radial-gradient(700px 500px at 0% 100%, var(--haze-teal), transparent 60%),
+    var(--fy-bg);
+  color: var(--fy-text);
+}
+a { color: var(--neon-pink-link); }
+a:hover { color: var(--neon-pink-hover); }
+
+/* Neon text */
+.neon-pink { color: var(--neon-pink-text); text-shadow: var(--text-glow-pink), 0 0 28px rgba(224,21,127,.5); }
+.neon-green { color: var(--neon-green-text); text-shadow: var(--text-glow-green); }
+.neon-red { color: var(--neon-red-text); text-shadow: var(--text-glow-red); }
+.neon-teal { color: var(--neon-teal); text-shadow: 0 0 8px var(--neon-teal); }
+.lot-label { font-family: var(--font-heading); font-weight: 600; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--neon-pink); text-shadow: 0 0 6px rgba(224,21,127,.6); }
+.kicker { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--fy-text-label); }
+
+/* Neon boxes — teal frames, pink content */
+.neon-box { border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal); }
+.neon-box-pink { border: 1px solid var(--neon-pink); border-radius: 10px; box-shadow: var(--glow-pink); }
+/* Neon tubes (approved Oct 2026): 2px pale-tube border, rounder corners, layered glow */
+.neon-tube { border: 2px solid var(--neon-pink-tube); border-radius: 14px; box-shadow: var(--tube-pink); }
+.neon-tube-teal { border: 2px solid #9eeae6; border-radius: 14px; box-shadow: var(--tube-teal); }
+/* Optional wall spill: put on a wrapper; paints a soft pink wash behind its child */
+.wall-spill { position: relative; isolation: isolate; }
+.wall-spill::before { content: ""; position: absolute; inset: -60px; z-index: -1; background: radial-gradient(closest-side, rgba(224,21,127,.24), rgba(224,21,127,.07) 55%, transparent); pointer-events: none; }
+
+/* Buttons & inputs over Nocturne */
+.btn-primary { border-color: var(--neon-pink-tube) !important; color: var(--neon-pink-text); box-shadow: var(--glow-pink); text-shadow: var(--text-glow-pink); white-space: nowrap; }
+.btn-primary:hover { background: rgba(224,21,127,.12); }
+/* Neon pill buttons */
+.neon-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 110px; height: 38px; padding: 0 16px; box-sizing: border-box; border-radius: 19px; background: transparent; font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-decoration: none; cursor: pointer; transition: box-shadow .2s; border: 2px solid var(--neon-pink-tube); color: var(--neon-pink-text); text-shadow: var(--text-glow-pink); box-shadow: var(--glow-pink); }
+.neon-btn:hover { box-shadow: 0 0 6px var(--neon-pink), 0 0 18px var(--neon-pink), 0 0 40px rgba(224,21,127,.65), inset 0 0 10px rgba(224,21,127,.8); }
+.neon-btn-green { border-color: var(--neon-green-tube); color: var(--neon-green-text); text-shadow: var(--text-glow-green); box-shadow: var(--glow-green); }
+.neon-btn-green:hover { animation: buzz 1.4s steps(1, end) infinite; box-shadow: 0 0 6px var(--neon-green), 0 0 18px var(--neon-green), 0 0 40px rgba(10,158,67,.65), inset 0 0 10px rgba(10,158,67,.8); }
+.neon-btn-red { border-color: var(--neon-red-tube); color: var(--neon-red-text); text-shadow: var(--text-glow-red); box-shadow: var(--glow-red); }
+.neon-btn-red:hover { box-shadow: 0 0 6px var(--neon-red), 0 0 18px var(--neon-red), 0 0 40px rgba(168,0,22,.65), inset 0 0 10px rgba(168,0,22,.8); }
+/* Unlit glass: tube visible, no light. Use for disabled. */
+.neon-btn-off, .neon-btn:disabled { background: rgba(255,255,255,.02); border-color: rgba(168,0,22,.38); color: rgba(232,38,58,.4); text-shadow: none; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.4); pointer-events: none; cursor: default; animation: none; }
+/* Single-letter flicker: wrap ONE letter or small part. Keep it rare. */
+.flicker-letter { animation: buzz 4.2s steps(1, end) infinite; }
+.flicker-letter-slow { animation: buzzSlow 6.5s steps(1, end) infinite; }
+.input:focus { border-color: var(--neon-teal); box-shadow: 0 0 8px rgba(95,211,207,.5); }
+
+/* Fading rule */
+.rule-teal { height: 1px; background: linear-gradient(to right, transparent, rgba(95,211,207,.55) 48px, rgba(95,211,207,.55) calc(100% - 48px), transparent); }
+.table-neon td { border-top: 1px solid var(--rule-teal); }
+
+/* Characters */
+.char { display: block; object-fit: contain; }
+.char-hero { width: min(100%, var(--char-hero), 69.6vh); height: auto; animation: charBreath 6s ease-in-out infinite; }
+.char-card { width: var(--char-card); height: var(--char-card); animation: charBreath 6s ease-in-out infinite; }
+.char-host { width: var(--char-host); height: var(--char-host); }
+/* Face mark: teal line trace inside a page-drawn teal ring */
+.char-mark { display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1.5px solid var(--neon-teal); box-shadow: 0 0 6px rgba(95,211,207,.6); }
+.char-mark img { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 4px rgba(95,211,207,.8)); }
+.char-mark-list { width: var(--char-list); height: var(--char-list); }
+.char-mark-avatar { width: var(--char-avatar); height: var(--char-avatar); }
+.char-mark-avatar img { filter: drop-shadow(0 0 3px rgba(95,211,207,.8)); }
+
+/* Animations */
+@keyframes payDrop { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: none; } }
+@keyframes hankBreath { 0%, 100% { filter: drop-shadow(0 0 0px rgba(224,21,127,0)) drop-shadow(0 0 0px rgba(224,21,127,0)) brightness(.85); } 40%, 60% { filter: drop-shadow(0 0 14px rgba(224,21,127,.95)) drop-shadow(0 0 40px rgba(224,21,127,.6)) brightness(1.08); } }
+@keyframes signSway { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(-5.2deg); } 52% { transform: rotate(-5.6deg); } }
+@keyframes neonDead { 0%, 100% { opacity: .18; text-shadow: none; } 3% { opacity: 1; } 4% { opacity: .18; } 61% { opacity: .85; } 62% { opacity: .18; } 63.5% { opacity: .6; } 64% { opacity: .18; } }
+@keyframes boxFlicker { 0%, 100% { opacity: 1; } 31% { opacity: 1; } 32% { opacity: .55; } 33% { opacity: 1; } 70% { opacity: 1; } 71% { opacity: .4; } 72.5% { opacity: 1; } 73.5% { opacity: .7; } 74% { opacity: 1; } }
+@keyframes charBreath { 0%, 100% { filter: drop-shadow(0 0 0px rgba(224,21,127,0)) drop-shadow(0 0 0px rgba(224,21,127,0)) brightness(.85); } 40%, 60% { filter: drop-shadow(0 0 14px rgba(224,21,127,.95)) drop-shadow(0 0 40px rgba(224,21,127,.6)) brightness(1.08); } }
+@keyframes btnPulse { 0%, 100% { box-shadow: 0 0 3px rgba(224,21,127,.4), inset 0 0 3px rgba(224,21,127,.2); text-shadow: 0 0 2px rgba(224,21,127,.4); } 50% { box-shadow: 0 0 10px #e0157f, 0 0 26px rgba(224,21,127,.75), inset 0 0 10px rgba(224,21,127,.5); text-shadow: 0 0 8px #e0157f; } }
+@keyframes neonBreath { 0%, 100% { box-shadow: 0 0 4px rgba(95,211,207,.35), inset 0 0 4px rgba(95,211,207,.15); text-shadow: 0 0 3px rgba(95,211,207,.6); } 50% { box-shadow: 0 0 14px #5fd3cf, 0 0 34px rgba(95,211,207,.65), inset 0 0 14px rgba(95,211,207,.45); text-shadow: 0 0 8px #5fd3cf, 0 0 22px rgba(95,211,207,.9); } }
+@keyframes hankBreath { 0%, 100% { filter: drop-shadow(0 0 0px rgba(224,21,127,0)) drop-shadow(0 0 0px rgba(224,21,127,0)) brightness(.85); } 40%, 60% { filter: drop-shadow(0 0 14px rgba(224,21,127,.95)) drop-shadow(0 0 40px rgba(224,21,127,.6)) brightness(1.08); } }
+@keyframes neonDead { 0%, 100% { opacity: .12; } 6% { opacity: 1; } 7% { opacity: .12; } 9% { opacity: 1; } 10% { opacity: .12; } 55% { opacity: .12; } 56% { opacity: .9; } 60% { opacity: .9; } 61% { opacity: .12; } }
+@keyframes signSway { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(-5.2deg); } 52% { transform: rotate(-5.6deg); } }
+@keyframes boxFlicker { 0%, 100% { opacity: 1; } 63% { opacity: 1; } 64% { opacity: .4; } 65% { opacity: 1; } }
+@keyframes neonBuzz { 0%, 100% { opacity: 1; } 47% { opacity: 1; } 48% { opacity: .35; } 49% { opacity: 1; } 78% { opacity: 1; } 79% { opacity: .2; } 80.5% { opacity: 1; } 81.5% { opacity: .5; } 82.5% { opacity: 1; } }
+@keyframes buzz { 0%, 91%, 100% { opacity: 1; } 92% { opacity: .15; } 93% { opacity: 1; } 95% { opacity: .35; } 96.5% { opacity: 1; } }
+@keyframes buzzSlow { 0%, 96%, 100% { opacity: 1; } 96.6% { opacity: .1; } 97.4% { opacity: .9; } 98% { opacity: .2; } 98.6% { opacity: 1; } }
+@keyframes flicker { 0%, 92%, 100% { opacity: 1; } 93% { opacity: .55; } 95% { opacity: 1; } 97% { opacity: .7; } }
+
+/*
+CHARACTER ART SPEC (baked into each PNG)
+  Canvas 1024×1024 transparent · disc 900px (88%) #161826 centred · ring 12px #e0157f crisp
+  Glow 20px soft pink bloom outside ring only · one breakout element max 80px past ring
+  Style: heavy black ink outline, flat cel shading, sticker finish · palette --art-* only
+  Face mark: head-only outline trace in #5fd3cf, hairline, no fill, no ring (CSS draws it)
+*/
