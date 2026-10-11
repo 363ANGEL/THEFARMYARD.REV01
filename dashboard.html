@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · Dashboard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
+</head>
+<body>
+<div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script>
+<script>
+/* 1.0 BARN DASHBOARD. Content beyond the header is still an open decision (BUILD-PLAN), so the
+   design's placeholders stand until it is. */
+(async function () {
+  const B = await Barn.open('yard'); if (!B) return;
+  const { main } = B;
+  const members = (await FY.q('v_members_public').select('id')).data || [];
+  main.innerHTML = `
+    <div class="head"><h2 class="hd2">Dashboard</h2><span class="tag tag-neutral">${members.length} in the yard</span></div>
+    <div class="placeholder" style="min-height:175px;font-size:22px">PLACE HOLDER</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
+      <div class="placeholder" style="min-height:96px;font-size:15px;border-radius:10px">PLACE HOLDER</div>
+    </div>`;
+})().catch(e => FY.toast(e.message));
+</script>
+</body>
+</html>

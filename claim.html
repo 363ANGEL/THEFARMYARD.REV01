@@ -2,48 +2,103 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>The Farmyard · Claim your profile</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+<title>The Farmyard · Invite</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
 </head>
 <body>
-<header id="fy-header"></header>
-<main class="wrap stack">
-  <h1>Claim your profile</h1>
-  <div class="card stack" id="box"><p class="muted">Checking your link…</p></div>
-</main>
+<div id="app"><main class="door"><p class="muted">Checking your link…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js"></script><script src="app.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script>
 <script>
+/* 0.1 Invite Door. RAY sends claim.html?t=<token>. States: invite (sign in with Discord, then claim),
+   wrongAccount (this Discord already has a profile), used (link used or unknown). Discord is the only sign-in.
+   The token rides in the URL through the OAuth round trip (Discord's in-app browser may hand off to another
+   browser, so storage cannot be relied on); sessionStorage is a fallback only. */
 (async function () {
-  const box = document.getElementById('box');
-  // The token rides in the URL through the whole OAuth round trip (Discord's in-app browser may
-  // hand off to another browser, so storage cannot be relied on). sessionStorage is a fallback only.
+  const app = document.getElementById('app'), esc = FY.esc, INVITER = 'RAY';
   let token = new URLSearchParams(location.search).get('t');
   if (!token) { try { token = sessionStorage.getItem('fy_claim_token'); } catch (e) {} }
-  if (!FY.wired) { box.innerHTML = '<p class="muted">Not wired to the database yet.</p>'; return; }
-  if (!token || !/^[0-9a-f]{32}$/.test(token)) { box.innerHTML = '<p>No claim link here. Ask RAY for yours.</p>'; return; }
-  try { sessionStorage.setItem('fy_claim_token', token); } catch (e) {}
-  const session = await FY.session();
-  if (!session) {
-    box.innerHTML = `<p>Sign in with Discord to claim the profile RAY made for you.</p><p><button class="pink" id="go">Sign in with Discord</button></p>`;
-    document.getElementById('go').addEventListener('click', () => FY.signIn(`${location.origin}${location.pathname}?t=${token}`));
+  if (!FY.wired) { app.innerHTML = '<main class="door"><p>Not wired to the database yet.</p></main>'; return; }
+  const ok = token && /^[0-9a-f]{32}$/.test(token);
+  if (ok) { try { sessionStorage.setItem('fy_claim_token', token); } catch (e) {} }
+
+  const SIGN = `<div class="hankwrap"><div class="sign-invite"><span class="wire"></span><span class="pin"></span><span class="plate">${[...'INVITE'].map((c, i) => `<span class="${i === 3 ? 'dead' : ''}" style="animation-delay:${(i * .53) % 2.5}s">${c}</span>`).join('')}</span></div><img src="assets/hank-oink.png" alt="Hank"></div>`;
+  const page = inner => { app.innerHTML = `<main class="door">${SIGN}${inner}</main>`; };
+  const discordBtn = (id, label) => `<button type="button" id="${id}" class="btn btn-primary" style="min-height:48px;width:100%;font-size:15px"><i class="ph ph-discord-logo" style="font-size:20px"></i>${label}</button>`;
+
+  const used = (title, body) => page(`
+    <div class="centre"><span class="kicker">Door's shut</span><h1>${title}</h1><p>${body}</p></div>
+    <div class="card neon-tube-teal">${discordBtn('in', 'Sign in')}<span class="small">Not joined yet? Ask ${INVITER} for a new link.</span></div>`);
+
+  if (!ok) {
+    used('No invite here', `This link has no invite on it. If you've already joined, just sign in. Otherwise ask ${INVITER} for your own link.`);
+    document.getElementById('in').addEventListener('click', () => FY.signIn(`${location.origin}${location.pathname.replace(/claim\.html$/, 'dashboard.html')}`));
     return;
   }
-  let id;
-  try {
-    id = await FY.rpc('claim_profile', { p_token: token });
-  } catch (e) {
-    if (/already claimed/.test(e.message)) box.innerHTML = '<p>This Discord account already has a profile. <a href="profile.html">Open it</a>.</p>';
-    else if (/link used|unknown/.test(e.message)) box.innerHTML = '<p>This link has been used. Ask RAY for a new one.</p>';
-    else { FY.toast(e.message); box.innerHTML = `<p>Something went wrong: ${FY.esc(e.message)}. Try again, or ask RAY.</p>`; }
+  const member = await FY.rpc('claim_peek', { p_token: token }).catch(() => null);
+  const session = await FY.session();
+
+  if (!member) {       // used, burnt by a newer link, or unknown
+    used("This invite's been used", `Someone has already signed in with it, or ${INVITER} sent a newer link. If you've already joined, just sign in.`);
+    document.getElementById('in').addEventListener('click', () => FY.signIn(`${location.origin}${location.pathname.replace(/claim\.html$/, 'dashboard.html')}`));
     return;
+  }
+  if (!session) {
+    page(`
+      <div class="centre"><span class="kicker">${INVITER} has saved you a spot</span>
+        <h1 style="text-transform:uppercase">Welcome, <span class="neon-pink">${esc(member)}</span></h1>
+        <p style="max-width:38ch">Hank checks the door. Sign in with Discord, set up your profile, and you're in.</p></div>
+      <div class="card neon-tube-teal" style="gap:16px">
+        <div class="steps3"><div class="now"><span class="n">1</span>Sign in</div><div><span class="n">2</span>Your profile</div><div><span class="n">3</span>Into the yard</div></div>
+        <div class="rule"></div>
+        ${discordBtn('in', 'Sign in with Discord')}
+        <div class="notes">
+          <span><i class="ph ph-user-circle"></i><span>Use your own Discord. Whatever account you sign in with becomes ${esc(member)}.</span></span>
+          <span><i class="ph ph-key"></i>This link works once. Don't forward it.</span>
+        </div>
+      </div>
+      <span class="small">Not ${esc(member)}? Tell ${INVITER}. They'll send you your own link.</span>`);
+    document.getElementById('in').addEventListener('click', () => FY.signIn(`${location.origin}${location.pathname}?t=${token}`));
+    return;
+  }
+
+  // Signed in. A Discord that already owns a profile cannot take this one.
+  const me = await FY.me().catch(() => null);
+  if (me) {
+    page(`
+      <div class="centre"><span class="kicker">Wrong Discord</span>
+        <h1 style="font-size:clamp(30px,6vw,44px)">You're already in as <span class="neon-pink">${esc(me.nickname)}</span></h1>
+        <p>This invite is for <strong style="color:var(--fy-text)">${esc(member)}</strong>. You can't use it while you're signed in as ${esc(me.nickname)}. The link still works.</p></div>
+      <div class="card neon-tube-teal">
+        <span style="font-size:13px;line-height:1.5;color:var(--fy-text-secondary)">If this is ${esc(member)}'s link, send it to them. They need to open it on their own phone or computer.</span>
+        <button type="button" id="copy" class="btn btn-primary" style="min-height:46px;width:100%"><i class="ph ph-copy" style="font-size:18px"></i>Copy invite link</button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn btn-ghost" href="dashboard.html" style="flex:1 1 140px;min-height:44px">Back to my yard</a>
+          <button type="button" id="switch" class="btn btn-ghost" style="flex:1 1 140px;min-height:44px">Sign out and switch</button>
+        </div></div>`);
+    const url = `${location.origin}${location.pathname}?t=${token}`;
+    document.getElementById('copy').addEventListener('click', ev => {
+      const b = ev.currentTarget;
+      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => { b.innerHTML = '<i class="ph ph-check" style="font-size:18px"></i>Copied'; setTimeout(() => { b.innerHTML = '<i class="ph ph-copy" style="font-size:18px"></i>Copy invite link'; }, 1800); }, () => FY.toast(url));
+    });
+    document.getElementById('switch').addEventListener('click', async () => { try { sessionStorage.setItem('fy_claim_token', token); } catch (e) {} Barn.voice.set(null); await FY.sb.auth.signOut(); location.href = `${location.pathname}?t=${token}`; });
+    return;
+  }
+
+  // Signed in, no profile: claim it, then on to New User Set-up.
+  try { await FY.rpc('claim_profile', { p_token: token }); }
+  catch (e) {
+    if (/already claimed/.test(e.message)) { location.replace('dashboard.html'); return; }
+    if (/link used|unknown/.test(e.message)) { used("This invite's been used", `Someone has already signed in with it, or ${INVITER} sent a newer link. If you've already joined, just sign in.`); document.getElementById('in').addEventListener('click', () => location.href = 'dashboard.html'); return; }
+    FY.toast(e.message); page(`<div class="centre"><h1>Something went wrong</h1><p>${esc(e.message)}. Try again, or ask ${INVITER}.</p></div>`); return;
   }
   try { sessionStorage.removeItem('fy_claim_token'); } catch (e) {}
-  const { data: m, error } = await FY.q('member').select('nickname,avatar').eq('id', id).single();
-  if (error || !m) { box.innerHTML = '<p>You are claimed in. <a class="btn pink" href="profile.html">Go to your profile</a></p>'; return; }
-  box.innerHTML = `<p>${FY.avatar(m.avatar)} You are <strong>${FY.esc(m.nickname)}</strong>. Welcome to the Farmyard.</p><p><a class="btn pink" href="profile.html">Go to your profile</a></p>`;
-})();
+  location.replace('setup.html');
+})().catch(e => FY.toast(e.message));
 </script>
 </body>
 </html>

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · Set-up</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
+<style>
+.setup{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px;width:min(100%,860px);align-items:start}
+.setup .col{display:flex;flex-direction:column;gap:18px;min-width:0}
+.setup .tube{display:flex;flex-direction:column;gap:16px;padding:20px;box-sizing:border-box}
+.setup label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--fy-text-label)}
+.setup label .t{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--fy-text)}
+.setup label .t i{font-size:20px;color:var(--neon-teal)}
+.me-card{display:flex;flex-direction:column;align-items:center;gap:14px;padding:24px 18px;box-sizing:border-box}
+.me-card .big{width:150px;height:150px;border:3px solid var(--neon-pink-tube);box-shadow:var(--glow-pink);background-size:92%}
+.me-card .big i{font-size:40px;color:var(--fy-text-label)}
+.me-card .nm{font-family:var(--font-heading);font-size:26px;letter-spacing:-.01em;text-align:center;overflow-wrap:anywhere;color:var(--fy-text)}
+.me-card .uses{display:flex;flex-direction:column;gap:6px;width:100%;font-size:12px;color:var(--fy-text-label)}
+.me-card .uses span{display:flex;gap:8px;align-items:center}
+.me-card .uses i{color:var(--neon-teal)}
+.logos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.logo{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px;min-height:44px;background:transparent;border:1.5px solid transparent;border-radius:10px;cursor:pointer;color:var(--fy-text);font-family:inherit;font-size:11px}
+.logo .face{width:52px;height:52px;border:1.5px solid var(--neon-teal)}
+.logo .face i{color:var(--fy-text-label);font-size:18px}
+.logo span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.logo.on{border-color:var(--neon-pink-tube);box-shadow:var(--glow-pink)}
+.logo:hover{border-color:var(--rule-teal)}
+.revwrap{display:flex;align-items:stretch;border:1px solid var(--neon-teal);border-radius:8px;overflow:hidden;min-height:44px}
+.revwrap.bad{border-color:var(--neon-red-tube)}
+.revwrap .pre{display:grid;place-items:center;padding:0 10px;font-size:14px;color:var(--fy-text-label);border-right:1px solid var(--rule-teal);white-space:nowrap}
+.revwrap input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--fy-text);font:inherit;font-size:15px;padding:0 10px;box-shadow:none}
+.linked{display:flex;gap:12px;align-items:center}
+.linked>i{font-size:22px;color:var(--neon-teal);flex:none}
+.linked .mid{flex:1;min-width:0;display:flex;flex-direction:column}
+.linked .mid span:first-child{font-size:14px;color:var(--fy-text)}
+.linked .mid span:last-child{font-size:12px;color:var(--fy-text-label)}
+</style>
+</head>
+<body>
+<div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script>
+<script>
+/* 0.2 New User Set-up. Shown once, right after the invite is claimed (and to anyone whose set-up is not done).
+   Yard name is pre-filled with the name RAY gave the member; the logo palette is what RAY uploaded for them
+   (fy.member_logo), topped up with the stock animals; Revolut is optional. Chess.com stays hidden until the
+   chess league is built. Finishing stamps member.setup_at. */
+(async function () {
+  const B = await Barn.open('setup', { bare: true }); if (!B) return;
+  const { me, session, root } = B, esc = FY.esc;
+  const ANIMALS = [['hen', 'Hen'], ['cock', 'Cock'], ['pig', 'Pig'], ['sheep', 'Sheep'], ['goat', 'Goat'], ['cow', 'Cow']];
+  const mine = (await FY.q('member_logo').select('slot,name,url').eq('member_id', me.id).order('slot')).data || [];
+  const palette = [...mine.map(l => ({ id: 'url:' + l.url, name: l.name, img: l.url })),
+                   ...ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: `assets/avatars/${k}.svg` }))].slice(0, 8);
+  while (palette.length < 8) palette.push({ id: 'empty' + palette.length, name: 'Logo ' + (palette.length + 1), img: null, empty: true });
+  const S = { name: me.nickname, pick: me.avatar_url ? 'url:' + me.avatar_url : 'key:' + me.avatar, rev: (me.revolut_url || '').replace(/^https:\/\/revolut\.me\//, ''), showChess: false };
+
+  function render() {
+    const cur = palette.find(p => p.id === S.pick) || palette[0];
+    const rev = S.rev.trim(), revBad = !!rev && !/^[A-Za-z0-9._-]+$/.test(rev), cant = !S.name.trim() || revBad;
+    root.innerHTML = `<main class="door top">
+      <div class="steps3"><div class="done"><span class="n"><i class="ph ph-check" style="font-size:14px"></i></span>Signed in</div><div class="now"><span class="n">2</span>Your profile</div><div><span class="n">3</span>Into the yard</div></div>
+      <div class="centre"><span class="kicker">Discord's done. Now you.</span><h1 style="font-size:clamp(30px,6vw,46px)">What does Hank call you?</h1></div>
+      <form id="f" class="setup">
+        <div class="neon-tube-teal me-card">
+          <span class="kicker">How the yard sees you</span>
+          <div class="face big" role="img" aria-label="Your character" style="background-image:${cur.img ? `url('${esc(cur.img)}')` : 'none'}">${cur.img ? '' : '<i class="ph ph-question"></i>'}</div>
+          <div class="nm">${esc(S.name.trim() || 'Your name')}</div>
+          <div class="uses"><span><i class="ph ph-users-three"></i>Members list and Lounge</span><span><i class="ph ph-club"></i>Your poker seat and league board</span></div>
+        </div>
+        <div class="col">
+          <div class="neon-tube-teal tube">
+            <label>Yard name<input class="input" id="name" value="${esc(S.name)}" maxlength="16" required style="min-height:46px;font-size:16px"><span>Auto Generated. Keep it or change it. 16 characters max.</span></label>
+            <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;color:var(--fy-text-label)">Pre-Made Logos to select from</span>
+              <div class="logos">${palette.map(p => `<button type="button" class="logo ${p.id === S.pick ? 'on' : ''}" data-pick="${esc(p.id)}" aria-label="${esc(p.name)}" ${p.empty ? 'disabled' : ''}><span class="face" style="background-image:${p.img ? `url('${esc(p.img)}')` : 'none'}">${p.img ? '' : '<i class="ph ph-question"></i>'}</span><span>${esc(p.name)}</span></button>`).join('')}</div></div>
+          </div>
+          <div class="neon-tube-teal tube" style="gap:14px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="kicker">Linked accounts</span><span style="font-size:12px;color:var(--fy-text-label)">Optional. Add later in Profile.</span></div>
+            <div class="linked"><i class="ph ph-discord-logo"></i><div class="mid"><span>Discord</span><span>Signed in as ${esc(Barn.discordName(session))}. Lounge voice works.</span></div><span class="neon-teal" style="font-size:12px;white-space:nowrap">Connected</span></div>
+            <div class="rule"></div>
+            <label><span class="t"><i class="ph ph-hand-coins"></i>Revolut pay-me link</span>
+              <div class="revwrap ${revBad ? 'bad' : ''}"><span class="pre">revolut.me/</span><input id="rev" value="${esc(S.rev)}" placeholder="yourname" autocomplete="off"></div>
+              <span style="color:${revBad ? 'var(--neon-red-text)' : 'var(--fy-text-label)'}">${revBad ? 'Letters, numbers, dots, dashes and underscores only.' : 'So people can pay you after poker. Settle up uses this link.'}</span></label>
+            ${S.showChess ? `<label><span class="t"><i class="ph ph-crown-simple"></i>Chess.com username</span><input class="input" id="chess" value="${esc(me.chesscom_username || '')}" placeholder="e.g. thecow_99" style="min-height:44px"><span>Your games count towards the chess league.</span></label>` : ''}
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <button type="submit" id="go" class="btn btn-primary" style="min-height:48px;padding:0 28px;font-size:15px" ${cant ? 'disabled' : ''}>Into the yard<i class="ph ph-arrow-right"></i></button>
+            <span style="font-size:12px;color:var(--fy-text-label)">You can change any of this later in Profile.</span>
+          </div>
+        </div>
+      </form></main>`;
+  }
+  render();
+  // Re-render only on blur / click, so typing is never interrupted; live bits update in place.
+  root.addEventListener('input', ev => {
+    if (ev.target.id === 'name') { S.name = ev.target.value; root.querySelector('.me-card .nm').textContent = S.name.trim() || 'Your name'; root.querySelector('#go').disabled = !S.name.trim() || isRevBad(); }
+    if (ev.target.id === 'rev') { S.rev = ev.target.value.replace(/^https?:\/\/(www\.)?revolut\.me\//, ''); if (S.rev !== ev.target.value) ev.target.value = S.rev; root.querySelector('.revwrap').classList.toggle('bad', isRevBad()); root.querySelector('#go').disabled = !S.name.trim() || isRevBad(); }
+  });
+  const isRevBad = () => { const r = S.rev.trim(); return !!r && !/^[A-Za-z0-9._-]+$/.test(r); };
+  root.addEventListener('click', ev => { const b = ev.target.closest('[data-pick]'); if (b) { S.pick = b.dataset.pick; render(); } });
+  root.addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const name = S.name.trim(); if (!name || isRevBad()) return;
+    const btn = root.querySelector('#go'); btn.disabled = true;
+    const patch = { nickname: name, revolut_url: S.rev.trim() ? `https://revolut.me/${S.rev.trim()}` : null, setup_at: new Date().toISOString() };
+    if (S.pick.startsWith('url:')) patch.avatar_url = S.pick.slice(4); else { patch.avatar = S.pick.slice(4); patch.avatar_url = null; }
+    const { error } = await FY.q('member').update(patch).eq('id', me.id);
+    if (error) { FY.toast(/unique|duplicate/i.test(error.message) ? 'That yard name is taken. Pick another.' : error.message); btn.disabled = false; return; }
+    location.replace('dashboard.html');
+  });
+})().catch(e => FY.toast(e.message));
+</script>
+</body>
+</html>

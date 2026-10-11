@@ -81,8 +81,14 @@ begin
 
   -- Review focus 3: claim link works once, then never, for anyone.
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  -- Invite Door reads the name on an unused link, signed in or not; nothing else about it.
+  perform pg_temp.as_anon();
+  assert fy.claim_peek(tok) = 'The Sock', 'anon peeks the invite name';
+  assert fy.claim_peek('nope') is null, 'unknown token peeks nothing';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
   cp := fy.claim_profile(tok);
   assert cp = sock, 'Sock claims Sock';
+  assert fy.claim_peek(tok) is null, 'a used link peeks nothing';
   perform pg_temp.as_owner();
   select discord_id into d from fy.member where id = sock; assert d = '222', 'Discord id from auth.identities, got ' || coalesce(d, 'null');
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');  -- a stranger with the same link
@@ -432,31 +438,68 @@ begin
   exception when others then if sqlerrm not like '%not a PokerNow%' then raise; end if; end;
   begin perform fy.poker_set_link(tbl, 'https://evil.example/games/abc'); raise exception 'should have failed: wrong host';
   exception when others then if sqlerrm not like '%not a PokerNow%' then raise; end if; end;
+  -- Nobody holds a seat before the table is open either.
+  begin perform fy.poker_hold_seat(tbl, 2); raise exception 'should have failed: hold before open';
+  exception when others then if sqlerrm not like '%not open%' then raise; end if; end;
   perform fy.poker_set_link(tbl, 'https://www.pokernow.com/games/pglabc123');
   pj := fy.poker_current(); assert pj->>'status' = 'open', 'link opens the table';
+  -- Opening the table seats the initiator (lowest free seat, yard name as table name).
+  assert jsonb_array_length(pj->'seats') = 1 and (pj->'seats'->0->>'seat_no')::int = 1
+     and pj->'seats'->0->>'member_id' = sock::text and pj->'seats'->0->>'table_name' = 'The Sock', 'initiator is seated when the table opens';
+  begin perform fy.poker_set_link(tbl, 'https://www.pokernow.com/games/pglabc123'); exception when others then raise; end;
+  pj := fy.poker_current(); assert jsonb_array_length(pj->'seats') = 1, 'setting the link again does not seat the initiator twice';
 
   -- Seats: one each, no double-booking, 1 to 10, name 1 to 24.
-  d := fy.poker_take_seat(tbl, 3, 'Sockie');
-  assert d = 'https://www.pokernow.com/games/pglabc123', 'take_seat returns the link';
   begin perform fy.poker_take_seat(tbl, 4, 'Again'); raise exception 'should have failed: second seat';
   exception when others then if sqlerrm not like '%already have a seat%' then raise; end if; end;
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
-  begin perform fy.poker_take_seat(tbl, 3, 'Pants'); raise exception 'should have failed: seat taken';
+  begin perform fy.poker_take_seat(tbl, 1, 'Pants'); raise exception 'should have failed: seat taken';
   exception when others then if sqlerrm not like '%seat is taken%' then raise; end if; end;
   begin perform fy.poker_take_seat(tbl, 11, 'Pants'); raise exception 'should have failed: seat 11';
   exception when others then if sqlerrm not like '%1 to 10%' then raise; end if; end;
   begin perform fy.poker_take_seat(tbl, 5, '   '); raise exception 'should have failed: blank name';
   exception when others then if sqlerrm not like '%table name%' then raise; end if; end;
-  perform fy.poker_take_seat(tbl, 4, 'Pantsy');
+  -- Holds: picking a seat reserves it for everyone else; picking another moves the hold; taking the seat clears it.
+  perform fy.poker_hold_seat(tbl, 3);
+  perform fy.poker_hold_seat(tbl, 4);
+  pj := fy.poker_current(); assert jsonb_array_length(pj->'holds') = 1 and (pj->'holds'->0->>'seat_no')::int = 4
+     and pj->'holds'->0->>'nickname' = 'Pants', 'one hold per member, on the last seat picked';
+  begin perform fy.poker_hold_seat(tbl, 1); raise exception 'should have failed: hold a taken seat';
+  exception when others then if sqlerrm not like '%seat is taken%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000004');
+  begin perform fy.poker_take_seat(tbl, 4, 'Spare'); raise exception 'should have failed: seat held by Pants';
+  exception when others then if sqlerrm not like '%seat is held%' then raise; end if; end;
+  begin perform fy.poker_hold_seat(tbl, 4); raise exception 'should have failed: hold a held seat';
+  exception when others then if sqlerrm not like '%seat is held%' then raise; end if; end;
+  perform fy.poker_hold_seat(tbl, 5);
+  perform fy.poker_release_hold(tbl);
+  pj := fy.poker_current(); assert jsonb_array_length(pj->'holds') = 1, 'releasing drops only my hold';
+  -- An expired hold no longer blocks anyone.
+  perform pg_temp.as_owner();
+  update fy.poker_hold set expires_at = now() - interval '1 second' where table_id = tbl and member_id = pants;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000004');
+  pj := fy.poker_current(); assert jsonb_array_length(pj->'holds') = 0, 'expired holds are not shown';
+  perform fy.poker_hold_seat(tbl, 4);
+  perform fy.poker_release_hold(tbl);
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  perform fy.poker_hold_seat(tbl, 4);
+  d := fy.poker_take_seat(tbl, 4, 'Pantsy');
+  assert d = 'https://www.pokernow.com/games/pglabc123', 'take_seat returns the link';
   pj := fy.poker_current(); assert jsonb_array_length(pj->'seats') = 2, 'two seats show';
+  assert jsonb_array_length(pj->'holds') = 0, 'taking the seat clears the hold';
   assert pj->'seats'->0->>'nickname' = 'The Sock' and pj->'seats'->1->>'table_name' = 'Pantsy', 'seat roster carries names';
   -- Leaving frees the seat; the member can sit again.
   perform fy.poker_leave_seat(tbl);
   pj := fy.poker_current(); assert jsonb_array_length(pj->'seats') = 1, 'leaving frees the seat';
   perform fy.poker_take_seat(tbl, 4, 'Pantsy');
-  -- Seats cannot be written around the RPCs.
+  -- Seats and holds cannot be written around the RPCs.
   begin insert into fy.poker_seat (table_id, seat_no, member_id, table_name) values (tbl, 9, pants, 'x'); raise exception 'should have failed: direct seat insert';
   exception when insufficient_privilege then null; end;
+  begin insert into fy.poker_hold (table_id, member_id, seat_no, expires_at) values (tbl, pants, 9, now() + interval '1 minute'); raise exception 'should have failed: direct hold insert';
+  exception when insufficient_privilege then null; end;
+  -- A seated game cannot be closed until the docket is filed (by anyone but the leader).
+  begin perform fy.poker_close(tbl); raise exception 'should have failed: close before the docket';
+  exception when others then if sqlerrm not like '%file the docket%' then raise; end if; end;
 
   -- Docket: only the initiator or the leader; only seated players; needs a winner among them.
   begin perform fy.poker_file_docket(tbl, jsonb_build_array(jsonb_build_object('member_id', sock, 'buy_ins', 1), jsonb_build_object('member_id', pants, 'buy_ins', 2)), sock);
@@ -509,20 +552,30 @@ begin
   exception when others then if sqlerrm not like '%15 minutes%' then raise; end if; end;
   assert jsonb_array_length(fy.poker_board(now() - interval '1 day', now() + interval '1 day')->'recent') = 0, 'window shut, no Edit / Undo';
 
-  -- Close: not a bystander; the initiator can; a new table can then start.
+  -- Close: once the docket is filed, any member closes; a new table can then start.
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
-  begin perform fy.poker_close(tbl); raise exception 'should have failed: bystander close';
-  exception when others then if sqlerrm not like '%not allowed%' then raise; end if; end;
-  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
   perform fy.poker_close(tbl);
   assert fy.poker_current() is null, 'closed table is gone';
-  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  perform fy.poker_close(tbl);   -- closing twice is a no-op
   tbl2 := fy.poker_start();
   assert tbl2 <> tbl, 'a new table starts after close';
-  -- The leader may set the link and close someone else's table.
+  -- The leader may set the link on someone else's table; that seats the initiator (Pants), not the leader.
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
   perform fy.poker_set_link(tbl2, 'https://www.pokernow.club/games/pgl-xyz_9');
+  pj := fy.poker_current(); assert pj->'seats'->0->>'member_id' = pants::text, 'the initiator gets the seat, not the leader';
+  -- Seated, no docket: a member cannot close it, the leader can (to unstick a night).
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000004');
+  begin perform fy.poker_close(tbl2); raise exception 'should have failed: seated game, no docket';
+  exception when others then if sqlerrm not like '%file the docket%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
   perform fy.poker_close(tbl2);
+  assert fy.poker_current() is null, 'leader closed the unfiled table';
+  -- Nobody sat: any member closes straight away.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000004');
+  tbl2 := fy.poker_start();
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  perform fy.poker_close(tbl2);
+  assert fy.poker_current() is null, 'empty table closes for anyone';
   -- A table left over from yesterday neither shows nor blocks a new one.
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000004');
   tbl := fy.poker_start();
@@ -555,6 +608,35 @@ begin
   begin update fy.member set revolut_url = 'https://revolut.me/thesock/' where id = sock; raise exception 'should have failed: trailing slash';
   exception when check_violation then null; end;
   assert (fy.me()).revolut_url = 'https://revolut.me/thesock', 'me() carries the link';
+  -- New User Set-up: the member picks a logo and finishes; bad logo URLs are refused.
+  update fy.member set avatar_url = 'https://example.supabase.co/storage/v1/object/public/logos/sock.png', setup_at = now() where id = sock;
+  begin update fy.member set avatar_url = 'javascript:alert(1)' where id = sock; raise exception 'should have failed: bad logo url';
+  exception when check_violation then null; end;
+  begin update fy.member set avatar_url = 'https://x.y/a"b.png' where id = sock; raise exception 'should have failed: quote in logo url';
+  exception when check_violation then null; end;
+  assert (fy.me()).avatar_url like 'https://example.supabase.co/%' and (fy.me()).setup_at is not null, 'me() carries the logo and set-up time';
+  select avatar_url into d from fy.v_members_public where id = sock; assert d like 'https://example.supabase.co/%', 'public view carries the logo';
+  -- Logos: leader only, up to 8, replaces the set; a removed chosen logo falls back to the avatar key.
+  begin perform fy.set_member_logos(sock, '[{"slot":1,"name":"Hank","url":"https://example.supabase.co/l1.png"}]'); raise exception 'should have failed: member sets logos';
+  exception when others then if sqlerrm not like '%not allowed%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  perform fy.set_member_logos(sock, '[{"slot":1,"name":"Hank","url":"https://example.supabase.co/storage/v1/object/public/logos/sock.png"},{"slot":2,"name":"The Chick","url":"https://example.supabase.co/l2.png"}]');
+  select count(*) into n from fy.member_logo where member_id = sock; assert n = 2, 'two logos set';
+  perform fy.set_member_logos(sock, '[{"slot":1,"name":"Only","url":"https://example.supabase.co/l9.png"}]');
+  select count(*) into n from fy.member_logo where member_id = sock; assert n = 1, 'logos replaced';
+  perform pg_temp.as_owner();
+  select avatar_url into d from fy.member where id = sock; assert d is null, 'removed logo falls back to the avatar key';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  select count(*) into n from fy.member_logo where member_id = sock; assert n = 1, 'members read each other''s palettes';
+  begin insert into fy.member_logo (member_id, slot, name, url) values (pants, 1, 'x', 'https://x.y/a.png'); raise exception 'should have failed: direct logo insert';
+  exception when insufficient_privilege then null; end;
+  -- Poker feeds: members read the five stories and five videos; a signed-in stranger reads nothing.
+  pj := fy.poker_feeds();
+  assert jsonb_array_length(pj->'news') = 5 and jsonb_array_length(pj->'videos') = 5, 'feeds carry 5 + 5';
+  assert pj->'videos'->0->>'youtube_id' ~ '^[A-Za-z0-9_-]{11}$', 'video ids are YouTube ids';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000005');
+  assert fy.poker_feeds() is null, 'no profile reads no feeds';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
   select revolut_url into d from fy.member where id = sock; assert d = 'https://revolut.me/thesock', 'members read pay-me links';
   update fy.member set revolut_url = 'https://revolut.me/pants' where id = sock;

@@ -23,17 +23,20 @@
     signIn(redirectTo) {
       return sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: redirectTo || location.href.split('#')[0] } });
     },
-    async signOut() { await sb.auth.signOut(); location.reload(); },
+    async signOut() { try { sessionStorage.removeItem('fy.voice'); } catch (e) {} await sb.auth.signOut(); location.reload(); },
     async rpc(name, args) {
       const { data, error } = await sb.rpc(name, args || {});
       if (error) throw new Error(error.message || String(error));
       return data;
     },
     q(table) { return sb.from(table); },
-    avatar(key) {
-      const k = ['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].includes(key) ? key : 'hen';
-      return `<img class="avatar" src="assets/avatars/${k}.svg" alt="${k}" width="48" height="48">`;
+    // A member's face: their chosen logo (avatar_url) or the stock animal (avatar key). Takes a member row or a key.
+    face(m) {
+      if (m && typeof m === 'object' && m.avatar_url) return m.avatar_url;
+      const key = m && typeof m === 'object' ? m.avatar : m;
+      return `assets/avatars/${['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].includes(key) ? key : 'hen'}.svg`;
     },
+    avatar(m) { return `<img class="avatar" src="${FY.esc(FY.face(m))}" alt="" width="48" height="48">`; },
     fmt(n) { return `<span class="num">${Number(n)}</span>`; },
     toast(msg) {
       let t = document.getElementById('toast');
@@ -64,11 +67,12 @@
   document.addEventListener('DOMContentLoaded', async () => {
     const h = document.getElementById('fy-header');
     if (!h) return;
-    if (!wired) { h.innerHTML = '<nav class="bar"><a href="index.html" class="brand">The Farmyard</a><span class="muted">Not wired to the database yet</span></nav>'; return; }
+    if (!wired) { h.innerHTML = '<nav class="bar"><a href="dashboard.html" class="brand">The Farmyard</a><span class="muted">Not wired to the database yet</span></nav>'; return; }
     const me = await FY.me().catch(() => null);
     const s = await FY.session();
     h.innerHTML = `<nav class="bar">
-      <a href="index.html" class="brand">The Farmyard</a>
+      <a href="dashboard.html" class="brand">The Farmyard</a>
+      <a href="dashboard.html">Dashboard</a>
       <a href="tables.html">Tables</a>
       <a href="poker.html">Poker</a>
       ${s ? `<a href="profile.html">${me ? FY.esc(me.nickname) : 'Profile'}</a>` : ''}

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Invite Door</title>
+<link rel="stylesheet" href="_ds/nocturne-a28ab075-f4d3-4cef-b265-31ac322e3ab1/styles.css">
+<script src="_ds/nocturne-a28ab075-f4d3-4cef-b265-31ac322e3ab1/_ds_bundle.js"></script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link rel="stylesheet" href="farmyard.css">
+<style>
+body { margin: 0; background: var(--fy-bg); }
+a { color: var(--neon-pink-link); } a:hover { color: var(--neon-pink-hover); }
+i.ph { text-shadow: 0 0 6px currentColor; }
+</style>
+</helmet>
+<main data-screen-label="0.1 Invite Door" style="min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: clamp(20px, 5vw, 64px) 16px; background: radial-gradient(900px 600px at 80% 10%, var(--haze-pink), transparent 60%), radial-gradient(700px 500px at 0% 100%, var(--haze-teal), transparent 60%), var(--fy-bg); color: var(--fy-text); font-family: var(--font-body);">
+
+  <div style="position: relative; width: min(52vw, 210px); margin-top: 44px;">
+    <div style="position: absolute; top: -40px; left: -58px; z-index: 2;">{{ inviteSign }}</div>
+    <img src="assets/hank-oink.png" alt="Hank" style="width: 100%; height: auto; display: block; animation: charBreath 6s ease-in-out infinite;">
+  </div>
+
+  <sc-if value="{{ isInvite }}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;">
+      <span class="kicker">{{ inviter }} has saved you a spot</span>
+      <h1 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(34px, 7vw, 52px); line-height: 1.02; letter-spacing: -.02em; margin: 0; text-transform: uppercase;">Welcome, <span class="neon-pink">{{ member }}</span></h1>
+      <p style="font-size: 15px; line-height: 1.5; margin: 0; color: var(--fy-text-secondary); max-width: 38ch; text-wrap: pretty;">Hank checks the door. Sign in with Discord, set up your profile, and you're in.</p>
+    </div>
+
+    <div class="neon-tube-teal" style="display: flex; flex-direction: column; gap: 16px; width: min(100%, 400px); box-sizing: border-box; padding: 22px;">
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;"><span style="width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; border: 2px solid var(--neon-pink-tube); box-shadow: var(--glow-pink); color: var(--neon-pink-text);">1</span><span style="font-size: 12px; color: var(--fy-text);">Sign in</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;"><span style="width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; border: 1.5px solid var(--rule-teal); color: var(--fy-text-label);">2</span><span style="font-size: 12px; color: var(--fy-text-label);">Your profile</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;"><span style="width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; border: 1.5px solid var(--rule-teal); color: var(--fy-text-label);">3</span><span style="font-size: 12px; color: var(--fy-text-label);">Into the yard</span></div>
+      </div>
+      <div style="height: 1px; background: var(--rule-teal);"></div>
+      <button type="button" onClick="{{ signIn }}" class="btn btn-primary" style="min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; font-size: 15px;"><i class="ph ph-discord-logo" style="font-size: 20px;"></i>Sign in with Discord</button>
+      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; line-height: 1.5; color: var(--fy-text-label);">
+        <span style="display: flex; gap: 8px; align-items: flex-start;"><i class="ph ph-user-circle" style="color: var(--neon-teal); font-size: 15px; flex: none;"></i><span>Use your own Discord. Whatever account you sign in with becomes {{ member }}.</span></span>
+        <span style="display: flex; gap: 8px; align-items: flex-start;"><i class="ph ph-key" style="color: var(--neon-teal); font-size: 15px; flex: none;"></i>This link works once. Don't forward it.</span>
+      </div>
+    </div>
+    <span style="font-size: 12px; color: var(--fy-text-label); text-align: center;">Not {{ member }}? Tell {{ inviter }}. They'll send you your own link.</span>
+  </sc-if>
+
+  <sc-if value="{{ isOther }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;">
+      <span class="kicker">Wrong Discord</span>
+      <h1 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(30px, 6vw, 44px); line-height: 1.05; letter-spacing: -.02em; margin: 0; text-wrap: balance;">You're already in as <span class="neon-pink">{{ signedInAs }}</span></h1>
+      <p style="font-size: 15px; line-height: 1.5; margin: 0; color: var(--fy-text-secondary); max-width: 40ch; text-wrap: pretty;">This invite is for <strong style="color: var(--fy-text);">{{ member }}</strong>. You can't use it while you're signed in as {{ signedInAs }}. The link still works.</p>
+    </div>
+    <div class="neon-tube-teal" style="display: flex; flex-direction: column; gap: 12px; width: min(100%, 400px); box-sizing: border-box; padding: 22px;">
+      <span style="font-size: 13px; line-height: 1.5; color: var(--fy-text-secondary);">If this is {{ member }}'s link, send it to them. They need to open it on their own phone or computer.</span>
+      <button type="button" onClick="{{ copyLink }}" class="btn btn-primary" style="min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;"><i class="ph ph-copy" style="font-size: 18px;"></i>{{ copyLabel }}</button>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" onClick="{{ goYard }}" class="btn btn-ghost" style="flex: 1 1 140px; min-height: 44px;">Back to my yard</button>
+        <button type="button" onClick="{{ switchAcct }}" class="btn btn-ghost" style="flex: 1 1 140px; min-height: 44px;">Sign out and switch</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isUsed }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;">
+      <span class="kicker">Door's shut</span>
+      <h1 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(30px, 6vw, 44px); line-height: 1.05; letter-spacing: -.02em; margin: 0;">This invite's been used</h1>
+      <p style="font-size: 15px; line-height: 1.5; margin: 0; color: var(--fy-text-secondary); max-width: 40ch; text-wrap: pretty;">Someone has already signed in with it, or {{ inviter }} sent a newer link. If you've already joined, just sign in.</p>
+    </div>
+    <div class="neon-tube-teal" style="display: flex; flex-direction: column; gap: 12px; width: min(100%, 400px); box-sizing: border-box; padding: 22px;">
+      <button type="button" onClick="{{ signIn }}" class="btn btn-primary" style="min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;"><i class="ph ph-discord-logo" style="font-size: 20px;"></i>Sign in</button>
+      <span style="font-size: 12px; color: var(--fy-text-label); text-align: center;">Not joined yet? Ask {{ inviter }} for a new link.</span>
+    </div>
+  </sc-if>
+
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;invite&quot;,&quot;wrongAccount&quot;,&quot;used&quot;],&quot;default&quot;:&quot;invite&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Door state&quot;},&quot;inviterName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;RAY&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Invite&quot;},&quot;memberName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;TheCow&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Invite&quot;}}">
+class Component extends DCLogic {
+  state = { copied: false };
+  signEl = null;
+  buildSign() {
+    if (this.signEl) return this.signEl;
+    const e = React.createElement, text = 'INVITE', dead = { 3: 0.9 };
+    const letters = text.split('').map((ch, i) => e('span', { key: i, style: { display: 'inline-block', animation: i in dead ? `neonDead 3.6s steps(1, end) ${dead[i]}s infinite` : `neonBuzz ${4 + (i * 1.37) % 3}s steps(1, end) ${(i * .53) % 2.5}s infinite` } }, ch));
+    const pin = (side) => e('span', { style: { position: 'absolute', top: -7.5, [side]: 15, width: 9.4, height: 9.4, borderRadius: '50%', background: '#9aa0b4', boxShadow: '0 1px 2px rgba(0,0,0,.6)' } });
+    this.signEl = e('div', { style: { position: 'relative', display: 'inline-block', transformOrigin: '8% 0%', animation: 'signSway 5s ease-in-out infinite', transform: 'rotate(-7deg)' } },
+      e('span', { style: { position: 'absolute', top: -25, left: 19, width: 1.25, height: 19, background: '#6d7286' } }), pin('left'),
+      e('span', { style: { display: 'inline-block', fontSize: 34, letterSpacing: '.18em', color: 'var(--neon-teal)', textShadow: '0 0 9px var(--neon-teal), 0 0 21px rgba(95,211,207,.7)', padding: '10px 16px 10px 26px', border: '2.4px solid var(--neon-teal)', borderRadius: 4, boxShadow: '0 0 8px rgba(95,211,207,.6), inset 0 0 8px rgba(95,211,207,.3)', animation: 'boxFlicker 7s steps(1, end) infinite, neonBreath 4.5s ease-in-out infinite', fontFamily: 'var(--font-heading)' } }, letters));
+    return this.signEl;
+  }
+  componentDidMount() { document.body.classList.add('farmyard'); }
+  renderVals() {
+    const st = this.props.state ?? 'invite';
+    return {
+      inviteSign: this.buildSign(),
+      inviter: this.props.inviterName ?? 'RAY', member: this.props.memberName ?? 'TheCow', signedInAs: this.props.inviterName ?? 'RAY',
+      isInvite: st === 'invite', isOther: st === 'wrongAccount', isUsed: st === 'used',
+      signIn: () => { location.href = '0.2%20New%20User%20Set-up.dc.html'; },
+      goYard: () => { location.href = '1.0%20BARN%20DASHBOARD.dc.html'; },
+      switchAcct: () => {},
+      copyLabel: this.state.copied ? 'Copied' : 'Copy invite link',
+      copyLink: () => { navigator.clipboard?.writeText(location.href).catch(() => {}); this.setState({ copied: true }); setTimeout(() => this.setState({ copied: false }), 1800); }
+    };
+  }
+}
+</script>
+</body>
+</html>

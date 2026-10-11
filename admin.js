@@ -4,7 +4,7 @@
   await FY.requireLeader();
   const A = window.A = { sections: {}, _members: null };
   A.members = async (fresh) => {
-    if (!A._members || fresh) A._members = (await FY.q('member').select('id,nickname,avatar,user_id,role,chesscom_username').order('nickname')).data || [];  // discord_id is not readable through the API (column grant)
+    if (!A._members || fresh) A._members = (await FY.q('member').select('id,nickname,avatar,avatar_url,user_id,role,chesscom_username,setup_at').order('nickname')).data || [];  // discord_id is not readable through the API (column grant)
     return A._members;
   };
   A.reload = async () => { await A.members(true); for (const k in A.sections) await A.sections[k](); };
@@ -76,6 +76,31 @@
         await FY.rpc('record_poker_result', { p_players: players, p_winner: winner, p_played_at: new Date(el.querySelector('#played').value + 'T12:00:00').toISOString(), p_note: el.querySelector('#note').value || null });
         FY.toast(`Recorded. ${players.reduce((s, p) => s + p.buy_ins, 0)} points to the winner.`); await A.reload();
       } catch (e) { FY.toast(e.message); }
+      finally { btn.disabled = false; }
+    });
+  };
+
+  // New User Set-up palette: up to 8 pre-made logos per member. Paste public URLs (Supabase Storage → bucket → Get URL).
+  A.sections.logos = async () => {
+    const el = document.getElementById('logos'); const ms = await A.members();
+    const sel = A._logoMember || (ms[0] && ms[0].id); A._logoMember = sel;
+    const rows = sel ? ((await FY.q('member_logo').select('slot,name,url').eq('member_id', sel).order('slot')).data || []) : [];
+    const bySlot = {}; rows.forEach(r => bySlot[r.slot] = r);
+    el.innerHTML = `<h2>Member logos</h2><p class="muted">Eight pre-made logos a member can pick from in New User Set-up and Profile. Upload the images to Storage, paste the public URLs here. Blank rows are skipped.</p>
+      <div class="row"><label for="lg-m">Member</label><select id="lg-m">${A.opts(ms, sel)}</select></div>
+      <form id="lg-f" class="stack">
+        ${[1,2,3,4,5,6,7,8].map(n => `<div class="row"><span class="muted" style="width:1.5em">${n}</span><input data-ln="${n}" placeholder="Name" maxlength="24" value="${FY.esc(bySlot[n]?.name || '')}" style="width:9em"><input data-lu="${n}" type="url" placeholder="https://…/logo.png" value="${FY.esc(bySlot[n]?.url || '')}" style="flex:1">${bySlot[n] ? `<img src="${FY.esc(bySlot[n].url)}" alt="" width="32" height="32" style="border-radius:50%;object-fit:contain">` : ''}</div>`).join('')}
+        <div class="row"><button class="pink">Save logos</button></div>
+      </form>`;
+    el.querySelector('#lg-m').addEventListener('change', ev => { A._logoMember = ev.target.value; A.sections.logos(); });
+    el.querySelector('#lg-f').addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const logos = [1,2,3,4,5,6,7,8].map(n => ({ slot: n, name: el.querySelector(`[data-ln="${n}"]`).value.trim(), url: el.querySelector(`[data-lu="${n}"]`).value.trim() })).filter(l => l.url);
+      if (logos.some(l => !l.name)) return FY.toast('Every logo with a URL needs a name.');
+      if (logos.some(l => !/^https:\/\/[^\s"'<>()]+$/.test(l.url))) return FY.toast('Logo URLs must start with https:// and contain no spaces or quotes.');
+      const btn = ev.submitter || ev.target.querySelector('button'); btn.disabled = true;
+      try { await FY.rpc('set_member_logos', { p_member: sel, p_logos: logos }); FY.toast('Logos saved.'); await A.sections.logos(); }
+      catch (e) { FY.toast(e.message); }
       finally { btn.disabled = false; }
     });
   };

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>New User Set-up</title>
+<link rel="stylesheet" href="_ds/nocturne-a28ab075-f4d3-4cef-b265-31ac322e3ab1/styles.css">
+<script src="_ds/nocturne-a28ab075-f4d3-4cef-b265-31ac322e3ab1/_ds_bundle.js"></script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link rel="stylesheet" href="farmyard.css">
+<style>
+body { margin: 0; background: var(--fy-bg); }
+a { color: var(--neon-pink-link); } a:hover { color: var(--neon-pink-hover); }
+i.ph { text-shadow: 0 0 6px currentColor; }
+</style>
+</helmet>
+<main data-screen-label="0.2 New User Set-up" style="min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 26px; padding: clamp(24px, 5vw, 64px) 16px; background: radial-gradient(900px 600px at 80% 10%, var(--haze-pink), transparent 60%), radial-gradient(700px 500px at 0% 100%, var(--haze-teal), transparent 60%), var(--fy-bg); color: var(--fy-text); font-family: var(--font-body);">
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: min(100%, 400px);">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;"><span style="width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid var(--neon-teal); color: var(--neon-teal); box-shadow: 0 0 6px rgba(95,211,207,.5);"><i class="ph ph-check" style="font-size: 14px;"></i></span><span style="font-size: 12px; color: var(--fy-text-label);">Signed in</span></div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;"><span style="width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; border: 2px solid var(--neon-pink-tube); box-shadow: var(--glow-pink); color: var(--neon-pink-text);">2</span><span style="font-size: 12px; color: var(--fy-text);">Your profile</span></div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;"><span style="width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; border: 1.5px solid var(--rule-teal); color: var(--fy-text-label);">3</span><span style="font-size: 12px; color: var(--fy-text-label);">Into the yard</span></div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
+    <span class="kicker">Discord's done. Now you.</span>
+    <h1 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(30px, 6vw, 46px); line-height: 1.05; letter-spacing: -.02em; margin: 0; text-wrap: balance;">What does Hank call you?</h1>
+  </div>
+
+  <form onSubmit="{{ finish }}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 18px; width: min(100%, 860px); align-items: start;">
+
+    <div class="neon-tube-teal" style="display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 24px 18px; box-sizing: border-box;">
+      <span class="kicker">How the yard sees you</span>
+      <div style="width: 150px; height: 150px; border-radius: 50%; background: var(--fy-bg); border: 3px solid var(--neon-pink-tube); box-shadow: var(--glow-pink); overflow: hidden; display: grid; place-items: center;">
+        <div role="img" aria-label="Your character" style="width: 100%; height: 100%; background: {{ meImg }} center / 92% no-repeat; display: grid; place-items: center;"><i class="ph ph-question" style="font-size: 40px; color: var(--fy-text-label); display: {{ meQ }};"></i></div>
+      </div>
+      <div style="font-family: var(--font-heading); font-size: 26px; letter-spacing: -.01em; text-align: center; overflow-wrap: anywhere;">{{ displayName }}</div>
+      <div style="display: flex; flex-direction: column; gap: 6px; width: 100%; font-size: 12px; color: var(--fy-text-label);">
+        <span style="display: flex; gap: 8px; align-items: center;"><i class="ph ph-users-three" style="color: var(--neon-teal);"></i>Members list and Lounge</span>
+        <span style="display: flex; gap: 8px; align-items: center;"><i class="ph ph-club" style="color: var(--neon-teal);"></i>Your poker seat and league board</span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 18px;">
+      <div class="neon-tube-teal" style="display: flex; flex-direction: column; gap: 16px; padding: 20px; box-sizing: border-box;">
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--fy-text-label);">Yard name
+          <input class="input" value="{{ name }}" onChange="{{ setName }}" maxlength="16" required="{{ true }}" style="min-height: 46px; font-size: 16px; border-color: var(--neon-teal);">
+          <span>Auto Generated. Keep it or change it. 16 characters max.</span>
+        </label>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-size: 12px; color: var(--fy-text-label);">Pre-Made Logos to select from</span>
+          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
+            <sc-for list="{{ characters }}" as="c" hint-placeholder-count="8"><button type="button" onClick="{{ c.pick }}" aria-label="{{ c.name }}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px; min-height: 44px; background: transparent; border: 1.5px solid {{ c.border }}; border-radius: 10px; box-shadow: {{ c.shadow }}; cursor: pointer; color: var(--fy-text); font-family: inherit;"><div style="width: 52px; height: 52px; border-radius: 50%; border: 1.5px solid var(--neon-teal); display: grid; place-items: center; overflow: hidden;"><div style="width: 100%; height: 100%; background: {{ c.bgImg }} center / contain no-repeat; display: grid; place-items: center;"><i class="ph ph-question" style="color: var(--fy-text-label); font-size: 18px; display: {{ c.qDisplay }};"></i></div></div><span style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">{{ c.name }}</span></button></sc-for>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ showExtras }}" hint-placeholder-val="{{ true }}">
+      <div class="neon-tube-teal" style="display: flex; flex-direction: column; gap: 14px; padding: 20px; box-sizing: border-box;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;"><span class="kicker">Linked accounts</span><span style="font-size: 12px; color: var(--fy-text-label);">Optional. Add later in Profile.</span></div>
+        <div style="display: flex; gap: 12px; align-items: center;"><i class="ph ph-discord-logo" style="font-size: 22px; color: var(--neon-teal); flex: none;"></i><div style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px;">Discord</span><span style="font-size: 12px; color: var(--fy-text-label);"><span>Signed in as {{ discordHandle }}. Lounge voice works.</span></span></div><span class="neon-teal" style="font-size: 12px; white-space: nowrap;">Connected</span></div>
+                <div style="height: 1px; background: var(--rule-teal);"></div>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--fy-text-label);"><span style="display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--fy-text);"><i class="ph ph-hand-coins" style="font-size: 20px; color: var(--neon-teal);"></i>Revolut pay-me link</span>
+          <div style="display: flex; align-items: stretch; border: 1px solid {{ revBorder }}; border-radius: 8px; overflow: hidden; min-height: 44px;"><span style="display: grid; place-items: center; padding: 0 10px; font-size: 14px; color: var(--fy-text-label); border-right: 1px solid var(--rule-teal); white-space: nowrap;">revolut.me/</span><input value="{{ rev }}" onChange="{{ setRev }}" placeholder="yourname" style="flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; color: var(--fy-text); font: inherit; font-size: 15px; padding: 0 10px;"></div>
+          <span style="color: {{ revHintColor }};">{{ revHint }}</span>
+        </label>
+        <sc-if value="{{ showChess }}" hint-placeholder-val="{{ false }}"><label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--fy-text-label);"><span style="display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--fy-text);"><i class="ph ph-crown-simple" style="font-size: 20px; color: var(--neon-teal);"></i>Chess.com username</span>
+          <input class="input" value="{{ chess }}" onChange="{{ setChess }}" placeholder="e.g. thecow_99" style="min-height: 44px; border-color: var(--neon-teal);">
+          <span>Your games count towards the chess league.</span>
+        </label></sc-if>
+      </div>
+      </sc-if>
+
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <button type="submit" class="btn btn-primary" style="min-height: 48px; padding: 0 28px; font-size: 15px; display: flex; gap: 10px; align-items: center;" disabled="{{ cantFinish }}">Into the yard<i class="ph ph-arrow-right"></i></button>
+        <span style="font-size: 12px; color: var(--fy-text-label);">You can change any of this later in Profile.</span>
+      </div>
+    </div>
+  </form>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showLinked&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Setup&quot;},&quot;inviterName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;RAY&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Invite&quot;},&quot;memberName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;TheCow&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Invite&quot;},&quot;discordHandle&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;cowpat#0&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Invite&quot;}}">
+class Component extends DCLogic {
+  state = { name: null, character: null, rev: '', chess: '' };
+  CHARACTERS = [
+    { id: 'hank', name: 'Hank', img: 'assets/hank-oink.png' },
+    { id: 'chick', name: 'The Chick', img: 'assets/lot-yfronts.webp' },
+    { id: 'l3', name: 'Logo 3' }, { id: 'l4', name: 'Logo 4' }, { id: 'l5', name: 'Logo 5' }, { id: 'l6', name: 'Logo 6' }, { id: 'l7', name: 'Logo 7' }, { id: 'l8', name: 'Logo 8' }
+  ];
+  componentDidMount() { document.body.classList.add('farmyard'); }
+  renderVals() {
+    const name = this.state.name ?? (this.props.memberName ?? 'TheCow');
+    const charId = this.state.character ?? 'hank';
+    const me = this.CHARACTERS.find(c => c.id === charId) || {};
+    const rev = this.state.rev.trim();
+    const revBad = rev && !/^[A-Za-z0-9._-]+$/.test(rev);
+    return {
+      inviter: this.props.inviterName ?? 'RAY', discordHandle: this.props.discordHandle ?? 'cowpat#0', showExtras: this.props.showLinked ?? true,
+      name, displayName: name.trim() || 'Your name', setName: (e) => this.setState({ name: e.target.value }),
+      meImg: me.img ? `url("${me.img}")` : 'none', meQ: me.img ? 'none' : 'block',
+      characters: (Array.isArray(this.props.logos) && this.props.logos.length ? this.props.logos.slice(0, 8).map((l, i) => ({ id: l.id || 'l' + (i + 1), name: l.name || 'Logo ' + (i + 1), img: l.img })) : this.CHARACTERS).map(c => { const on = c.id === charId; return { ...c, bgImg: c.img ? `url("${c.img}")` : 'none', qDisplay: c.img ? 'none' : 'block',
+        border: on ? 'var(--neon-pink-tube)' : 'transparent', shadow: on ? 'var(--glow-pink)' : 'none', pick: () => this.setState({ character: c.id }) }; }),
+      rev: this.state.rev, setRev: (e) => this.setState({ rev: e.target.value.replace(/^https?:\/\/(www\.)?revolut\.me\//, '') }),
+      revBorder: revBad ? 'var(--neon-red-tube)' : 'var(--neon-teal)',
+      revHint: revBad ? 'Letters, numbers, dots, dashes and underscores only.' : 'So people can pay you after poker. Settle up uses this link.',
+      revHintColor: revBad ? 'var(--neon-red-text)' : 'var(--fy-text-label)',
+      showChess: false, chess: this.state.chess, setChess: (e) => this.setState({ chess: e.target.value }),
+      cantFinish: !name.trim() || revBad,
+      finish: (e) => { e.preventDefault(); if (!name.trim() || revBad) return; location.href = '1.0%20BARN%20DASHBOARD.dc.html'; }
+    };
+  }
+}
+</script>
+</body>
+</html>
