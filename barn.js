@@ -14,7 +14,7 @@
 
   const Barn = {
     DISCORD, PAGES, voice,
-    face(m) { return (m && m.avatar_url) || `assets/avatars/${['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].includes(m && m.avatar) ? m.avatar : 'hen'}.svg`; },
+    face: (m, px) => FY.face(m, px),
     discordName(session) {
       const u = (session && session.user && session.user.user_metadata) || {};
       return u.custom_claims?.global_name || u.full_name || u.name || u.preferred_username || u.user_name || 'you';
@@ -78,7 +78,7 @@
         ${pill('parked', 'muted', 'slash', 'MUTED', 'on Discord', '<span class="n">0</span>')}
         <div id="vtip"></div>
         <div class="sep2"></div>
-        <a class="me-btn ${page === 'profile' ? 'on' : ''}" href="profile.html"><span class="face" role="img" aria-label="Your character" style="background-image:url('${esc(Barn.face(me))}')"></span><span>${esc(me.nickname)}</span><i class="ph ph-gear"></i></a>`;
+        <a class="me-btn ${page === 'profile' ? 'on' : ''}" href="profile.html"><span class="face" role="img" aria-label="Your character" style="background-image:url('${esc(Barn.face(me, 32))}')"></span><span>${esc(me.nickname)}</span><i class="ph ph-gear"></i></a>`;
       side.querySelectorAll('[data-voice]').forEach(b => b.addEventListener('click', () => {
         const k = b.dataset.voice; voice.set(k);
         side.querySelectorAll('[data-voice]').forEach(x => x.classList.toggle('on', x === b));

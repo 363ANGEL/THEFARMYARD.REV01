@@ -155,7 +155,7 @@
 .pk-drow .bi b{width:18px;text-align:center;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;color:#c8f4f2;text-shadow:0 0 6px var(--neon-teal)}
 .pk-drow .win{display:grid;place-items:center}
 .pk-drow .win button{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--rule-teal);background:transparent;color:var(--color-neutral-400);cursor:pointer;display:grid;place-items:center;padding:0}
-.pk-drow .win button.on{border-color:var(--neon-pink);color:var(--neon-pink);box-shadow:var(--glow-pink)}
+.pk-drow .win button.on{border-color:var(--neon-pink);color:var(--neon-pink-text);box-shadow:var(--glow-pink)}
 .pk-docket button:disabled{cursor:default;opacity:.6}
 .pk-docket .ft{display:flex;gap:12px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
 .pk-docket .sum{flex:1 1 160px;font-size:12px;color:var(--color-neutral-300)}
@@ -208,7 +208,7 @@
 .pk-settle:hover{color:var(--neon-red-text);box-shadow:0 0 6px var(--neon-red),0 0 18px var(--neon-red),0 0 36px rgba(232,38,58,.5),inset 0 0 10px rgba(168,0,22,.5)}
 .pk-recent{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--rule-teal);font-size:12px;color:var(--fy-text)}
 .pk-recent .what{flex:1;min-width:120px}
-.pk-recent .what b{font-weight:400;color:var(--neon-pink)}
+.pk-recent .what b{font-weight:400;color:var(--neon-pink-text)}
 .pk-recent .what span{color:var(--color-neutral-400)}
 
 /* Scandal Sheet + Poker School */

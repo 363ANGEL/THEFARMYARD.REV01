@@ -76,7 +76,7 @@ a:hover { color: var(--neon-pink-hover); }
 .neon-green { color: var(--neon-green-text); text-shadow: var(--text-glow-green); }
 .neon-red { color: var(--neon-red-text); text-shadow: var(--text-glow-red); }
 .neon-teal { color: var(--neon-teal); text-shadow: 0 0 8px var(--neon-teal); }
-.lot-label { font-family: var(--font-heading); font-weight: 600; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--neon-pink); text-shadow: 0 0 6px rgba(224,21,127,.6); }
+.lot-label { font-family: var(--font-heading); font-weight: 600; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--neon-pink-text); text-shadow: 0 0 6px rgba(224,21,127,.6); }
 .kicker { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--fy-text-label); }
 
 /* Neon boxes — teal frames, pink content */

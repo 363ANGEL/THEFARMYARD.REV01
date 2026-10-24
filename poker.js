@@ -49,12 +49,6 @@
     if (w) { w.opener = null; return true; }
     FY.toast('Pop-up blocked. Use GO TO TABLE.'); return false;
   }
-  const sfxCache = {};
-  function sfx(url) {                              // buy-in +/- clucks
-    let el = sfxCache[url]; if (!el) { el = sfxCache[url] = new Audio(url); el.preload = 'auto'; el.volume = .7; }
-    try { el.pause(); el.currentTime = 0; } catch (e) {}
-    el.play().catch(() => {});
-  }
   const tip = (text, cls) => `<span class="tip ${cls || ''}" role="alert">${text}</span>`;
 
   // ---- shell ------------------------------------------------------------------
@@ -269,7 +263,7 @@
     const rows = seats.map(s => {
       const n = S.picks[s.member_id] || 0, win = S.winner === s.member_id && n > 0;
       return `<div class="pk-dgrid pk-drow ${n ? '' : 'off'}"><button type="button" class="who" data-t="${s.member_id}" ${dis}><span class="box"></span><span>${esc(s.nickname)}</span></button>
-        <div class="bi"><button type="button" data-d="${s.member_id}" aria-label="Less" ${dis}>−</button><b>${n}</b><button type="button" data-i="${s.member_id}" aria-label="More" ${dis}>+</button></div>
+        <div class="bi"><button type="button" data-d="${s.member_id}" aria-label="Less" ${n ? '' : 'data-sfx="off"'} ${dis}>−</button><b>${n}</b><button type="button" data-i="${s.member_id}" aria-label="More" ${dis}>+</button></div>
         <div class="win"><button type="button" class="${win ? 'on' : ''}" data-w="${s.member_id}" aria-label="Winner" ${dis}><i class="ph-fill ph-crown" style="font-size:15px"></i></button></div></div>`;
     }).join('');
     const no = String(((S.board && S.board.games) || 0) + (filed() ? 0 : 1)).padStart(3, '0');
@@ -285,8 +279,8 @@
     const b = ev.target.closest('button'); if (!b || b.disabled) return;
     const d = b.dataset, set = (id, f) => { S.picks[id] = Math.max(0, f(S.picks[id] || 0)); if (S.picks[id] === 0 && S.winner === id) S.winner = null; renderDocket(); };
     if (d.t) set(d.t, v => v > 0 ? 0 : 1);
-    else if (d.d) { if ((S.picks[d.d] || 0) > 0) sfx('assets/cluck-sad.mp3'); set(d.d, v => v - 1); }
-    else if (d.i) { sfx('assets/cluck-happy.mp3'); set(d.i, v => v + 1); }
+    else if (d.d) set(d.d, v => v - 1);
+    else if (d.i) set(d.i, v => v + 1);
     else if (d.w) { if (!(S.picks[d.w] > 0)) S.picks[d.w] = 1; S.winner = d.w; renderDocket(); }
     else if (b.id === 'file') {
       const players = S.cur.seats.filter(s => S.picks[s.member_id] > 0).map(s => ({ member_id: s.member_id, buy_ins: S.picks[s.member_id] }));
@@ -337,7 +331,7 @@
     el.innerHTML = items.length ? '<span class="pk-kicker" style="display:block;padding-top:12px">Just filed</span>' + items.map(({ r, left }) => {
       const mins = Math.ceil(left / 60);
       return `<div class="pk-recent"><span class="what"><b>${esc(r.winner)}</b> <span>beat</span> ${esc(r.others)} · ${mins <= 1 ? 'Under a minute left to change' : mins + ' min left to change'}</span>
-        <button type="button" class="pk-btn ghost sm" data-edit="${r.event_id}">Edit</button><button type="button" class="pk-btn ghost sm" data-undo="${r.event_id}" style="color:var(--neon-pink)">Undo</button></div>`;
+        <button type="button" class="pk-btn ghost sm" data-edit="${r.event_id}">Edit</button><button type="button" class="pk-btn ghost sm" data-undo="${r.event_id}" style="color:var(--neon-pink-text)">Undo</button></div>`;
     }).join('') : '';
   }
   $('debts').addEventListener('click', async ev => {

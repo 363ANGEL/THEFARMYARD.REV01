@@ -3,14 +3,14 @@
 :root{
   --fy-bg:#161826; --fy-surface:#232532; --fy-surface-2:#2b2e3f;
   --fy-text:#e9e9ed; --fy-text-body:#e4e7f5; --fy-text-secondary:#cfd3e5; --fy-text-label:#b2b6ca;
-  --neon-pink:#ff3fa4; --neon-pink-hover:#ffb3dc; --neon-pink-link:#ff8ccb;
+  --neon-pink:#e0157f; --neon-pink-text:#ffc4e1; --neon-pink-hover:#ffb3dc; --neon-pink-link:#ff8ccb;
   --neon-teal:#5fd3cf; --rule-teal:rgba(95,211,207,.35);
   --haze-pink:rgba(45,15,34,.85); --haze-teal:rgba(27,74,74,.45);
   --glow-pink:0 0 6px var(--neon-pink),0 0 14px rgba(255,63,164,.55);
   --glow-teal:0 0 6px var(--neon-teal),0 0 14px rgba(95,211,207,.45);
   --shadow-sm:0 0 0 1px #3f424d; --shadow-md:0 0 0 1px #595d6c,0 6px 18px rgba(0,0,0,.55);
   --radius-sm:4px; --radius-md:8px; --radius-lg:14px;
-  --owes:#ff3fa4; --owed:#5fd3cf;
+  --owes:var(--neon-pink-text); --owed:#5fd3cf;
   --pink-12:rgba(255,63,164,.12); --glow-text-soft:0 0 6px rgba(255,63,164,.6);
   --font-body:'Inter',system-ui,-apple-system,sans-serif; --font-heading:'Inter',system-ui,sans-serif;
   color-scheme:dark;
@@ -25,10 +25,10 @@ a{color:var(--neon-pink-link)} a:hover{color:var(--neon-pink-hover)}
 .muted{color:var(--fy-text-label)} .num{font-variant-numeric:tabular-nums}
 .bar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--rule-teal);background:var(--haze-teal)}
 .bar a{color:var(--fy-text-secondary);text-decoration:none} .bar a:hover{color:var(--neon-teal)}
-.brand{font-weight:600;color:var(--neon-pink)!important;text-shadow:var(--glow-pink);margin-right:auto}
+.brand{font-weight:600;color:var(--neon-pink-text)!important;text-shadow:var(--glow-pink);margin-right:auto}
 button,.btn{font:inherit;border-radius:var(--radius-md);padding:8px 14px;cursor:pointer;border:1px solid var(--rule-teal);background:var(--fy-surface);color:var(--fy-text)}
 button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--neon-teal);outline-offset:2px}
-.pink{background:transparent;color:var(--neon-pink);border-color:var(--neon-pink);box-shadow:var(--glow-pink);text-shadow:var(--glow-text-soft);font-weight:500} .pink:hover{background:var(--pink-12)}
+.pink{background:transparent;color:var(--neon-pink-text);border-color:var(--neon-pink);box-shadow:var(--glow-pink);text-shadow:var(--glow-text-soft);font-weight:500} .pink:hover{background:var(--pink-12)}
 .teal{background:transparent;color:var(--neon-teal);border-color:var(--neon-teal)} .teal:hover{box-shadow:var(--glow-teal)}
 .ghost{background:transparent;color:var(--fy-text-secondary)}
 button[disabled]{opacity:.5;cursor:default}
@@ -36,11 +36,11 @@ button[disabled]{opacity:.5;cursor:default}
 .stack{display:grid;gap:12px} .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .switcher{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
 .tab{border-radius:999px;padding:6px 14px;background:transparent;color:var(--fy-text-secondary);border:1px solid var(--rule-teal)}
-.tab[aria-selected="true"]{background:transparent;color:var(--neon-pink);border-color:var(--neon-pink);box-shadow:var(--glow-pink);text-shadow:var(--glow-text-soft)}
+.tab[aria-selected="true"]{background:transparent;color:var(--neon-pink-text);border-color:var(--neon-pink);box-shadow:var(--glow-pink);text-shadow:var(--glow-text-soft)}
 .table{width:100%;border-collapse:collapse} .table th,.table td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--rule-teal);vertical-align:middle}
 .table th{color:var(--fy-text-label);font-weight:500;font-size:13px;letter-spacing:.04em;text-transform:uppercase}
 .table th.pts{text-align:right}
-.table td.pts{text-align:right;font-weight:600;color:var(--neon-pink);text-shadow:var(--glow-text-soft)}
+.table td.pts{text-align:right;font-weight:600;color:var(--neon-pink-text);text-shadow:var(--glow-text-soft)}
 .avatar{width:48px;height:48px;border-radius:50%;border:2px solid var(--neon-teal);background:var(--fy-surface-2);vertical-align:middle;margin-right:10px}
 .badge{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;margin-left:8px;background:transparent;border:1px solid}
 .badge.owes{color:var(--owes);border-color:var(--owes);text-shadow:var(--glow-text-soft)} .badge.owed{color:var(--owed);border-color:var(--owed);text-shadow:0 0 8px var(--neon-teal)}
