@@ -177,13 +177,16 @@
     ['Petit Belicoso',125,52,'Bolívar Petit Belicoso','Belicoso',50,52,'Short belicoso.'],['Mini Belicoso',127,52,'Trinidad Mini Belicoso','Belicoso',50,52,'Robusto length with a pointed head.'],['Belicoso',152,52,'Trinidad Santiago','Belicoso',50,54,'Long belicoso.'],['Belicoso Grande',156,52,'H. Upmann 1844 Belicoso','Belicoso',50,54,'Toro-length belicoso.'],['Favorito',121,42,'Cuaba Tradicionales','Perfecto',40,44,'Small perfecto.'],['Generoso',133,42,'Cuaba Generosos','Perfecto',40,44,'Slim perfecto.'],['Exquisito',146,46,'Cuaba Exclusivos','Perfecto',44,48,'Habanos double figurado standard.'],['Romeo',162,52,'Cuaba Distinguidos','Perfecto',50,54,'Full-size perfecto.'],['Salomón',184,57,'Cuaba Salomones','Perfecto',54,58,'Big double perfecto.'],['Diadema',232,55,'Cuaba Diademas','Perfecto',52,56,'Giant perfecto.'],['Torpedo',156,52,'Habanos Torpedo','Torpedo',50,54,'The Habanos torpedo standard.'],['Long Torpedo',165,54,'Padrón 1926 Torpedo','Torpedo',52,54,'Longer, fatter torpedo.'],['Chisel',152,54,'LFD Double Ligero Chisel','Chisel',54,54,'The original LFD Chisel.'],['Big Chisel',165,58,'LFD Chapter 1 Chisel','Chisel',54,58,'Limited, box-pressed.']
   ];
   const KEYS = ['name', 'size', 'price', 'shop', 'url', 'note', 'img', 'origin', 'wrapper', 'strength', 'notes'];
-  const PH = ['Cigar name', 'Size, e.g. 5 × 50 Robusto', 'Price per cigar, e.g. 12.50', 'Shop name', 'Shop link', 'One line on why it fits', 'Photo link (optional · shows on vote and archive)', 'Origin, e.g. Nicaragua', 'Wrapper, e.g. Colorado Maduro', 'Strength, e.g. Medium-full', 'Tasting notes, e.g. cocoa, cedar, pepper'];
+  const PH = ['Cigar name', 'Size, e.g. 5 × 50 Robusto', 'Price per cigar, e.g. 12.50', 'Shop name', 'Shop link', 'One line on why it fits', 'Photo link (optional · shows on Results and Archive)', 'Origin, e.g. Nicaragua', 'Wrapper, e.g. Colorado Maduro', 'Strength, e.g. Medium-full', 'Tasting notes, e.g. cocoa, cedar, pepper'];
   const COLS = ['Size', 'Ring', 'Max time', 'Shape', 'Strength', 'Wrapper', 'Flavour', 'Origin', 'Budget'];
   let me = null, members = [], data = null, body = null;
   let draft = [{}, {}, {}], formSig = null, movedOn = false, busy = false, grace = false, payDirty = false, copyT = null;
 
   const $ = id => document.getElementById(id);
-  const put = (el, html) => { if (el && el.innerHTML !== html) el.innerHTML = html; };
+  // Skips the write when the HTML is what was last written to el. Reading el.innerHTML back never matches a template
+  // holding an entity (&#39;) or a bare attribute (disabled), so every poll used to redraw and drop focus.
+  const wrote = new WeakMap();
+  const put = (el, html) => { if (el && wrote.get(el) !== html) { el.innerHTML = html; wrote.set(el, html); } };
   // While a write is in flight every action button is disabled, so a second tap is visibly refused, not dropped.
   const dis = () => busy ? ' disabled' : '';
   const lock = () => { if (body) body.querySelectorAll('button[data-a]').forEach(b => { b.disabled = busy; }); };
@@ -396,7 +399,8 @@
     $('ha-s5').hidden = stt(data) !== 'paying';
   }
 
-  function drawAll() { const M = model(); drawNotices(); drawStage(); drawActions(); drawVoted(); drawAsked(M); drawPrompt(M); drawTallies(); drawPay(); vis(); lock(); }
+  // lock() runs even if a draw step throws, so a failure can never leave every button disabled.
+  function drawAll() { try { const M = model(); drawNotices(); drawStage(); drawActions(); drawVoted(); drawAsked(M); drawPrompt(M); drawTallies(); drawPay(); vis(); } finally { lock(); } }
 
   // Always a fresh build (typed values never reach the value attribute, so put() would wrongly skip it).
   function buildForms() {
@@ -411,19 +415,23 @@
     formSig = sig(data);
   }
 
+  // Disabling the buttons drops keyboard focus. When a write is done, focus goes back to the control that had it
+  // (SAVE keeps focus), if that control is still on the page and enabled and focus has not moved anywhere else.
+  const refocus = el => { const a = document.activeElement; if (el && el !== a && el.isConnected && !el.disabled && (!a || a === document.body)) el.focus(); };
+
   // ---- Writes. Every one: RPC, toast on error, then await refresh (humidor.js) and redraw. ----
   // moves = the write changes the round's status. If its refresh did not show the change (a network blip),
   // the next poll that does is Hank's own write, not the round moving on under him.
   async function run(name, args, moves) {
     if (busy) return false;
-    const before = sig(data);
+    const before = sig(data), had = document.activeElement;
     busy = true; lock();
     try { await FY.rpc(name, args); }
-    catch (e) { busy = false; lock(); FY.toast(e.message); return false; }
+    catch (e) { busy = false; lock(); refocus(had); FY.toast(e.message); return false; }
     try { await Humidor.refresh(); } catch (e) { /* humidor.js has logged it */ }
     busy = false; grace = !!moves && sig(data) === before;
     if (!movedOn) adopt();
-    drawAll();
+    drawAll(); refocus(had);
     return true;
   }
 
@@ -450,15 +458,19 @@
     if (a === 'open') return run('humidor_open_round', null, true);
     if (a === 'post') {
       if (st === 'collecting' && filled() < 3) { const e = body.querySelector('.ha-in[data-k="name"]:placeholder-shown'); if (e) e.focus(); return; }
+      // humidor_post_options deletes every ballot, so UPDATE OPTIONS asks first once anyone has ranked.
+      const nb = st === 'ranking' ? ballotsOf(data).length : 0;
+      if (nb > 0 && !confirm(nb + (nb === 1 ? ' member has' : ' members have') + ' already ranked. Updating the options clears their rankings and they must rank again.')) return;
       return run('humidor_post_options', { p_options: optionsJson() }, st === 'collecting');
     }
     if (a === 'close') { if (confirm('Close ranking and lock in the winner?')) return run('humidor_close_ranking', null, true); return; }
     if (a === 'reopen') return run('humidor_reopen_collect', null, true);
     // README: the order can go in whenever Hank decides; unpaid voters are simply not in it. Closing is for good,
-    // so the confirm names how many are left out.
+    // so the confirm names how many are left out, and how many say they've sent but aren't ticked yet.
     if (a === 'order') {
       const P = Humidor.payState(data), unpaid = P.voters - P.confirmed;
-      const msg = 'Order placed? This archives the round.' + (unpaid > 0 ? '\n' + unpaid + ' of ' + P.voters + ' haven\'t paid and won\'t be in the order. The round closes for good.' : '');
+      const msg = 'Order placed? This archives the round.' + (unpaid > 0 ? '\nNot confirmed paid: ' + unpaid + ' of ' + P.voters + ' (they won\'t be in the order).' +
+        (P.pending > 0 ? '\nSays sent but not ticked yet: ' + P.pending + ' — tick them first if the money has landed.' : '') + '\nThe round closes for good.' : '');
       if (confirm(msg)) return run('humidor_place_order', null, true); return;
     }
     if (a === 'stage') { const s = el.getAttribute('data-s'); return run('humidor_set_stage', { p_stage: s === '' ? null : +s }); }

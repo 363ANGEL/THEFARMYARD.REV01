@@ -165,7 +165,7 @@
   // Kicker, title, lede and the ADD MY PREFERENCES link, as renderVals().
   function lede(d) {
     const R = rnd(d), s = stt(d);
-    let kicker = 'The vote', title = 'No vote running', text = 'Hank opens a round when the humidor needs filling. Set your preferences on Choose and they go into the brief.', showLink = true;
+    let kicker = 'The vote', title = 'No vote running', text = 'Hank opens a round when the humidor needs filling. Set your preferences on the Vote tab and they go into the brief.', showLink = true;
     if (s === 'collecting') { const n = prefsOf(d).length; kicker = 'Round ' + R.n + ' · collecting'; title = 'Tell Hank what you fancy'; text = n + (n === 1 ? ' member has' : ' members have') + ' put their preferences in. When Hank closes it, three cigars land here to rank.'; }
     if (s === 'ranking') { kicker = 'Round ' + R.n + ' · ranking'; title = 'Rank the three. Most points wins.'; text = '1st gets 3 points, 2nd gets 2, 3rd gets 1. Only members who put preferences in this round can rank. You can change it until Hank closes it.'; showLink = false; }
     if (s === 'paying') { kicker = 'Round ' + R.n + ' · paying up'; title = 'Fill the cigar'; text = 'Everyone who voted chips in their share. When the cigar is full, Hank orders.'; showLink = false; }
@@ -205,17 +205,19 @@
   function paying(d) {
     const R = rnd(d), voter = isVoter(d), w = (R.options || [])[R.winner] || {};
     const amt = money(R.share_gbp), url = typeof R.revolut_url === 'string' && HTTPS.test(R.revolut_url) ? R.revolut_url : '';
+    // No share set yet: no pay link (it would read "PAY £— ON REVOLUT"); a note says so. A missing link's note wins.
+    const hasShare = R.share_gbp != null && R.share_gbp !== '' && isFinite(+R.share_gbp);
     const ps = Humidor.payState(d), total = ps.voters, mp = myPay(d);
     const fillPct = total ? Math.round(ps.confirmed / total * 100) : 0, pendPct = total ? Math.round((ps.confirmed + ps.pending) / total * 100) : 0;
     const emberOn = ps.confirmed && !ps.full;
-    const note = justPaid ? ['good', 'Thanks ' + justPaid + '. Hank will tick you off once it lands.'] : !voter ? ['bad', 'You’re not on this round’s list.'] : !url ? ['', 'Hank hasn’t set the Revolut link yet. Pay him once he has, then submit.'] : ['', ''];
+    const note = justPaid ? ['good', 'Thanks ' + justPaid + '. Hank will tick you off once it lands.'] : !voter ? ['bad', 'You’re not on this round’s list.'] : !url ? ['', 'Hank hasn’t set the Revolut link yet. Pay him once he has, then submit.'] : !hasShare ? ['', 'Hank hasn\'t set the share yet.'] : ['', ''];
     const paidBy = {}; paysOf(d).forEach(p => { paidBy[p.member_id] = p.state; });
     const who = prefsOf(d).map(m => { const s = paidBy[m.member_id]; const ok = s === 'confirmed';
       return `<li class="${ok ? 'ok' : ''}"><div class="av"><img src="${esc(FY.face(m, 52))}" alt="" width="52" height="52"><span class="tk" aria-label="${ok ? 'Paid' : 'Not paid yet'}">${ok ? '✓' : '✕'}</span></div>
         <span class="nm">${esc(m.nickname)}</span><span class="st">${ok ? 'Paid' : s === 'pending' ? 'Sent' : 'Not paid'}</span></li>`; }).join('');
     const barLabel = ps.confirmed + ' of ' + total + ' paid';
     return `<div class="hr-row">
-        ${url && voter ? `<a class="hr-tube" href="${esc(url)}" target="_blank" rel="noopener">${esc('PAY ' + amt + ' ON REVOLUT →')}</a>` : ''}
+        ${url && voter && hasShare ? `<a class="hr-tube" href="${esc(url)}" target="_blank" rel="noopener">${esc('PAY ' + amt + ' ON REVOLUT →')}</a>` : ''}
         <button type="button" class="hr-mark" data-a="paid"${!voter || mp || payBusy ? ' disabled' : ''}>SUBMIT PAYMENT</button>
         <span class="hr-note ${note[0]}">${esc(note[1])}</span></div>
       <section class="hr-pay" aria-label="Paying up">

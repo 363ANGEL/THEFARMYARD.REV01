@@ -20,8 +20,23 @@
   const norm = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
   let keys = null;
 
-  // humidor-club.js mode(): most common non-empty value, first seen wins a tie.
-  const mode = arr => { const c = {}; arr.filter(Boolean).forEach(x => c[x] = (c[x] || 0) + 1); let best = null, n = 0; for (const x in c) if (c[x] > n) { best = x; n = c[x]; } return best ? { value: best, count: n } : null; };
+  // humidor-club.js mode(): most common non-empty value, first seen wins a tie. Total over any input: only non-empty
+  // strings and finite numbers count, and the tally has no prototype, so "constructor" or "__proto__" count like any value.
+  const scalar = x => typeof x === 'string' || (typeof x === 'number' && isFinite(x));
+  const mode = arr => { if (!Array.isArray(arr)) return null; const c = Object.create(null); arr.forEach(x => { if (x && scalar(x)) c[x] = (c[x] || 0) + 1; }); let best = null, n = 0; for (const x in c) if (c[x] > n) { best = x; n = c[x]; } return best ? { value: best, count: n } : null; };
+  // A member's taste cut to the shape the Vote tab writes. The server takes any JSON object, so a field of the wrong
+  // type counts as absent: scalars are strings or numbers, flavour and wr arrays of strings (wr a pair), sizePrefs an
+  // object, maxT an index into TL. Well-formed prefs come through unchanged, so brief() matches humidor-club.js.
+  const isObj = x => !!x && typeof x === 'object' && !Array.isArray(x);
+  const strs = x => Array.isArray(x) && x.every(s => typeof s === 'string') ? x : null;
+  const sc = x => scalar(x) ? x : null;
+  const taste = p => {
+    p = isObj(p) ? p : {};
+    const sp = isObj(p.sizePrefs) ? p.sizePrefs : null, wr = strs(p.wr);
+    const maxT = sp && scalar(sp.maxT) && Object.prototype.hasOwnProperty.call(TL, sp.maxT) && typeof TL[sp.maxT] === 'string' ? sp.maxT : null;
+    return { time: sc(p.time), size: sc(p.size), strength: sc(p.strength), wr: wr && wr.length >= 2 ? wr : null, flavour: strs(p.flavour) || [],
+      origin: sc(p.origin), budget: sc(p.budget), sizePrefs: sp && { minR: sc(sp.minR), maxR: sc(sp.maxR), maxT, shape: sc(sp.shape) } };
+  };
   const autoStage = r => !r ? -1 : r.status === 'collecting' ? 0 : r.status === 'ranking' ? 2 : r.status === 'paying' ? 4 : -1;
 
   let last = null, onChange = null, head = null, pollT = null, wired = false, inflight = null, queued = null;
@@ -56,9 +71,10 @@
     },
 
     // Ported from humidor-club.js brief(r); takes humidor_current().round.prefs rows ({ member_id, nickname, ..., prefs }).
+    // Never throws: a row that is not an object is skipped, and each taste goes through taste() first.
     brief(rows) {
-      const V = rows || []; const P = V.map(v => v.prefs || {}); const n = V.length;
-      const flC = {}; P.forEach(p => (p.flavour || []).forEach(f => flC[f] = (flC[f] || 0) + 1));
+      const V = Array.isArray(rows) ? rows.filter(isObj) : []; const P = V.map(v => taste(v.prefs)); const n = V.length;
+      const flC = Object.create(null); P.forEach(p => (p.flavour || []).forEach(f => flC[f] = (flC[f] || 0) + 1));
       const top = (c, n2) => Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, n2).map(([value, count]) => ({ value, count }));
       return { n, time: mode(P.map(p => p.time)), size: mode(P.map(p => p.size)), strength: mode(P.map(p => p.strength)), wrapper: mode(P.map(p => p.wr ? (p.wr[0] === p.wr[1] ? p.wr[0] : p.wr[0] + ' to ' + p.wr[1]) : null)), flavour: top(flC, 2), origin: mode(P.map(p => p.origin)), budget: mode(P.map(p => p.budget)), minR: mode(P.map(p => p.sizePrefs && p.sizePrefs.minR != null ? String(p.sizePrefs.minR) : null)), maxR: mode(P.map(p => p.sizePrefs && p.sizePrefs.maxR != null ? String(p.sizePrefs.maxR) : null)), maxT: mode(P.map(p => p.sizePrefs && p.sizePrefs.maxT != null ? TL[p.sizePrefs.maxT] : null)), shape: mode(P.map(p => p.sizePrefs && p.sizePrefs.shape)) };
     },
