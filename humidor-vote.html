@@ -15,10 +15,10 @@
    DS tokens the design reads that the site does not define yet (FARMYARD DS REV P01 values; bronze and the
    hint/popover edge are the site's own #cd7f32-like copper and #9eeae6 tube). */
 :root{--color-accent-2:#a7a1db;--color-neutral-500:#9397ab;--medal-silver:#e4ecf0;--medal-bronze:#cd7f32;--hint-border:#9eeae6}
-/* README §2: text x0.73 on tablet, x0.77 on mobile, never under 10px; title 32/26px */
+/* README §2: text x0.73 on tablet, x0.77 on mobile, never under 10px. The header title stays the shared 28px. */
 .hv{--ts:1;display:flex;flex-direction:column;gap:18px;min-width:0}
-@media (max-width:1099px){.hv{--ts:.73}.hm-head .hd2{font-size:32px}}
-@media (max-width:699px){.hv{--ts:.77}.hm-head .hd2{font-size:26px}}
+@media (max-width:1099px){.hv{--ts:.73}}
+@media (max-width:699px){.hv{--ts:.77}}
 .t-k{font-size:max(10px,calc(var(--text-kicker) * var(--ts,1)))}
 .t-m{font-size:max(10px,calc(var(--text-meta) * var(--ts,1)))}
 .t-s{font-size:max(10px,calc(var(--text-small) * var(--ts,1)))}
@@ -151,8 +151,8 @@
 .hv-edit{align-self:center;min-height:48px;padding:0 32px;margin-top:4px;border-radius:19px;background:transparent;cursor:pointer;letter-spacing:.1em;font-weight:600;border:2px solid var(--neon-pink-tube);color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
 .hv-edit:hover{animation:none;background:color-mix(in srgb,var(--neon-pink-tube) 14%,transparent);box-shadow:0 0 12px var(--neon-pink-tube),0 0 30px color-mix(in srgb,var(--neon-pink) 70%,transparent);color:#fff}
 .hv-vote{display:flex;flex-direction:column;gap:14px;padding:16px;border:2px solid var(--neon-pink-tube);border-radius:10px;box-shadow:var(--glow-pink);background:var(--fy-bg)}
-.hv-vrows{display:grid;grid-template-columns:minmax(90px,auto) minmax(0,1fr);gap:8px 14px;align-items:baseline}
-.hv-vrows button{justify-self:start;background:none;border:0;padding:0;min-height:24px;cursor:pointer;text-align:left}
+.hv-vrows{display:grid;grid-template-columns:minmax(90px,auto) minmax(0,1fr);gap:0 14px;align-items:center}
+.hv-vrows button{justify-self:start;background:none;border:0;padding:0;min-height:44px;display:inline-flex;align-items:center;cursor:pointer;text-align:left}
 .hv-submit{min-height:44px;padding:0 22px;border-radius:19px;background:transparent;letter-spacing:.08em;font-weight:600;border:2px solid var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink);text-shadow:var(--text-glow-pink);cursor:pointer}
 .hv-submit:disabled{border-color:color-mix(in srgb,var(--neon-pink-tube) 40%,transparent);color:color-mix(in srgb,var(--neon-pink-text) 50%,transparent);box-shadow:none;text-shadow:none;cursor:not-allowed;opacity:1}
 
@@ -434,9 +434,10 @@
       statusCol: missing.length && R0 && R0.status === 'collecting' ? 'var(--neon-red-text)' : mine ? 'var(--neon-green-text)' : 'var(--fy-text-secondary)',
       prefs: { size: P.size || null, time: P.size ? timeOf() : null, strength: P.strength || null, wr: P.wr ? P.wr.map(i => SW[i][0]) : null, flavour: P.flavour || [], origin: P.origin || null, budget: P.budget || null, sizePrefs: P.sizePrefs || null } };
     let voted = { on: false };
-    if (VOTED) { const m = mine || S.saved; const pr = (m && m.prefs) || {}; const canEdit = !!m && open;
+    if (VOTED) { const m = mine || S.saved; const pr = (m && m.prefs) || {}; const canEdit = !!mineNow() && open;
+      const gone = !!(S.saved && S.saved.round) && (!R0 || R0.id !== S.saved.round);
       const sum = [pr.size, pr.strength, pr.wr ? (pr.wr[0] === pr.wr[1] ? pr.wr[0] : pr.wr[0] + ' → ' + pr.wr[1]) + ' wrapper' : null, (pr.flavour || []).join(', ') || null, pr.budget ? pr.budget + ' a cigar' : null].filter(Boolean).join(' · ');
-      voted = { on: true, canEdit, kicker: 'Round ' + (R0 ? R0.n : lastN) + ' - your vote :', sum: sum || 'No picks set.' }; }
+      voted = { on: true, canEdit: canEdit && !gone, gone, kicker: 'Round ' + ((S.saved && S.saved.n) || (R0 ? R0.n : lastN)) + ' - your vote :', sum: sum || 'No picks set.' }; }
 
     // Close-up
     const zc = cards[F]; const L = Math.min(window.innerWidth * 0.84, 1200); const D = Math.max(110, Math.round(L * zc.w / Math.max(1, zc.h)));
@@ -485,7 +486,7 @@
       : `<button type="button" class="hv-submit t-s" data-a="submit" data-k="submit"${V.vote.cant ? ' disabled' : ''}>${V.vote.label}</button>`);
     put('voted', !V.voted.on ? '' : `<section class="hv-voted hm-pop" aria-live="polite"><span class="t-k up" style="color:var(--neon-green-text)">${esc(V.voted.kicker)}</span>
       <span class="t-br" style="line-height:1.35;font-weight:500;color:var(--neon-pink-text)">${esc(V.voted.sum)}</span>
-      ${V.voted.canEdit ? '<button type="button" class="hv-edit t-u" data-flash="edit" data-a="edit" data-k="edit">EDIT MY TASTE</button>' : ''}</section>`);
+      ${V.voted.gone ? '<p class="t-s" role="status" style="margin:0;color:var(--neon-amber-text);line-height:1.45">The round moved on. Reload to continue.</p>' : V.voted.canEdit ? '<button type="button" class="hv-edit t-u" data-flash="edit" data-a="edit" data-k="edit">EDIT MY TASTE</button>' : ''}</section>`);
     if (roundOnly) return;
 
     // Section headers and bodies
@@ -721,7 +722,8 @@
   }
 
   // ---------- behaviour ----------
-  const scrollToEl = el => { if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 24, behavior: 'smooth' }); };
+  const scrollBehaviour = () => (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'auto' : 'smooth';
+  const scrollToEl = el => { if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 24, behavior: scrollBehaviour() }); };
   function measure() { const el = R.poster; if (el && el.clientWidth && el.clientWidth !== S.stageW) { S.stageW = el.clientWidth; return true; } return false; }
   function toggleSec(k) {
     const s = model().sec(k); if (s.voted || s.locked) return;
@@ -740,7 +742,7 @@
     const prefs = V.vote.prefs; busy = true; draw(true);
     try { await FY.rpc('humidor_submit_prefs', { p_prefs: prefs }); }
     catch (e) { busy = false; draw(true); FY.toast(e.message); return; }
-    S.saved = { round: data.round && data.round.id, prefs, at: new Date().toISOString() };
+    S.saved = { round: data.round && data.round.id, n: data.round && data.round.n, prefs, at: new Date().toISOString() };
     if (data.round) lastN = data.round.n;
     try { data = await Humidor.refresh(); } catch (e) { /* humidor.js has logged it */ }
     busy = false; S.editing = false; S.voted = true; draw();
@@ -758,7 +760,7 @@
     formRound = { id: data.round.id, status: data.round.status }; movedOn = false;
     clearTimeout(toggleSec.t1); toggleSec.t1 = setTimeout(() => { S.secOv = { ...S.secOv, 1: true }; measure(); draw(); }, 650);
     draw(); measure() && draw();
-    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { /* old browser */ }
+    try { window.scrollTo({ top: 0, behavior: scrollBehaviour() }); } catch (e) { /* old browser */ }
   }
 
   function act(a, el) {
@@ -842,7 +844,8 @@
     if (!H) { const b = document.getElementById('hm-body'); if (b && b.textContent.trim()) FY.toast(b.textContent.trim()); return; }
     me = H.me; data = H.data || { stage: null, round: null };
     if (data.round) lastN = data.round.n;
-    S.voted = !!mineRow();
+    const m0 = mineRow(); S.voted = !!m0;
+    if (m0) S.saved = { round: data.round.id, n: data.round.n, prefs: m0.prefs || {}, at: m0.at };   // keeps the voted box real if the round changes
     formRound = data.round ? { id: data.round.id, status: data.round.status } : null;
     skeleton(H.main);
     draw(); if (measure()) draw();
