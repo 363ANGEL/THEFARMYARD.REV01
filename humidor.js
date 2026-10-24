@@ -13,7 +13,7 @@
     ['admin', 'humidor-admin.html', 'Admin<small>· leader</small>']
   ];
   const TITLES = { home: 'The Humidor', vote: 'Vote', results: 'Results', archive: 'Archive', admin: 'Humidor admin' };
-  const STAGES = ['Submit your taste', 'Hank finds three', 'Rank the three', 'One gets picked', 'In or out'];
+  const STAGES = ['Submit your taste', 'Hank finds three', 'Rank the three', 'One gets picked', 'Pay your share'];   // the designs' S[] titles (Home), so Home and Admin agree
   const TL = ['30 min', '45 min', '60 min', '90 min', '120 min', '2 hours+'];
   // Size photos in assets/humidor/cigars/ (no directory listing on GitHub Pages). Same list as the designs' PH[].
   const PH = ['belicoso-belicoso-grande.jpg', 'belicoso-belicoso.jpg', 'belicoso-campana.png', 'belicoso-mini-belicoso.png', 'belicoso-petit-belicoso.jpg', 'chisel-big-chisel.png', 'chisel-chisel.png', 'culebra-culebra.png', 'parejo-carlota.png', 'parejo-churchill.png', 'parejo-corona-gorda.png', 'parejo-corona-grande.png', 'parejo-corona.png', 'parejo-double-corona.png', 'parejo-gordo.jpg', 'parejo-gran-corona.jpg', 'parejo-laguito-no-2.png', 'parejo-laguito-no-3.png', 'parejo-lancero.png', 'parejo-mini-cigarillo.jpg', 'parejo-perla.png', 'parejo-petit-corona.png', 'parejo-petit-edmundo.png', 'parejo-petit-robusto.png', 'parejo-presidente.png', 'parejo-robusto.png', 'parejo-rothschild.jpg', 'parejo-toro.jpg', 'perfecto-diadema.jpg', 'perfecto-exquisito.png', 'perfecto-favorito.png', 'perfecto-generoso.png', 'perfecto-petit-bouquet.png', 'perfecto-romeo.png', 'perfecto-salomo-n.png', 'pyramid-pira-mide.png', 'torpedo-long-torpedo.jpg', 'torpedo-torpedo.png'];

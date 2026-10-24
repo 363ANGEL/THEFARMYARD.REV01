@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · Humidor admin</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
+<link rel="stylesheet" href="humidor.css">
+<style>
+/* 4.0 The Humidor · Admin (leader), ported from P15.003 HUMIDOR ADMIN.dc.html.
+   No page-local tokens: the design's --text-*, --hint-text and --color-neutral-100 come from humidor.css,
+   --color-neutral-600 from barn.css. */
+.ha{display:flex;flex-direction:column;gap:18px;min-width:0}
+.ha section{display:flex;flex-direction:column;gap:10px;min-width:0}
+.ha section[hidden],.ha [hidden]{display:none}
+.ha h2.ha-h{margin:0;font-size:var(--text-card-title);font-weight:500;color:var(--fy-text);text-wrap:balance}
+.ha-k{font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)}
+.ha-meta{font-size:var(--text-meta);color:var(--fy-text-label)}
+.ha-num{font-variant-numeric:tabular-nums}
+.ha-hd{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 14px}
+
+/* Notices: pending payments */
+.ha-notes{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:2px solid var(--neon-pink-tube);border-radius:10px;box-shadow:var(--glow-pink);background:var(--fy-bg)}
+.ha-notes .t{font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
+.ha-note{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;min-height:44px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 20%,transparent)}
+.ha-note .x{flex:1 1 220px;min-width:0;font-size:var(--text-ui);color:var(--fy-text-body);overflow-wrap:anywhere}
+.ha-note .x span{color:var(--fy-text-label);font-size:var(--text-meta);white-space:nowrap}
+.ha-ok{min-height:44px;padding:0 14px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--text-kicker);letter-spacing:.08em;font-weight:600;border:1px solid var(--neon-green-text);color:var(--neon-green-text);white-space:nowrap}
+
+/* Landing page stage: radio cards (R6, league-wide pin) */
+.ha-stages{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px}
+.ha-st{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:56px;padding:10px 12px;border-radius:10px;background:var(--fy-bg);cursor:pointer;text-align:left;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);box-shadow:none;color:inherit}
+.ha-st.lit{background:color-mix(in srgb,var(--neon-teal) 8%,transparent)}
+.ha-st[aria-checked="true"]{border:2px solid var(--neon-teal);box-shadow:var(--glow-teal)}
+.ha-st:hover{border-color:var(--hint-text)}
+.ha-st .n{font-size:var(--text-kicker);letter-spacing:.08em;font-weight:600;color:var(--neon-teal);font-variant-numeric:tabular-nums}
+.ha-st .l{font-size:var(--text-ui);font-weight:500;color:var(--fy-text-secondary)}
+.ha-st.lit .l,.ha-st[aria-checked="true"] .l{color:var(--color-neutral-100)}
+
+/* 1 · Round: action buttons */
+.ha-acts{display:flex;flex-wrap:wrap;gap:8px}
+.ha-act{min-height:44px;padding:0 18px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--text-meta);letter-spacing:.08em;font-weight:600;border:2px solid var(--neon-teal);color:var(--hint-text);box-shadow:none}
+.ha-act.pink{border-color:var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink)}
+.ha-act:disabled{opacity:.5;cursor:default}
+.ha-moved{margin:0;font-size:var(--text-small);line-height:1.45;color:var(--neon-amber-text)}
+
+/* Who's voted: scrolls sideways below 640px with the member column fixed */
+.ha-voted{display:flex;flex-direction:column;gap:8px;margin-top:4px;min-width:0}
+.ha-empty{font-size:var(--text-small);color:var(--fy-text-label);padding:12px 14px;border:1px dashed color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px}
+.ha-scroll{overflow-x:auto;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px;background:var(--fy-bg)}
+.ha-scroll:focus-visible{outline:2px solid var(--neon-teal);outline-offset:2px}
+.ha-vt{width:100%;border-collapse:collapse;min-width:640px}
+.ha-vt thead th{text-align:left;padding:8px 12px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal);border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);white-space:nowrap}
+.ha-vt .stick{position:sticky;left:0;z-index:1;background:var(--fy-bg)}
+.ha-vt tbody th{text-align:left;padding:9px 12px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 15%,transparent);font-weight:400;white-space:nowrap}
+.ha-vt tbody th .nm{display:block;font-size:var(--text-ui);font-weight:500;color:var(--color-neutral-100)}
+.ha-vt tbody th .ago{display:block;font-size:var(--text-kicker);color:var(--fy-text-label)}
+.ha-vt td{padding:9px 12px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 15%,transparent);font-size:var(--text-small);line-height:1.35;color:var(--neon-pink-text);vertical-align:top}
+.ha-vt td.none{color:var(--color-neutral-600)}
+
+/* 2 · Tally board */
+.ha-tb{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg);min-width:0}
+.ha-tbx{overflow-x:auto}
+.ha-tt{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;min-width:520px}
+.ha-tt thead th{text-align:center;padding:6px 8px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent)}
+.ha-tt thead th:first-child{text-align:left;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--fy-text-label)}
+.ha-tt .cn{display:block;font-size:var(--text-small);font-weight:500;color:var(--fy-text-body)}
+.ha-tt .cn.top{color:var(--neon-pink-text)}
+.ha-tt .sm{display:block;font-size:var(--text-kicker);font-weight:400;color:var(--fy-text-label)}
+.ha-tt tbody th{text-align:left;padding:7px 8px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 15%,transparent);font-weight:400}
+.ha-tt tbody th .nm{display:block;font-size:var(--text-small);color:var(--color-neutral-100)}
+.ha-tt tbody td{text-align:center;padding:7px 8px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 15%,transparent)}
+.ha-tt .mk{display:block;font-size:var(--text-ui);font-weight:600;color:var(--neon-red-text)}
+.ha-tt .mk.ok{color:var(--neon-green-text)}
+.ha-tt tfoot th{text-align:left;padding:8px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal)}
+.ha-tt tfoot td{text-align:center;padding:8px}
+.ha-tt .fit{display:block;font-size:var(--text-card-title);font-weight:500;color:var(--color-neutral-100)}
+.ha-tt .fit.top{color:var(--neon-pink-text)}
+
+/* 2 · Vote summary */
+.ha-ws{display:flex;flex-direction:column;gap:12px}
+.ha-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px}
+.ha-stat{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px;background:var(--fy-bg)}
+.ha-stat .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)}
+.ha-stat .v{font-size:24px;font-weight:500;line-height:1.1;color:var(--color-neutral-100);font-variant-numeric:tabular-nums}
+.ha-dims{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:10px}
+.ha-dim{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);border-radius:10px;background:var(--fy-bg);min-width:0}
+.ha-dim .dh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ha-dim .dh .s{font-size:var(--text-kicker);color:var(--fy-text-label);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ha-bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;align-items:baseline}
+.ha-bar .v{font-size:var(--text-small);color:var(--fy-text-body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ha-bar.top .v{color:var(--neon-pink-text)}
+.ha-bar .c{font-size:var(--text-meta);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ha-bar .trk{grid-column:1/-1;height:4px;border-radius:2px;background:color-mix(in srgb,var(--neon-teal) 15%,transparent);overflow:hidden}
+.ha-bar .fl{height:100%;background:color-mix(in srgb,var(--neon-teal) 60%,transparent)}
+.ha-bar.top .fl{background:var(--neon-pink-tube)}
+
+/* 2 · Likely selection */
+.ha-lk{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border:2px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg)}
+.ha-lk .nmrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.ha-lk .nm{font-size:24px;font-weight:500;line-height:1.15;color:var(--neon-pink-text)}
+.ha-lk .spec{font-size:var(--text-ui);color:var(--fy-text-body);font-variant-numeric:tabular-nums}
+.ha-lk .pf{font-size:var(--text-ui);line-height:1.5;color:var(--fy-text-body)}
+.ha-lk .alt{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;padding-top:8px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 20%,transparent)}
+.ha-lk .alt .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)}
+.ha-lk .alt .x{font-size:var(--text-small);color:var(--hint-text);font-variant-numeric:tabular-nums}
+
+/* 3 · Prompt sheet */
+.ha-copy{min-height:44px;padding:0 18px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--text-meta);letter-spacing:.08em;font-weight:600;border:2px solid var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink);text-shadow:var(--text-glow-pink)}
+.ha-brief{display:grid;grid-template-columns:minmax(90px,auto) minmax(0,1fr) auto;gap:8px 14px;align-items:baseline;padding:14px 16px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal)}
+.ha-brief .l{font-size:var(--text-kicker);letter-spacing:.06em;text-transform:uppercase;color:var(--neon-teal)}
+.ha-brief .v{font-size:var(--text-ui);color:var(--neon-pink-text);overflow-wrap:anywhere}
+.ha-brief .v.none{color:var(--fy-text-label)}
+.ha-brief .c{font-size:var(--text-meta);color:var(--fy-text-label);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ha-prompt{display:block;width:100%;box-sizing:border-box;min-height:260px;padding:14px;border-radius:10px;border:1px solid var(--neon-teal);background:var(--fy-surface);color:var(--fy-text-body);font-size:var(--text-ui);line-height:1.55;resize:vertical}
+
+/* 4 · The three options (a draft kept apart from polled data, R8) */
+.ha-forms{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.ha-form{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px;background:var(--fy-bg);min-width:0}
+.ha-in{display:block;width:100%;box-sizing:border-box;min-height:44px;padding:0 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);background:var(--fy-surface);color:var(--fy-text-body);font-size:var(--text-small);outline:none}
+.ha-in:focus-visible{outline:2px solid var(--neon-teal);outline-offset:1px}
+
+/* 5 · Paying up */
+.ha-pay{padding:14px 16px;border:2px solid var(--neon-pink-tube);border-radius:10px;box-shadow:var(--glow-pink)}
+.ha .ha-pay{gap:12px}
+.ha-pins{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ha-pins .ha-in{width:auto;min-width:0}
+.ha-pins .s{flex:0 1 200px}
+.ha-pins .u{flex:1 1 260px}
+.ha-save{min-height:44px;padding:0 16px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--text-meta);letter-spacing:.08em;font-weight:600;border:1px solid var(--neon-teal);color:var(--hint-text)}
+.ha-pbar{height:8px;border-radius:4px;background:color-mix(in srgb,var(--neon-teal) 20%,transparent);overflow:hidden}
+.ha-pbar div{height:100%;width:0;background:var(--neon-pink-tube);box-shadow:var(--glow-pink)}
+.ha-ptxt{font-size:var(--text-small);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
+.ha-prows{display:flex;flex-direction:column;gap:6px}
+.ha-prow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;min-height:44px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 20%,transparent)}
+.ha-prow .nm{font-size:var(--text-ui);color:var(--fy-text-body);overflow-wrap:anywhere}
+.ha-prow .st{font-size:var(--text-meta);color:var(--neon-red-text)}
+.ha-prow .st.ok{color:var(--neon-green-text)}
+.ha-prow .st.pend{color:var(--neon-pink-text)}
+.ha-tick{min-height:44px;padding:0 12px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--text-kicker);letter-spacing:.06em;font-weight:600;border:1px solid var(--neon-teal);color:var(--hint-text);white-space:nowrap}
+
+/* Members (from v_members_public; no add / remove here, R10) */
+.ha-mems{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.ha-mems li{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border-radius:19px;font-size:var(--text-meta);border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);color:var(--hint-text);white-space:nowrap}
+
+@media (prefers-reduced-motion:no-preference){
+  .ha-pbar div{transition:width .4s ease-out}
+}
+</style>
+<script src="fy-clucks.js"></script>
+</head>
+<body>
+<div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script><script src="humidor.js"></script>
+<script>
+/* 4.0 The Humidor · Admin (leader). Pending-payment notices, the landing page stage (league-wide pin, R6),
+   round actions, Who's voted, the Tally board and Likely selection (the design's lk, verbatim), the Prompt sheet
+   with COPY, the three option forms and Paying up. Copy from the design's renderVals(), verbatim.
+   R8: the three option forms and the two Paying up fields are a draft kept apart from polled data. A poll redraws
+   only the display parts; the inputs are built once and never redrawn. If the round moves on under them (another
+   tab or device), the round buttons become "The round moved on. Reload to continue." and every input stays.
+   R10: members come from v_members_public; there is no add / remove. Every RPC error shows as a toast. */
+(function () {
+  const esc = s => FY.esc(s);
+  const TL = Humidor.TL;
+  // The design's vitola table: [name, length mm, ring, also, shape, min ring, max ring, note].
+  const VIT = [
+    ['Mini Cigarillo',87,20,'Also: cigarillo','Parejo',18,26,'Machine-made, often flavoured. Tubes of 10–20.'],['Petit Bouquet',101,43,'Small perfecto','Perfecto',40,46,'A small perfecto. Cuban Cuaba Divinos is one.'],['Perla',102,40,'','Parejo',38,42,'Also sold as petit panetela or minuto.'],['Petit Robusto',102,50,'','Parejo',48,52,'Short robusto. Some brands press it square.'],['Rothschild',114,48,'','Parejo',46,50,'The old name for a short robusto.'],['Petit Edmundo',110,52,'','Parejo',50,54,'Montecristo invented it; copied widely.'],['Laguito No.3',115,26,'Also: panetela corta','Parejo',24,28,'Cohiba Panetela size. Very thin.'],['Robusto',124,50,'Also: hermoso no.4','Parejo',48,54,'Box-pressed, Robusto Extra (5½ in), and 54-ring “fat robusto” are all common.'],['Conchita',127,35,'','Parejo',34,36,'Thin and short. Only a few brands make it.'],['Petit Corona',129,42,'Also: mareva, half corona','Parejo',40,44,'Half corona (3¾ in) and mareva are kin.'],['Campana',140,52,'Bell-shaped head','Belicoso',50,54,'Cuban word for the belicoso. Bolívar Belicosos Finos.'],['Corona',142,42,'','Parejo',40,44,'Box-pressed by some Nicaraguans.'],['Carlota',143,35,'','Parejo',34,36,'A long conchita. Rare now.'],['Corona Gorda',143,46,'','Parejo',44,48,'Also sold as toro pequeño or grand corona.'],['Laguito No.2',152,38,'Also: panetela','Parejo',36,40,'Long panetela. Cohiba Corona Especial.'],['Pyramid',152,52,'Also: torpedo','Pyramid',50,56,'Widest at the foot. Also sold as torpedo or belicoso by non-Cubans.'],['Gordo',152,60,'Also: double toro','Parejo',58,66,'Keeps growing. 60 is normal, 70 exists.'],['Corona Grande',155,42,'','Parejo',40,44,'A long corona. Shaded into lonsdale.'],['Toro',155,50,'Also: dobles','Parejo',48,56,'Box-pressed, 52 and 54 all common. Toro Grande is 6½ in.'],['Pirámide',156,52,'','Pyramid',50,54,'The Cuban torpedo. Montecristo No.2.'],['Presidente',158,47,'Also: taco','Parejo',44,50,'Loose term; sizes vary a lot.'],['Lonsdale',162,44,'Also: cazadores, cervantes','Parejo',42,44,'Classic 6½ × 42. Dalia and cervantes are the Cuban names.'],['Culebra',146,39,'Three plaited together','Culebra',32,40,'Three plaited panetelas. One size, really.'],['Churchill',178,47,'Also: julieta no.2','Parejo',46,50,'Some brands go to 50 and call it Churchill Gordo.'],['Lancero',192,39,'Also: laguito no.1','Parejo',38,40,'Pigtail cap is traditional. 38 is the norm.'],['Double Corona',194,49,'Also: prominente','Parejo',48,52,'Also called prominente or presidente by some.'],['Gran Corona',235,47,'','Parejo',46,49,'Nine-inch giant. Montecristo A. A show-off smoke.'],
+    ['Petit Belicoso',125,52,'Bolívar Petit Belicoso','Belicoso',50,52,'Short belicoso.'],['Mini Belicoso',127,52,'Trinidad Mini Belicoso','Belicoso',50,52,'Robusto length with a pointed head.'],['Belicoso',152,52,'Trinidad Santiago','Belicoso',50,54,'Long belicoso.'],['Belicoso Grande',156,52,'H. Upmann 1844 Belicoso','Belicoso',50,54,'Toro-length belicoso.'],['Favorito',121,42,'Cuaba Tradicionales','Perfecto',40,44,'Small perfecto.'],['Generoso',133,42,'Cuaba Generosos','Perfecto',40,44,'Slim perfecto.'],['Exquisito',146,46,'Cuaba Exclusivos','Perfecto',44,48,'Habanos double figurado standard.'],['Romeo',162,52,'Cuaba Distinguidos','Perfecto',50,54,'Full-size perfecto.'],['Salomón',184,57,'Cuaba Salomones','Perfecto',54,58,'Big double perfecto.'],['Diadema',232,55,'Cuaba Diademas','Perfecto',52,56,'Giant perfecto.'],['Torpedo',156,52,'Habanos Torpedo','Torpedo',50,54,'The Habanos torpedo standard.'],['Long Torpedo',165,54,'Padrón 1926 Torpedo','Torpedo',52,54,'Longer, fatter torpedo.'],['Chisel',152,54,'LFD Double Ligero Chisel','Chisel',54,54,'The original LFD Chisel.'],['Big Chisel',165,58,'LFD Chapter 1 Chisel','Chisel',54,58,'Limited, box-pressed.']
+  ];
+  const KEYS = ['name', 'size', 'price', 'shop', 'url', 'note', 'img', 'origin', 'wrapper', 'strength', 'notes'];
+  const PH = ['Cigar name', 'Size, e.g. 5 × 50 Robusto', 'Price per cigar, e.g. 12.50', 'Shop name', 'Shop link', 'One line on why it fits', 'Photo link (optional · shows on vote and archive)', 'Origin, e.g. Nicaragua', 'Wrapper, e.g. Colorado Maduro', 'Strength, e.g. Medium-full', 'Tasting notes, e.g. cocoa, cedar, pepper'];
+  const COLS = ['Size', 'Ring', 'Max time', 'Shape', 'Strength', 'Wrapper', 'Flavour', 'Origin', 'Budget'];
+  let me = null, members = [], data = null, body = null;
+  let draft = [{}, {}, {}], formSig = null, movedOn = false, busy = false, grace = false, payDirty = false, copyT = null;
+
+  const $ = id => document.getElementById(id);
+  const put = (el, html) => { if (el && el.innerHTML !== html) el.innerHTML = html; };
+  const rnd = d => (d && d.round) || null;
+  const stt = d => { const r = rnd(d); return r ? r.status : null; };
+  const sig = d => { const r = rnd(d); return r ? r.id + '|' + r.status : ''; };
+  const ts = x => { const t = Date.parse(x); return isFinite(t) ? t : 0; };
+  const money = n => (n == null || n === '' || !isFinite(+n)) ? '' : (Number.isInteger(+n) ? String(+n) : (+n).toFixed(2));
+  const filled = () => draft.filter(o => (o.name || '').trim()).length;
+  const paysOf = d => (rnd(d) && rnd(d).pays) || [];
+  const ballotsOf = d => (rnd(d) && rnd(d).ballots) || [];
+
+  // A member's prefs, in the design's shape whatever was stored: strings, a flavour list, a wrapper pair, sizePrefs.
+  const str = x => (x == null || x === '' || typeof x === 'object') ? null : String(x);
+  const nm = x => (x == null || x === '' || !isFinite(+x)) ? null : +x;
+  function clean(p) {
+    p = p && typeof p === 'object' ? p : {};
+    const sp = p.sizePrefs && typeof p.sizePrefs === 'object' ? p.sizePrefs : null;
+    const wr = Array.isArray(p.wr) && p.wr.length ? [str(p.wr[0]), str(p.wr[1] != null ? p.wr[1] : p.wr[0])] : null;
+    return { size: str(p.size), time: str(p.time), strength: str(p.strength), wr: wr && wr[0] && wr[1] ? wr : null,
+      flavour: Array.isArray(p.flavour) ? p.flavour.map(str).filter(Boolean) : [], origin: str(p.origin), budget: str(p.budget),
+      sizePrefs: sp ? { minR: nm(sp.minR), maxR: nm(sp.maxR), maxT: Number.isInteger(sp.maxT) && sp.maxT >= 0 && sp.maxT < TL.length ? sp.maxT : null, shape: str(sp.shape) } : null };
+  }
+  // This round's voters (prefs rows), oldest first, with clean prefs. vt.name is the nickname, as the design's votes.
+  const votes = d => ((rnd(d) && rnd(d).prefs) || []).map(p => ({ id: p.member_id, name: String(p.nickname || ''), at: ts(p.at), prefs: clean(p.prefs) }));
+
+  // The design's two "ago" forms: the voter table, and the payment notices.
+  const ago = t => { if (!t) return ''; const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' d ago'; };
+  const agoN = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago'; };
+
+  const draftFrom = d => { const o = (rnd(d) && Array.isArray(rnd(d).options) && rnd(d).options) || [];
+    return [0, 1, 2].map(i => { const s = o[i] && typeof o[i] === 'object' ? o[i] : {}; const x = {}; KEYS.forEach(k => { if (str(s[k]) != null) x[k] = str(s[k]); }); return x; }); };
+
+  // Points per option from the ballots: 1st 3, 2nd 2, 3rd 1 (humidor-club.js points()).
+  function points(d) {
+    const p = ((rnd(d) && rnd(d).options) || []).map(() => 0);
+    ballotsOf(d).forEach(b => (b.rank || []).forEach((opt, pos) => { if (p[opt] !== undefined) p[opt] += 3 - pos; }));
+    return p;
+  }
+
+  // Paying up against this round's voters: per-member state and when it was sent.
+  function payInfo(d) {
+    const ps = Humidor.payState(d), paid = {}, at = {};
+    paysOf(d).forEach(p => { paid[p.member_id] = p.state; at[p.member_id] = ts(p.at); });
+    return { ...ps, total: ps.voters, paid, at, due: votes(d) };
+  }
+
+  // The design's lk: Tally board and Likely selection, scored against each voter's sizePrefs, size and time.
+  function likely(V, B) {
+    if (!V.length) return { has: false, tb: { has: false } };
+    const v = x => x ? x.value : null;
+    const MT = [30, 45, 60, 90, 120, 999]; const tRange = s => { if (!s) return null; const n = String(s).match(/\d+/g); if (!n) return null; let lo = +n[0], hi = +(n[1] || n[0]); if (/hour/i.test(s)) { lo *= 60; hi = n[1] ? hi * 60 : 999; } return [lo, hi]; }; const modeSize = v(B.size); const mins = x => Math.round(x[1] * x[2] / 100); const lc = x => String(x || '').toLowerCase();
+    const sc = VIT.filter(x => x[4] !== 'Parejo' || x[2] >= 30).map(x => { let fit = 0, pts = 0; const det = []; V.forEach(vt => { const sp = (vt.prefs && vt.prefs.sizePrefs) || {}; let ok = true, p = 0;
+      if (sp.minR != null) { if (x[2] >= sp.minR) p++; else ok = false; } if (sp.maxR != null) { if (x[2] <= sp.maxR) p++; else ok = false; }
+      if (sp.maxT != null) { if (mins(x) <= MT[sp.maxT]) p++; else ok = false; } if (sp.shape) { if (lc(sp.shape) === lc(x[4]) || lc(sp.shape) === lc(x[0])) p += 2; else ok = false; }
+      const pr = vt.prefs || {}; if (pr.size) { if (lc(pr.size) === lc(x[0])) p += 2; else ok = false; } const tr = tRange(pr.time); if (tr) { const mm = mins(x); if (mm >= tr[0] - 10 && mm <= tr[1] + 10) p++; }
+      if (ok) fit++; pts += p; det.push({ ok, p }); }); return { x, fit, pts, det }; }).sort((m, n) => n.fit - m.fit || n.pts - m.pts || ((n.x[0] === modeSize) - (m.x[0] === modeSize)) || Math.abs(m.x[2] - 50) - Math.abs(n.x[2] - 50));
+    const top = sc[0]; const inch = mm => { const v2 = Math.round(mm / 25.4 * 8) / 8; const w = Math.floor(v2), f = v2 - w; const fr = { 0: '', 0.125: '⅛', 0.25: '¼', 0.375: '⅜', 0.5: '½', 0.625: '⅝', 0.75: '¾', 0.875: '⅞' }[f]; return w + (fr || ''); };
+    const prof = [v(B.strength), v(B.wrapper) ? v(B.wrapper) + ' wrapper' : null, B.flavour.length ? B.flavour.map(f => f.value).join(' & ') : null, v(B.origin), v(B.budget) ? v(B.budget) + ' a cigar' : null].filter(Boolean).join(' · ');
+    const T = sc.slice(0, 4);
+    const maxP = vt => { const sp = (vt.prefs && vt.prefs.sizePrefs) || {}; const pr = vt.prefs || {}; return (sp.minR != null ? 1 : 0) + (sp.maxR != null ? 1 : 0) + (sp.maxT != null ? 1 : 0) + (sp.shape ? 2 : 0) + (pr.size ? 2 : 0) + (tRange(pr.time) ? 1 : 0); };
+    const lim = vt => { const sp = (vt.prefs && vt.prefs.sizePrefs) || {}; const L = []; if (sp.minR != null || sp.maxR != null) L.push('ring ' + (sp.minR != null ? sp.minR : 'any') + '–' + (sp.maxR != null ? sp.maxR : 'any')); if (sp.maxT != null) L.push('≤ ' + ['30m', '45m', '60m', '90m', '2h', '2h+'][sp.maxT]); if (sp.shape) L.push(sp.shape); const pr = vt.prefs || {}; if (pr.size) L.push(pr.size); if (pr.time) L.push(pr.time); return L.join(' · ') || 'no limits'; };
+    return { has: true, n: V.length + (V.length === 1 ? ' vote' : ' votes'), name: top.x[0], spec: inch(top.x[1]) + ' × ' + top.x[2] + ' · ' + top.x[4] + ' · about ' + mins(top.x) + ' min', fit: 'Fits ' + top.fit + ' of ' + V.length, profile: prof || 'No strength, wrapper or flavour picked yet.', alts: sc.slice(1, 4).filter(s => s.fit > 0).map(s => s.x[0] + ' (' + s.fit + '/' + V.length + ')'), hasAlt: sc.slice(1, 4).some(s => s.fit > 0),
+      tb: { has: true, nc: T.length, rule: '+2 size picked · +2 shape · +1 min ring · +1 max ring · +1 max time · +1 smoke time',
+        cols: T.map((s, i) => ({ name: s.x[0], spec: inch(s.x[1]) + ' × ' + s.x[2] + ' · ' + mins(s.x) + 'm', top: i === 0 })),
+        rows: V.map((vt, vi) => { const mp = maxP(vt); return { name: vt.name, lim: lim(vt), cells: T.map(s => { const dd = s.det[vi]; return { ok: dd.ok, mark: dd.ok ? '✓' : '✕', math: dd.p + ' / ' + mp }; }) }; }),
+        tot: T.map((s, i) => ({ fit: s.fit + ' / ' + V.length, pts: s.pts + ' pts', top: i === 0 })),
+        foot: 'A ✓ means the size meets every hard limit that voter set (size, shape, ring, max time). Smoke time only adds a point. Most ✓ wins; points break ties, then the brief’s most-picked size.' } };
+  }
+
+  // The design's ws: vote summary stats and per-question bars.
+  function summary(V) {
+    const N = V.length; if (!N) return { has: false };
+    const get = { 'Time': p => p.time, 'Shape': p => p.sizePrefs && p.sizePrefs.shape, 'Min ring': p => p.sizePrefs && p.sizePrefs.minR != null ? String(p.sizePrefs.minR) : null, 'Max ring': p => p.sizePrefs && p.sizePrefs.maxR != null ? String(p.sizePrefs.maxR) : null, 'Max time': p => p.sizePrefs && p.sizePrefs.maxT != null ? TL[p.sizePrefs.maxT] : null, 'Strength': p => p.strength, 'Wrapper': p => p.wr ? (p.wr[0] === p.wr[1] ? p.wr[0] : p.wr[0] + ' → ' + p.wr[1]) : null, 'Flavour': p => (p.flavour && p.flavour.length) ? p.flavour : null, 'Origin': p => p.origin, 'Budget': p => p.budget };
+    let agreeSum = 0, agreeN = 0, setCells = 0;
+    const dims = Object.keys(get).map(k => { const c = {}; let set = 0; V.forEach(vt => { const x = get[k](vt.prefs || {}); if (x == null || x === '') return; set++; (Array.isArray(x) ? x : [x]).forEach(y => c[y] = (c[y] || 0) + 1); });
+      setCells += set; const rows = Object.entries(c).sort((m, n) => n[1] - m[1]); const top = rows[0]; if (top && k !== 'Flavour') { agreeSum += top[1] / set; agreeN++; }
+      return { k, sub: set + ' of ' + N + ' set', empty: !rows.length, rows: rows.slice(0, 4).map(([v, n], i) => ({ v, c: n + ' · ' + Math.round(n / (set || 1) * 100) + '%', pct: Math.round(n / (set || 1) * 100), top: i === 0 })) }; });
+    const mem = members.length || N; const ag = agreeN ? Math.round(agreeSum / agreeN * 100) : 0; const done = Math.round(setCells / (N * Object.keys(get).length) * 100);
+    const last = V.reduce((m, x) => Math.max(m, x.at || 0), 0); const mago = last ? Math.round((Date.now() - last) / 60000) : null;
+    const stats = [{ k: 'Votes in', v: N + ' / ' + mem, sub: Math.round(N / mem * 100) + '% of members' }, { k: 'Agreement', v: ag + '%', sub: 'Avg share behind each top pick' }, { k: 'Filled in', v: done + '%', sub: 'Of all questions answered' }, { k: 'Last vote', v: mago == null ? '—' : mago < 60 ? mago + ' min' : mago < 1440 ? Math.round(mago / 60) + ' h' : Math.round(mago / 1440) + ' d', sub: 'ago' }];
+    return { has: true, stats, dims };
+  }
+
+  // Everything sections 2 and 3 show, from one pass over the round.
+  function model() {
+    if (!rnd(data)) return null;
+    const V = votes(data), B = Humidor.brief(V), v = x => x ? x.value : null, c = (x, n) => x ? x.count + ' of ' + n : '';
+    const briefRows = [['Time', v(B.time) ? v(B.time) + (v(B.size) ? ' · e.g. ' + v(B.size) : '') : null, c(B.time, B.n)], ['Shape', v(B.shape), c(B.shape, B.n)], ['Ring gauge', (v(B.minR) || v(B.maxR)) ? ((v(B.minR) || 'any') + ' to ' + (v(B.maxR) || 'any')) : null, [c(B.minR, B.n), c(B.maxR, B.n)].filter(Boolean).join(' · ')], ['Max time', v(B.maxT) ? 'Up to ' + v(B.maxT) : null, c(B.maxT, B.n)], ['Strength', v(B.strength), c(B.strength, B.n)], ['Wrapper', v(B.wrapper), c(B.wrapper, B.n)], ['Budget', v(B.budget) ? v(B.budget) + ' per cigar' : null, c(B.budget, B.n)], ['Flavour', B.flavour.map(f => f.value).join(', ') || null, B.flavour.map(f => f.count).join(' · ')], ['Origin', v(B.origin), c(B.origin, B.n)]].map(([label, value, count]) => ({ label, value: value || 'No votes yet', count: value ? count : '', on: !!value }));
+    const lk = likely(V, B);
+    const text = Humidor.prompt(B, V.length, lk.has ? { name: lk.name, spec: lk.spec, fit: lk.fit, alts: lk.alts } : null);
+    return { V, B, briefRows, lk, ws: summary(V), text };
+  }
+
+  // ---- Drawing. Display parts only; the option forms and the pay fields are built once (R8). ----
+
+  function drawNotices() {
+    const el = $('ha-notes'), R = rnd(data); let N = [];
+    if (stt(data) === 'paying') {
+      const P = payInfo(data), amt = money(R.share_gbp);
+      N = P.due.filter(m => P.paid[m.id] === 'pending').map(m => ({ id: m.id, text: m.name + ' says he\'s paid' + (amt ? ' £' + amt : '') + '. Check Revolut.', ago: P.at[m.id] ? '· ' + agoN(P.at[m.id]) : '' }));
+    }
+    el.hidden = !N.length;
+    put(el, N.length ? `<span class="t">${esc(N.length + (N.length === 1 ? ' payment to check' : ' payments to check'))}</span>` + N.map(n =>
+      `<div class="ha-note"><span class="x">${esc(n.text)} <span>${esc(n.ago)}</span></span><button type="button" class="ha-ok" data-a="paid" data-m="${esc(n.id)}" data-on="1">✓ MARK AS PAID</button></div>`).join('') : '');
+  }
+
+  function drawStage() {
+    const stOv = (data.stage === 0 || data.stage > 0) ? data.stage : null, autoS = Humidor.autoStage(rnd(data)), curS = stOv != null ? stOv : autoS;
+    $('ha-stnote').textContent = stOv != null ? 'Pinned by Hank · landing shows stage ' + (stOv + 1) : (autoS >= 0 ? 'Auto · landing shows stage ' + (autoS + 1) : 'Auto · no round open, no stage lit');
+    const B = [{ n: 'AUTO', label: 'Follow the round', idx: null }].concat(Humidor.STAGES.map((l, i) => ({ n: String(i + 1).padStart(2, '0'), label: l, idx: i })));
+    put($('ha-stages'), B.map(b => { const on = b.idx === null ? stOv == null : stOv === b.idx, lit = b.idx !== null && b.idx === curS;
+      return `<button type="button" role="radio" class="ha-st${lit ? ' lit' : ''}" aria-checked="${on}" data-a="stage" data-s="${b.idx === null ? '' : b.idx}"><span class="n">${b.n}</span><span class="l">${esc(b.label)}</span></button>`; }).join(''));
+  }
+
+  function drawActions() {
+    const el = $('ha-acts');
+    if (movedOn) { put(el, '<p class="ha-moved" role="status">The round moved on. Reload to continue.</p>'); return; }
+    const R = rnd(data), st = stt(data), f = filled(), P = st === 'paying' ? Humidor.payState(data) : null;
+    const A = !R ? [['OPEN A NEW ROUND', true, 'open']]
+      : st === 'collecting' ? [[f === 3 ? 'CLOSE PREFERENCES · POST THE 3 FOR RANKING' : 'FILL IN 3 OPTIONS BELOW TO POST', f === 3, 'post']]
+      : st === 'ranking' ? [['CLOSE RANKING · MOVE TO PAYMENT', true, 'close'], ['BACK TO COLLECTING', false, 'reopen'], ['UPDATE OPTIONS', false, 'post']]
+      : st === 'paying' ? [[P.full ? 'ORDER PLACED · ARCHIVE THE ROUND' : 'WAITING FOR THE CIGAR TO FILL', P.full, 'order']] : [];
+    put(el, A.map(([l, pink, a]) => `<button type="button" class="ha-act${pink ? ' pink' : ''}" data-a="${a}"${busy ? ' disabled' : ''}>${esc(l)}</button>`).join(''));
+  }
+
+  function drawVoted() {
+    const el = $('ha-voted');
+    if (!rnd(data)) { el.hidden = true; put(el, ''); return; }
+    el.hidden = false;
+    const vlist = votes(data).sort((x, y) => (y.at || 0) - (x.at || 0));
+    const rows = vlist.map(vt => { const P = vt.prefs, sp = P.sizePrefs || {}; const ring = (sp.minR != null || sp.maxR != null) ? ((sp.minR != null ? sp.minR : 'any') + '–' + (sp.maxR != null ? sp.maxR : 'any')) : null;
+      const F = [['Ring', ring], ['Max time', sp.maxT != null ? TL[sp.maxT] : null], ['Shape', sp.shape], ['Size', P.size ? (P.size + (P.time ? ' · ' + P.time : '')) : null], ['Strength', P.strength], ['Wrapper', P.wr ? (P.wr[0] === P.wr[1] ? P.wr[0] : P.wr[0] + ' → ' + P.wr[1]) : null], ['Flavour', P.flavour.join(', ') || null], ['Origin', P.origin], ['Budget', P.budget]].filter(x => x[1] != null && x[1] !== '').map(([k, v]) => ({ k, v: String(v) }));
+      return { name: vt.name, ago: ago(vt.at), fields: F }; });
+    const cols = COLS.filter(k => rows.some(r => r.fields.some(f => f.k === k)));
+    const count = vlist.length + ' of ' + members.length + ' members';
+    put(el, `<div class="ha-hd"><span class="ha-k">Who's voted</span><span class="ha-meta ha-num">${esc(count)}</span></div>
+      ${!vlist.length ? '<span class="ha-empty">No preferences in yet.</span>' : `<div class="ha-scroll" role="region" aria-label="Who's voted" tabindex="0"><table class="ha-vt" aria-label="Voters and their selections">
+        <thead><tr><th scope="col" class="stick">Member</th>${cols.map(c => `<th scope="col">${esc(c)}</th>`).join('')}</tr></thead>
+        <tbody>${rows.map(r => `<tr><th scope="row" class="stick"><span class="nm">${esc(r.name)}</span><span class="ago">${esc(r.ago)}</span></th>${cols.map(k => { const f = r.fields.find(x => x.k === k); return f ? `<td>${esc(f.v)}</td>` : '<td class="none">—</td>'; }).join('')}</tr>`).join('')}</tbody>
+      </table></div>`}`);
+  }
+
+  function drawAsked(M) {
+    if (!M) { put($('ha-asked'), ''); return; }
+    const { lk, ws, V } = M, tb = lk.tb || { has: false };
+    const tbH = !tb.has ? '' : `<div class="ha-tb" role="group" aria-label="Tally board"><div class="ha-hd"><span class="ha-k">${esc('Tally board · top ' + tb.nc + ' sizes')}</span><span class="ha-meta">${esc(tb.rule)}</span></div>
+      <div class="ha-tbx"><table class="ha-tt"><thead><tr><th scope="col">Voter · limits</th>${tb.cols.map(c => `<th scope="col"><span class="cn${c.top ? ' top' : ''}">${esc(c.name)}</span><span class="sm">${esc(c.spec)}</span></th>`).join('')}</tr></thead>
+        <tbody>${tb.rows.map(r => `<tr><th scope="row"><span class="nm">${esc(r.name)}</span><span class="sm">${esc(r.lim)}</span></th>${r.cells.map(x => `<td><span class="mk${x.ok ? ' ok' : ''}">${x.mark}</span><span class="sm">${esc(x.math)}</span></td>`).join('')}</tr>`).join('')}</tbody>
+        <tfoot><tr><th scope="row">Fits · points</th>${tb.tot.map(t => `<td><span class="fit${t.top ? ' top' : ''}">${esc(t.fit)}</span><span class="sm">${esc(t.pts)}</span></td>`).join('')}</tr></tfoot></table></div>
+      <span class="ha-meta">${esc(tb.foot)}</span></div>`;
+    const wsH = !ws.has ? '' : `<div class="ha-ws" role="group" aria-label="Vote summary"><div class="ha-stats">${ws.stats.map(s => `<div class="ha-stat"><span class="k">${esc(s.k)}</span><span class="v">${esc(s.v)}</span><span class="ha-meta">${esc(s.sub)}</span></div>`).join('')}</div>
+      <div class="ha-dims">${ws.dims.map(d => `<div class="ha-dim"><div class="dh"><span class="ha-k">${esc(d.k)}</span><span class="s">${esc(d.sub)}</span></div>
+        ${d.rows.map(r => `<div class="ha-bar${r.top ? ' top' : ''}"><span class="v">${esc(r.v)}</span><span class="c">${esc(r.c)}</span><div class="trk"><div class="fl" style="width:${r.pct}%"></div></div></div>`).join('')}
+        ${d.empty ? '<span class="ha-meta">Nobody\'s set this yet.</span>' : ''}</div>`).join('')}</div></div>`;
+    const inSoFar = 'In so far: ' + (V.map(x => x.name).join(', ') || 'nobody yet');
+    const lkH = !lk.has ? '' : `<div class="ha-lk" role="group" aria-label="Likely selection"><div class="ha-hd"><span class="ha-k">${esc('Likely selection · from ' + lk.n)}</span><span class="ha-meta ha-num">${esc(lk.fit)}</span></div>
+      <div class="nmrow"><span class="nm">${esc(lk.name)}</span><span class="spec">${esc(lk.spec)}</span></div>
+      <span class="pf">${esc(lk.profile)}</span>
+      ${lk.hasAlt ? `<div class="alt"><span class="k">Also close</span>${lk.alts.map(x => `<span class="x">${esc(x)}</span>`).join('')}</div>` : ''}
+      <span class="ha-meta">Scored against each voter's picked size, shape, ring gauge and smoke time. Moves as more votes land.</span></div>`;
+    put($('ha-asked'), tbH + wsH + `<span class="ha-meta">${esc(inSoFar)}</span>` + lkH);
+  }
+
+  function drawPrompt(M) {
+    put($('ha-brief'), M ? M.briefRows.map(b => `<span class="l">${esc(b.label)}</span><span class="v${b.on ? '' : ' none'}">${esc(b.value)}</span><span class="c">${esc(b.count)}</span>`).join('') : '');
+    const ta = $('ha-prompt'), text = M ? M.text : '';
+    if (ta.value !== text) ta.value = text;
+  }
+
+  // "Option N · draft", or its points once ranking, "· winner" while paying.
+  function drawTallies() {
+    const st = stt(data), PT = st === 'ranking' || st === 'paying' ? points(data) : null, R = rnd(data);
+    for (let i = 0; i < 3; i++) { const el = $('ha-tally-' + i); if (el) el.textContent = PT ? ((PT[i] || 0) + ' pts' + (st === 'paying' && R.winner === i ? ' · winner' : '')) : 'draft'; }
+  }
+
+  function drawPay() {
+    if (stt(data) !== 'paying') return;
+    const R = rnd(data), P = payInfo(data);
+    $('ha-pfill').style.width = (P.total ? Math.round(P.confirmed / P.total * 100) : 0) + '%';
+    $('ha-ptxt').textContent = P.confirmed + ' of ' + P.total + ' paid' + (P.full ? ' · full, order it' : '');
+    put($('ha-prows'), P.due.map(m => { const s = P.paid[m.id];
+      return `<div class="ha-prow"><span class="nm">${esc(m.name)}</span><span class="st${s === 'confirmed' ? ' ok' : s === 'pending' ? ' pend' : ''}">${s === 'confirmed' ? '✓ Paid' : s === 'pending' ? 'Says sent · check Revolut' : 'Not yet'}</span><button type="button" class="ha-tick" data-a="paid" data-m="${esc(m.id)}" data-on="${s === 'confirmed' ? '' : '1'}">${s === 'confirmed' ? 'UNTICK' : 'MARK AS PAID'}</button></div>`; }).join(''));
+    prefillPay();
+  }
+  // The share and link show the saved values (round link, else my own Revolut link) until Hank types; SAVE sends them.
+  function prefillPay() {
+    if (payDirty) return;
+    const R = rnd(data); if (!R) return;
+    const s = $('ha-share'), u = $('ha-link'), sv = money(R.share_gbp), uv = R.revolut_url || (me && me.revolut_url) || '';
+    if (document.activeElement !== s && s.value !== sv) s.value = sv;
+    if (document.activeElement !== u && u.value !== uv) u.value = uv;
+  }
+
+  // Which sections show. Frozen once the round has moved on, so no input disappears under Hank (R8).
+  function vis() {
+    if (movedOn) return;
+    const R = rnd(data);
+    ['ha-s2', 'ha-s3', 'ha-s4'].forEach(id => { $(id).hidden = !R; });
+    $('ha-s5').hidden = stt(data) !== 'paying';
+  }
+
+  function drawAll() { const M = model(); drawNotices(); drawStage(); drawActions(); drawVoted(); drawAsked(M); drawPrompt(M); drawTallies(); drawPay(); vis(); }
+
+  // Always a fresh build (typed values never reach the value attribute, so put() would wrongly skip it).
+  function buildForms() {
+    $('ha-forms').innerHTML = (draft.map((o, i) => `<div class="ha-form" role="group" aria-label="Option ${i + 1}"><span class="ha-k">Option ${i + 1} · <span id="ha-tally-${i}">draft</span></span>
+      ${KEYS.map((k, j) => `<input type="text" class="ha-in" data-o="${i}" data-k="${k}" value="${esc(o[k] || '')}" placeholder="${esc(PH[j])}" aria-label="${esc(PH[j])}" autocomplete="off"${k === 'url' || k === 'img' ? ' inputmode="url"' : ''}>`).join('')}</div>`).join(''));
+  }
+
+  // Take the current round as the forms' base. A round that appears where there was none starts a fresh draft
+  // from its options (the forms were hidden, so nothing typed is lost).
+  function adopt() {
+    if (!formSig && rnd(data)) { draft = draftFrom(data); buildForms(); payDirty = false; }
+    formSig = sig(data);
+  }
+
+  // ---- Writes. Every one: RPC, toast on error, then await refresh (humidor.js) and redraw. ----
+  // moves = the write changes the round's status. If its refresh did not show the change (a network blip),
+  // the next poll that does is Hank's own write, not the round moving on under him.
+  async function run(name, args, moves) {
+    if (busy) return false;
+    const before = sig(data);
+    busy = true; drawActions();
+    try { await FY.rpc(name, args); }
+    catch (e) { busy = false; drawActions(); FY.toast(e.message); return false; }
+    try { await Humidor.refresh(); } catch (e) { /* humidor.js has logged it */ }
+    busy = false; grace = !!moves && sig(data) === before;
+    if (!movedOn) adopt();
+    drawAll();
+    return true;
+  }
+
+  const optionsJson = () => draft.map(o => { const x = {}; KEYS.forEach(k => { const v = String(o[k] || '').trim(); if (v) x[k] = v; }); return x; });
+
+  async function savePay() {
+    const s = $('ha-share').value.trim().replace(/^£\s*/, ''), u = $('ha-link').value.trim();
+    const share = s === '' ? null : (isFinite(+s) ? +s : s);   // not a number: the server refuses it, and the toast says why
+    payDirty = true;   // a poll during the save must not overwrite what is typed; only a saved value replaces it
+    if (await run('humidor_set_pay', { p_share: share, p_url: u || null })) { payDirty = false; prefillPay(); }
+  }
+
+  function copyPrompt() {
+    const ta = $('ha-prompt'), b = $('ha-copy'), text = ta.value;
+    const done = () => { b.textContent = 'COPIED ✓'; clearTimeout(copyT); copyT = setTimeout(() => { b.textContent = 'COPY PROMPT'; }, 1600); FY.toast('Prompt copied.'); };
+    const fallback = () => { try { ta.focus(); ta.select(); if (document.execCommand('copy')) { done(); return; } } catch (e) { /* no clipboard */ } FY.toast('Couldn’t copy. Select the prompt and copy it by hand.'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+  }
+
+  function act(a, el) {
+    const st = stt(data);
+    if (a === 'open') return run('humidor_open_round', null, true);
+    if (a === 'post') {
+      if (st === 'collecting' && filled() < 3) { const e = body.querySelector('.ha-in[data-k="name"]:placeholder-shown'); if (e) e.focus(); return; }
+      return run('humidor_post_options', { p_options: optionsJson() }, st === 'collecting');
+    }
+    if (a === 'close') { if (confirm('Close ranking and lock in the winner?')) return run('humidor_close_ranking', null, true); return; }
+    if (a === 'reopen') return run('humidor_reopen_collect', null, true);
+    // README: the order can go in whenever Hank decides; unpaid voters are simply not in it.
+    if (a === 'order') { if (confirm('Order placed? This archives the round.')) return run('humidor_place_order', null, true); return; }
+    if (a === 'stage') { const s = el.getAttribute('data-s'); return run('humidor_set_stage', { p_stage: s === '' ? null : +s }); }
+    if (a === 'paid') return run('humidor_confirm_paid', { p_member: el.getAttribute('data-m'), p_on: el.getAttribute('data-on') === '1' });
+    if (a === 'save') return savePay();
+    if (a === 'copy') return copyPrompt();
+  }
+
+  function wire() {
+    body.addEventListener('click', e => {
+      const el = e.target.closest('[data-a]'); if (!el || !body.contains(el) || el.disabled) return;
+      Promise.resolve(act(el.getAttribute('data-a'), el)).catch(err => FY.toast(err.message));
+    });
+    body.addEventListener('input', e => {
+      const t = e.target;
+      if (t.matches('.ha-in[data-o]')) { const i = +t.getAttribute('data-o'), k = t.getAttribute('data-k'); draft = draft.map(x => ({ ...x })); draft[i][k] = t.value; drawActions(); }
+      else if (t.id === 'ha-share' || t.id === 'ha-link') payDirty = true;
+    });
+  }
+
+  // Synchronous onChange (humidor.js). Display parts redraw; the inputs never do (R8).
+  function onPoll(d) {
+    data = d || { stage: null, round: null };
+    if (!busy && sig(data) !== formSig) {
+      if (grace) { grace = false; if (!movedOn) adopt(); }
+      else if (formSig && !movedOn) movedOn = true;
+      else if (!formSig) adopt();
+    }
+    drawAll();
+  }
+
+  function shell() {
+    body.innerHTML = `<div class="ha" id="ha">
+      <section class="ha-notes" id="ha-notes" aria-live="polite" hidden></section>
+      <section aria-labelledby="ha-stage-h">
+        <div class="ha-hd"><h2 class="ha-h" id="ha-stage-h">Landing page stage</h2><span class="ha-meta" id="ha-stnote"></span></div>
+        <div class="ha-stages" id="ha-stages" role="radiogroup" aria-label="Current stage"></div>
+      </section>
+      <section aria-labelledby="ha-s1-h">
+        <h2 class="ha-h" id="ha-s1-h">1 · Round</h2>
+        <div class="ha-acts" id="ha-acts"></div>
+        <div class="ha-voted" id="ha-voted" hidden></div>
+      </section>
+      <section id="ha-s2" aria-labelledby="ha-s2-h" hidden><h2 class="ha-h" id="ha-s2-h">2 · What the yard asked for</h2><div class="ha-ws" id="ha-asked"></div></section>
+      <section id="ha-s3" aria-labelledby="ha-s3-h" hidden>
+        <div class="ha-hd"><h2 class="ha-h" id="ha-s3-h">3 · Prompt sheet</h2><button type="button" class="ha-copy" id="ha-copy" data-a="copy">COPY PROMPT</button></div>
+        <div class="ha-brief" id="ha-brief"></div>
+        <textarea class="ha-prompt" id="ha-prompt" readonly aria-label="Prompt to paste into an AI or search"></textarea>
+      </section>
+      <section id="ha-s4" aria-labelledby="ha-s4-h" hidden><h2 class="ha-h" id="ha-s4-h">4 · The three options</h2><div class="ha-forms" id="ha-forms"></div></section>
+      <section class="ha-pay" id="ha-s5" aria-labelledby="ha-s5-h" hidden>
+        <h2 class="ha-h" id="ha-s5-h">5 · Paying up</h2>
+        <div class="ha-pins">
+          <input type="text" class="ha-in s" id="ha-share" inputmode="decimal" autocomplete="off" placeholder="Share per member, e.g. 14" aria-label="Share per member">
+          <input type="text" class="ha-in u" id="ha-link" inputmode="url" autocomplete="off" placeholder="Revolut link, e.g. https://revolut.me/hank" aria-label="Revolut link">
+          <button type="button" class="ha-save" data-a="save">SAVE</button>
+        </div>
+        <div class="ha-pbar"><div id="ha-pfill"></div></div>
+        <span class="ha-ptxt" id="ha-ptxt"></span>
+        <div class="ha-prows" id="ha-prows"></div>
+      </section>
+      <section aria-labelledby="ha-mem-h"><h2 class="ha-h" id="ha-mem-h">Members</h2>
+        <ul class="ha-mems">${members.map(m => `<li>${esc(m.nickname)}</li>`).join('')}</ul></section>
+    </div>`;
+  }
+
+  (async function () {
+    const H = await Humidor.start('admin');
+    if (!H) { const b = document.getElementById('hm-body'); if (b && b.textContent.trim()) FY.toast(b.textContent.trim()); return; }
+    if (!H.leader) return;   // humidor.js has put the leader-only message in main
+    me = H.me; body = H.main; members = H.members || []; data = H.data || { stage: null, round: null };
+    shell();
+    draft = draftFrom(data); buildForms(); formSig = sig(data);
+    wire(); drawAll();
+    Humidor.poll(onPoll);   // synchronous onChange
+  })().catch(e => FY.toast(e.message));
+})();
+</script>
+</body>
+</html>
