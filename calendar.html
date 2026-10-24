@@ -23,9 +23,9 @@
 .pg-sign .wire.r{right:18%;transform:translateY(-4px) rotate(10deg)}
 .pg-sign .plate{position:relative;display:flex;align-items:center;gap:6px;padding:22px 64px 20px 112px;border-radius:8px;background:#07090a;border:2px solid var(--neon-green-tube);border-left-color:transparent;box-shadow:0 0 4px var(--neon-green-tube),0 0 12px var(--neon-green),0 0 28px rgba(10,158,67,.5),inset 0 0 8px rgba(10,158,67,.45),0 10px 22px rgba(0,0,0,.55);margin-top:20px}
 .pg-sign .edge{position:absolute;left:-2px;top:-2px;bottom:-2px;width:16px;box-sizing:border-box;border:2px solid var(--neon-green-tube);border-right:0;border-radius:8px 0 0 8px;box-shadow:-2px 0 4px var(--neon-green-tube),-8px 0 12px rgba(10,158,67,.55),inset 2px 0 8px rgba(10,158,67,.45)}
-.pg-sign .badge{position:absolute;z-index:2;left:-14px;top:-30px;width:100px;height:100px;display:grid;place-items:center;border-radius:22px;background:#07090a;transform:rotate(-14deg);pointer-events:none;border:0;margin:0}
+.pg-sign .badge{position:absolute;z-index:2;left:-14px;top:-30px;width:100px;height:100px;display:grid;place-items:center;border-radius:22px;background:#07090a;transform:rotate(-14deg);pointer-events:none;border:0;margin:0;padding:0}
 .pg-sign .badge i{font-size:92px;line-height:1;color:#fff2f4;text-shadow:0 0 3px var(--neon-red-tube),0 0 8px var(--neon-red),0 0 18px var(--neon-red)}
-.pg-sign h2{font-family:var(--font-heading);font-weight:600;font-size:19px;margin:0;letter-spacing:.26em;color:var(--neon-green-text);text-shadow:0 0 4px var(--neon-green-tube),0 0 12px var(--neon-green),0 0 28px rgba(10,158,67,.6)}
+.pg-sign h2{font-family:var(--font-heading);font-weight:600;font-size:19px;line-height:1.12;margin:0;letter-spacing:.26em;color:var(--neon-green-text);text-shadow:0 0 4px var(--neon-green-tube),0 0 12px var(--neon-green),0 0 28px rgba(10,158,67,.6)}
 .pg-sign{zoom:.99}
 @media (max-width:1400px){.pg-sign{zoom:.84}.pg-kick{padding-right:290px}}
 @media (max-width:1100px){.pg-sign{zoom:.69}.pg-kick{padding-right:240px}}
@@ -42,8 +42,9 @@
 
 /* Create event */
 .cal-range{font-size:13px;color:var(--fy-text-secondary)}
-.cal-new{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;background:#07090a;border:2px solid var(--neon-pink-tube);border-radius:8px;color:var(--neon-pink-text);font-family:inherit;font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:box-shadow .2s ease}
+.cal-new{position:relative;display:inline-flex;align-items:center;gap:8px;padding:9px 16px;line-height:normal;background:#07090a;border:2px solid var(--neon-pink-tube);border-radius:8px;color:var(--neon-pink-text);font-family:inherit;font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:box-shadow .2s ease}
 .cal-new i{font-size:16px}
+.cal-new::before{content:"";position:absolute;inset:-5px 0}   /* 44px hit target around the design's 38px button */
 .cal-new:hover{box-shadow:0 0 6px var(--neon-pink-tube),0 0 16px var(--neon-pink),0 0 30px rgba(224,21,127,.45)}
 .cal-form{align-self:stretch;display:flex;flex-direction:column;gap:10px;padding:12px;border:1px dashed rgba(95,211,207,.55);border-radius:8px;min-width:0}
 .cal-form .ttl{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--pg-teal-text)}
@@ -96,7 +97,8 @@ a.cal-ev:hover{background:rgba(255,255,255,.09)}
 .cal-goals{display:flex;flex-direction:column;gap:10px;padding:16px 14px 14px;border:1px solid var(--pg-amber);border-radius:9px;box-shadow:0 0 4px var(--pg-amber),0 0 14px rgba(255,176,32,.3);min-width:0}
 .cal-goals .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .cal-goals .big{display:inline-flex;align-items:center;gap:8px;font-size:18px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--pg-amber);text-shadow:0 0 6px rgba(255,176,32,.7),0 0 20px rgba(255,176,32,.35)}
-.cal-goals .top a{display:inline-flex;align-items:center;min-height:44px;font-size:12px;font-weight:700;color:var(--pg-amber-text);text-decoration:none}
+.cal-goals .top a{position:relative;font-size:12px;font-weight:700;color:var(--pg-amber-text);text-decoration:none}
+.cal-goals .top a::before{content:"";position:absolute;inset:-13px 0}   /* 44px hit target, design line height */
 .cal-goals .top a:hover{text-shadow:0 0 6px var(--pg-amber)}
 .cal-goals .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(240px,100%),1fr));gap:10px}
 .goal{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid rgba(255,176,32,.35);border-radius:8px;min-width:0}

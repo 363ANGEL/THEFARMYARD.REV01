@@ -23,9 +23,9 @@
 .pg-sign .wire.r{right:18%;transform:translateY(-4px) rotate(10deg)}
 .pg-sign .plate{position:relative;display:flex;align-items:center;gap:6px;padding:22px 64px 20px 112px;border-radius:8px;background:#07090a;border:2px solid var(--neon-green-tube);border-left-color:transparent;box-shadow:0 0 4px var(--neon-green-tube),0 0 12px var(--neon-green),0 0 28px rgba(10,158,67,.5),inset 0 0 8px rgba(10,158,67,.45),0 10px 22px rgba(0,0,0,.55);margin-top:20px}
 .pg-sign .edge{position:absolute;left:-2px;top:-2px;bottom:-2px;width:16px;box-sizing:border-box;border:2px solid var(--neon-green-tube);border-right:0;border-radius:8px 0 0 8px;box-shadow:-2px 0 4px var(--neon-green-tube),-8px 0 12px rgba(10,158,67,.55),inset 2px 0 8px rgba(10,158,67,.45)}
-.pg-sign .badge{position:absolute;z-index:2;left:-14px;top:-30px;width:100px;height:100px;display:grid;place-items:center;border-radius:50%;background:#07090a;transform:rotate(-14deg);pointer-events:none;border:0;margin:0}
+.pg-sign .badge{position:absolute;z-index:2;left:-14px;top:-30px;width:100px;height:100px;display:grid;place-items:center;border-radius:50%;background:#07090a;transform:rotate(-14deg);pointer-events:none;border:0;margin:0;padding:0}
 .pg-sign .badge i{font-size:92px;line-height:1;color:#fff2f4;text-shadow:0 0 3px var(--neon-red-tube),0 0 8px var(--neon-red),0 0 18px var(--neon-red)}
-.pg-sign h2{font-family:var(--font-heading);font-weight:600;font-size:19px;margin:0;letter-spacing:.26em;color:var(--neon-green-text);text-shadow:0 0 4px var(--neon-green-tube),0 0 12px var(--neon-green),0 0 28px rgba(10,158,67,.6)}
+.pg-sign h2{font-family:var(--font-heading);font-weight:600;font-size:19px;line-height:1.12;margin:0;letter-spacing:.26em;color:var(--neon-green-text);text-shadow:0 0 4px var(--neon-green-tube),0 0 12px var(--neon-green),0 0 28px rgba(10,158,67,.6)}
 .pg-sign{zoom:.99}
 @media (max-width:1400px){.pg-sign{zoom:.84}.pg-kick{padding-right:290px}}
 @media (max-width:1100px){.pg-sign{zoom:.69}.pg-kick{padding-right:240px}}
@@ -42,8 +42,9 @@
 
 /* League tabs */
 .fb-tabs{display:flex;gap:8px;flex-wrap:wrap}
-.fb-tab{display:flex;align-items:center;gap:9px;min-height:44px;padding:0 15px;background:transparent;border:1.5px solid rgba(95,211,207,.35);border-radius:9px;color:var(--pg-ink);font-family:inherit;font-size:14.3px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:box-shadow .2s ease,border-color .2s ease}
+.fb-tab{position:relative;display:flex;align-items:center;gap:9px;padding:9px 15px;line-height:normal;background:transparent;border:1.5px solid rgba(95,211,207,.35);border-radius:9px;color:var(--pg-ink);font-family:inherit;font-size:14.3px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:box-shadow .2s ease,border-color .2s ease}
 .fb-tab small{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--fy-text-label)}
+.fb-tab::before{content:"";position:absolute;inset:-5px 0}   /* 44px hit target around the design's 37px tab; rows keep 8px apart, so targets never overlap */
 .fb-tab:hover{border-color:var(--pg-teal-pale);color:#fff;text-shadow:0 0 6px var(--neon-teal);box-shadow:0 0 4px var(--pg-teal-pale),0 0 12px var(--neon-teal),0 0 26px rgba(95,211,207,.6),inset 0 0 8px rgba(95,211,207,.35);background:color-mix(in srgb,var(--neon-teal) 10%,transparent)}
 .fb-tab.on{background:color-mix(in srgb,var(--neon-pink) 14%,transparent);border-color:var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:0 0 6px var(--neon-pink),0 0 14px rgba(224,21,127,.4)}
 
@@ -172,7 +173,8 @@
 .fb-debts .dn{display:flex;align-items:center;padding:0 10px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fb-debts .dt{display:flex;align-items:center;padding:6px 10px;border-left:1px solid rgba(95,211,207,.4);color:var(--fy-text-secondary);min-width:0;line-height:1.35}
 .fb-debts .da{display:flex;align-items:center;justify-content:center;white-space:nowrap;border-left:1px solid rgba(95,211,207,.4);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--pg-gold);text-shadow:0 0 6px rgba(255,184,0,.5)}
-.fb-settle{align-self:flex-start;margin-top:12px;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;gap:7px;box-sizing:border-box;border:2px solid var(--neon-red-tube);border-radius:8px;background:transparent;color:var(--neon-red-text);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;text-shadow:var(--text-glow-red);box-shadow:0 0 4px var(--neon-red-tube),0 0 14px var(--neon-red),inset 0 0 8px rgba(168,0,22,.4)}
+.fb-settle::before{content:"";position:absolute;inset:-8px 0}   /* 44px hit target around the design's 32px link */
+.fb-settle{position:relative;align-self:flex-start;margin-top:12px;min-height:32px;padding:0 16px;display:inline-flex;align-items:center;gap:7px;box-sizing:border-box;border:2px solid var(--neon-red-tube);border-radius:8px;background:transparent;color:var(--neon-red-text);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;text-shadow:var(--text-glow-red);box-shadow:0 0 4px var(--neon-red-tube),0 0 14px var(--neon-red),inset 0 0 8px rgba(168,0,22,.4)}
 </style>
 <script src="fy-clucks.js"></script>
 </head>
