@@ -2,7 +2,7 @@
    plus the door pages (0.1 Invite Door, 0.2 New User Set-up). Tokens come from farmyard.css.
    Rule: pink acts, teal frames. Current page = pink tube; hover = teal glow. Neon is a line or a glow, never a fill. */
 :root{
-  --font-heading:'Inter',system-ui,sans-serif; --font-heading-weight:600;
+  --font-heading:'Inter',system-ui,sans-serif; --font-heading-weight:500;
   --color-text:var(--fy-text); --color-bg:var(--fy-bg); --color-accent:var(--neon-pink);
   --color-neutral-300:var(--fy-text-secondary); --color-neutral-400:var(--fy-text-label); --color-neutral-600:#5b5f72;
   --color-accent-900:#2d0f22;
@@ -26,11 +26,11 @@ i.ph,i.ph-fill,i.ph-bold,i.ph-light{text-shadow:0 0 6px currentColor}
 .btn:disabled,.btn.off{background:rgba(255,255,255,.02);border-color:rgba(255,127,191,.3);color:rgba(255,196,225,.38);text-shadow:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);pointer-events:none;cursor:default}
 .input{font:inherit;font-size:15px;background:var(--fy-surface-2,#2b2e3f);color:var(--fy-text);border:1px solid var(--neon-teal);border-radius:8px;padding:8px 12px;min-width:0;box-sizing:border-box;width:100%}
 .input:focus{outline:none;box-shadow:0 0 8px rgba(95,211,207,.5)}
-.tag{display:inline-flex;align-items:center;min-height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.04em}
-.tag-neutral{border:1px solid var(--neon-teal);color:var(--neon-teal);box-shadow:0 0 5px var(--neon-teal)}
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:400;letter-spacing:.02em}
+.tag-neutral{border:1px solid var(--neon-teal);color:var(--neon-teal);box-shadow:0 0 5px var(--neon-teal);background:#1b4a4a}   /* fill = the designs' --color-neutral-800 */
 .tag-accent{border:1px solid var(--neon-pink);color:var(--neon-pink-text);box-shadow:var(--glow-pink);text-shadow:0 0 6px var(--neon-pink)}
 .kicker{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)}
-.hd2{font-family:var(--font-heading);font-weight:var(--font-heading-weight);font-size:28px;margin:0;letter-spacing:-.01em;color:var(--fy-text)}
+.hd2{font-family:var(--font-heading);font-weight:var(--font-heading-weight);font-size:28px;line-height:1.12;margin:0;letter-spacing:-.01em;color:var(--fy-text)}
 .tip{padding:8px 10px;border:1px solid #9eeae6;border-radius:6px;box-shadow:0 0 4px var(--neon-teal),0 0 10px rgba(95,211,207,.4);font-size:12px;line-height:1.4;color:#c8f4f2;text-shadow:0 0 4px rgba(95,211,207,.5);animation:payDrop .25s ease-out}
 .tip strong{color:#f2fbfb}
 .box-teal{display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);box-sizing:border-box;min-width:0}
@@ -71,16 +71,16 @@ i.ph,i.ph-fill,i.ph-bold,i.ph-light{text-shadow:0 0 6px currentColor}
 
 /* ---- Barn frame: sidebar + main ---- */
 .barn-wrap{width:100%;min-height:100vh;box-sizing:border-box;padding:16px}
-.barn{min-height:calc(100vh - 32px);display:grid;grid-template-columns:232px minmax(0,1fr);background:radial-gradient(900px 500px at 85% -10%,color-mix(in srgb,var(--color-accent-900) 70%,transparent),transparent 60%),var(--fy-bg);border:1px solid var(--neon-teal);box-shadow:0 0 6px var(--neon-teal),0 0 14px color-mix(in srgb,var(--neon-teal) 45%,transparent),inset 0 0 18px color-mix(in srgb,var(--neon-teal) 20%,transparent);border-radius:12px;overflow:hidden}
+.barn{line-height:1.55;min-height:calc(100vh - 32px);display:grid;grid-template-columns:232px minmax(0,1fr);background:radial-gradient(900px 500px at 85% -10%,color-mix(in srgb,var(--color-accent-900) 70%,transparent),transparent 60%),var(--fy-bg);border:1px solid var(--neon-teal);box-shadow:0 0 6px var(--neon-teal),0 0 14px color-mix(in srgb,var(--neon-teal) 45%,transparent),inset 0 0 18px color-mix(in srgb,var(--neon-teal) 20%,transparent);border-radius:12px;overflow:hidden}
 .side{border-right:1px solid var(--neon-teal);box-shadow:4px 0 10px -4px var(--neon-teal);padding:12px 8px;display:flex;flex-direction:column;gap:1px;min-width:0}
-.side .brand{display:flex;align-items:center;gap:6px;padding:0 2px 6px;color:var(--fy-text);text-decoration:none}
+.side .brand{display:flex;align-items:center;gap:6px;padding:0 2px 6px;color:var(--fy-text)!important;text-decoration:none;font-weight:400;text-shadow:none;margin-right:0}   /* undoes app.css .brand (pink, bold, glow) */
 .side .brand img{width:96px;height:96px;object-fit:contain;display:block;flex:none;filter:drop-shadow(0 0 10px rgba(224,21,127,.7))}
 .side .brand span{font-family:var(--font-heading);font-size:20px;letter-spacing:-.01em}
 .side .sep{margin:4px 6px 8px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent)}
 .side .label{padding:10px 6px 2px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)}
 .side .grow{flex:1}
 /* Page links: teal hover glow, current page pink */
-.nav{display:flex;gap:10px;align-items:center;padding:5px 6px;border-radius:6px;font-size:14px;color:var(--fy-text-label);text-shadow:0 0 6px currentColor;background:transparent;border:1px solid transparent;box-sizing:border-box;width:100%;text-align:left;cursor:pointer;font-family:inherit;text-decoration:none;transition:box-shadow .25s ease,background .25s ease,border-color .25s ease}
+.nav{display:flex;gap:10px;align-items:center;padding:5px 6px;border-radius:6px;font-size:14px;line-height:normal;color:var(--fy-text-label);text-shadow:0 0 6px currentColor;background:transparent;border:1px solid transparent;box-sizing:border-box;width:100%;text-align:left;cursor:pointer;font-family:inherit;text-decoration:none;transition:box-shadow .25s ease,background .25s ease,border-color .25s ease}
 .nav i{color:var(--fy-text-label)}
 .nav span{flex:1}
 .nav .n{flex:none;font-size:12px;color:var(--fy-text-label)}
