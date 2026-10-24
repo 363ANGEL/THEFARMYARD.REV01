@@ -60,7 +60,7 @@
 .lh .r,.lr .c-amt{text-align:right}
 .lr{padding:7px 0;border-top:1px solid var(--rule-teal);font-size:13px}
 .lr .c-date{font-variant-numeric:tabular-nums;color:var(--fy-text-secondary)}
-.lr .c-board{display:inline-flex;align-items:center;gap:6px;color:var(--fy-text);text-decoration:none;font-weight:700}
+.lr .c-board{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--fy-text);text-decoration:none;font-weight:700}
 .lr .c-board i{color:var(--neon-teal)}
 .lr .c-board:hover{text-shadow:0 0 6px var(--neon-teal)}
 .lr .c-what{color:var(--fy-text-body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -96,8 +96,8 @@
 .save .cell.a span:last-child,.save .due-l{color:var(--neon-amber-tube)}
 .save .pot{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--fy-text-secondary)}
 .save .pot strong{font-weight:800;color:var(--neon-amber-text)}
-.save .bar{position:relative;height:10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,154,31,.4);overflow:hidden}
-.save .bar span{position:absolute;left:0;top:0;bottom:0;background:var(--neon-amber);box-shadow:0 0 8px var(--neon-amber)}
+.save .sbar{position:relative;height:10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,154,31,.4);overflow:hidden}
+.save .sbar span{position:absolute;left:0;top:0;bottom:0;background:var(--neon-amber);box-shadow:0 0 8px var(--neon-amber)}
 .save .foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .save .due-l{font-size:13px;font-weight:700}
 .save .pay{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;box-sizing:border-box;border:2px solid var(--neon-amber);border-radius:8px;color:var(--neon-amber-tube);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.55;cursor:not-allowed}
@@ -293,7 +293,7 @@ const BD = {
         <p>5% of each payment goes towards your share of the next group event, so you receive 95%.<span class="smp">Sample</span></p>
         <div class="three"><span class="cell"><span>Your share</span><span>${money(each)}</span></span><span class="cell g"><span>From your winnings</span><span>${money(fromWins)}</span></span><span class="cell a"><span>Left to pay</span><span>${money(left)}</span></span></div>
         <div style="display:flex;flex-direction:column;gap:6px"><div class="pot"><span>Group pot</span><span><strong>${money(pot)}</strong> of ${money(each * members)}</span></div>
-          <div class="bar"><span style="width:${Math.min(100, pot / (each * members) * 100)}%"></span></div></div>
+          <div class="sbar"><span style="width:${Math.min(100, pot / (each * members) * 100)}%"></span></div></div>
         <div class="foot"><span class="due-l">${money(left)} due by 31 Oct</span><span class="pay" role="link" aria-disabled="true" title="Sample: the Barn's Revolut group pocket is not live yet"><i class="ph ph-hand-coins"></i>Pay ${money(left)}</span></div>
         <div class="also"><span class="k">Also saving for</span>
           <div class="g"><span><b>Whisky group buy</b> <span class="muted">· 12 Dec</span></span><span class="r">£60 each</span><span class="l">${money(60)} left</span></div>

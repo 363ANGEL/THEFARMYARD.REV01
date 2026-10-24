@@ -23,7 +23,7 @@
 .pg-sign .wire.r{right:18%;transform:translateY(-4px) rotate(10deg)}
 .pg-sign .plate{position:relative;display:flex;align-items:center;gap:6px;padding:22px 64px 20px 112px;border-radius:8px;background:#07090a;border:2px solid var(--neon-green-tube);border-left-color:transparent;box-shadow:0 0 4px var(--neon-green-tube),0 0 12px var(--neon-green),0 0 28px rgba(10,158,67,.5),inset 0 0 8px rgba(10,158,67,.45),0 10px 22px rgba(0,0,0,.55);margin-top:20px}
 .pg-sign .edge{position:absolute;left:-2px;top:-2px;bottom:-2px;width:16px;box-sizing:border-box;border:2px solid var(--neon-green-tube);border-right:0;border-radius:8px 0 0 8px;box-shadow:-2px 0 4px var(--neon-green-tube),-8px 0 12px rgba(10,158,67,.55),inset 2px 0 8px rgba(10,158,67,.45)}
-.pg-sign .badge{position:absolute;z-index:2;left:-14px;top:-30px;width:100px;height:100px;display:grid;place-items:center;border-radius:22px;background:#07090a;transform:rotate(-14deg);pointer-events:none}
+.pg-sign .badge{position:absolute;z-index:2;left:-14px;top:-30px;width:100px;height:100px;display:grid;place-items:center;border-radius:22px;background:#07090a;transform:rotate(-14deg);pointer-events:none;border:0;margin:0}
 .pg-sign .badge i{font-size:92px;line-height:1;color:#fff2f4;text-shadow:0 0 3px var(--neon-red-tube),0 0 8px var(--neon-red),0 0 18px var(--neon-red)}
 .pg-sign h2{font-family:var(--font-heading);font-weight:600;font-size:19px;margin:0;letter-spacing:.26em;color:var(--neon-green-text);text-shadow:0 0 4px var(--neon-green-tube),0 0 12px var(--neon-green),0 0 28px rgba(10,158,67,.6)}
 .pg-sign{zoom:.99}
@@ -102,8 +102,8 @@ a.cal-ev:hover{background:rgba(255,255,255,.09)}
 .goal{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid rgba(255,176,32,.35);border-radius:8px;min-width:0}
 .goal .nm{font-family:var(--font-heading);font-size:16px;color:var(--pg-ink)}
 .goal .two{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--fy-text-secondary)}
-.goal .bar{position:relative;height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,176,32,.4);overflow:hidden}
-.goal .bar span{position:absolute;left:0;top:0;bottom:0;background:var(--pg-amber);box-shadow:0 0 8px var(--pg-amber)}
+.goal .gbar{position:relative;height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,176,32,.4);overflow:hidden}
+.goal .gbar span{position:absolute;left:0;top:0;bottom:0;background:var(--pg-amber);box-shadow:0 0 8px var(--pg-amber)}
 .goal .pot{font-weight:800;color:var(--pg-amber-text)}
 .goal .of{color:var(--fy-text-label)}
 .goal .each{color:var(--pg-ink);font-weight:700}
@@ -239,7 +239,7 @@ function drawCalendar(B) {
         <div class="list">${g.map(x => `<div class="goal">
           <span class="nm">${esc(x.title)}</span>
           <span class="two"><span>${esc(x.when)}</span><span>${esc(x.weeks)}</span></span>
-          <div class="bar"><span style="width:${esc(x.pct)}"></span></div>
+          <div class="gbar"><span style="width:${esc(x.pct)}"></span></div>
           <span class="two" style="color:inherit"><span><span class="pot">${esc(x.pot)}</span> <span class="of">of ${esc(x.target)}</span></span><span class="each">${esc(x.each)}</span></span>
           <span class="by">${esc(x.by)}</span>
         </div>`).join('')}</div>
