@@ -21,6 +21,7 @@
     picks: {}, winner: null, stamp: false,         // docket (buy-ins per member id)
     draft: '', pasteHint: false, nickCopied: false, closeTip: false, seatTip: '',
     sel: null, seat: { phase: 'idle', name: '', count: 10, p: null, url: null, blocked: false },
+    autoFor: null,                                 // table id the starter's card has already opened for by itself
     shell: '', vidOrder: null, vidPlay: false
   };
   ((await FY.q('v_members_public').select('id,nickname,avatar,avatar_url')).data || []).forEach(m => S.names[m.id] = m);
@@ -167,7 +168,7 @@
   $('tablecol').addEventListener('keydown', ev => { if (ev.target.id === 'link' && ev.key === 'Enter') { ev.preventDefault(); enterLink(); } });
   async function enterLink() {
     const url = (S.draft || '').trim(); if (!url || !S.cur) return;
-    try { await FY.rpc('poker_set_link', { p_table: S.cur.id, p_url: url }); FY.toast('Table open. Your seat is taken.'); S.draft = ''; }
+    try { await FY.rpc('poker_set_link', { p_table: S.cur.id, p_url: url }); FY.toast('Table open. Pick your seat.'); S.draft = ''; }
     catch (e) { FY.toast(e.message); }
     await refresh(true);
   }
@@ -196,6 +197,18 @@
     if (S.seat.phase !== 'idle' || mySeat() || !S.cur) return;
     S.sel = n; renderSeats();
     FY.rpc('poker_hold_seat', { p_table: S.cur.id, p_seat: n + 1 }).catch(e => { S.sel = null; FY.toast(e.message); refresh(true); });
+  }
+  // The starter takes a seat through the card like everyone else. Once their table is open (at OPEN TABLE, or on a later
+  // load while still unseated) the card opens by itself on the first free, unheld seat. Starter only, never while the
+  // table is starting, once per table per page load: a seat lost to someone else is not chased.
+  function autoSeat() {
+    const c = S.cur;
+    if (!c || c.status !== 'open' || c.started_by !== me.id || S.autoFor === c.id) return;
+    if (mySeat() || S.seat.phase !== 'idle' || S.sel != null) return;
+    S.autoFor = c.id;
+    const busy = k => c.seats.some(s => s.seat_no === k + 1) || (c.holds || []).some(h => h.seat_no === k + 1 && h.member_id !== me.id);
+    const n = SEAT_XY.findIndex((_, k) => !busy(k));
+    if (n >= 0) pickSeat(n);
   }
   // A hold lasts 45 seconds; renew it while the card is open so the seat stays HELD on every other screen.
   setInterval(() => { if (S.sel != null && S.seat.phase === 'idle' && S.cur && S.cur.status === 'open' && !mySeat()) FY.rpc('poker_hold_seat', { p_table: S.cur.id, p_seat: S.sel + 1 }).catch(() => {}); }, 30000);
@@ -399,7 +412,7 @@
     const prev = S.cur; S.cur = cur || null;
     const key = cur ? `${cur.id}:${cur.status}:${cur.event_id || ''}` : '';
     if (prev && !cur || (prev && cur && prev.id !== cur.id)) {   // table closed or replaced: drop local state
-      Object.assign(S, { sel: null, picks: {}, winner: null, draft: '', nickCopied: false, closeTip: false, shell: '' });
+      Object.assign(S, { sel: null, picks: {}, winner: null, draft: '', nickCopied: false, closeTip: false, shell: '', autoFor: null });
       midSig = '';
       clearInterval(S.seat.tick); S.seat = { phase: 'idle', name: '', count: 10, p: null, url: null, blocked: false };
     }
@@ -407,6 +420,7 @@
       renderSteps(); renderTable();
     }
     if (key !== S.key) { S.key = key; refreshBoard(); }
+    autoSeat();
   }
   // Every screen polls poker_current every 5s while it is visible. A member who did not start the table has no
   // actions of their own that refetch, so they must never depend on Realtime alone: a channel can report SUBSCRIBED
