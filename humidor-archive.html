@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · The Humidor · Archive</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
+<link rel="stylesheet" href="humidor.css">
+<style>
+/* 4.0 The Humidor · Archive, ported from P15.003 HUMIDOR ARCHIVE.dc.html. Closed rounds, newest first:
+   the last round large, earlier rounds in a grid. No page-local tokens. */
+.ha{display:flex;flex-direction:column;gap:18px;min-width:0}
+.ha-k{font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)}
+
+/* Lede */
+.ha-lede{display:flex;flex-direction:column;gap:8px}
+.ha-lede h1{margin:0;font-size:clamp(26px,4vw,40px);line-height:1.05;font-weight:500;text-wrap:balance}
+.ha-lede p{margin:0;font-size:var(--text-body-size);line-height:1.5;color:var(--fy-text-body);max-width:62ch;text-wrap:pretty}
+.ha-err{margin:0;font-size:var(--text-small);line-height:1.45;color:var(--neon-red-text)}
+
+/* Photo: the option's img, else a size photo, else a plain tile */
+.ha-photo{position:relative;border-radius:8px;overflow:hidden;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);background:var(--fy-surface)}
+.ha-photo img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain}
+.ha-photo .ph-tile{position:absolute;inset:0;display:grid;place-items:center;font-size:40px;color:color-mix(in srgb,var(--neon-teal) 40%,transparent)}
+
+/* Last round */
+.ha-last{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px 24px;padding:18px;border:2px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg);min-width:0}
+.ha-last .ha-photo{min-height:220px}
+.ha-info{display:flex;flex-direction:column;gap:10px;min-width:0}
+.ha-info .kk{font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-green-text)}
+.ha-info .w{font-size:var(--text-page-title);font-weight:500;line-height:1.15;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink);overflow-wrap:anywhere}
+.ha-info .meta{font-size:var(--text-ui);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
+.ha-info .brief{font-size:var(--text-meta);line-height:1.45;color:var(--fy-text-label)}
+.ha-std{display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 25%,transparent)}
+.ha-opt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;align-items:baseline}
+.ha-opt .n{font-size:var(--text-small);color:var(--fy-text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ha-opt.win .n{color:var(--neon-pink-text)}
+.ha-opt .v{font-size:var(--text-meta);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
+.ha-opt .trk{grid-column:1/-1;height:4px;border-radius:2px;background:color-mix(in srgb,var(--neon-teal) 15%,transparent);overflow:hidden}
+.ha-opt .fl{height:100%;background:color-mix(in srgb,var(--neon-teal) 60%,transparent)}
+.ha-opt.win .fl{background:var(--neon-pink-tube)}
+
+/* Earlier rounds */
+.ha-earlier{display:flex;flex-direction:column;gap:12px}
+.ha-earlier h2{margin:0;font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal)}
+.ha-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:12px}
+.ha-rd{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg);min-width:0}
+.ha-rd .ha-photo{height:130px}
+.ha-rd .w{font-size:var(--text-card-title);font-weight:500;line-height:1.2;color:var(--neon-pink-text);overflow-wrap:anywhere}
+.ha-rd .meta{font-size:var(--text-meta);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
+.ha-rd .run{font-size:var(--text-meta);color:var(--fy-text-label);overflow-wrap:anywhere}
+</style>
+<script src="fy-clucks.js"></script>
+</head>
+<body>
+<div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script><script src="humidor.js"></script>
+<script>
+/* 4.0 The Humidor · Archive. humidor_archive() → closed rounds newest first: { n, closed_at, options, winner,
+   voters, points[] }. The last round is the large module, the rest a grid. Copy from the design's renderVals().
+   The archive only changes when Hank places an order, so it loads once per visit and does not poll.
+   No sample rounds (README: drop them in production) and no photo drop-zone (image-slot.js is prototype only).
+   "Asked for: …" needs the round's prefs, which humidor_archive() does not return, so that line is left out. */
+(function () {
+  const esc = s => FY.esc(s);
+  const HTTPS = /^https:\/\/[^\s"'<>()]+$/;
+  const fmt = t => { const d = new Date(t); return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); };
+  const obj = o => (o && typeof o === 'object' ? o : {});
+  // Photo for an option: its https img, else the size photo by name match, else '' (plain tile).
+  const photoFor = o => (typeof o.img === 'string' && HTTPS.test(o.img) ? o.img : '') || Humidor.sizePhoto((o.size || '') + ' ' + (o.name || '')) || '';
+
+  // One closed round into what the design's modules show (renderVals rounds[]).
+  function view(r) {
+    r = obj(r);
+    const opts = (Array.isArray(r.options) ? r.options : []).map(obj);
+    const wi = Number.isInteger(r.winner) ? r.winner : -1;
+    const w = opts[wi] || {};
+    const P = opts.map((_, i) => { const v = Array.isArray(r.points) ? Number(r.points[i]) : 0; return isFinite(v) ? v : 0; });
+    const mx = Math.max(1, ...P);
+    const price = w.price ? '£' + String(w.price).replace(/^£/, '') + ' a cigar' : null;
+    const nV = Number(r.voters) || 0;
+    const others = opts.filter((_, i) => i !== wi).map(o => o.name).filter(Boolean);
+    return {
+      n: r.n, date: fmt(r.closed_at), winner: w.name || 'No winner', img: photoFor(w),
+      meta: [w.size, price, nV + (nV === 1 ? ' member' : ' members')].filter(Boolean).join(' · '),
+      opts: opts.map((o, i) => ({ win: i === wi, name: (i === wi ? '★ ' : '') + (o.name || 'Option ' + (i + 1)), votes: P[i] + (P[i] === 1 ? ' pt' : ' pts'), pct: Math.round(P[i] / mx * 100) })),
+      runners: others.length ? 'Beat ' + others.join(' and ') : ''
+    };
+  }
+
+  const photo = (v, alt) => `<div class="ha-photo">${v.img ? `<img src="${esc(v.img)}" alt="${esc(alt)}" loading="lazy">` : '<span class="ph-tile" aria-hidden="true"><i class="ph ph-cigarette"></i></span>'}</div>`;
+
+  function lastRound(v) {
+    return `<article class="ha-last" aria-label="Last round's final choice">
+      ${photo(v, v.winner)}
+      <div class="ha-info">
+        <span class="kk">${esc('Last round · round ' + v.n + (v.date ? ' · ' + v.date : ''))}</span>
+        <span class="w">${esc(v.winner)}</span>
+        <span class="meta">${esc(v.meta)}</span>
+        <div class="ha-std">
+          <span class="ha-k">Final standings</span>
+          ${v.opts.map(o => `<div class="ha-opt${o.win ? ' win' : ''}"><span class="n">${esc(o.name)}</span><span class="v">${esc(o.votes)}</span><div class="trk"><div class="fl" style="width:${o.pct}%"></div></div></div>`).join('')}
+        </div>
+      </div>
+    </article>`;
+  }
+
+  function earlierRound(v) {
+    return `<article class="ha-rd">
+      ${photo(v, v.winner)}
+      <span class="ha-k">${esc('Round ' + v.n + (v.date ? ' · ' + v.date : ''))}</span>
+      <span class="w">${esc(v.winner)}</span>
+      <span class="meta">${esc(v.meta)}</span>
+      ${v.runners ? `<span class="run">${esc(v.runners)}</span>` : ''}
+    </article>`;
+  }
+
+  function draw(body, rounds, err) {
+    const V = rounds.map(view);
+    const lede = err ? '' : V.length ? 'Every round, what we asked for and what won.' : 'Nothing yet. Once Hank closes the first vote, the winner lands here.';
+    body.innerHTML = `<div class="ha">
+      <div class="ha-lede"><span class="ha-k">The archive</span><h1 class="neon-pink">What the yard's smoked</h1>${lede ? `<p>${esc(lede)}</p>` : ''}</div>
+      ${err ? `<p class="ha-err" role="alert">${esc("Couldn't load the archive: " + err)}</p>` : ''}
+      ${V[0] ? lastRound(V[0]) : ''}
+      ${V.length > 1 ? `<section class="ha-earlier" aria-labelledby="earlier-h"><h2 id="earlier-h">Earlier rounds</h2><div class="ha-grid">${V.slice(1).map(earlierRound).join('')}</div></section>` : ''}
+    </div>`;
+  }
+
+  (async function () {
+    const H = await Humidor.start('archive');
+    if (!H) { const b = document.getElementById('hm-body'); if (b && b.textContent.trim()) FY.toast(b.textContent.trim()); return; }
+    const body = H.main, chip = document.querySelector('.hm-chip');
+    let rounds;
+    try { const a = await FY.rpc('humidor_archive'); rounds = Array.isArray(a) ? a : []; }
+    catch (e) { draw(body, [], e.message); FY.toast(e.message); return; }
+    if (chip) chip.textContent = rounds.length + (rounds.length === 1 ? ' round smoked' : ' rounds smoked');
+    draw(body, rounds, null);
+  })().catch(e => FY.toast(e.message));
+})();
+</script>
+</body>
+</html>
