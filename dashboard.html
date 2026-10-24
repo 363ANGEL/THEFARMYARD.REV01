@@ -5,9 +5,41 @@
 <title>The Farmyard · Dashboard</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <link rel="stylesheet" href="app.css">
 <link rel="stylesheet" href="farmyard.css">
 <link rel="stylesheet" href="barn.css">
+<style>
+/* Pinned paper Top 5 cards, ported from 1.0 BARN DASHBOARD.dc.html */
+.t5-wall{display:flex;justify-content:flex-start;gap:28px;flex-wrap:wrap;padding-top:8px}
+.t5{position:relative;width:100%;max-width:440px;transform:rotate(-1.6deg);filter:drop-shadow(0 12px 14px rgba(0,0,0,.55))}
+.t5.tilt-r{transform:rotate(1.4deg)}
+.t5-paper{position:relative;padding:22px 18px 22px 16px;background:radial-gradient(ellipse 60% 40% at 82% 78%,rgba(120,96,60,.16),transparent 70%),radial-gradient(ellipse 30% 22% at 12% 20%,rgba(0,0,0,.22),transparent 70%),linear-gradient(176deg,#23263a 0%,#1c1e2e 55%,#191a28 100%);clip-path:polygon(0 1.5%,6% 0,18% .8%,31% 0,47% 1%,60% .2%,74% 1.2%,88% 0,100% 1.4%,99.4% 14%,100% 29%,99.2% 44%,100% 58%,99.5% 72%,100% 86%,96% 100%,91% 97.6%,84% 100%,76% 97.8%,69% 99.6%,61% 97.2%,53% 99.8%,45% 97.6%,37% 99.5%,29% 97%,21% 99.6%,13% 97.4%,6% 99.4%,0 97.8%,.6% 82%,0 64%,.7% 47%,0 30%,.5% 14%)}
+.t5-curl{position:absolute;right:0;bottom:0;width:26px;height:26px;background:linear-gradient(135deg,transparent 50%,#2c3048 50%,#14151f 100%);box-shadow:-2px -2px 4px rgba(0,0,0,.4)}
+.t5-fold{position:absolute;left:8%;right:30%;top:46%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),rgba(0,0,0,.3),transparent);transform:rotate(.6deg)}
+.t5-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px}
+.t5-ttl{font-size:15px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--neon-pink-text);text-shadow:0 0 6px rgba(224,21,127,.6)}
+.t5-by{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fy-text-label);white-space:nowrap}
+.t5-grid{display:grid;grid-template-columns:26px minmax(0,1fr) 44px 52px;gap:8px}
+.t5-cols{padding-bottom:5px;border-bottom:1px dashed rgba(95,211,207,.45);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)}
+.t5-cols .r,.t5-row .r{text-align:right}
+.t5-rows{display:flex;flex-direction:column;gap:6px;padding-top:7px}
+.t5-row{align-items:center;font-size:14px;min-width:0}
+.t5-row .pos{font-variant-numeric:tabular-nums;color:var(--fy-text-label);font-size:12px}
+.t5-row .pl{display:flex;align-items:center;gap:6px;min-width:0}
+.t5-row .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t5-row .won{font-variant-numeric:tabular-nums;font-weight:600;color:var(--neon-pink-text)}
+.t5-row .sub{font-variant-numeric:tabular-nums;color:var(--fy-text-secondary)}
+.t5-row .ph-crown-simple{font-size:17px;color:#ffd84a;text-shadow:0 0 4px #ffb800,0 0 12px rgba(255,184,0,.7)}
+.t5-row .medal{font-family:'Segoe UI Symbol','Noto Sans Symbols 2','DejaVu Sans',serif;font-size:17px;line-height:1}
+.t5-row .medal.silver{color:#e4ecf0;text-shadow:0 0 4px #c9d6dd,0 0 12px rgba(201,214,221,.7)}
+.t5-row .medal.copper{color:#d9894f;text-shadow:0 0 4px #b8692f,0 0 12px rgba(184,105,47,.75)}
+.t5-foot{display:flex;justify-content:flex-end;margin-top:12px;padding-top:10px;border-top:1px solid rgba(95,211,207,.2)}
+.t5-foot a{display:inline-flex;align-items:center;min-height:44px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--neon-teal);text-decoration:none;text-shadow:0 0 5px rgba(95,211,207,.5)}
+.t5-foot a:hover,.t5-foot a:focus-visible{color:#c8f4f2;text-shadow:0 0 8px var(--neon-teal),0 0 16px rgba(95,211,207,.6)}
+.t5-pin{position:absolute;top:-7px;left:50%;margin-left:-7px;width:14px;height:14px;border-radius:50%;background:var(--neon-pink);box-shadow:0 0 6px var(--neon-pink),0 0 14px rgba(224,21,127,.55),0 3px 4px rgba(0,0,0,.6)}
+.t5-pin-shade{position:absolute;top:-2px;left:50%;margin-left:8px;width:10px;height:6px;border-radius:0 0 6px 6px;background:rgba(0,0,0,.35);transform:rotate(-20deg)}
+</style>
 <script src="fy-clucks.js"></script>
 </head>
 <body>
@@ -15,15 +47,50 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script>
 <script>
-/* 1.0 BARN DASHBOARD. Content beyond the header is still an open decision (BUILD-PLAN), so the
-   design's placeholders stand until it is. */
+/* 1.0 BARN DASHBOARD. The two pinned Top 5 cards are ported from the design; the tiles below are
+   still the design's placeholders (BUILD-PLAN). */
+
+// One Top 5 row set. rows: [{ pos, name, won, sub }], already in order; every value is escaped here.
+// First three get the design's marks (gold crown, silver queen, copper bishop) once they have a win.
+function top5Rows(rows) {
+  return (rows || []).slice(0, 5).map((r, i) => {
+    const mark = !(r.won > 0) ? '' : i === 0 ? '<i class="ph-fill ph-crown-simple" aria-label="First place"></i>'
+      : i === 1 ? '<span class="medal silver" role="img" aria-label="Second place">&#9819;&#xFE0E;</span>'
+      : i === 2 ? '<span class="medal copper" role="img" aria-label="Third place">&#9821;&#xFE0E;</span>' : '';
+    return `<div class="t5-grid t5-row"><span class="pos">${FY.esc(r.pos)}</span><span class="pl"><span class="nm">${FY.esc(r.name)}</span>${mark}</span>
+      <span class="r won">${FY.esc(r.won)}</span><span class="r sub">${FY.esc(r.sub)}</span></div>`;
+  }).join('');
+}
+
+// One pinned paper card. c: { title, tag, cols: [won, sub], rows, href, link, tilt }; all strings are page constants.
+function top5Card(c) {
+  return `<div class="t5${c.tilt ? ' tilt-r' : ''}">
+    <div class="t5-paper"><span class="t5-curl"></span><span class="t5-fold"></span>
+      <div class="t5-top"><span class="t5-ttl">${c.title}</span><span class="t5-by">${c.tag || ''}<span>Pinned by Hank</span></span></div>
+      <div class="t5-grid t5-cols"><span>Pos</span><span>Player</span><span class="r">${c.cols[0]}</span><span class="r">${c.cols[1]}</span></div>
+      <div class="t5-rows">${top5Rows(c.rows)}</div>
+      <div class="t5-foot"><a href="${c.href}">${c.link}</a></div>
+    </div>
+    <span class="t5-pin"></span><span class="t5-pin-shade"></span>
+  </div>`;
+}
+
 (async function () {
   const B = await Barn.open('yard'); if (!B) return;
   const { main } = B;
-  const members = (await FY.q('v_members_public').select('id')).data || [];
+  const [membersRes, board] = await Promise.all([FY.q('v_members_public').select('id'), FY.rpc('poker_board').catch(e => (FY.toast(e.message), null))]);
+  const members = membersRes.data || [];
+  // fy.poker_board returns rows ordered by rank, or null for anyone who is not a member.
+  const pokerTop = ((board && board.rows) || []).map(r => ({ pos: r.rank, name: r.nickname, won: r.won, sub: r.buyins }));
+  // Football has no data yet: the design's sample rows, tagged as such.
+  const footTop = [['Hank', 5, 115], ['Tali', 3, 112], ['Dmitri', 2, 104], ['Beck', 1, 96], ['Ray', 1, 93]]
+    .map(([name, won, tokens], i) => ({ pos: i + 1, name, won, sub: tokens }));
   main.innerHTML = `
     <div class="head"><h2 class="hd2">Dashboard</h2><span class="tag tag-neutral">${members.length} in the yard</span></div>
-    <div class="placeholder" style="min-height:175px;font-size:22px">PLACE HOLDER</div>
+    <div class="t5-wall">
+      ${top5Card({ title: 'Poker League · Top 5', cols: ['Wins', 'Buy-ins'], rows: pokerTop, href: 'poker.html', link: 'Full league in the Poker Room →' })}
+      ${top5Card({ title: 'Football League · Top 5', tag: '<span class="tag tag-neutral">Sample</span>', cols: ['Pots', 'Tokens'], rows: footTop, href: 'football.html', link: 'Full Token League →', tilt: true })}
+    </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
       <div class="placeholder" style="min-height:96px;font-size:15px;border-radius:10px">PLACE HOLDER</div>
     </div>`;
