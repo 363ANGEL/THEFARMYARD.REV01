@@ -5,7 +5,7 @@
 (function () {
   const esc = s => FY.esc(s);
   const DISCORD = { guild: '1490100899920740483', lounge: '1527009971999608902', parked: '1490100901464248321' };
-  const PAGES = { yard: 'dashboard.html', poker: 'poker.html', profile: 'profile.html' };
+  const PAGES = { yard: 'dashboard.html', poker: 'poker.html', football: 'football.html', calendar: 'calendar.html', humidor: 'humidor.html', profile: 'profile.html' };
   const VOICE_KEY = 'fy.voice';
   const voice = {
     get() { try { return sessionStorage.getItem(VOICE_KEY); } catch (e) { return null; } },
@@ -71,6 +71,11 @@
         ${link('yard', 'ph ph-squares-four', 'Dashboard')}
         <div class="label">Sections</div>
         ${link('poker', 'ph ph-club', 'Poker')}
+        ${link('football', 'ph ph-soccer-ball', 'Football : League')}
+        <div class="label">Core</div>
+        ${link('calendar', 'ph ph-calendar-blank', 'Calendar')}
+        <div class="label">Cigars</div>
+        ${link('humidor', 'ph ph-cigarette', 'The Humidor')}
         <div class="grow"></div>
         <div class="sep" style="margin:0 6px"></div>
         <div class="vc ${v ? '' : 'breathe'}" id="vc">${[...'Voice channel'].map(c => `<span>${c}</span>`).join('')}</div>
