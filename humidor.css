@@ -1,0 +1,39 @@
+/* The Humidor: shared header, tabs and motion for the five humidor*.html pages. Loaded after barn.css.
+   Colours are farmyard.css tokens; pink text is --neon-pink-text, --neon-pink is glow only. */
+:root{--hint-text:#c8f4f2}   /* README token; not yet in farmyard.css */
+
+/* Header: title + round chip, Home tagline, tab row (.switcher > .tab from app.css, hit target raised to 44px) */
+.hm-head{display:flex;flex-direction:column;gap:12px}
+.hm-titlerow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.hm-chip:empty{display:none}
+.hm-tagline{margin:0;font-size:15px;line-height:1.5;color:var(--fy-text-secondary);text-wrap:pretty}
+.hm-tabs.switcher{margin:0;gap:6px}
+.hm-tabs .tab{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;box-sizing:border-box;font-size:13px;text-decoration:none;white-space:nowrap}
+.hm-tabs .tab:not([aria-selected="true"]):hover{border-color:var(--neon-teal);color:var(--hint-text)}
+.hm-tabs .tab[aria-selected="true"]{border-color:var(--neon-pink-tube);color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
+.hm-tabs .tab small{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label);white-space:nowrap}
+.hm-body{display:flex;flex-direction:column;gap:14px;min-width:0}
+
+/* Live dot (This round kicker): grey when idle, green when a round is open */
+.hm-dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex:none;background:color-mix(in srgb,var(--fy-text) 35%,transparent)}
+.hm-dot.on{background:var(--neon-green-tube)}
+
+/* Motion (README "Behaviour notes"). Keyframes and their uses only run when motion is welcome. */
+@media (prefers-reduced-motion:no-preference){
+  @keyframes charBreath{0%,100%{filter:drop-shadow(0 0 0px rgba(224,21,127,0)) brightness(.85)}40%,60%{filter:drop-shadow(0 0 14px rgba(224,21,127,.95)) drop-shadow(0 0 40px rgba(224,21,127,.6)) brightness(1.08)}}
+  @keyframes rollBreath{0%,100%{box-shadow:0 0 5px color-mix(in srgb,var(--neon-green-tube) 50%,transparent),0 0 12px color-mix(in srgb,var(--neon-green-tube) 30%,transparent)}50%{box-shadow:0 0 10px color-mix(in srgb,var(--neon-green-tube) 95%,transparent),0 0 28px color-mix(in srgb,var(--neon-green-tube) 60%,transparent)}}
+  @keyframes infoBreath{0%,100%{box-shadow:0 0 4px color-mix(in srgb,var(--neon-teal) 35%,transparent),0 0 10px color-mix(in srgb,var(--neon-teal) 20%,transparent)}50%{box-shadow:0 0 9px color-mix(in srgb,var(--neon-teal) 80%,transparent),0 0 22px color-mix(in srgb,var(--neon-teal) 45%,transparent)}}
+  @keyframes editFlash{0%,100%{box-shadow:0 0 4px color-mix(in srgb,var(--neon-pink-tube) 35%,transparent),0 0 10px color-mix(in srgb,var(--neon-pink) 20%,transparent);border-color:color-mix(in srgb,var(--neon-pink-tube) 60%,transparent)}50%{box-shadow:0 0 10px color-mix(in srgb,var(--neon-pink-tube) 95%,transparent),0 0 26px color-mix(in srgb,var(--neon-pink) 60%,transparent);border-color:var(--neon-pink-tube)}}
+  @keyframes liveDot{0%,100%{opacity:.55;box-shadow:0 0 3px color-mix(in srgb,var(--neon-green-tube) 40%,transparent)}50%{opacity:1;box-shadow:0 0 8px var(--neon-green-tube),0 0 16px color-mix(in srgb,var(--neon-green-tube) 60%,transparent)}}
+  @keyframes popIn{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
+  @keyframes prefIn{from{transform:translateX(-24px);opacity:0}to{transform:none;opacity:1}}
+
+  .hm-char{animation:charBreath 6s ease-in-out infinite}
+  .hm-roll{animation:rollBreath 2.6s ease-in-out infinite}
+  .hm-info{animation:infoBreath 2.8s ease-in-out infinite}
+  .hm-edit{animation:editFlash 1.4s ease-in-out infinite}
+  .hm-dot.on{animation:liveDot 1.6s ease-in-out infinite}
+  .hm-pop{animation:popIn .5s ease-out}
+  .hm-pref{animation:prefIn .5s ease-out}
+  .hm-tabs .tab{transition:background .15s,box-shadow .15s,border-color .15s,color .15s}
+}
