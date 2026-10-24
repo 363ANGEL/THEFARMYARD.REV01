@@ -34,7 +34,7 @@ $$;
 do $$
 declare ray uuid; sock uuid; pants uuid; tok text; tok2 text; ev uuid; n int; i fy.iou; d text;
         cp uuid; iou1 uuid; iou2 uuid; st text; r int; spare uuid; ta text; tb text;
-        tbl uuid; tbl2 uuid; pj jsonb; ev2 uuid;
+        tbl uuid; tbl2 uuid; pj jsonb; ev2 uuid; hr uuid; hw int; hn numeric;
 begin
   select id into ray from fy.member where nickname = 'RAY';
 
@@ -662,6 +662,174 @@ begin
   select revolut_url into d from fy.member where id = sock; assert d = 'https://revolut.me/thesock', 'cannot set another member''s link';
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000005');
   select count(*) into n from fy.member; assert n = 0, 'no-profile account still reads no members';
+
+  -- ===== The Humidor =====
+  -- Users: 1 RAY (leader), 2 Sock, 3 Pants, 4 Spare (never sends a taste), 5 a signed-in account with no profile.
+  -- Errors are checked by SQLSTATE: 42501 not allowed, 23505 duplicate, 55000 not now, 22023 bad input.
+
+  -- A signed-in account with no profile reads nothing and cannot send a taste.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000005');
+  assert fy.humidor_current() is null, 'no profile reads no humidor';
+  begin perform fy.humidor_submit_prefs('{"size":"Robusto"}'); raise exception 'should have failed: no profile sends a taste';
+  exception when others then if sqlstate <> '42501' then raise; end if; end;
+
+  -- A member cannot run the leader's buttons, or read the tables around the RPCs.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  begin perform fy.humidor_open_round(); raise exception 'should have failed: member opens a round';
+  exception when others then if sqlstate <> '42501' then raise; end if; end;
+  begin perform fy.humidor_set_stage(1); raise exception 'should have failed: member pins the stage';
+  exception when others then if sqlstate <> '42501' then raise; end if; end;
+  begin perform fy.humidor_place_order(); raise exception 'should have failed: member places the order';
+  exception when others then if sqlstate <> '42501' then raise; end if; end;
+  begin select count(*) into n from fy.humidor_round; raise exception 'should have failed: member reads humidor_round directly';
+  exception when insufficient_privilege then null; end;
+
+  -- Stage pin: league-wide, works with no round open, 0 to 4 or null.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  perform fy.humidor_set_stage(3);
+  pj := fy.humidor_current();
+  assert pj->>'stage' = '3', 'stage pinned to 3, got ' || coalesce(pj->>'stage', 'null');
+  assert jsonb_typeof(pj->'round') = 'null', 'no round open yet';
+  begin perform fy.humidor_set_stage(5); raise exception 'should have failed: stage 5';
+  exception when others then if sqlstate <> '22023' then raise; end if; end;
+  perform fy.humidor_set_stage(null);
+  assert fy.humidor_current()->>'stage' is null, 'stage pin cleared';
+
+  -- Opening: one open round per league.
+  hr := fy.humidor_open_round();
+  begin perform fy.humidor_open_round(); raise exception 'should have failed: a second open round';
+  exception when others then if sqlstate <> '23505' then raise; end if; end;
+  pj := fy.humidor_current();
+  assert pj->'round'->>'id' = hr::text and pj->'round'->>'status' = 'collecting' and (pj->'round'->>'n')::int = 1, 'round 1 is collecting';
+
+  -- Prefs: a member submits twice and keeps one row; ranking is not open yet.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  perform fy.humidor_submit_prefs('{"size":"Robusto","budget":"Under £15"}');
+  perform fy.humidor_submit_prefs('{"size":"Corona","budget":"Under £15"}');
+  begin perform fy.humidor_cast_ranking('{0,1,2}'); raise exception 'should have failed: ranking while collecting';
+  exception when others then if sqlstate <> '55000' then raise; end if; end;
+  begin perform fy.humidor_submit_prefs('[1,2,3]'); raise exception 'should have failed: prefs not an object';
+  exception when others then if sqlstate <> '22023' then raise; end if; end;
+  begin perform fy.humidor_submit_prefs(jsonb_build_object('notes', repeat('a', 5000))); raise exception 'should have failed: prefs over 4 KB';
+  exception when others then if sqlstate <> '22023' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  perform fy.humidor_submit_prefs('{"size":"Robusto"}');
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.humidor_pref where round_id = hr and member_id = sock; assert n = 1, 'two submits leave one row, got ' || n;
+  select prefs->>'size' into d from fy.humidor_pref where round_id = hr and member_id = sock; assert d = 'Corona', 'the second submit wins';
+
+  -- Posting options: hostile input is refused server side; names are text and stored unchanged.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  begin perform fy.humidor_post_options('[{"name":"A"},{"name":"B"}]'); raise exception 'should have failed: two options';
+  exception when others then if sqlstate <> '22023' then raise; end if; end;
+  begin perform fy.humidor_post_options('[{"name":"A","img":"javascript:alert(1)"},{"name":"B"},{"name":"C"}]'); raise exception 'should have failed: javascript img';
+  exception when others then if sqlstate <> '22023' then raise; end if; end;
+  begin perform fy.humidor_post_options('[{"name":"A","url":"https://shop.example/a\"b"},{"name":"B"},{"name":"C"}]'); raise exception 'should have failed: quote in url';
+  exception when others then if sqlstate <> '22023' then raise; end if; end;
+  begin perform fy.humidor_post_options('[{"name":"  "},{"name":"B"},{"name":"C"}]'); raise exception 'should have failed: blank name';
+  exception when others then if sqlstate <> '22023' then raise; end if; end;
+  perform fy.humidor_post_options('[{"name":"<img src=x onerror=alert(1)>","price":"£9","url":"https://shop.example/a"},{"name":"Option B","price":"10-15","img":""},{"name":"Option C","price":"£12.50","img":"https://shop.example/c.jpg"}]');
+  pj := fy.humidor_current();
+  assert pj->'round'->>'status' = 'ranking', 'three options move the round to ranking';
+  assert pj->'round'->'options'->0->>'name' = '<img src=x onerror=alert(1)>', 'names are stored unchanged';
+
+  -- Ranking: only members who sent a taste; a permutation of 0..2.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000004');
+  begin perform fy.humidor_cast_ranking('{0,1,2}'); raise exception 'should have failed: ranking with no taste sent';
+  exception when others then if sqlstate <> '42501' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  begin perform fy.humidor_cast_ranking('{0,0,1}'); raise exception 'should have failed: option ranked twice';
+  exception when others then if sqlstate <> '22023' then raise; end if; end;
+  perform fy.humidor_cast_ranking('{2,0,1}');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  perform fy.humidor_cast_ranking('{0,2,1}');
+
+  -- Tie-break A: options 0 and 2 have 5 points and one first each, so the lowest index wins.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  hw := fy.humidor_close_ranking();
+  assert hw = 0, 'tie on points and firsts goes to option 0, got ' || hw;
+
+  -- Tie-break on firsts: {1,0,2} and {2,0,1} give every option 4 points; options 1 and 2 have a first, 0 has none.
+  perform pg_temp.as_owner();
+  update fy.humidor_round set status = 'ranking', winner = null where id = hr;
+  delete from fy.humidor_ballot where round_id = hr;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  perform fy.humidor_cast_ranking('{1,0,2}');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  perform fy.humidor_cast_ranking('{2,0,1}');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  hw := fy.humidor_close_ranking();
+  assert hw = 1, 'most firsts beats the lower index, got ' || hw;
+
+  -- Tie-break B, same round: {2,0,1} and {2,1,0} make option 2 the winner.
+  perform pg_temp.as_owner();
+  update fy.humidor_round set status = 'ranking', winner = null where id = hr;
+  delete from fy.humidor_ballot where round_id = hr;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  perform fy.humidor_cast_ranking('{2,0,1}');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  perform fy.humidor_cast_ranking('{2,1,0}');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  hw := fy.humidor_close_ranking();
+  assert hw = 2, 'option 2 wins round B, got ' || hw;
+
+  -- Price: the share is the winner's price; _gbp reads the first number and is internal only.
+  perform pg_temp.as_owner();
+  select share_gbp into hn from fy.humidor_round where id = hr;
+  assert hn = 12.50, 'share is the winner''s price, got ' || coalesce(hn::text, 'null');
+  assert (select fy._gbp('10-15')) = 10, '_gbp(10-15) = 10';
+  assert (select fy._gbp('£ 9')) = 9, '_gbp(£ 9) = 9';
+  assert (select fy._gbp('ask')) is null, '_gbp(ask) is null';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  begin perform fy._gbp('£5'); raise exception 'should have failed: internal _gbp';
+  exception when insufficient_privilege then null; end;
+
+  -- Payments: options are frozen; mark paid is pending, the leader confirms, and a second mark never downgrades.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  begin perform fy.humidor_post_options('[{"name":"A"},{"name":"B"},{"name":"C"}]'); raise exception 'should have failed: posting while paying';
+  exception when others then if sqlstate <> '55000' then raise; end if; end;
+  begin perform fy.humidor_set_pay(12.50, 'javascript:alert(1)'); raise exception 'should have failed: bad pay link';
+  exception when others then if sqlstate <> '22023' then raise; end if; end;
+  perform fy.humidor_set_pay(12.50, 'https://revolut.me/ray');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  perform fy.humidor_mark_paid();
+  perform pg_temp.as_owner();
+  select state into st from fy.humidor_pay where round_id = hr and member_id = sock; assert st = 'pending', 'mark paid is pending, got ' || coalesce(st, 'null');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  perform fy.humidor_confirm_paid(sock, true);
+  perform pg_temp.as_owner();
+  select state into st from fy.humidor_pay where round_id = hr and member_id = sock; assert st = 'confirmed', 'leader confirms, got ' || coalesce(st, 'null');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  perform fy.humidor_mark_paid();
+  perform pg_temp.as_owner();
+  select state into st from fy.humidor_pay where round_id = hr and member_id = sock; assert st = 'confirmed', 'a second mark paid leaves it confirmed, got ' || coalesce(st, 'null');
+  -- The read carries every list with names.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  pj := fy.humidor_current();
+  assert jsonb_array_length(pj->'round'->'prefs') = 2 and jsonb_array_length(pj->'round'->'ballots') = 2
+     and jsonb_array_length(pj->'round'->'pays') = 1, 'current carries prefs, ballots and pays';
+  assert pj->'round'->'pays'->0->>'nickname' = 'The Sock' and pj->'round'->'pays'->0->>'state' = 'confirmed', 'pays carry the nickname and state';
+  assert pj->'round'->>'revolut_url' = 'https://revolut.me/ray' and (pj->'round'->>'share_gbp')::numeric = 12.50, 'current carries the pay link and share';
+
+  -- Closing: the order closes the round into the archive.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  perform fy.humidor_place_order();
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  pj := fy.humidor_archive();
+  assert jsonb_array_length(pj) = 1 and (pj->0->>'winner')::int = 2, 'archive holds 1 round, winner 2';
+  assert (pj->0->>'voters')::int = 2 and pj->0->'points' = '[3, 3, 6]'::jsonb, 'archive carries voters and points, got ' || (pj->0->'points')::text;
+  assert fy.humidor_current()->>'round' is null, 'no open round after the order';
+  -- The next round is number 2.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  hr := fy.humidor_open_round();
+  assert (fy.humidor_current()->'round'->>'n')::int = 2, 'the next round is number 2';
+
+  -- Birthday: a member sets their own day and month; fy.me() carries them; month 13 is refused.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  update fy.member set birth_day = 14, birth_month = 2 where id = sock;
+  assert (fy.me()).birth_month = 2 and (fy.me()).birth_day = 14, 'me() carries the birthday';
+  begin update fy.member set birth_month = 13 where id = sock; raise exception 'should have failed: month 13';
+  exception when check_violation then null; end;
 
   raise notice 'ALL TESTS PASSED';
 end $$;

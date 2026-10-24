@@ -26,11 +26,15 @@ create table if not exists fy.member (
   revolut_url text,   -- fy.me() builds a fy.member row by position: new columns go after this one, in this order
   avatar_url text,    -- a logo from fy.member_logo (New User Set-up / Profile); null = the avatar key above
   setup_at timestamptz,  -- when the member finished New User Set-up; null sends them there first
+  birth_day smallint check (birth_day between 1 and 31),     -- birthday, day of the month; null = not given
+  birth_month smallint check (birth_month between 1 and 12), -- birthday, month; null = not given
   unique (league_id, nickname)
 );
 alter table fy.member add column if not exists revolut_url text;
 alter table fy.member add column if not exists avatar_url text;
 alter table fy.member add column if not exists setup_at timestamptz;
+alter table fy.member add column if not exists birth_day smallint;
+alter table fy.member add column if not exists birth_month smallint;
 -- Members claimed before New User Set-up existed are not sent through it.
 update fy.member set setup_at = coalesce(setup_at, created_at) where user_id is not null and setup_at is null;
 
@@ -49,6 +53,13 @@ do $$ begin
   alter table fy.member drop constraint if exists member_avatar_url_check;
   alter table fy.member add constraint member_avatar_url_check
     check (avatar_url is null or avatar_url ~ '^https://[^\s"''<>()]+$');
+  -- Birthday (day and month only). Named as "create table" names them, so a fresh build skips these.
+  if not exists (select 1 from pg_constraint where conname = 'member_birth_day_check' and conrelid = 'fy.member'::regclass) then
+    alter table fy.member add constraint member_birth_day_check check (birth_day between 1 and 31);
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'member_birth_month_check' and conrelid = 'fy.member'::regclass) then
+    alter table fy.member add constraint member_birth_month_check check (birth_month between 1 and 12);
+  end if;
 end $$;
 
 -- Pre-made logos: RAY sets up to 8 per member (Supabase Storage public URLs); the member picks one.
@@ -197,7 +208,8 @@ grant select on fy.v_members_public, fy.v_standings, fy.v_overall, fy.v_badges t
 
 create or replace function fy.me() returns fy.member
 language sql stable security definer set search_path = fy, public as $$
-  select id, league_id, nickname, avatar, user_id, null::text, role, chesscom_username, created_at, revolut_url, avatar_url, setup_at
+  select id, league_id, nickname, avatar, user_id, null::text, role, chesscom_username, created_at, revolut_url, avatar_url, setup_at,
+         birth_day, birth_month
   from fy.member where user_id = auth.uid() limit 1;
 $$;
 
@@ -524,8 +536,9 @@ grant select on fy.iou, fy.settlement, fy.claim to authenticated;
 -- Column-level: every member column except discord_id, which only the leader's SQL editor sees.
 -- Revoke first: a re-run over an old table-wide grant must end with the column grant only.
 revoke select on fy.member from authenticated;
-grant select (id, league_id, nickname, avatar, user_id, role, chesscom_username, created_at, revolut_url, avatar_url, setup_at) on fy.member to authenticated;
-grant update (nickname, avatar, chesscom_username, revolut_url, avatar_url, setup_at) on fy.member to authenticated;
+grant select (id, league_id, nickname, avatar, user_id, role, chesscom_username, created_at, revolut_url, avatar_url, setup_at,
+  birth_day, birth_month) on fy.member to authenticated;
+grant update (nickname, avatar, chesscom_username, revolut_url, avatar_url, setup_at, birth_day, birth_month) on fy.member to authenticated;
 alter table fy.member_logo enable row level security;
 grant select on fy.member_logo to authenticated;
 drop policy if exists member_logo_read on fy.member_logo;
@@ -989,3 +1002,325 @@ grant execute on function fy.poker_start, fy.poker_set_link, fy.poker_take_seat,
   fy.poker_file_docket, fy.poker_undo_docket, fy.poker_current, fy.poker_board, fy.poker_debts, fy.poker_feeds to authenticated;
 -- Internals: callable only from the security-definer wrappers above.
 revoke all on function fy._record_poker_result, fy._void_event, fy._poker_ranking, fy._require_member from public;
+
+-- 6. The Humidor -------------------------------------------------------------
+-- The members' cigar club. A round: members send their taste (collecting) -> the leader posts three
+-- options (ranking) -> members rank them 3/2/1 -> the leader closes the ranking (paying) -> members pay
+-- their share -> the leader places the order (closed, and the round moves to the archive).
+-- Contract: handoff/2026-10-24-humidor (README + design/humidor-club.js). Pages poll humidor_current()
+-- every 5 s, so there is no Realtime publication and no table grants: reads go through the two read RPCs.
+
+-- Landing-page stage pin, league-wide: null follows the round, otherwise card 0-4. Survives new rounds.
+alter table fy.league add column if not exists humidor_stage smallint;
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'league_humidor_stage_check' and conrelid = 'fy.league'::regclass) then
+    alter table fy.league add constraint league_humidor_stage_check check (humidor_stage between 0 and 4);
+  end if;
+end $$;
+
+create table if not exists fy.humidor_round (
+  id uuid primary key default gen_random_uuid(),
+  league_id uuid not null references fy.league(id),
+  n int not null,                                   -- round number, per league
+  status text not null default 'collecting' check (status in ('collecting','ranking','paying','closed')),
+  options jsonb not null default '[]' check (jsonb_typeof(options) = 'array'),
+                                                    -- [{name,size,price,shop,url,note,img,origin,wrapper,strength,notes}] x3
+  winner int,                                       -- index into options
+  share_gbp numeric(6,2),
+  revolut_url text,
+  opened_at timestamptz not null default now(),
+  closed_at timestamptz
+);
+-- One open round per league.
+create unique index if not exists humidor_round_one_open on fy.humidor_round (league_id) where status <> 'closed';
+-- A member's taste for the round ("votes" in the prototype).
+create table if not exists fy.humidor_pref (
+  round_id uuid references fy.humidor_round(id) on delete cascade,
+  member_id uuid references fy.member(id),
+  prefs jsonb not null,   -- {size,time,strength,wr:[from,to],flavour:[],origin,budget,sizePrefs:{minR,maxR,maxT,shape}}
+  at timestamptz not null default now(),
+  primary key (round_id, member_id)
+);
+create table if not exists fy.humidor_ballot (
+  round_id uuid references fy.humidor_round(id) on delete cascade,
+  member_id uuid references fy.member(id),
+  rank int[] not null,    -- option indexes, best first
+  at timestamptz not null default now(),
+  primary key (round_id, member_id)
+);
+-- Member says sent (pending), leader confirms. No row = not paid, so not in the order.
+create table if not exists fy.humidor_pay (
+  round_id uuid references fy.humidor_round(id) on delete cascade,
+  member_id uuid references fy.member(id),
+  state text not null check (state in ('pending','confirmed')),
+  at timestamptz not null default now(),
+  primary key (round_id, member_id)
+);
+
+alter table fy.humidor_round enable row level security;
+alter table fy.humidor_pref enable row level security;
+alter table fy.humidor_ballot enable row level security;
+alter table fy.humidor_pay enable row level security;
+-- No grants and no policies: nobody reads or writes these tables directly.
+revoke all on fy.humidor_round, fy.humidor_pref, fy.humidor_ballot, fy.humidor_pay from anon, authenticated;
+
+-- Internal: the first price in a free-text price ("£12.50", "10-15", "£ 9"), or null ("ask").
+create or replace function fy._gbp(p text) returns numeric
+language sql immutable set search_path = fy, public as $$
+  select substring(btrim(p) from '^£?\s*(\d+(?:\.\d{1,2})?)')::numeric;
+$$;
+
+-- Internal: the league's open round, locked, if its status is one the caller allows; otherwise "not now".
+create or replace function fy._humidor_round(p_league uuid, p_need text[]) returns fy.humidor_round
+language plpgsql security definer set search_path = fy, public as $$
+declare r fy.humidor_round;
+begin
+  select * into r from fy.humidor_round where league_id = p_league and status <> 'closed' for update;
+  if r.id is null or not (r.status = any (p_need)) then
+    raise exception 'not now' using errcode = '55000';
+  end if;
+  return r;
+end $$;
+
+-- Internal: points per option for a round. 1st = 3, 2nd = 2, 3rd = 1; firsts counts the 1st places.
+-- Every option index appears, with 0 when nobody ranked it.
+create or replace function fy._humidor_points(p_round uuid)
+returns table (opt int, pts int, firsts int)
+language sql stable security definer set search_path = fy, public as $$
+  select g.i, coalesce(s.p, 0), coalesce(s.f, 0)
+  from fy.humidor_round r
+  cross join lateral generate_series(0, jsonb_array_length(r.options) - 1) g(i)
+  left join (
+    select e.o, sum(4 - e.pos)::int as p, (count(*) filter (where e.pos = 1))::int as f
+    from fy.humidor_ballot b
+    cross join lateral unnest(b.rank) with ordinality e(o, pos)
+    where b.round_id = p_round
+    group by e.o
+  ) s on s.o = g.i
+  where r.id = p_round;
+$$;
+
+-- Leader: open the next round. Its number is the league's highest so far plus one.
+create or replace function fy.humidor_open_round() returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; v_id uuid;
+begin
+  me := fy._require_leader();
+  begin
+    insert into fy.humidor_round (league_id, n)
+    select me.league_id, coalesce(max(n), 0) + 1 from fy.humidor_round where league_id = me.league_id
+    returning id into v_id;
+  exception when unique_violation then
+    raise exception 'a round is already open' using errcode = '23505';
+  end;
+  return v_id;
+end $$;
+
+-- Member: send or replace my taste for the round. Only while collecting.
+create or replace function fy.humidor_submit_prefs(p_prefs jsonb) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; r fy.humidor_round;
+begin
+  me := fy._require_member();
+  r := fy._humidor_round(me.league_id, array['collecting']);
+  if p_prefs is null or jsonb_typeof(p_prefs) <> 'object' or octet_length(p_prefs::text) >= 4096 then
+    raise exception 'your taste must be a JSON object under 4 KB' using errcode = '22023';
+  end if;
+  insert into fy.humidor_pref (round_id, member_id, prefs) values (r.id, me.id, p_prefs)
+  on conflict (round_id, member_id) do update set prefs = excluded.prefs, at = now();
+end $$;
+
+-- Leader: post the three options. Moves the round to ranking and clears its ballots (they ranked other options).
+-- Names and notes are stored as given (the pages escape them); url and img end up in href / src, so they
+-- must be empty or https with no quotes, brackets or spaces.
+create or replace function fy.humidor_post_options(p_options jsonb) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; r fy.humidor_round;
+begin
+  me := fy._require_leader();
+  r := fy._humidor_round(me.league_id, array['collecting', 'ranking']);
+  if p_options is null or jsonb_typeof(p_options) <> 'array' or jsonb_array_length(p_options) <> 3 then
+    raise exception 'post exactly three options' using errcode = '22023';
+  end if;
+  if octet_length(p_options::text) >= 16384 then
+    raise exception 'the three options must be under 16 KB' using errcode = '22023';
+  end if;
+  if exists (select 1 from jsonb_array_elements(p_options) x
+             where jsonb_typeof(x) <> 'object' or coalesce(btrim(x->>'name'), '') = '') then
+    raise exception 'every option needs a name' using errcode = '22023';
+  end if;
+  if exists (select 1 from jsonb_array_elements(p_options) x
+             where coalesce(x->>'url', '') !~ '^(https://[^\s"''<>()]+)?$'
+                or coalesce(x->>'img', '') !~ '^(https://[^\s"''<>()]+)?$') then
+    raise exception 'links and photos must be https addresses' using errcode = '22023';
+  end if;
+  update fy.humidor_round set options = p_options, status = 'ranking', winner = null where id = r.id;
+  delete from fy.humidor_ballot where round_id = r.id;
+end $$;
+
+-- Leader: back from ranking to collecting (to take more tastes before posting again).
+create or replace function fy.humidor_reopen_collect() returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; r fy.humidor_round;
+begin
+  me := fy._require_leader();
+  r := fy._humidor_round(me.league_id, array['ranking']);
+  update fy.humidor_round set status = 'collecting' where id = r.id;
+end $$;
+
+-- Member who sent a taste this round: rank the options, best first, as a permutation of 0..n-1. Editable until closed.
+create or replace function fy.humidor_cast_ranking(p_rank int[]) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; r fy.humidor_round; v_n int;
+begin
+  me := fy._require_member();
+  r := fy._humidor_round(me.league_id, array['ranking']);
+  if not exists (select 1 from fy.humidor_pref where round_id = r.id and member_id = me.id) then
+    raise exception 'only members who sent their taste this round can rank' using errcode = '42501';
+  end if;
+  v_n := jsonb_array_length(r.options);
+  if p_rank is null or array_ndims(p_rank) is distinct from 1 or cardinality(p_rank) <> v_n
+     or (select array_agg(x order by x) from unnest(p_rank) x)
+        is distinct from (select array_agg(i order by i) from generate_series(0, v_n - 1) i) then
+    raise exception 'rank each option exactly once' using errcode = '22023';
+  end if;
+  insert into fy.humidor_ballot (round_id, member_id, rank) values (r.id, me.id, p_rank)
+  on conflict (round_id, member_id) do update set rank = excluded.rank, at = now();
+end $$;
+
+-- Leader: close the ranking. Winner = most points, then most firsts, then the lowest option index
+-- (as leader() in humidor-club.js). The share defaults to the winner's price. Returns the winner.
+create or replace function fy.humidor_close_ranking() returns int
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; r fy.humidor_round; v_win int; v_share numeric;
+begin
+  me := fy._require_leader();
+  r := fy._humidor_round(me.league_id, array['ranking']);
+  select p.opt into v_win from fy._humidor_points(r.id) p order by p.pts desc, p.firsts desc, p.opt asc limit 1;
+  v_share := fy._gbp(r.options -> v_win ->> 'price');
+  if v_share >= 10000 then v_share := null; end if;   -- does not fit numeric(6,2): the leader sets it by hand
+  update fy.humidor_round set winner = v_win, share_gbp = v_share, status = 'paying' where id = r.id;
+  return v_win;
+end $$;
+
+-- Leader: the share per member and the Revolut link members pay to. Null clears either.
+create or replace function fy.humidor_set_pay(p_share numeric, p_url text) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; r fy.humidor_round;
+begin
+  me := fy._require_leader();
+  r := fy._humidor_round(me.league_id, array['paying']);
+  if p_share is not null and round(p_share, 2) not between 0 and 9999.99 then
+    raise exception 'the share must be £0 to £9999.99' using errcode = '22023';
+  end if;
+  if p_url is not null and p_url !~ '^https://revolut\.me/[A-Za-z0-9._-]+$' then
+    raise exception 'that is not a revolut.me link' using errcode = '22023';
+  end if;
+  update fy.humidor_round set share_gbp = round(p_share, 2), revolut_url = p_url where id = r.id;
+end $$;
+
+-- Member who sent a taste this round: "I've paid". Pending until the leader confirms; never undoes a confirmation.
+create or replace function fy.humidor_mark_paid() returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; r fy.humidor_round;
+begin
+  me := fy._require_member();
+  r := fy._humidor_round(me.league_id, array['paying']);
+  if not exists (select 1 from fy.humidor_pref where round_id = r.id and member_id = me.id) then
+    raise exception 'only members who sent their taste this round can pay in' using errcode = '42501';
+  end if;
+  insert into fy.humidor_pay (round_id, member_id, state) values (r.id, me.id, 'pending')
+  on conflict (round_id, member_id) do nothing;
+end $$;
+
+-- Leader: the money landed (true) or it did not (false: the member is back to not paid).
+create or replace function fy.humidor_confirm_paid(p_member uuid, p_on boolean) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; r fy.humidor_round;
+begin
+  me := fy._require_leader();
+  r := fy._humidor_round(me.league_id, array['paying']);
+  if p_on is null then raise exception 'say true or false' using errcode = '22023'; end if;
+  if p_on then
+    if not exists (select 1 from fy.member where id = p_member and league_id = me.league_id) then
+      raise exception 'unknown member' using errcode = 'P0002';
+    end if;
+    insert into fy.humidor_pay (round_id, member_id, state) values (r.id, p_member, 'confirmed')
+    on conflict (round_id, member_id) do update set state = 'confirmed', at = now();
+  else
+    delete from fy.humidor_pay where round_id = r.id and member_id = p_member;
+  end if;
+end $$;
+
+-- Leader: order placed. The round closes and moves to the archive; unpaid voters are simply not in it.
+create or replace function fy.humidor_place_order() returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; r fy.humidor_round;
+begin
+  me := fy._require_leader();
+  r := fy._humidor_round(me.league_id, array['paying']);
+  update fy.humidor_round set status = 'closed', closed_at = now() where id = r.id;
+end $$;
+
+-- Leader: pin the landing page's "How a round works" card (0-4), or null to follow the round. Any time.
+create or replace function fy.humidor_set_stage(p_stage int) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member;
+begin
+  me := fy._require_leader();
+  if p_stage is not null and p_stage not between 0 and 4 then
+    raise exception 'the stage runs 0 to 4' using errcode = '22023';
+  end if;
+  update fy.league set humidor_stage = p_stage where id = me.league_id;
+end $$;
+
+-- Members: { stage, round }. stage = the league pin (null = follow the round); round = the open round
+-- with everyone's prefs, ballots and pays, or null. Null for anyone without a profile.
+create or replace function fy.humidor_current() returns jsonb
+language plpgsql stable security definer set search_path = fy, public as $$
+declare me fy.member; r fy.humidor_round;
+begin
+  select * into me from fy.member where user_id = auth.uid();
+  if me.id is null then return null; end if;
+  select * into r from fy.humidor_round where league_id = me.league_id and status <> 'closed' limit 1;
+  return jsonb_build_object(
+    'stage', (select l.humidor_stage from fy.league l where l.id = me.league_id),
+    'round', case when r.id is null then null else jsonb_build_object(
+      'id', r.id, 'n', r.n, 'status', r.status, 'options', r.options, 'winner', r.winner,
+      'share_gbp', r.share_gbp, 'revolut_url', r.revolut_url, 'opened_at', r.opened_at,
+      'prefs', coalesce((
+        select jsonb_agg(jsonb_build_object('member_id', p.member_id, 'nickname', m.nickname, 'avatar', m.avatar,
+                                            'avatar_url', m.avatar_url, 'prefs', p.prefs, 'at', p.at) order by p.at)
+        from fy.humidor_pref p join fy.member m on m.id = p.member_id where p.round_id = r.id), '[]'::jsonb),
+      'ballots', coalesce((
+        select jsonb_agg(jsonb_build_object('member_id', b.member_id, 'nickname', m.nickname, 'avatar', m.avatar,
+                                            'avatar_url', m.avatar_url, 'rank', to_jsonb(b.rank), 'at', b.at) order by b.at)
+        from fy.humidor_ballot b join fy.member m on m.id = b.member_id where b.round_id = r.id), '[]'::jsonb),
+      'pays', coalesce((
+        select jsonb_agg(jsonb_build_object('member_id', y.member_id, 'nickname', m.nickname, 'avatar', m.avatar,
+                                            'avatar_url', m.avatar_url, 'state', y.state, 'at', y.at) order by y.at)
+        from fy.humidor_pay y join fy.member m on m.id = y.member_id where y.round_id = r.id), '[]'::jsonb)
+    ) end);
+end $$;
+
+-- Members: closed rounds, newest first, with the final points per option. Null for anyone without a profile.
+create or replace function fy.humidor_archive() returns jsonb
+language plpgsql stable security definer set search_path = fy, public as $$
+declare me fy.member;
+begin
+  select * into me from fy.member where user_id = auth.uid();
+  if me.id is null then return null; end if;
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+             'n', r.n, 'closed_at', r.closed_at, 'options', r.options, 'winner', r.winner,
+             'voters', (select count(*) from fy.humidor_pref p where p.round_id = r.id),
+             'points', (select coalesce(jsonb_agg(x.pts order by x.opt), '[]'::jsonb) from fy._humidor_points(r.id) x)
+           ) order by r.closed_at desc, r.n desc)
+    from fy.humidor_round r where r.league_id = me.league_id and r.status = 'closed'), '[]'::jsonb);
+end $$;
+
+grant execute on function fy.humidor_open_round, fy.humidor_submit_prefs, fy.humidor_post_options, fy.humidor_reopen_collect,
+  fy.humidor_cast_ranking, fy.humidor_close_ranking, fy.humidor_set_pay, fy.humidor_mark_paid, fy.humidor_confirm_paid,
+  fy.humidor_place_order, fy.humidor_set_stage, fy.humidor_current, fy.humidor_archive to authenticated;
+-- Internals: callable only from the security-definer functions above.
+revoke all on function fy._gbp, fy._humidor_round, fy._humidor_points from public;
