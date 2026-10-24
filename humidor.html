@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · The Humidor</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
+<link rel="stylesheet" href="humidor.css">
+<style>
+/* 4.0 The Humidor · Home, ported from P15.009 HUMIDOR IN THE BARN REV.01.dc.html */
+.hh-how{display:flex;flex-direction:column;gap:12px}
+.hh-kick{margin:0;font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal)}
+.hh-steps{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:10px}
+.hh-step{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:10px;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);background:var(--fy-bg);min-width:0}
+.hh-step.now{border:2px solid var(--neon-teal);box-shadow:var(--glow-teal)}
+.hh-step .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hh-step .n{font-size:var(--text-small);font-weight:600;font-variant-numeric:tabular-nums;color:var(--neon-teal)}
+.hh-step .nowk{font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-green-text);text-shadow:0 0 6px color-mix(in srgb,var(--neon-green-tube) 60%,transparent)}
+.hh-step .t{font-size:var(--text-card-title);font-weight:500;line-height:1.2;color:var(--fy-text-body)}
+.hh-step.now .t{color:var(--color-neutral-100)}
+.hh-step .b{font-size:var(--text-small);line-height:1.45;color:var(--fy-text-secondary);text-wrap:pretty}
+
+.hh-round{display:flex;flex-direction:column;gap:16px;padding:18px;border-radius:10px;border:1px solid var(--neon-teal);box-shadow:var(--glow-teal);background:color-mix(in srgb,var(--fy-surface) 35%,var(--fy-bg));min-width:0}
+.hh-round .row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:14px 20px}
+.hh-round .lead{flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.hh-round .k{display:flex;align-items:center;gap:8px;font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)}
+.hh-round .k.live{color:var(--neon-green-text)}
+.hh-round .title{font-size:24px;font-weight:500;line-height:1.2;color:var(--color-neutral-100)}
+.hh-round .btn{min-height:44px;min-width:200px;text-decoration:none}
+.hh-crew{display:flex;flex-direction:column;gap:10px;padding-top:14px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 25%,transparent)}
+.hh-crew .count{font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label);font-variant-numeric:tabular-nums}
+.hh-crew ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:12px 16px}
+.hh-crew li{display:flex;flex-direction:column;align-items:center;gap:6px;width:56px}
+.hh-crew .av{position:relative;width:44px;height:44px}
+.hh-crew .av img{display:block;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--neon-teal);box-sizing:border-box;background:var(--fy-surface);object-fit:contain;box-shadow:0 0 6px color-mix(in srgb,var(--neon-teal) 40%,transparent)}
+.hh-crew .on .av img{border-color:var(--neon-green-text)}
+.hh-crew .tick{position:absolute;right:-4px;bottom:-4px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:var(--text-kicker);font-weight:700;line-height:1;background:var(--fy-bg);border:1.5px solid var(--neon-green-text);color:var(--neon-green-text);box-shadow:0 0 6px color-mix(in srgb,var(--neon-green-tube) 45%,transparent);box-sizing:border-box}
+.hh-crew .nm{width:100%;text-align:center;font-size:var(--text-meta);color:var(--fy-text-label);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hh-crew .on .nm{color:var(--color-neutral-100)}
+
+.hh-ol{position:relative;display:flex;flex-direction:column;gap:10px}
+.hh-ol .art{position:relative;width:100%}
+.hh-ol svg{display:block;width:100%;height:auto;overflow:visible}
+.hh-ol .over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;pointer-events:none;text-align:center}
+.hh-ol .num{display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums;line-height:1;color:var(--color-neutral-100);text-shadow:0 0 4px color-mix(in srgb,var(--color-neutral-100) 80%,transparent),0 0 14px color-mix(in srgb,var(--fy-text) 45%,transparent);background:color-mix(in srgb,var(--fy-bg) 72%,transparent);padding:4px 12px;border-radius:8px}
+.hh-ol .num .in{font-size:clamp(22px,4vw,44px);font-weight:500}
+.hh-ol .num .of{font-size:clamp(13px,1.8vw,20px);color:var(--hint-text)}
+.hh-ol .cap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 14px;font-size:var(--text-meta);letter-spacing:.08em;text-transform:uppercase}
+.hh-ol .cap .l{color:var(--neon-teal)}
+.hh-ol .cap .r{color:var(--fy-text-label)}
+@media (prefers-reduced-motion:no-preference){.hh-ol .fill{transition:width .6s ease-out}}
+</style>
+<script src="fy-clucks.js"></script>
+</head>
+<body>
+<div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script><script src="humidor.js"></script>
+<script>
+/* 4.0 The Humidor · Home. How a round works (five stage cards, NOW on the lit stage), This round (one pink
+   button, who's in), and the Salomón paid counter while stage 05 is lit. No inputs here, so the 5 s poll
+   redraws the whole body (R8 is about forms). Copy from the design's renderVals(). */
+(function () {
+  const esc = s => FY.esc(s);
+  // S[] from the design, verbatim.
+  const S = [['Submit your taste', 'Ring gauge, smoke time, shape, strength, wrapper and flavour. Two minutes.'],
+    ['Hank finds three', 'He turns the group’s taste into a brief and picks three that fit the budget.'],
+    ['Rank the three', '1st, 2nd, 3rd. Change your mind until Hank closes it.'],
+    ['One gets picked', 'Ranks are weighted 3, 2, 1. Top score wins. A tie goes to the most first places.'],
+    ['Pay your share', 'Transfer your share on Revolut. Hank closes the round and orders for whoever’s paid.']];
+  const byName = (a, b) => String(a.nickname || '').localeCompare(String(b.nickname || ''), 'en', { sensitivity: 'base' });
+  let members = [], body = null;
+
+  function view(d) {
+    const R = d && d.round;
+    const stt = R && ['collecting', 'ranking', 'paying'].includes(R.status) ? R.status : 'none';
+    const prefs = (R && R.prefs) || [], ballots = (R && R.ballots) || [], pays = (R && R.pays) || [];
+    const ids = rows => new Set(rows.map(x => x.member_id));
+    let st, pool = members, inSet = new Set(), label = '';
+    if (stt === 'collecting') {
+      inSet = ids(prefs); label = prefs.length + ' of ' + members.length + ' in';
+      st = { kicker: 'Round ' + R.n + ' · collecting', title: 'Tell Hank what you fancy', cta: 'SUBMIT YOUR TASTE', href: 'humidor-vote.html', live: true };
+    } else if (stt === 'ranking') {
+      pool = prefs.map(p => ({ id: p.member_id, nickname: p.nickname, avatar: p.avatar, avatar_url: p.avatar_url }));
+      inSet = ids(ballots); label = ballots.length + ' of ' + pool.length + ' ranked';
+      st = { kicker: 'Round ' + R.n + ' · ranking', title: 'Three cigars. Rank them.', cta: 'RANK THE THREE', href: 'humidor-results.html', live: true };
+    } else if (stt === 'paying') {
+      pool = prefs.map(p => ({ id: p.member_id, nickname: p.nickname, avatar: p.avatar, avatar_url: p.avatar_url }));
+      inSet = ids(pays.filter(p => p.state === 'confirmed')); label = pool.filter(m => inSet.has(m.id)).length + ' of ' + pool.length + ' paid';
+      const w = (R.options || [])[R.winner] || {};
+      st = { kicker: 'Round ' + R.n + ' · paying up', title: (w.name ? w.name + ' won' : 'Fill the cigar'), cta: 'PAY YOUR SHARE', href: 'humidor-results.html', live: true };
+    } else {
+      st = { kicker: 'No round open', title: 'The humidor’s stocked. For now.', cta: 'SET YOUR TASTE', href: 'humidor-vote.html', live: false };
+    }
+    const step = Humidor.stage(d);
+    // Paid counter, as the design: paid = members with a pay row (sent or confirmed), out of this round's voters.
+    const ps = Humidor.payState(d);
+    const nV = ps.voters, nIn = stt === 'paying' ? ps.confirmed + ps.pending : 0, frac = nV ? Math.min(1, nIn / nV) : 0;
+    const ol = { inN: String(nIn), ofN: nV ? String(nV) : '—', fillW: Math.round(870 * frac), edgeX: 15 + Math.round(870 * frac) - 4, edgeOp: frac > 0 && frac < 1 ? 1 : 0,
+      label: 'Paid of ' + nV + ' who voted',
+      caption: stt === 'paying' ? (frac >= 1 ? 'Full cigar · Hank’s ordering' : 'Pay to fill it') : stt === 'none' ? 'No round open' : 'Paying opens once the winner is picked',
+      aria: nIn + ' of ' + nV + ' paid' };
+    return { st, step, crew: pool.slice().sort(byName).map(m => ({ m, on: inSet.has(m.id) })), hasCrew: stt !== 'none', label, ol };
+  }
+
+  function draw(d) {
+    const v = view(d), st = v.st;
+    const steps = S.map((x, i) => `<li class="hh-step${i === v.step ? ' now' : ''}">
+        <div class="top"><span class="n">${String(i + 1).padStart(2, '0')}</span>${i === v.step ? '<span class="nowk">Now</span>' : ''}</div>
+        <span class="t">${x[0]}</span><span class="b">${x[1]}</span></li>`).join('');
+    const crew = v.crew.map(({ m, on }) => `<li class="${on ? 'on' : ''}">
+        <div class="av"><img src="${esc(FY.face(m, 44))}" alt="${esc(m.nickname)}" width="44" height="44">${on ? '<span class="tick" aria-label="Done">✓</span>' : ''}</div>
+        <span class="nm">${esc(m.nickname)}</span></li>`).join('');
+    const ol = v.ol;
+    body.innerHTML = `
+      <section class="hh-how" aria-labelledby="how-h"><h2 id="how-h" class="hh-kick">How a round works</h2><ol class="hh-steps">${steps}</ol></section>
+      <section class="hh-round" aria-label="This round">
+        <div class="row">
+          <div class="lead"><span class="k${st.live ? ' live' : ''}"><span class="hm-dot${st.live ? ' on' : ''}"></span><span>${esc(st.kicker)}</span></span>
+            <span class="title">${esc(st.title)}</span></div>
+          <a class="btn btn-primary" href="${st.href}">${st.cta}</a>
+        </div>
+        ${v.hasCrew ? `<div class="hh-crew"><span class="count">${esc(v.label)}</span><ul aria-label="Who's in">${crew}</ul></div>` : ''}
+      </section>
+      ${v.step === 4 ? `<section class="hh-ol" aria-label="${esc(ol.aria)}">
+        <div class="art">
+          <svg viewBox="0 0 900 140" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+            <defs>
+              <filter id="hm-ol" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"><feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1 -1 -1 0 2.7" result="a0"></feColorMatrix><feComponentTransfer in="a0" result="a"><feFuncA type="linear" slope="4" intercept="0"></feFuncA></feComponentTransfer><feMorphology in="a" operator="dilate" radius="2.5" result="d"></feMorphology><feComposite in="d" in2="a" operator="out" result="ring"></feComposite><feFlood style="flood-color:var(--neon-teal)" result="c"></feFlood><feComposite in="c" in2="ring" operator="in" result="line"></feComposite><feGaussianBlur in="line" stdDeviation="4" result="glow"></feGaussianBlur><feMerge><feMergeNode in="glow"></feMergeNode><feMergeNode in="line"></feMergeNode></feMerge></filter>
+              <filter id="hm-mk" color-interpolation-filters="sRGB"><feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 -1 -1 -1 0 2.7" result="a0"></feColorMatrix><feComponentTransfer in="a0"><feFuncA type="linear" slope="4" intercept="0"></feFuncA></feComponentTransfer></filter>
+              <mask id="hm-m" maskUnits="userSpaceOnUse" x="0" y="0" width="900" height="140"><image href="assets/humidor/salomon-outline-crop.png" x="0" y="0" width="900" height="140" filter="url(#hm-mk)"></image></mask>
+            </defs>
+            <g mask="url(#hm-m)"><rect class="fill" x="15" y="5" width="${ol.fillW}" height="130" fill="rgba(255,127,191,.22)"></rect><rect x="${ol.edgeX}" y="5" width="4" height="130" opacity="${ol.edgeOp}" style="fill:var(--neon-pink-tube);filter:drop-shadow(0 0 6px var(--neon-pink))"></rect></g>
+            <image href="assets/humidor/salomon-outline-crop.png" x="0" y="0" width="900" height="140" filter="url(#hm-ol)"></image>
+          </svg>
+          <div class="over"><span class="num"><span class="in">${ol.inN}</span><span class="of">/ ${ol.ofN}</span></span></div>
+        </div>
+        <div class="cap"><span class="l">${esc(ol.label)}</span><span class="r">${ol.caption}</span></div>
+      </section>` : ''}`;
+  }
+
+  (async function () {
+    const H = await Humidor.start('home');
+    if (!H) { const b = document.getElementById('hm-body'); if (b && b.textContent.trim()) FY.toast(b.textContent.trim()); return; }
+    members = H.members || []; body = H.main;
+    draw(H.data);
+    Humidor.poll(draw);   // synchronous onChange
+  })().catch(e => FY.toast(e.message));
+})();
+</script>
+</body>
+</html>

@@ -1,6 +1,8 @@
 /* The Humidor: shared header, tabs and motion for the five humidor*.html pages. Loaded after barn.css.
    Colours are farmyard.css tokens; pink text is --neon-pink-text, --neon-pink is glow only. */
 :root{--hint-text:#c8f4f2}   /* README token; not yet in farmyard.css */
+/* README "Tokens": the DS type scale and neutral-100 (#f3f5fe, FARMYARD DS REV P01), used by all five Humidor designs */
+:root{--text-page-title:28px;--text-brand:20px;--text-card-title:17px;--text-body-size:15px;--text-ui:14px;--text-small:13px;--text-meta:12px;--text-kicker:11px;--color-neutral-100:#f3f5fe}
 
 /* Header: title + round chip, Home tagline, tab row (.switcher > .tab from app.css, hit target raised to 44px) */
 .hm-head{display:flex;flex-direction:column;gap:12px}

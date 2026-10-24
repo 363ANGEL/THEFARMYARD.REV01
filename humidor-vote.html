@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · The Humidor · Vote</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
+<link rel="stylesheet" href="humidor.css">
+<style>
+/* 4.0 The Humidor · Vote (taste), ported from P15.003 HUMIDOR CHOOSE REV.05.dc.html.
+   DS tokens the design reads that the site does not define yet (FARMYARD DS REV P01 values; bronze and the
+   hint/popover edge are the site's own #cd7f32-like copper and #9eeae6 tube). */
+:root{--color-accent-2:#a7a1db;--color-neutral-500:#9397ab;--medal-silver:#e4ecf0;--medal-bronze:#cd7f32;--hint-border:#9eeae6}
+/* README §2: text x0.73 on tablet, x0.77 on mobile, never under 10px; title 32/26px */
+.hv{--ts:1;display:flex;flex-direction:column;gap:18px;min-width:0}
+@media (max-width:1099px){.hv{--ts:.73}.hm-head .hd2{font-size:32px}}
+@media (max-width:699px){.hv{--ts:.77}.hm-head .hd2{font-size:26px}}
+.t-k{font-size:max(10px,calc(var(--text-kicker) * var(--ts,1)))}
+.t-m{font-size:max(10px,calc(var(--text-meta) * var(--ts,1)))}
+.t-s{font-size:max(10px,calc(var(--text-small) * var(--ts,1)))}
+.t-u{font-size:max(10px,calc(var(--text-ui) * var(--ts,1)))}
+.t-b{font-size:max(10px,calc(var(--text-body-size) * var(--ts,1)))}
+.t-c{font-size:max(10px,calc(var(--text-card-title) * var(--ts,1)))}
+.t-br{font-size:max(10px,calc(var(--text-brand) * var(--ts,1)))}
+.t-pt{font-size:max(10px,calc(var(--text-page-title) * var(--ts,1)))}
+.t10{font-size:max(10px,calc(10px * var(--ts,1)))}
+.t16{font-size:max(10px,calc(16px * var(--ts,1)))}
+.t22{font-size:max(10px,calc(22px * var(--ts,1)))}
+.t24{font-size:max(10px,calc(24px * var(--ts,1)))}
+.hv .up{letter-spacing:.08em;text-transform:uppercase}
+.hv .up6{letter-spacing:.06em;text-transform:uppercase}
+.hv button,.hv select{font-family:inherit}
+.hv-teal{color:var(--neon-teal)}
+.hv-pinkh{margin:0;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink),0 0 6px color-mix(in srgb,var(--neon-pink) 80%,transparent)}
+.hv-pinkk{font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink),0 0 6px color-mix(in srgb,var(--neon-pink) 80%,transparent);opacity:.7}
+.hv-rule{height:1px;margin:0 18px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--neon-teal) 45%,transparent) 15%,color-mix(in srgb,var(--neon-teal) 45%,transparent) 85%,transparent)}
+.hv-rule.in{margin:6px 0}
+.hv-p{margin:0;line-height:1.5;color:var(--fy-text-label);max-width:none;text-wrap:pretty}
+.hv-change{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:10px 12px;border:1px dashed color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px;background:var(--fy-bg)}
+.hv-change b{color:var(--neon-pink-text);font-weight:500}
+.hv-box{display:flex;flex-direction:column;gap:16px;padding:14px 16px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);min-width:0;background:var(--fy-bg)}
+
+/* My preferences (sidebar copy at the top, inline copy at the foot of section 1) */
+.hv-prefwrap{display:flex;flex-direction:column}
+.hv-prefwrap .lab{margin-top:14px;color:var(--fy-text-label);padding:0 10px}
+.hv-pref{display:flex;gap:10px;border-radius:10px;border:1px solid color-mix(in srgb,var(--fy-text) 60%,transparent);box-shadow:0 0 8px color-mix(in srgb,var(--fy-text) 30%,transparent);background:color-mix(in srgb,var(--fy-text) 15%,transparent)}
+.hv-pref.same{border-color:var(--neon-green-tube);box-shadow:var(--glow-green)}
+.hv-pref.side{flex-direction:column;align-items:stretch;margin-top:6px;padding:12px}
+.hv-pref.inl{flex-wrap:wrap;align-items:flex-end;margin:14px 16px 16px;padding:12px 14px}
+.hv-pref label{display:flex;flex-direction:column;gap:4px;min-width:0}
+.hv-pref.side label{flex:0 0 auto}
+.hv-pref.inl label{flex:1 1 130px}
+.hv-pref .lt{letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text)}
+.hv-pref.inl .lt{color:var(--color-neutral-100);font-weight:600}
+.hv-sel{min-height:44px;padding:0 10px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text) 60%,transparent);box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 35%,transparent);background:var(--fy-bg);color:var(--fy-text);cursor:pointer;outline:none;width:100%}
+.hv-pref.inl .hv-sel{background:var(--fy-surface)}
+.hv-sel:hover,.hv-sel:focus{border-color:var(--color-neutral-100);box-shadow:0 0 6px color-mix(in srgb,var(--color-neutral-100) 90%,transparent),0 0 16px color-mix(in srgb,var(--fy-text) 55%,transparent)}
+.hv-tube{flex:0 0 auto;min-height:44px;padding:0 18px;border-radius:19px;background:transparent;cursor:pointer;letter-spacing:.08em;font-weight:600;white-space:nowrap;border:1.5px solid var(--color-neutral-100);color:var(--color-neutral-100);box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 35%,transparent);text-shadow:none}
+.hv-tube:hover{box-shadow:0 0 8px color-mix(in srgb,var(--color-neutral-100) 90%,transparent),0 0 18px color-mix(in srgb,var(--fy-text) 55%,transparent)}
+.hv-pref.inl .hv-tube{align-self:flex-end;min-height:44px;padding:0 14px}
+.hv-pref .note{line-height:1.4;color:var(--fy-text);white-space:normal}
+.hv-pref.inl .note{flex-basis:100%}
+@media (max-width:699px){.hv-pref.inl label{flex:1 1 100%}.hv-pref.inl .hv-tube{align-self:center;margin:4px auto 0;padding:0 12px}}
+
+/* Sections: gated, collapsible */
+.hv-secs{display:flex;flex-direction:column;gap:64px;min-width:0}
+@media (max-width:1099px){.hv-secs{gap:56px}}
+@media (max-width:699px){.hv-secs{gap:44px}}
+.hv-sec{display:flex;flex-direction:column;gap:0;min-width:0}
+.hv-sh{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:10px;border:1px solid color-mix(in srgb,var(--color-neutral-100) 55%,transparent);box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 35%,transparent);background:color-mix(in srgb,var(--fy-bg) 60%,transparent);outline:none;cursor:pointer;min-height:44px}
+.hv-sh:hover{background:color-mix(in srgb,var(--color-neutral-100) 6%,transparent)}
+.hv-sh:focus-visible{border-color:var(--color-neutral-100)}
+.hv-sh.glow{border-color:var(--neon-green-tube);box-shadow:0 0 8px color-mix(in srgb,var(--neon-green-tube) 60%,transparent)}
+.hv-sh.open{border-color:color-mix(in srgb,var(--neon-teal) 35%,transparent);box-shadow:none}
+.hv-sh.locked{border-color:color-mix(in srgb,var(--fy-text-label) 25%,transparent);box-shadow:none;opacity:.45;cursor:not-allowed}
+.hv-sh.voted{border-color:color-mix(in srgb,var(--neon-teal) 45%,transparent);box-shadow:none;cursor:default;pointer-events:none}
+.hv-shrow{display:flex;flex-wrap:nowrap;align-items:baseline;justify-content:space-between;gap:10px}
+.hv-sh h2{margin:0;font-size:max(10px,calc(clamp(22px,2.6vw,28px) * var(--ts,1)));font-weight:700;letter-spacing:-.01em;white-space:nowrap;color:var(--color-neutral-100);text-shadow:0 0 4px color-mix(in srgb,var(--color-neutral-100) 80%,transparent),0 0 14px color-mix(in srgb,var(--fy-text) 45%,transparent)}
+.hv-sh .verb{color:var(--fy-text-label);text-align:right}
+.hv-sh .st{display:flex;align-items:center;gap:10px;margin-left:auto;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text);white-space:nowrap}
+.hv-sh.locked .st{color:var(--fy-text-label)}
+.hv-sh.voted .st{color:var(--neon-green-text)}
+.hv-sh .arr{display:inline-block;line-height:1}
+.hv-sh.open .arr{transform:rotate(180deg)}
+@media (max-width:699px){.hv-shrow{flex-wrap:wrap;gap:4px 10px}.hv-sh h2{font-size:max(10px,calc(22px * var(--ts,1)));white-space:normal;text-wrap:balance}}
+.hv-sb{display:grid;grid-template-rows:0fr;opacity:0}
+.hv-sb.open{grid-template-rows:1fr;opacity:1}
+.hv-sbi{min-height:0;overflow:hidden;margin:0 -12px;padding:0 12px}
+.hv-sb.ov .hv-sbi{overflow:visible}
+.hv-sbc{display:flex;flex-direction:column;gap:16px;padding:16px 0 14px}
+
+/* 1 · Shape poster */
+.hv-m1{display:flex;flex-direction:column;gap:0;min-width:0;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:linear-gradient(color-mix(in srgb,var(--neon-green-tube) 8%,transparent),color-mix(in srgb,var(--neon-green-tube) 8%,transparent)),var(--fy-bg);overflow:hidden}
+.hv-rel{position:relative}
+.hv-ell{position:absolute;inset:0;background:radial-gradient(ellipse 70% 30% at 50% 50%,color-mix(in srgb,var(--neon-teal) 10%,transparent),transparent 70%);pointer-events:none}
+.hv-vl{position:absolute;top:50%;height:216px;margin-top:-108px;left:calc(136px + (100% - 200px) / 2);width:1px;background:color-mix(in srgb,var(--neon-teal) 18%,transparent);pointer-events:none}
+@media (max-width:699px){.hv-vl{display:none}}
+.poster{position:relative;height:244px;perspective:1000px;perspective-origin:50% 50%}
+@media (max-width:699px){.poster{height:404px}}
+.hv-arrow{position:absolute;border:0;background:transparent;color:var(--color-neutral-100);cursor:pointer;font-weight:700;line-height:1;z-index:20;display:grid;place-items:center;text-shadow:none;padding:0}
+.hv-slide{position:relative;z-index:16;margin-top:-18px;display:flex;flex-direction:column;gap:14px;padding:16px 20px 18px}
+@media (max-width:699px){.hv-slide{padding:12px 10px 14px}}
+.hv-range{position:relative;width:100%;height:28px;background:transparent;margin:0;accent-color:var(--fy-text);-webkit-appearance:none;appearance:none;outline:none;padding:0;border:0;box-shadow:none}
+.hv-range::-webkit-slider-runnable-track{height:28px;background:transparent}
+.hv-range::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:3px;border-radius:50%;background:var(--color-neutral-100);border:2px solid var(--color-neutral-100);box-shadow:0 0 4px color-mix(in srgb,var(--color-neutral-100) 70%,transparent),0 0 10px color-mix(in srgb,var(--fy-text) 40%,transparent);cursor:pointer}
+.hv-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--color-neutral-100);border:2px solid var(--color-neutral-100);box-shadow:0 0 4px color-mix(in srgb,var(--color-neutral-100) 70%,transparent),0 0 10px color-mix(in srgb,var(--fy-text) 40%,transparent);cursor:pointer}
+.hv-range:not(:disabled):hover::-webkit-slider-thumb{background:#fff;border-color:#fff;box-shadow:0 0 6px #fff,0 0 14px rgba(255,255,255,.85),0 0 26px color-mix(in srgb,var(--fy-text) 60%,transparent)}
+.hv-range:not(:disabled):hover::-moz-range-thumb{background:#fff;border-color:#fff;box-shadow:0 0 6px #fff,0 0 14px rgba(255,255,255,.85),0 0 26px color-mix(in srgb,var(--fy-text) 60%,transparent)}
+.hv-range:disabled::-webkit-slider-thumb{border-color:color-mix(in srgb,var(--fy-text) 40%,transparent);box-shadow:none;cursor:not-allowed}
+.hv-range:disabled::-moz-range-thumb{border-color:color-mix(in srgb,var(--fy-text) 40%,transparent);box-shadow:none}
+.hv-range:focus-visible{outline:2px solid var(--neon-teal);outline-offset:2px}
+.hv-more{align-self:flex-start;display:flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;background:color-mix(in srgb,var(--neon-teal) 6%,transparent);border:1px solid color-mix(in srgb,var(--neon-teal) 70%,transparent);border-radius:999px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal);text-shadow:0 0 6px color-mix(in srgb,var(--neon-teal) 50%,transparent)}
+.hv-more:hover{animation:none;color:#fff;background:color-mix(in srgb,var(--neon-teal) 22%,transparent);border-color:var(--hint-text);transform:translateY(-1px);text-shadow:0 0 6px var(--hint-border),0 0 14px color-mix(in srgb,var(--neon-teal) 90%,transparent);box-shadow:0 0 10px color-mix(in srgb,var(--hint-border) 95%,transparent),0 0 26px color-mix(in srgb,var(--neon-teal) 75%,transparent),0 0 48px color-mix(in srgb,var(--neon-teal) 40%,transparent)}
+.hv-photo{flex:1;position:relative;min-height:150px;border-radius:8px;overflow:hidden;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent)}
+.hv-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.hv-cell{display:flex;flex-direction:column;gap:3px;padding:10px 12px;box-shadow:-1px 0 0 color-mix(in srgb,var(--fy-text-label) 25%,transparent),0 -1px 0 color-mix(in srgb,var(--fy-text-label) 25%,transparent)}
+.hv-dl{display:grid;grid-template-columns:minmax(96px,auto) 1fr;gap:10px;align-items:baseline}
+.hv-dl .k{letter-spacing:.06em;text-transform:uppercase;color:var(--neon-teal);white-space:nowrap}
+.hv-dl .v{line-height:1.45;color:var(--fy-text-body)}
+
+/* 2 · Plant */
+.hv-origins{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.hv-orig{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:10px;background:var(--fy-surface);text-align:left;min-height:44px;color:inherit}
+.hv-plant{display:flex;flex-wrap:wrap;gap:16px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);padding:16px;align-items:stretch;background:var(--fy-bg)}
+.hv-plantg{flex:1 1 420px;min-width:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;align-items:center}
+.hv-plantg2{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:14px;align-items:center}
+.hv-plantimg{position:relative;min-height:260px;aspect-ratio:1/1.05;border-radius:8px;overflow:hidden;background:var(--fy-bg)}
+.hv-plantimg img{position:absolute;left:0;top:0;width:62%;height:100%;object-fit:cover;object-position:0% 50%;filter:saturate(.85) contrast(1.05);mask-image:linear-gradient(90deg,#000 70%,transparent);-webkit-mask-image:linear-gradient(90deg,#000 70%,transparent)}
+.hv-strrow{order:-1;flex:1 1 100%;display:flex;align-items:center;gap:10px;padding-bottom:14px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 25%,transparent)}
+.hv-str{flex:1;min-height:44px;min-width:0;padding:4px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:19px;background:transparent;cursor:pointer}
+/* 3 · Wrapper and flavour */
+.hv-m3g{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;align-items:start}
+.hv-taste{display:grid;grid-template-columns:150px 1fr;gap:8px;align-items:center}
+@media (max-width:699px){
+  .hv-origins{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .hv-plantg{grid-template-columns:minmax(0,1fr);gap:14px}
+  .hv-plantg2{grid-template-columns:minmax(0,1fr) 84px;gap:10px}
+  .hv-m3g{grid-template-columns:minmax(0,1fr);gap:14px}
+  .hv-taste{grid-template-columns:120px 1fr}
+}
+/* 4 · Budget */
+.hv-budgets{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:8px}
+.hv-pill{min-height:48px;padding:0 16px;border-radius:19px;background:transparent;cursor:pointer}
+
+/* Already voted, and Your vote */
+.hv-voted{display:flex;flex-direction:column;gap:12px;padding:16px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg)}
+.hv-edit{align-self:center;min-height:48px;padding:0 32px;margin-top:4px;border-radius:19px;background:transparent;cursor:pointer;letter-spacing:.1em;font-weight:600;border:2px solid var(--neon-pink-tube);color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
+.hv-edit:hover{animation:none;background:color-mix(in srgb,var(--neon-pink-tube) 14%,transparent);box-shadow:0 0 12px var(--neon-pink-tube),0 0 30px color-mix(in srgb,var(--neon-pink) 70%,transparent);color:#fff}
+.hv-vote{display:flex;flex-direction:column;gap:14px;padding:16px;border:2px solid var(--neon-pink-tube);border-radius:10px;box-shadow:var(--glow-pink);background:var(--fy-bg)}
+.hv-vrows{display:grid;grid-template-columns:minmax(90px,auto) minmax(0,1fr);gap:8px 14px;align-items:baseline}
+.hv-vrows button{justify-self:start;background:none;border:0;padding:0;min-height:24px;cursor:pointer;text-align:left}
+.hv-submit{min-height:44px;padding:0 22px;border-radius:19px;background:transparent;letter-spacing:.08em;font-weight:600;border:2px solid var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink);text-shadow:var(--text-glow-pink);cursor:pointer}
+.hv-submit:disabled{border-color:color-mix(in srgb,var(--neon-pink-tube) 40%,transparent);color:color-mix(in srgb,var(--neon-pink-text) 50%,transparent);box-shadow:none;text-shadow:none;cursor:not-allowed;opacity:1}
+
+/* Cigar close-up */
+.hv-zoom{position:fixed;inset:0;z-index:1000;background:rgba(14,15,24,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px;box-sizing:border-box;cursor:zoom-out}
+.hv-zoom[hidden]{display:none}
+.hv-close{width:44px;height:44px;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--fy-text) 60%,transparent);background:transparent;color:var(--fy-text);line-height:1;cursor:pointer;box-shadow:0 0 8px color-mix(in srgb,var(--fy-text) 30%,transparent);padding:0}
+
+/* Motion (README "Behaviour notes"), only when welcome */
+@media (prefers-reduced-motion:no-preference){
+  @keyframes arrowBreath{0%,100%{opacity:.6;filter:drop-shadow(0 0 1px color-mix(in srgb,var(--color-neutral-100) 20%,transparent))}50%{opacity:1;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--color-neutral-100) 45%,transparent))}}
+  @keyframes antRun{0%{left:0%;opacity:0;transform:scale(.6);box-shadow:0 0 2px color-mix(in srgb,var(--fy-text) 20%,transparent)}50%{left:50%;opacity:1;transform:scale(1);box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 90%,transparent),0 0 14px color-mix(in srgb,var(--neon-teal) 70%,transparent)}100%{left:100%;opacity:0;transform:scale(.6);box-shadow:0 0 2px color-mix(in srgb,var(--fy-text) 20%,transparent)}}
+  @keyframes selPulse{0%,100%{filter:drop-shadow(0 0 0 color-mix(in srgb,var(--color-neutral-100) 0%,transparent))}50%{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--color-neutral-100) 50%,transparent))}}
+  @keyframes strPulse{0%,100%{filter:drop-shadow(0 0 0 color-mix(in srgb,var(--color-neutral-100) 0%,transparent))}50%{filter:drop-shadow(0 0 3px color-mix(in srgb,var(--color-neutral-100) 35%,transparent))}}
+  @keyframes cardWobble{0%{transform:rotate(0)}20%{transform:rotate(-1.6deg) scale(1.02)}45%{transform:rotate(1.3deg) scale(1.02)}70%{transform:rotate(-.6deg) scale(1.02)}100%{transform:rotate(0) scale(1.02)}}
+  .hv [data-arrow-breath]{animation:arrowBreath 4s ease-in-out infinite}
+  .hv [data-arrow-breath].late{animation-delay:2s}
+  .hv [data-ants]{animation:antRun 4.2s linear infinite}
+  .hv [data-ants].late{animation-delay:2.1s}
+  .hv button:not([data-flash]):not([data-learn]):not(:disabled):not([aria-label="Close"]),.hv select{animation:selPulse 3.2s ease-in-out infinite}
+  .hv .poster button{animation:none!important}
+  .hv button[data-str]{animation:strPulse 2.6s ease-in-out infinite!important;transition:filter .2s}
+  .hv button[data-str]:hover{animation:none!important;filter:drop-shadow(0 0 4px rgba(255,255,255,.6)) drop-shadow(0 0 10px color-mix(in srgb,var(--color-neutral-100) 25%,transparent))!important}
+  .hv button[data-card="on"]:hover{animation:cardWobble .55s ease-in-out both!important;filter:drop-shadow(0 0 6px color-mix(in srgb,var(--color-neutral-100) 75%,transparent)) drop-shadow(0 0 16px color-mix(in srgb,var(--fy-text) 35%,transparent))!important}
+  .hv .hv-more{animation:infoBreath 2.8s ease-in-out infinite;transition:background .2s ease-out,color .2s ease-out,border-color .2s ease-out,transform .2s ease-out}
+  .hv .hv-more:hover{animation:none}
+  .hv .hv-edit{animation:editFlash 1.4s ease-in-out infinite;transition:background .2s}
+  .hv .hv-edit:hover{animation:none}
+  .hv-card{transition:transform .45s cubic-bezier(.3,.9,.3,1),opacity .35s ease-out}
+  .hv-card .lab,.hv-card .len,.hv-card .lay{transition:opacity .4s ease-out}
+  .hv-card .img{transition:opacity .3s,filter .3s}
+  .hv-sb{transition:grid-template-rows .6s ease-out,opacity .45s ease-out}
+  .hv-sh{transition:border-color .3s,box-shadow .3s,opacity .3s,background .3s}
+  .hv-sh .arr{transition:transform .4s ease-out}
+  .hv-pref{transition:border-color .3s,box-shadow .3s}
+  .hv-sel{transition:border-color .2s,box-shadow .2s}
+  .hv-ring{transition:all .25s}
+  .hv-band{transition:all .25s}
+  .hv-orig{transition:opacity .3s,border-color .3s,box-shadow .3s}
+}
+</style>
+<script src="fy-clucks.js"></script>
+</head>
+<body>
+<div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script><script src="humidor.js"></script>
+<script>
+/* 4.0 The Humidor · Vote (taste). Four gated sections (1 Shape & size → 2 About the plant + 3 Wrapper & flavour →
+   4 Price range), the My preferences filter, the 41-vitola shape poster, Your vote, and the Already voted state.
+   Member = the signed-in member; prefs go to humidor_submit_prefs in the design's shape. The form is drawn once
+   and redrawn only by the member's own clicks; the 5 s poll touches only the round label, the status line, the
+   submit control and the voted box (R8). Data tables below are the design's, verbatim. */
+(function () {
+  const esc = s => FY.esc(s);
+  // ---- Design data, verbatim from P15.003 HUMIDOR CHOOSE REV.05.dc.html (VIT, SIL, SHAPES, ORIG, LEAVES, SW, WF, FAM, LAYOUT, PC_, BF_, logo houses) ----
+  const VIT = [
+      ['Mini Cigarillo',87,20,'Also: cigarillo','Parejo',18,26,'Machine-made, often flavoured. Tubes of 10–20.'],['Petit Bouquet',101,43,'Small perfecto','Perfecto',40,46,'A small perfecto. Cuban Cuaba Divinos is one.'],['Perla',102,40,'','Parejo',38,42,'Also sold as petit panetela or minuto.'],['Petit Robusto',102,50,'','Parejo',48,52,'Short robusto. Some brands press it square.'],['Rothschild',114,48,'','Parejo',46,50,'The old name for a short robusto.'],['Petit Edmundo',110,52,'','Parejo',50,54,'Montecristo invented it; copied widely.'],['Laguito No.3',115,26,'Also: panetela corta','Parejo',24,28,'Cohiba Panetela size. Very thin.'],['Robusto',124,50,'Also: hermoso no.4','Parejo',48,54,'Box-pressed, Robusto Extra (5½ in), and 54-ring “fat robusto” are all common.'],['Conchita',127,35,'','Parejo',34,36,'Thin and short. Only a few brands make it.'],['Petit Corona',129,42,'Also: mareva, half corona','Parejo',40,44,'Half corona (3¾ in) and mareva are kin.'],['Campana',140,52,'Bell-shaped head','Belicoso',50,54,'Cuban word for the belicoso. Bolívar Belicosos Finos.'],['Corona',142,42,'','Parejo',40,44,'Box-pressed by some Nicaraguans.'],['Carlota',143,35,'','Parejo',34,36,'A long conchita. Rare now.'],['Corona Gorda',143,46,'','Parejo',44,48,'Also sold as toro pequeño or grand corona.'],['Laguito No.2',152,38,'Also: panetela','Parejo',36,40,'Long panetela. Cohiba Corona Especial.'],['Pyramid',152,52,'Also: torpedo','Pyramid',50,56,'Widest at the foot. Also sold as torpedo or belicoso by non-Cubans.'],['Gordo',152,60,'Also: double toro','Parejo',58,66,'Keeps growing. 60 is normal, 70 exists.'],['Corona Grande',155,42,'','Parejo',40,44,'A long corona. Shaded into lonsdale.'],['Toro',155,50,'Also: dobles','Parejo',48,56,'Box-pressed, 52 and 54 all common. Toro Grande is 6½ in.'],['Pirámide',156,52,'','Pyramid',50,54,'The Cuban torpedo. Montecristo No.2.'],['Presidente',158,47,'Also: taco','Parejo',44,50,'Loose term; sizes vary a lot.'],['Lonsdale',162,44,'Also: cazadores, cervantes','Parejo',42,44,'Classic 6½ × 42. Dalia and cervantes are the Cuban names.'],['Culebra',146,39,'Three plaited together','Culebra',32,40,'Three plaited panetelas. One size, really.'],['Churchill',178,47,'Also: julieta no.2','Parejo',46,50,'Some brands go to 50 and call it Churchill Gordo.'],['Lancero',192,39,'Also: laguito no.1','Parejo',38,40,'Pigtail cap is traditional. 38 is the norm.'],['Double Corona',194,49,'Also: prominente','Parejo',48,52,'Also called prominente or presidente by some.'],['Gran Corona',235,47,'','Parejo',46,49,'Nine-inch giant. Montecristo A. A show-off smoke.'],
+      ['Petit Belicoso',125,52,'Bolívar Petit Belicoso','Belicoso',50,52,'Short belicoso.'],['Mini Belicoso',127,52,'Trinidad Mini Belicoso','Belicoso',50,52,'Robusto length with a pointed head.'],['Belicoso',152,52,'Trinidad Santiago','Belicoso',50,54,'Long belicoso.'],['Belicoso Grande',156,52,'H. Upmann 1844 Belicoso','Belicoso',50,54,'Toro-length belicoso.'],['Favorito',121,42,'Cuaba Tradicionales','Perfecto',40,44,'Small perfecto.'],['Generoso',133,42,'Cuaba Generosos','Perfecto',40,44,'Slim perfecto.'],['Exquisito',146,46,'Cuaba Exclusivos','Perfecto',44,48,'Habanos double figurado standard.'],['Romeo',162,52,'Cuaba Distinguidos','Perfecto',50,54,'Full-size perfecto.'],['Salomón',184,57,'Cuaba Salomones','Perfecto',54,58,'Big double perfecto.'],['Diadema',232,55,'Cuaba Diademas','Perfecto',52,56,'Giant perfecto.'],['Torpedo',156,52,'Habanos Torpedo','Torpedo',50,54,'The Habanos torpedo standard.'],['Long Torpedo',165,54,'Padrón 1926 Torpedo','Torpedo',52,54,'Longer, fatter torpedo.'],['Chisel',152,54,'LFD Double Ligero Chisel','Chisel',54,54,'The original LFD Chisel.'],['Big Chisel',165,58,'LFD Chapter 1 Chisel','Chisel',54,58,'Limited, box-pressed.']
+    ];
+  const SIL = {
+      Parejo:'polygon(50% 0,88% 1.5%,100% 4%,100% 100%,0 100%,0 4%,12% 1.5%)',
+      Pyramid:'polygon(50% 0,70% 3%,100% 22%,100% 100%,0 100%,0 22%,30% 3%)',
+      Torpedo:'polygon(50% 0,80% 4%,100% 16%,100% 100%,0 100%,0 16%,20% 4%)',
+      Belicoso:'polygon(50% 0,85% 4%,100% 14%,100% 100%,0 100%,0 14%,15% 4%)',
+      Perfecto:'polygon(50% 0,80% 6%,100% 30%,100% 78%,70% 100%,30% 100%,0 78%,0 30%,20% 6%)',
+      Culebra:'polygon(35% 0,65% 0,100% 12%,70% 28%,100% 44%,70% 60%,100% 76%,65% 100%,35% 100%,0 88%,30% 72%,0 56%,30% 40%,0 24%)'
+    };
+  const SHAPES = [
+      {name:'Parejo',tag:'Predictable · even burn · every size',smoke:'Predictable. The same mouthful of smoke from light to stub, so you taste the blend, not the shape. Burns straight if you light it straight. If something goes wrong it was the cigar or the cutter, not the geometry. For a first night that is the point.',why:'The shape that needs no excuse. Straight sides are the easiest to roll, so they are cheapest to make, most consistent, and come in the widest run of sizes. The smoke stays the same from first puff to last; what changes is the blend, not the geometry.',draw:'Even and open. What the roller intended is what you get.',arc:'Flat. The last third gets warmer and stronger, but that is the leaf, not the shape.',range:'Broad. Every brand, every size, every price.',fame:'Montecristo No.4 · Cohiba Robusto · Padrón 2000',kind:'Straight · the default',clip:'polygon(0 8%,3% 0,96% 0,100% 50%,96% 100%,3% 100%,0 92%)',what:'Straight sides, rounded head, open foot. Nine out of ten cigars on a shelf.',rings:'40–54',lens:'4½–7½ in',cap:'Rounded, triple cap',cuts:['Straight','Punch','V-cut'],tip:'Anything works. Cut just above the cap line.',countries:['Cuba','Dominican Rep.','Nicaragua','Honduras'],brands:[['Montecristo','No.4 is the best-selling cigar in the world'],['Romeo y Julieta','Mild Cuban, easy first box'],['Arturo Fuente','Dominican, smooth, everywhere'],['Padrón','Nicaraguan, box-pressed, bolder'],['Oliva','Serie G or O, good value']]},
+      {name:'Torpedo',tag:'Cooler · sharper · you set the draw',smoke:'The narrow head squeezes the smoke into a tighter, cooler stream, so flavours feel sharper and land on the tip of the tongue. Cut a sliver and it is intense; cut more and it loosens toward a parejo. First third is the show; it mellows as the taper burns off.',why:'The pointed head narrows the airway so the smoke arrives cooler and more concentrated. Rollers also like it because it shows off: a clean tapered head is hard to make and is left to the senior torcedores.',draw:'Tighter and more focused than the same blend in a parejo. You decide how open by how much you cut.',arc:'Starts concentrated, opens up as the taper burns away.',range:'Narrow. Mostly 6 to 6½ in at 52–54 ring; the Habanos standard is 6⅛ × 52.',fame:'Montecristo No.2 · Oliva Serie V Torpedo',rep:[152,52],kind:'Figurado · pointed head',clip:'polygon(0 0,68% 0,100% 50%,68% 100%,0 100%)',what:'Straight body that tapers to a point over the last inch or so.',rings:'52–54',lens:'6–6½ in',cap:'Pointed, tapered',cuts:['Straight'],tip:'Take 2–3 mm off the point, no more. The taper funnels the smoke.',countries:['Cuba','Nicaragua','Dominican Rep.'],brands:[['Montecristo No.2','The benchmark torpedo'],['Oliva Serie V','Nicaraguan, full'],['Rocky Patel','Decade or Vintage lines'],['Padrón 1964','Dear, worth it once']]},
+      {name:'Pyramid',tag:'Changes as it burns · different every third',smoke:'A cigar that changes under you. The first inch is thin and focused, almost a panetela; by the last third it is a fat, cool, full-bodied smoke with more filler in every puff. A different smoke each third, roughly an hour and a half. Needs a slow, even light or the thin end races ahead.',why:'A torpedo taken to its conclusion: the whole body tapers, so the ring gauge grows an inch at a time as it burns. More ring means more filler leaf relative to wrapper, so the flavour literally changes as you go.',draw:'Concentrated at the start, looser and fuller by the end.',arc:'Rising. The point you light is a 40-ring cigar; the stub is a 52. Expect a different smoke at each third.',range:'Narrow. Cuban pirámides plus a handful of Nicaraguan lines.',fame:'Cohiba Pirámides Extra · Partagás Serie P No.2',kind:'Figurado · tapers all the way',clip:'polygon(0 18%,55% 0,100% 50%,55% 100%,0 82%)',what:'Widens steadily from a pointed head to a fat foot. Cubans call most torpedos pirámides.',rings:'40 head → 52–60 foot',lens:'6–7 in',cap:'Pointed, tapered',cuts:['Straight','V-cut'],tip:'Shallow straight cut. Flavour changes as it burns wider.',countries:['Cuba','Nicaragua'],brands:[['Cohiba Pirámides Extra','Top of the Cuban tree'],['My Father','Nicaraguan, full'],['Davidoff Winston Churchill','Dominican, polished'],['Alec Bradley Prensado','Honduran, box-pressed']]},
+      {name:'Belicoso',tag:'Cool · concentrated · under an hour',smoke:'Cool and concentrated like a torpedo, but in a shorter sitting so the strength arrives sooner. The rounded head is comfortable to hold in the mouth and forgiving if your cut is a bit off. A good way to try a figurado without committing an evening.',why:'Short, with a rounded point: the torpedo compressed into a sitting of under an hour. The blunt taper keeps the cooling effect without the fiddly point, which is why it became the house figurado of several Cuban brands.',draw:'Cool and slightly concentrated. The round head is forgiving to cut.',arc:'Builds quickly; a short cigar gets strong fast.',range:'Narrow but real: 4½ to 6 in, almost always 52 ring. Today “belicoso” names the head more than the size.',fame:'Bolívar Belicosos Finos · Sancho Panza Belicosos',kind:'Figurado · short, rounded point',clip:'polygon(0 0,78% 0,100% 50%,78% 100%,0 100%)',what:'A short torpedo with a rounder, bullet-like head.',rings:'46–54',lens:'4½–6⅛ in',cap:'Rounded point',cuts:['Straight','V-cut'],tip:'Just the tip. A V-cut suits the rounded head well.',countries:['Cuba','Nicaragua','Honduras'],brands:[['Bolívar Belicosos Finos','Strong Cuban classic'],['Sancho Panza Belicosos','Milder Cuban'],['Rocky Patel','Edge or Sun Grown'],['Camacho','Honduran, punchy']]},
+      {name:'Perfecto',tag:'Slow start · then it opens up',smoke:'Two cigars back to back. Lighting the pinched foot is easy, one match, and the first minutes are tight, mild and slow while the narrow neck burns. Then it reaches the belly, the draw opens, and the full blend hits all at once. People either love the slow start or find it a chore.',why:'Closed at both ends because that is how all cigars were made before the open foot became standard; the pinched foot was a mark of a hand-rolled cigar. It survives as a showpiece: hardest to roll, and the little nipple lights with a single flame.',draw:'Starts tight through the nipple, then opens as the belly is reached.',arc:'Two acts. A slow, mild start through the narrow foot, then full flavour once the fat middle burns.',range:'Wide. No standard size; Cuaba alone makes seven, from 4 to 9⅛ in.',fame:'Arturo Fuente Hemingway · Cuaba Salomones',kind:'Figurado · closed both ends',clip:'polygon(2% 50%,22% 0,80% 0,100% 50%,80% 100%,22% 100%)',what:'Closed at both ends and fat in the middle. Shape of the old cartoons.',rings:'42–57 at the belly',lens:'4–9⅛ in',cap:'Tapered head, nipple foot',cuts:['Straight','Punch'],tip:'Small cut. Light the little nipple first; it takes a minute to open up.',countries:['Dominican Rep.','Nicaragua','Honduras','Cuba'],brands:[['Arturo Fuente Hemingway','The perfecto most people mean'],['Cuaba','The only all-figurado Cuban brand'],['La Flor Dominicana','Bold Dominican'],['Perdomo','Nicaraguan, good value']]},
+      {name:'Chisel',tag:'Broad on the tongue · one maker',smoke:'The flat head spreads the smoke across the whole tongue instead of one point, so the taste reads broader and the retrohale is gentler. A pinch instead of a cut gives a very tight draw; a shallow cut across the edge gives a normal one. It feels odd in the mouth for the first five minutes, then you forget.',why:'One factory\'s invention. La Flor Dominicana flattened a torpedo head so the smoke spreads wide across the tongue rather than hitting one spot. It exists because one blender wanted it to, which is why nobody else makes it.',draw:'Broad, flat stream of smoke; cut shallow or just pinch it open.',arc:'As the torpedo: focused start, opens out.',range:'Very narrow. One maker, mostly 6 × 54, plus a 6½ × 58 limited.',fame:'La Flor Dominicana Double Ligero Chisel',rep:[152,54],kind:'Figurado · flattened head',clip:'polygon(0 0,70% 0,100% 30%,100% 70%,70% 100%,0 100%)',what:'A torpedo pressed flat at the head, like a screwdriver tip.',rings:'54–58',lens:'6–6½ in',cap:'Flat wedge',cuts:['Straight','V-cut'],tip:'Cut across the flat edge, or just pinch it open. Rare in the UK.',countries:['Dominican Rep.'],brands:[['La Flor Dominicana','Invented it. Double Ligero Chisel'],['Tatuaje','Occasional limited runs'],['Camacho','The odd release']]},
+      {name:'Culebra',tag:'Hot · crooked · built for sharing',smoke:'Honestly, a worse smoke and a better evening. Each strand burns hot and a bit crooked because of the kink in it, and twenty minutes is all you get. You smoke it for the untwisting, the ribbon and the two mates holding the other two.',why:'Three thin panetelas plaited while still damp. The story is that factories let rollers take three a day and twisted them together so nobody could sell them on. Now it is a novelty for sharing; the twist means each burns a bit crooked.',draw:'As a thin panetela: quick and warm.',arc:'Short and hot. Twenty minutes each.',range:'One size. The Cuban Partagás Culebras is 5¾ × 39; others copy it.',fame:'Partagás Culebras · Davidoff Culebra',kind:'Figurado · three plaited',clip:'polygon(0 30%,20% 0,40% 40%,60% 0,80% 40%,100% 0,100% 70%,80% 100%,60% 60%,40% 100%,20% 60%,0 100%)',what:'Three thin panetelas twisted together and tied with ribbon. Untwist and share.',rings:'39 each',lens:'5¾ in',cap:'Rounded, standard',cuts:['Straight','Punch'],tip:'Cut each one as a thin parejo. Expect a wonky burn.',countries:['Cuba','Nicaragua','Dominican Rep.'],brands:[['Partagás Culebras','The Cuban one'],['Davidoff','Rare, dear'],['Tatuaje','Nicaraguan, limited'],['Drew Estate','Occasional novelty']]}
+    ];
+  const ORIG = [
+      ['Cuba','Vuelta Abajo, Pinar del Río','The original. Earthy, often spicy, the strongest reputation and the biggest price. Quality wobbles box to box.'],
+      ['Dominican Republic','Cibao Valley, Santiago','Smooth and mild to medium. Where most of the famous non-Cuban brands roll. The usual first.'],
+      ['Nicaragua','Estelí, Jalapa, Condega','Bold, peppery, fuller. The lads who like a kick end up here.'],
+      ['Honduras','Jamastrán valley, Danlí','Earthy and medium-full. Less talked about, often better value.']
+    ];
+  const LEAVES = [
+      ['Ligero','Top of the plant · most sun','Thick, oily, slow-burning. The punch. A little goes in the middle of the filler.',44,'Sits in the core of the filler'],
+      ['Viso','Upper middle','Flavour and some strength. The bit that makes it taste of something.',56,'Filler, around the ligero'],
+      ['Seco','Lower middle · shade','Mild, aromatic, burns easily. Most of a mild cigar is seco.',66,'Filler and binder'],
+      ['Volado','Bottom · least sun','Barely any strength. It is there to make the thing burn.',76,'Outer filler and binder']
+    ];
+  const SW = [
+      ['Double Claro','#a8b06a','Pale, greenish','Grassy, slightly sweet','Picked early and dried fast. Rare now.'],
+      ['Claro','#c9a36b','Light tan','Mild, creamy, a bit of hay','Grown under shade cloth. Connecticut is the famous one.'],
+      ['Colorado Claro','#a5703f','Mid brown','Smooth, nutty, medium','Mostly sun-grown. The safe middle.'],
+      ['Colorado','#8a4a2e','Reddish brown','Rich, a touch of spice','Classic Cuban colour. Where most beginners should look.'],
+      ['Colorado Maduro','#5e3220','Dark brown','Full, aromatic','Longer fermentation. Rounder than it looks.'],
+      ['Maduro','#3a2017','Very dark, oily','Sweet: cocoa, coffee, dried fruit','Fermented longest. Dark does not mean strong.'],
+      ['Oscuro','#1f1310','Near black','Heavy, sweet, earthy','Top leaves, cooked hardest. Not for night one.']
+    ];
+  const WF = {'Double Claro':['Plant','Sweet'],'Claro':['Plant','Nuts','Sweet','Wood'],'Colorado Claro':['Nuts','Wood','Sweet'],'Colorado':['Wood','Spice','Earth'],'Colorado Maduro':['Earth','Spice','Coffee & cocoa','Wood'],'Maduro':['Coffee & cocoa','Sweet','Fruit','Earth'],'Oscuro':['Earth','Coffee & cocoa','Sweet','Spice']};
+  const FAM = [['Earth','Leather, barnyard, soil, mineral'],['Wood','Cedar, oak, smoky, toast'],['Spice','Black pepper, cinnamon, clove, nutmeg'],['Nuts','Almond, cashew, peanut, marzipan'],['Sweet','Caramel, honey, molasses, cream'],['Coffee & cocoa','Espresso, dark chocolate, cocoa'],['Fruit','Raisin, cherry, citrus, plum'],['Plant','Grass, hay, tea, moss']];
+  const LAYOUT = {"k13":{"d":"64px","t":"56px","m":"44px"},"k16":{"d":"clamp(22px,2.6vw,28px)","t":"clamp(22px,2.6vw,28px)","m":"22px"},"k17":{"d":"nowrap","t":"nowrap","m":"normal"},"k18":{"d":"unset","t":"unset","m":"balance"},"k19":{"d":"nowrap","t":"nowrap","m":"wrap"},"k20":{"d":"10px","t":"10px","m":"4px 10px"},"k23":{"d":"block","t":"block","m":"none"},"k24":{"d":"244px","t":"244px","m":"404px"},"k25":{"d":"50%","t":"50%","m":"92px"},"k26":{"d":"200px","t":"200px","m":"150px"},"k27":{"d":"-100px","t":"-100px","m":"0"},"k28":{"d":"grid","t":"grid","m":"flex"},"k29":{"d":"unset","t":"unset","m":"column"},"k30":{"d":"unset","t":"unset","m":"center"},"k31":{"d":"0","t":"0","m":"14px"},"k32":{"d":"0 64px 0 0","t":"0 64px 0 0","m":"0 52px 0 14px"},"k33":{"d":"136px minmax(0,1fr) minmax(0,1fr)","t":"136px minmax(0,1fr) minmax(0,1fr)","m":"unset"},"k34":{"d":"center","t":"center","m":"unset"},"k35":{"d":"unset","t":"unset","m":"absolute"},"k36":{"d":"unset","t":"unset","m":"14px"},"k37":{"d":"unset","t":"unset","m":"-70px"},"k38":{"d":"unset","t":"unset","m":"52px"},"k39":{"d":"0 6px 0 10px","t":"0 6px 0 10px","m":"0"},"k40":{"d":"stretch","t":"stretch","m":"unset"},"k41":{"d":"100%","t":"100%","m":"unset"},"k42":{"d":"calc(136px + (100% - 200px) / 2)","t":"calc(136px + (100% - 200px) / 2)","m":"14px"},"k43":{"d":"unset","t":"unset","m":"52px"},"k44":{"d":"unset","t":"unset","m":"16px"},"k45":{"d":"unset","t":"unset","m":"center"},"k46":{"d":"6px","t":"6px","m":"8px"},"k47":{"d":"calc((100% - 200px) / 2)","t":"calc((100% - 200px) / 2)","m":"unset"},"k48":{"d":"50%","t":"50%","m":"unset"},"k49":{"d":"translateY(-50%)","t":"translateY(-50%)","m":"unset"},"k63":{"d":"16px 20px 18px","t":"16px 20px 18px","m":"12px 10px 14px"},"k64":{"d":"repeat(4,minmax(0,1fr))","t":"repeat(4,minmax(0,1fr))","m":"repeat(2,minmax(0,1fr))"},"k65":{"d":"10px","t":"10px","m":"8px"},"k66":{"d":"repeat(auto-fit,minmax(320px,1fr))","t":"repeat(auto-fit,minmax(320px,1fr))","m":"minmax(0,1fr)"},"k67":{"d":"18px","t":"18px","m":"14px"},"k68":{"d":"minmax(0,1fr) 120px","t":"minmax(0,1fr) 120px","m":"minmax(0,1fr) 84px"},"k69":{"d":"14px","t":"14px","m":"10px"},"k70":{"d":"minmax(0,1.2fr) minmax(0,1fr)","t":"minmax(0,1.2fr) minmax(0,1fr)","m":"minmax(0,1fr)"},"k71":{"d":"18px","t":"18px","m":"14px"},"verb":{"d":"Click","t":"Tap","m":"Tap"}};
+  const PC_ = {"Mini Cigarillo":["Ten minutes, pocket-sized","Little real tobacco character"],"Petit Bouquet":["Full figurado ride in a short smoke","Rare; few makers bother"],"Perla":["Quick and punchy","Burns hot if you rush it"],"Petit Robusto":["Robusto richness in half the time","Gone before it settles"],"Rothschild":["Rich, short and well made","Can feel over too soon"],"Petit Edmundo":["Thick and quick, big flavour","Draw can run loose"],"Laguito No.3":["Elegant, wrapper-led","Plugs easily if over-humid"],"Robusto":["The safe bet; every brand does one","Rarely surprises anyone"],"Conchita":["Wrapper flavour up front","Thin; needs a slow pace"],"Petit Corona":["Classic Cuban balance","Easy to overheat near the end"],"Campana":["Pointed head concentrates the first third","Short; the taper is most of it"],"Corona":["The benchmark blend shows clearly","Not much smoke volume"],"Carlota":["Spicy, wrapper-forward","Fiddly to keep lit"],"Corona Gorda":["Fuller smoke, still refined","Middle ground, few surprises"],"Laguito No.2":["Refined and lively","Fragile; cracks if dry"],"Pyramid":["Flavour builds as it widens","Tip is easy to over-cut"],"Gordo":["Huge, cool smoke","Filler drowns the wrapper"],"Corona Grande":["Long corona, slow evolution","Can feel samey in the middle"],"Toro":["Generous and cool","A long sit for a weeknight"],"Pirámide":["Cuban classic that rewards patience","Uneven burn at the shoulder"],"Presidente":["Slow, stately burn","Few retailers stock it"],"Lonsdale":["Long and lean, plenty of wrapper","Needs regular attention"],"Culebra":["Three cigars, one ritual","Draw is tight; a novelty first"],"Churchill":["Slow and changes as it goes","Ninety minutes or more"],"Lancero":["Most wrapper of any parejo","Unforgiving; tunnels if neglected"],"Double Corona":["Deep, slow, a full night","Big commitment and price"],"Gran Corona":["Theatre and a three-hour burn","Hard to finish, hard to find"],"Petit Belicoso":["Tapered head in a short smoke","Taper eats the first few puffs"],"Mini Belicoso":["Quick, concentrated start","Little time to develop"],"Belicoso":["Focused draw, rich finish","Head needs a careful cut"],"Belicoso Grande":["Long build from tip to body","Heavy ring for some hands"],"Favorito":["Gentle figurado start","Short middle section"],"Generoso":["Tapered foot lights easily","Bulge can burn unevenly"],"Exquisito":["Flavour swells through the middle","Needs an even light"],"Romeo":["Big, round, changing smoke","Tricky to cut both ends right"],"Salomón":["A real event; flavour keeps shifting","Pricey and slow to roll"],"Diadema":["The longest show in the humidor","Hours, and hard to find"],"Torpedo":["Concentrated draw, cooler body","Tip is easy to crush"],"Long Torpedo":["Extra length for a slow evolution","Long sit and easily damaged"],"Chisel":["Flat head sits easy in the mouth","Only one maker rolls it"],"Big Chisel":["Wide, cool, very easy draw","Huge smoke, rare to find"]};
+  const BF_ = {"Mini Cigarillo":6,"Petit Bouquet":5,"Perla":6,"Petit Robusto":8,"Rothschild":8,"Petit Edmundo":8,"Laguito No.3":4,"Robusto":10,"Conchita":5,"Petit Corona":8,"Campana":7,"Corona":9,"Carlota":5,"Corona Gorda":9,"Laguito No.2":4,"Pyramid":6,"Gordo":6,"Corona Grande":7,"Toro":9,"Pirámide":6,"Presidente":7,"Lonsdale":6,"Culebra":2,"Churchill":6,"Lancero":2,"Double Corona":5,"Gran Corona":3,"Petit Belicoso":7,"Mini Belicoso":7,"Belicoso":6,"Belicoso Grande":5,"Favorito":5,"Generoso":5,"Exquisito":4,"Romeo":4,"Salomón":3,"Diadema":2,"Torpedo":6,"Long Torpedo":5,"Chisel":6,"Big Chisel":5};
+  const HOUSES = ["Arturo Fuente","La Flor Dominicana","Montecristo","Cohiba","Partagás","Romeo y Julieta","Padrón","Davidoff","Oliva","My Father","Rocky Patel","Ashton","Macanudo","Punch","Hoyo de Monterrey","Trinidad","H. Upmann","Bolívar","Diamond Crown","Fuente","Perdomo","Drew Estate","Liga Privada","AJ Fernandez","Plasencia","Joya de Nicaragua","Camacho","Alec Bradley","CAO","Tatuaje","Bolivar","Cuaba","El Rey del Mundo","San Cristóbal","Vegas Robaina","Quai d'Orsay","Juan López","Ramón Allones","Por Larrañaga","Sancho Panza","José L. Piedra","Quintero","Cohíba","Villiger","Café Crème","Panter","Swisher","Backwoods","Culebra"];
+  const SMOKE = ['15–30 min', '30–45 min', '45–60 min', '60–90 min', '90–120 min', '120+ min'];
+  const TLb = ['30 min', '45 min', '60 min', '90 min', '120 min', '2 hours+'];
+  const BUDGETS = ['Under £15', '£10–20', '£15–30', 'Under £50', 'Over £50'];
+  const CUTG = { 'Straight': '│', 'V-cut': 'V', 'Punch': '●' };
+  // Site files under assets/humidor/ (GitHub Pages has no directory listing). Names as the design's IMG map.
+  const PHOTOS = ['belicoso-belicoso-grande.jpg', 'belicoso-belicoso.jpg', 'belicoso-campana.png', 'belicoso-mini-belicoso.png', 'belicoso-petit-belicoso.jpg', 'chisel-big-chisel.png', 'chisel-chisel.png', 'culebra-culebra.png', 'parejo-carlota.png', 'parejo-churchill.png', 'parejo-corona-gorda.png', 'parejo-corona-grande.png', 'parejo-corona.png', 'parejo-double-corona.png', 'parejo-gordo.jpg', 'parejo-gran-corona.jpg', 'parejo-laguito-no-2.png', 'parejo-laguito-no-3.png', 'parejo-lancero.png', 'parejo-mini-cigarillo.jpg', 'parejo-perla.png', 'parejo-petit-corona.png', 'parejo-petit-edmundo.png', 'parejo-petit-robusto.png', 'parejo-presidente.png', 'parejo-robusto.png', 'parejo-rothschild.jpg', 'parejo-toro.jpg', 'perfecto-diadema.jpg', 'perfecto-exquisito.png', 'perfecto-favorito.png', 'perfecto-generoso.png', 'perfecto-petit-bouquet.png', 'perfecto-romeo.png', 'perfecto-salomo-n.png', 'pyramid-pira-mide.png', 'torpedo-long-torpedo.jpg', 'torpedo-torpedo.png'];
+  const LOGOS = ['alec-bradley.jpg', 'arturo-fuente.png', 'boli-var.png', 'camacho.png', 'cohiba.png', 'cuaba.png', 'davidoff.png', 'drew-estate.png', 'la-flor-dominicana.png', 'montecristo.png', 'my-father.png', 'oliva.png', 'padro-n.jpg', 'partaga-s.png', 'perdomo.webp', 'rocky-patel.png', 'romeo-y-julieta.png', 'sancho-panza.png', 'tatuaje.png'];
+  const fileFor = (list, dir, prefix, slug) => { const f = list.find(x => x.replace(/\.(png|jpg|webp)$/, '') === slug); return f ? dir + prefix + f : ''; };
+  const slugOf = s => s.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-');
+
+  const inFrac = mm => { const e = Math.round(mm / 25.4 * 8); const w = Math.floor(e / 8), f = e % 8; const F = ['', '⅛', '¼', '⅜', '½', '⅝', '¾', '⅞']; return f ? (w ? w + ' ' + F[f] : F[f]) : String(w); };
+  const smokeBand = (mm, ring) => { const inch = mm / 25.4 - (ring && ring <= 40 ? 1.25 : (ring && ring >= 56 ? -0.75 : 0)); const B = [[3.5], [4.5], [5.5], [6.5], [7.5], [99]]; return Math.max(0, B.findIndex(b => inch < b[0])); };
+  const sizesOf = name => VIT.map((v, i) => [v, i]).filter(x => x[0][4] === name).sort((x, y) => x[0][1] - y[0][1]);
+  const lit = on => on ? { bw: '2px', bc: 'var(--neon-pink-tube)', lc: 'var(--neon-pink-text)', sh: 'var(--glow-pink)', ts: 'var(--text-glow-pink)' } : { bw: '1px', bc: 'var(--neon-teal)', lc: 'var(--fy-text-body)', sh: 'none', ts: 'none' };
+  const mode = () => { const w = window.innerWidth; return w >= 1100 ? 'd' : w >= 700 ? 't' : 'm'; };
+  const green = { bw: '2px', bc: 'var(--neon-green-tube)', sh: '0 0 6px var(--neon-green-tube),0 0 16px color-mix(in srgb,var(--neon-green-tube) 55%,transparent)', lc: 'var(--neon-green-text)', ts: 'none' };
+
+  // Page state. profile = the taste being built (P in the design); filt = the My preferences selects.
+  const S = { profile: {}, filt: {}, focus: 0, sizeIdx: {}, secOpen: {}, secOv: {}, m1Sent: false, seen1: false, leaf: 1, swatch: 2,
+    moreInfo: false, brandsInfo: false, zoom: false, editing: false, voted: false, saved: null, stageW: 0 };
+  let me = null, data = { stage: null, round: null }, root = null, R = {}, formRound = null, movedOn = false, busy = false, lastN = null;
+  const cache = {};
+
+  const mineRow = () => { const r = data && data.round; return r ? (r.prefs || []).find(p => p.member_id === me.id) || null : null; };
+  const mineNow = () => mineRow() || (S.saved && data.round && S.saved.round === data.round.id ? S.saved : null);
+
+  function setProfile(k, v) { const p = { ...S.profile }; if (p[k] === v) delete p[k]; else p[k] = v; S.profile = p; }
+
+  // ---------- view model (the design's renderVals) ----------
+  function model() {
+    const P = S.profile, F = S.focus, MD = mode();
+    const LY = {}; for (const k in LAYOUT) { const e = LAYOUT[k]; LY[k] = e[MD] ?? e.d; }
+    const slot = MD === 'm' ? Math.max(60, Math.min(380, (S.stageW || 330) - 98 - 40)) : Math.max(60, Math.min(480, ((S.stageW || 553) - 200) / 2 - 8));
+    const FLT = S.filt;
+    const passF = v => (FLT.minR == null || v[2] >= FLT.minR) && (FLT.maxR == null || v[2] <= FLT.maxR) && (FLT.maxT == null || smokeBand(v[1], v[2]) <= FLT.maxT);
+    const BW = { Parejo: 'EVEN BURN', Torpedo: 'COOL, FOCUSED DRAW', Pyramid: 'BUILDS AS IT BURNS', Chisel: 'FLAT, DENSE DRAW', Belicoso: 'FOCUSED FIRST INCH', Perfecto: 'OPENS UP', Culebra: 'UNPLAIT AND SHARE' };
+    const LC = { L: 'var(--neon-red-tube)', VI: 'var(--color-accent-2)', S: 'var(--neon-green-tube)', V: 'rgba(228,236,240,.7)' };
+    const P3 = (l, s, v) => { const vi = l ? [Math.round((l[0] + s[0]) / 2), Math.round((l[1] + s[1]) / 2)] : s; return [...(l ? [['L', 50, l[0], l[1]]] : []), ['VI', 43, vi[0], vi[1]], ['VI', 57, vi[0], vi[1]], ['S', 31, s[0], s[1]], ['S', 69, s[0], s[1]], ['V', 16, v[0], v[1]], ['V', 84, v[0], v[1]]]; };
+    const LEAF = { Parejo: P3([6, 96], [4, 98], [3, 99]), Chisel: P3([6, 96], [4, 98], [3, 99]), Torpedo: P3([22, 96], [14, 98], [8, 99]), Pyramid: P3([30, 96], [18, 98], [8, 99]), Belicoso: P3([16, 96], [12, 98], [6, 99]), Perfecto: P3([30, 72], [12, 88], [6, 95]), Culebra: [] };
+    const CAP = { Parejo: '4%', Torpedo: '10%', Pyramid: '11%', Belicoso: '8%', Chisel: '6%', Perfecto: '10%', Culebra: '5%' };
+    const N = SHAPES.length;
+    const cards = SHAPES.map((x, i) => {
+      const all = sizesOf(x.name); const fl = all.filter(z => passF(z[0])); const list = fl.length ? fl : all; const noMatch = all.length > 0 && !fl.length;
+      const pref = { Parejo: 'Robusto', Torpedo: 'Torpedo', Chisel: 'Chisel', Belicoso: 'Campana', Perfecto: 'Exquisito', Pyramid: 'Pirámide' }[x.name];
+      const idx = Math.min(S.sizeIdx[x.name] ?? (() => { const k = list.findIndex(z => z[0][0] === pref); return k >= 0 ? k : Math.floor(list.length / 2); })(), Math.max(0, list.length - 1));
+      const cur = list.length ? list[idx][0] : [x.name, x.rep[0], x.rep[1]];
+      const maxL = list.length ? Math.max(...list.map(z => z[0][1])) : x.rep[1];
+      const wMul = x.name === 'Culebra' ? 2.6 : 1;
+      const maxW = (list.length ? Math.max(...list.map(z => z[0][2])) : x.rep[2]) * 0.397 * wMul;
+      const eff = mm => mm <= 142.24 ? mm : 142.24 + (mm - 142.24) * 0.25;
+      const f = Math.min(slot / eff(maxL), 230 / maxW) * (x.name === 'Culebra' ? 0.8 : 1);
+      const px = v => Math.max(8, Math.round(v * 0.397 * f));
+      const vi = list.length ? list[idx][1] : null; const on = F === i;
+      let d = i - F; if (d > N / 2) d -= N; if (d < -N / 2) d += N; const ad = Math.abs(d);
+      const leafLines = (LEAF[x.name] || LEAF.Parejo).filter(([k]) => k !== 'V' && k !== 'VI').map(([k, xx, a, b]) => ({ c: LC[k], xn: xx, an: a, bn: b }));
+      const twistPaths = x.name !== 'Culebra' ? [] : [0, 1, 2].flatMap(k => { const ph = k * 2 * Math.PI / 3; const path = off => { let dd = ''; for (let j = 0; j <= 40; j++) { const t = j / 40; const y = 3 + t * 94; const xx = 50 + 30 * Math.sin(t * 2 * Math.PI * 2.5 + ph) + off; dd += (j ? 'L' : 'M') + xx.toFixed(1) + ' ' + y.toFixed(1); } return dd; }; return [{ d: path(0), c: LC.S }, { d: path(-6), c: LC.V }, { d: path(6), c: LC.V }].filter(o => o.c !== LC.V && o.c !== LC.VI); });
+      const w = px(cur[2]) * wMul, h = Math.round(eff(cur[1]) * f);
+      return { name: x.name, kind: x.kind, twistPaths, leafLines, leafInset: (on ? 2 : 1) + 1, capTop: CAP[x.name] || '5%',
+        lenTop: MD === 'm' ? 'calc(50% + ' + Math.round(px(cur[2]) * wMul / 2) + 'px)' : '100%', lenGap: MD === 'm' ? '8px' : '10px',
+        burnWord: BW[x.name] || '', lenTxt: 'Length = ' + inFrac(cur[1]) + ' in', prefixShape: (list.length && x.name !== cur[0]) ? x.name : '', sizeName: cur[0],
+        nmOp: noMatch ? .25 : 1, nmF: noMatch ? 'grayscale(1)' : 'none', kindShort: noMatch ? 'No sizes match your filters' : x.kind.replace(/^Figurado · /, ''),
+        clip: SIL[x.name] || SIL.Parejo, bandShow: x.name === 'Culebra' ? 'none' : 'block', bandTop: x.name === 'Perfecto' ? '34%' : (x.name === 'Pyramid' ? '28%' : '20%'),
+        inset: on ? 2 : 1, glowPx: on ? 6 : 0, glowCol: on ? 'color-mix(in srgb,var(--neon-pink) 70%,transparent)' : 'transparent',
+        tf: ad === 0 ? 'translateY(0)' : `translateY(${d > 0 ? -70 : 70}px)`, op: ad === 0 ? 1 : 0, z: ad === 0 ? 10 : 1, pe: ad === 0 ? 'auto' : 'none',
+        labOp: ad === 0 ? 1 : 0, labDelay: ad === 0 ? '.2s' : '0s', w, h, cl: MD === 'm' ? 'calc(50% - ' + h / 2 + 'px)' : '0', lj: MD === 'm' ? 'center' : 'flex-start',
+        nhw: -w / 2, nhh: -h / 2, bc: on ? 'var(--neon-pink-tube)' : 'var(--neon-teal)', lc: on ? 'var(--neon-pink-text)' : 'var(--fy-text-secondary)', ts: on ? 'var(--text-glow-pink)' : 'none',
+        _list: list, _idx: idx, _cur: cur, _vi: vi };
+    });
+    const fc = cards[F], fx = SHAPES[F], fcur = fc._cur;
+    const RG = MD === 'm' ? 2.2 : 2.4, RB = Math.round(58 * RG);
+    const multi = fc._list.length > 1;
+    const ladder = { antsOp: multi ? '0.85' : '0', antsShow: multi ? 'block' : 'none', maxR: multi ? fc._list.length - 1 : 2, idx: multi ? fc._idx : 1, locked: !multi,
+      hint: multi ? 'Slide for diameter' : 'Only made in this size',
+      bands: (() => { const items = multi ? fc._list.map(z => smokeBand(z[0][1])) : [smokeBand(fcur[1])]; const cur = multi ? fc._idx : 0; const curTime = SMOKE[smokeBand(fcur[1], fcur[2])]; const segs = []; items.forEach((bi, j) => { const l = segs[segs.length - 1]; if (l && l.bi === bi) { l.grow++; l.end = j; } else segs.push({ bi, grow: 1, start: j, end: j }); }); const total = items.length; return segs.map(sg => { const on = cur >= sg.start && cur <= sg.end; const full = on ? curTime : SMOKE[sg.bi]; const short = full.replace(' min', ''); const frac = sg.grow / total; return { grow: sg.grow, full, label: on ? (frac >= 0.12 || total <= 3 ? full : short) : (frac >= 0.12 || total <= 3 ? full : (frac >= 0.06 ? short : '')), bg: on ? 'color-mix(in srgb,var(--neon-pink-tube) 14%,transparent)' : 'rgba(95,211,207,' + (0.06 + sg.bi * 0.035).toFixed(3) + ')', bc: on ? 'var(--neon-pink-tube)' : 'color-mix(in srgb,var(--neon-teal) 35%,transparent)', sh: on ? 'var(--glow-pink)' : 'none', col: on ? 'var(--neon-pink-text)' : 'var(--fy-text-secondary)' }; }); })(),
+      ticks: (multi ? fc._list : [0, 0, 0]).map((z, j) => (multi ? j === fc._idx : j === 1)),
+      dia: 'Ring = ' + fcur[2], ringPx: Math.round(fcur[2] * RG), ringML: -Math.round(fcur[2] * RG) / 2, ringBox: RB,
+      refs: [32, 44, 56].map(g => ({ px: Math.round(g * RG), ml: -Math.round(g * RG) / 2, top: RB - Math.round(g * RG) + 3, label: g })),
+      first: multi ? fc._list[0][0][0] : '', last: multi ? fc._list[fc._list.length - 1][0][0] : '' };
+    const arw = MD === 'm' ? { r: '4px', bx: '44px', sv: '28', dr: '16px', mt: '-8px', tp: '20px', bt: '12px', dt: '72px', db: '64px', dm: '0px' }
+      : (() => { const H = parseInt(LY.k26) / 2, Sx = 4; return { r: '8px', bx: '68px', sv: '40', dr: '32px', mt: (parseInt(LY.k27) - Sx) + 'px', tp: 'calc(50% - ' + (H + 14 + Sx) + 'px)', bt: 'calc(50% - ' + (H + 14 - Sx) + 'px)', dt: 'calc(50% - ' + (H - 58 + Sx) + 'px)', db: 'calc(50% - ' + (H - 58 - Sx) + 'px)', dm: '23px' }; })();
+    const cardLab = MD === 'm' ? { ac: 'normal', pad: LY.k39, js: LY.k40, gc: 'auto', gr: 'auto', mb: '0', igc: 'auto', igr: 'auto', ijs: 'auto', iml: '0' } : { ac: 'center', pad: '0 0 0 36px', js: 'start', gc: '1 / 3', gr: '1', mb: '34px', igc: '1 / 3', igr: '2', ijs: 'start', iml: '33px' };
+    const focusCuts = ['Straight', 'V-cut', 'Punch'].map(n => { const on = (fx.cuts || []).includes(n); return { name: on ? n : n + ' · not for this shape', g: CUTG[n], op: on ? '1' : '0.25', sh: on ? '0 0 4px color-mix(in srgb,var(--neon-amber) 45%,transparent)' : 'none' }; });
+
+    // Size info card (sizeInfo), the shape's facts (sh), photos and logos
+    const c = fc._cur, nm = c[0], mm = c[1], rg = c[2], inch = mm / 25.4;
+    const bf = BF_[nm] ?? 6, pc = PC_[nm] || ['Even burn, easy to find', 'Few surprises'], alt = c[3] || '';
+    const sizeInfo = { name: nm, spec: inFrac(mm) + ' in × ' + rg, time: SMOKE[smokeBand(mm, rg)], bf: bf + '/10', pro: pc[0], con: pc[1], note: c[7] || '', alt: alt.replace(/^Also:\s*/i, ''), hasAlt: !!alt,
+      burn: rg < 36 ? 'Hot and quick. Easy to overheat, so sip slowly.' : rg < 44 ? 'Warm and lively. Needs a gentle pace.' : rg < 51 ? 'Even and steady. The forgiving middle.' : rg < 56 ? 'Cool and slow. More smoke per puff.' : 'Coolest and slowest. Big, soft clouds.',
+      flav: rg < 36 ? 'Mostly the wrapper. Little room for filler, so it tastes like the leaf on the outside.' : rg < 44 ? 'Wrapper-forward. Sharper, spicier, more of the outer leaf.' : rg < 51 ? 'An even mix of wrapper and filler. How the blender meant it.' : rg < 56 ? 'Filler-forward. Rounder, the wrapper matters less.' : 'Mostly filler. Mellow; the wrapper is a small part of the taste.',
+      best: inch < 4 ? 'A quick one. Break, walk, or a first try.' : inch < 5.5 ? 'After dinner. One drink\'s worth.' : inch < 7 ? 'A proper evening sit.' : 'A long night. Needs time and attention.',
+      bfWhy: bf >= 9 ? 'One of the sizes most guides start you on' : nm === 'Lancero' ? 'One of the hardest sizes to roll well; wrapper-led and unforgiving' : fx.name === 'Culebra' ? 'Three braided cigars, tight draw; a curiosity, not a starter' : rg < 40 ? 'Thin: burns hot and needs a slow, careful pace' : fx.name === 'Perfecto' ? 'Tapered foot and bulge can burn unevenly' : inch >= 7 ? 'Over 90 minutes; a big sit for a first go' : rg >= 56 ? 'Very thick and heavy; long session' : ['Belicoso', 'Torpedo', 'Pyramid', 'Chisel'].includes(fx.name) ? 'Easy draw, but the pointed head needs a careful cut' : 'Comfortable draw and a manageable time',
+      bfBar: Array.from({ length: 10 }, (_, k) => k < bf) };
+    const curName = fc._cur[0];
+    const photo = fileFor(PHOTOS, 'assets/humidor/cigars/', 'size-photo-', slugOf(fx.name + '-' + (sizesOf(fx.name).length ? curName : fx.name)));
+    const brands = fx.brands.map((b, i) => ({ house: (HOUSES.find(x => String(b[0]).toLowerCase().startsWith(x.toLowerCase())) || String(b[0]).split(' ').slice(0, 2).join(' ')), n: i + 1, name: b[0], note: b[1] }));
+    const seen = new Set();
+    const logos = brands.map(b => b.house).filter(x => x && !seen.has(x) && seen.add(x)).slice(0, 4).map(x => { const id = slugOf(x); return { src: fileFor(LOGOS, 'assets/humidor/logos/', 'brand-logo-', id), inv: id === 'rocky-patel', alt: x + ' logo' }; });
+    const ORS = (P.origins || (P.origin ? [P.origin] : []));
+    const ORk = ORS.map(o => o.split(/[ .]/)[0].toLowerCase());
+    const rolled = (fx.countries || []).map(cc => ({ name: cc, on: ORk.includes(cc.split(/[ .]/)[0].toLowerCase()) }));
+    const recCuts = ['Straight', 'V-cut', 'Punch'].map(n => ({ name: n === 'Straight' ? 'Straight cut' : n, g: CUTG[n], y: (fx.cuts || []).includes(n) }));
+
+    // My preferences
+    const f2 = S.filt, sp = P.sizePrefs;
+    const same = !!sp && ['minR', 'maxR', 'maxT', 'shape'].every(k => (sp[k] ?? null) === (f2[k] ?? null));
+    const cnt = g => VIT.filter(v => (g.minR == null || v[2] >= g.minR) && (g.maxR == null || v[2] <= g.maxR) && (g.maxT == null || smokeBand(v[1], v[2]) <= g.maxT) && (!g.shape || v[4] === g.shape)).length;
+    const nMatch = VIT.filter(v => passF(v) && (!f2.shape || v[4] === f2.shape)).length;
+    const note = (() => { const NV = VIT.length; const act = []; if (f2.minR != null || f2.maxR != null) act.push(['ring gauge', { ...f2, minR: null, maxR: null }]); if (f2.maxT != null) act.push(['smoke time', { ...f2, maxT: null }]); if (f2.shape) act.push(['shape', { ...f2, shape: null }]); if (!act.length) return 'No filters set · all ' + NV + ' sizes showing.'; if (nMatch > 0) return nMatch + ' of ' + NV + ' sizes match' + (f2.shape ? ' · all ' + f2.shape : '') + '. Shapes with nothing that fits are greyed out.'; const fix = act.map(([n2, g]) => [n2, cnt(g)]).filter(x => x[1] > 0).map(x => 'drop the ' + x[0] + ' (' + x[1] + ' match)'); return 'Nothing fits this mix. ' + (fix.length ? fix.join(' or ').replace(/^d/, 'D') + '.' : 'Loosen two filters to bring cigars back.'); })();
+    const prefBar = { same, note, label: same ? '★ PREFERENCES SAVED' : 'SUBMIT PREFERENCES',
+      girth: (f2.minR == null && f2.maxR == null) ? '' : (f2.maxR === 42 ? 'skinny' : f2.minR === 52 ? 'fat' : 'medium'),
+      girthOpts: [{ v: '', l: 'Any' }, { v: 'skinny', l: 'Skinny · up to 42' }, { v: 'medium', l: 'Medium · 43–50' }, { v: 'fat', l: 'Fat · 52+' }],
+      maxT: f2.maxT != null ? String(f2.maxT) : '', timeOpts: [{ v: '', l: 'Any' }, ...SMOKE.map((t, k) => ({ v: String(k), l: 'Up to ' + t.split('–').pop().replace('+ min', ' min+') }))],
+      shape: f2.shape || '', shapeOpts: [{ v: '', l: 'Any' }, ...SHAPES.map(x => ({ v: x.name, l: x.name + ({ Parejo: ' (straight, round ends)', Torpedo: ' (pointed head)', Pyramid: ' (tapers from foot to point)', Belicoso: ' (short rounded point)', Perfecto: ' (pointed both ends)', Chisel: ' (flat, wedge-shaped head)', Culebra: ' (three plaited cigars)' }[x.name] || '') }))] };
+
+    // 2 · origins, leaves, strength
+    const prefShape = (P.sizePrefs && P.sizePrefs.shape) || S.filt.shape;
+    const fShape = (prefShape && SHAPES.find(x => x.name === prefShape)) || SHAPES[F];
+    const fC = (fShape.countries || []).map(cc => cc.split(/[ .]/)[0].toLowerCase());
+    const origins = ORIG.map(o => { const on = ORS.includes(o[0]); const l = lit(on); const rolls = fC.includes(o[0].split(' ')[0].toLowerCase());
+      return { key: o[0], rolls, on, name: o[0], region: o[1], blurb: o[2], rollTag: 'Rolls the ' + fShape.name.toLowerCase(), op: rolls || on ? '1' : '0.55', bw: on ? '2px' : '1px',
+        bc: on ? 'var(--neon-green-tube)' : (rolls ? 'color-mix(in srgb,var(--fy-text) 60%,transparent)' : l.bc),
+        sh: on ? '0 0 6px var(--neon-green-tube),0 0 16px color-mix(in srgb,var(--neon-green-tube) 55%,transparent)' : (rolls ? '0 0 6px color-mix(in srgb,var(--fy-text) 30%,transparent)' : l.sh),
+        lc: on ? 'var(--neon-green-text)' : 'var(--fy-text)', cta: !rolls ? ('Doesn\'t roll the ' + fShape.name.toLowerCase() + (on ? ' · tap to clear' : '')) : on ? '★ Leaning this way' : 'Lean this way →',
+        ctaCol: rolls ? 'var(--fy-text)' : 'var(--fy-text-label)', cur: rolls || on ? 'pointer' : 'default', card: rolls || on ? 'on' : 'off' }; }).sort((a, b) => (b.rolls ? 1 : 0) - (a.rolls ? 1 : 0));
+    const BANDS = [['6%', '20%'], ['26%', '20%'], ['46%', '24%'], ['70%', '24%']];
+    const LCOL = [['var(--neon-red-tube)', '232,38,58', 'var(--neon-red-text)'], ['var(--color-accent-2)', '167,161,219', 'color-mix(in srgb,var(--color-accent-2) 55%,var(--color-neutral-100))'], ['var(--neon-green-tube)', '63,224,127', 'var(--neon-green-text)'], ['var(--medal-silver)', '228,236,240', 'var(--color-neutral-100)']];
+    const leaves = LEAVES.map((x, i) => { const on = S.leaf === i; const [cc, rgb, tx] = LCOL[i]; return { i, name: x[0], pos: x[1], top: BANDS[i][0], h: BANDS[i][1], band: on ? 'rgba(' + rgb + ',.18)' : 'transparent', line: on ? cc : 'rgba(' + rgb + ',.4)', bc: on ? cc : 'rgba(' + rgb + ',.6)', sh: on ? '0 0 4px ' + cc + ',0 0 12px rgba(' + rgb + ',.5)' : 'none', lc: on ? tx : 'var(--fy-text)' }; });
+    const TYP = { cuba: ['Medium'], dominican: ['Mild', 'Medium'], nicaragua: ['Full'], honduras: ['Medium', 'Full'] };
+    const typFor = x => ORS.filter(cc => (TYP[cc.split(/[ .]/)[0].toLowerCase()] || []).includes(x));
+    const strengths = ['Mild', 'Medium', 'Full'].map(x => ({ x, typ: typFor(x).length ? 'Typical for ' + typFor(x).map(cc => cc.split(' ')[0] === 'Dominican' ? 'Dominican Rep.' : cc).join(' & ') : '', label: (P.strength === x ? '★ ' : '') + x,
+      ...(P.strength === x ? green : { bw: '1px', bc: 'color-mix(in srgb,var(--fy-text) 60%,transparent)', sh: '0 0 6px color-mix(in srgb,var(--fy-text) 30%,transparent)', lc: 'var(--fy-text)', ts: 'none' }) }));
+    const pcC = { L: 'var(--neon-red-tube)', VI: 'var(--color-accent-2)', S: 'var(--neon-green-tube)', V: 'rgba(228,236,240,.75)' }, pcK = ['L', 'VI', 'S', 'V'], pcPos = { L: [50], VI: [38, 62], S: [25, 75], V: [14, 86] };
+    const pcLines = pcK.flatMap((k, i) => pcPos[k].map(x => ({ x: x + '%', c: pcC[k], op: i === S.leaf ? 1 : .25, sh: i === S.leaf ? '0 0 6px ' + pcC[k] : 'none' })));
+    const pcKey = [...pcK.map((k, i) => ({ label: LEAVES[i][0], c: pcC[k], tc: i === S.leaf ? 'var(--fy-text)' : 'var(--color-neutral-500)', op: i === S.leaf ? 1 : .7 })), { label: 'Binder', c: 'color-mix(in srgb,var(--neon-teal) 70%,transparent)', tc: 'var(--color-neutral-500)', op: .7 }, { label: 'Wrapper', c: 'var(--fy-text)', tc: 'var(--color-neutral-500)', op: .7 }];
+
+    // 3 · wrapper and flavour
+    const WR = P.wr; const inR = i => WR && i >= WR[0] && i <= WR[1];
+    const FLs = P.flavour || [];
+    const swatches = SW.map((w, i) => { const sel = inR(i), foc = S.swatch === i; const mk = !P.wr && FLs.length && (WF[w[0]] || []).some(x => FLs.includes(x)); return { i, mark: !!mk, name: w[0], hex: w[1], bw: sel ? '2px' : (foc ? '2px' : '1px'), bc: sel ? 'var(--neon-pink-tube)' : (foc ? 'var(--hint-border)' : 'color-mix(in srgb,var(--neon-teal) 50%,transparent)'), sh: sel ? 'var(--glow-pink)' : 'none' }; });
+    const W = SW[S.swatch]; const wOn = !!P.wr; const wrLabel = P.wr ? (P.wr[0] === P.wr[1] ? SW[P.wr[0]][0] : SW[P.wr[0]][0] + ' → ' + SW[P.wr[1]][0]) : '';
+    const rng = P.wr ? [P.wr[0], P.wr[1]] : [S.swatch, S.swatch]; const inRng = SW.slice(rng[0], rng[1] + 1); const names = inRng.map(w => w[0]);
+    const hit = new Set(names.flatMap(n => WF[n] || []));
+    const tasteLead = (P.wr ? 'Your range' : 'Showing') + ': ' + (names.length > 1 ? names[0] + ' → ' + names[names.length - 1] : names[0]);
+    const tasteRows = FAM.map(fm => { const on = hit.has(fm[0]); const sel = FLs.includes(fm[0]); const can = on || sel;
+      return { f: fm[0], dots: inRng.filter(w => (WF[w[0]] || []).includes(fm[0])).map(w => ({ hex: w[1], name: w[0] })), fam: (sel ? '★ ' : '') + fm[0],
+        fc: sel ? 'var(--color-neutral-100)' : (on ? 'var(--fy-text)' : 'var(--color-neutral-600)'), bw: sel ? '2px' : '1px',
+        bc: sel ? 'var(--neon-green-tube)' : (on ? 'color-mix(in srgb,var(--fy-text) 55%,transparent)' : 'color-mix(in srgb,var(--fy-text-label) 15%,transparent)'),
+        sh: sel ? '0 0 6px var(--neon-green-tube),0 0 14px color-mix(in srgb,var(--neon-green-tube) 45%,transparent)' : (on ? '0 0 5px color-mix(in srgb,var(--fy-text) 25%,transparent)' : 'none'),
+        cur: can ? 'pointer' : 'not-allowed', op: can ? 1 : .5, warn: sel && !on,
+        words: fm[1].split(', ').map(t => ({ t, bc: on ? 'color-mix(in srgb,var(--fy-text) 35%,transparent)' : 'color-mix(in srgb,var(--fy-text-label) 15%,transparent)', c: on ? 'var(--fy-text-secondary)' : 'var(--color-neutral-600)' })) }; });
+
+    // Sections and gating
+    const VOTED = S.voted;
+    const unl = !!(S.m1Sent || P.sizePrefs); const O = S.secOpen; const d3 = !!(P.wr && P.wr.length) && !!(P.flavour && P.flavour.length);
+    const nextK = [1, 2, 3, 4].find(k => !O[k] && (k === 1 || (unl && (k < 4 || d3))));
+    const sec = k => { if (VOTED) return { voted: true, open: false, locked: true, status: 'Submitted ✓' };
+      const locked = (k > 1 && !unl) || (k === 4 && !d3); const open = !!O[k];
+      return { open, locked, glow: !open && !locked && k === nextK, ov: open && !!S.secOv[k], status: locked ? (k === 4 && unl ? 'Locked · finish 3 first' : 'Locked · submit 1 first') : open ? 'Close' : 'Open' }; };
+
+    // Your vote
+    const R0 = data && data.round; const open = !!R0 && R0.status === 'collecting'; const mine = mineNow();
+    const timeOf = () => { const v = VIT.find(x => x[0] === P.size); return v ? SMOKE[smokeBand(v[1], v[2])] : ''; };
+    const set = (v, go, txt) => v ? { val: txt || v, col: 'var(--neon-pink-text)', ts: 'var(--text-glow-pink)', go } : { val: 'Not set · go to it', col: 'var(--fy-text-label)', ts: 'none', go };
+    const SP = P.sizePrefs || {};
+    const ringTxt = (SP.minR != null || SP.maxR != null) ? ((SP.minR != null ? SP.minR : 'any') + ' to ' + (SP.maxR != null ? SP.maxR : 'any')) : '';
+    const vRows = [{ label: 'Ring gauge', ...set(ringTxt, 1) }, { label: 'Max time', req: true, ...set(SP.maxT != null ? TLb[SP.maxT] : '', 1, SP.maxT != null ? 'Up to ' + TLb[SP.maxT] : '') }, { label: 'Shape', req: true, ...set(SP.shape, 1) }, { label: 'Time', ...set(P.size, 1, P.size ? timeOf() + ' · ' + P.size : '') }, { label: 'Strength', ...set(P.strength, 2) }, { label: 'Wrapper', ...set(P.wr, 3, wrLabel) }, { label: 'Flavour', ...set((P.flavour || []).length, 3, (P.flavour || []).join(', ')) }, { label: 'Origin', ...set(P.origin, 2) }, { label: 'Budget', req: true, ...set(P.budget, 4, P.budget ? P.budget + ' a cigar' : '') }];
+    vRows.forEach(r => { if (r.req && r.col !== 'var(--neon-pink-text)') { r.val = 'Required · go to it'; r.col = 'var(--neon-red-text)'; } if (r.req) r.label = r.label + ' *'; });
+    const missing = [SP.shape ? null : 'shape', SP.maxT != null ? null : 'max smoke time', P.budget ? null : 'budget'].filter(Boolean);
+    const voteCount = vRows.filter(r => r.col === 'var(--neon-pink-text)').length + ' of ' + vRows.length + ' set';
+    const cant = !open || missing.length > 0 || busy;
+    const nV = R0 ? (R0.prefs || []).length : 0;
+    const vote = { show: !VOTED && d3 && !!P.budget, roundLabel: R0 ? (R0.status === 'collecting' ? 'Round ' + R0.n + ' · collecting votes' : R0.status === 'ranking' ? 'Round ' + R0.n + ' · ranking 3 cigars' : R0.status === 'paying' ? 'Round ' + R0.n + ' · paying up' : '') : 'No round open',
+      rows: vRows, count: voteCount, cant, label: mine ? 'UPDATE MY VOTE' : 'SUBMIT MY VOTE',
+      status: missing.length && R0 && R0.status === 'collecting' ? ('Still needed before you can vote: ' + missing.join(', ') + '.') : !R0 ? 'Hank hasn\'t opened a round yet. When he does, your vote goes in here.' : R0.status !== 'collecting' ? 'Preferences are closed for this round. Head to the vote page.' : mine ? 'Your vote is in (' + nV + (nV === 1 ? ' member' : ' members') + ' so far). Change anything above and update it until Hank closes the round.' : nV + (nV === 1 ? ' member has' : ' members have') + ' voted so far.',
+      statusCol: missing.length && R0 && R0.status === 'collecting' ? 'var(--neon-red-text)' : mine ? 'var(--neon-green-text)' : 'var(--fy-text-secondary)',
+      prefs: { size: P.size || null, time: P.size ? timeOf() : null, strength: P.strength || null, wr: P.wr ? P.wr.map(i => SW[i][0]) : null, flavour: P.flavour || [], origin: P.origin || null, budget: P.budget || null, sizePrefs: P.sizePrefs || null } };
+    let voted = { on: false };
+    if (VOTED) { const m = mine || S.saved; const pr = (m && m.prefs) || {}; const canEdit = !!m && open;
+      const sum = [pr.size, pr.strength, pr.wr ? (pr.wr[0] === pr.wr[1] ? pr.wr[0] : pr.wr[0] + ' → ' + pr.wr[1]) + ' wrapper' : null, (pr.flavour || []).join(', ') || null, pr.budget ? pr.budget + ' a cigar' : null].filter(Boolean).join(' · ');
+      voted = { on: true, canEdit, kicker: 'Round ' + (R0 ? R0.n : lastN) + ' - your vote :', sum: sum || 'No picks set.' }; }
+
+    // Close-up
+    const zc = cards[F]; const L = Math.min(window.innerWidth * 0.84, 1200); const D = Math.max(110, Math.round(L * zc.w / Math.max(1, zc.h)));
+    const zm = { L, D, title: zc.name + ' · ' + (zc._cur ? zc._cur[0] : ''), spec: zc._cur ? inFrac(zc._cur[1]) + ' in × ' + zc._cur[2] : '' };
+
+    return { MD, LY, slot, cards, ladder, arw, cardLab, focusCuts, sizeInfo, photo, sh: fx, brands, logos, rolled, recCuts, prefBar, origins, leaves,
+      leaf: LEAVES[S.leaf], strengths, pcLines, pcKey, swatches, W, wOn, wrLabel, tasteLead, tasteRows, sec, vote, voted, zm,
+      focusShapeName: (prefShape || SHAPES[F].name).toLowerCase(), dots: SHAPES.map((x, i) => ({ i, name: x.name, on: i === F })) };
+  }
+
+  // ---------- drawing ----------
+  function put(k, html) {
+    const el = R[k]; if (!el || cache[k] === html) return;
+    const a = document.activeElement; const fk = a && el.contains(a) ? a.getAttribute('data-k') : null;
+    el.innerHTML = html; cache[k] = html;
+    if (fk) { const n = el.querySelector('[data-k="' + fk + '"]'); if (n) n.focus({ preventScroll: true }); }
+  }
+  function css(el, text) { if (el && el.__css !== text) { el.style.cssText = text; el.__css = text; } }
+  const fsx = x => 'font-size:max(10px,calc(' + x + ' * var(--ts,1)))';
+
+  // Cigar silhouette layers, shared by the poster cards and the close-up (zoom: thicker lines, wider band).
+  function cigar(v, zoom) {
+    const sw = zoom ? 2 : .75, op = zoom ? 1 : .9;
+    const lines = v.leafLines.map(ln => `<line x1="${ln.xn}" x2="${ln.xn}" y1="${ln.an}" y2="${ln.bn}" style="stroke:${ln.c}" stroke-width="${sw}" opacity="${op}" vector-effect="non-scaling-stroke"></line>`).join('');
+    const twist = v.twistPaths.map(tp => `<path d="${tp.d}" fill="none" style="stroke:${tp.c}" stroke-width="${sw}" opacity="${op}" vector-effect="non-scaling-stroke"></path>`).join('');
+    const svgs = `<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">${lines}</svg><svg viewBox="0 0 100 100" preserveAspectRatio="none" style="display:${v.bandShow === 'none' ? 'block' : 'none'};position:absolute;inset:0;width:100%;height:100%;overflow:visible">${twist}</svg>`;
+    if (zoom) return `<span style="position:absolute;inset:0;background:${v.bc};clip-path:${v.clip}"></span><span style="position:absolute;inset:3px;background:var(--fy-surface);clip-path:${v.clip}"></span><span aria-hidden="true" style="position:absolute;inset:3px;clip-path:${v.clip};z-index:1">${svgs}</span><span aria-hidden="true" style="position:absolute;inset:0;clip-path:${v.clip};z-index:2"><span style="position:absolute;left:0;right:0;top:${v.capTop};height:2px;background:var(--neon-amber-tube);box-shadow:0 0 4px var(--neon-amber)"></span></span><span style="position:absolute;inset:0;clip-path:${v.clip};display:${v.bandShow};z-index:3"><span style="position:absolute;left:0;right:0;top:${v.bandTop};height:14px;background:var(--fy-text);box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 80%,transparent)"></span></span>`;
+    return `<span style="position:absolute;inset:0;background:${v.bc};clip-path:${v.clip}"></span><span class="lay" aria-hidden="true" style="position:absolute;inset:${v.leafInset}px;clip-path:${v.clip};z-index:1;opacity:${v.labOp};transition-delay:${v.labDelay}">${svgs}</span><span class="lay" aria-hidden="true" style="position:absolute;inset:0;clip-path:${v.clip};z-index:2;opacity:${v.labOp};transition-delay:${v.labDelay}"><span style="position:absolute;left:0;right:0;top:${v.capTop};height:1px;background:var(--neon-amber-tube);box-shadow:0 0 3px var(--neon-amber)"></span></span><span style="position:absolute;inset:${v.inset}px;background:var(--fy-surface);clip-path:${v.clip}"></span><span style="position:absolute;inset:0;clip-path:${v.clip};display:${v.bandShow}"><span style="position:absolute;left:0;right:0;top:${v.bandTop};height:8px;background:var(--fy-text);box-shadow:0 0 4px color-mix(in srgb,var(--fy-text) 80%,transparent)"></span></span>`;
+  }
+
+  function prefPanel(V, side) {
+    const p = V.prefBar, k = side ? 'a' : 'b';
+    const sel = (f, lab, val, opts) => `<label><span class="lt t10">${lab}</span><select class="hv-sel t-s" data-f="${f}" data-k="${k}-${f}" aria-label="${lab}">${opts.map(o => `<option value="${esc(o.v)}"${o.v === val ? ' selected' : ''}>${esc(o.l)}</option>`).join('')}</select></label>`;
+    return `<div class="hv-pref ${side ? 'side' : 'inl'}${p.same ? ' same' : ''}" aria-label="${side ? 'My preferences (sidebar)' : 'My preferences'}">
+      ${sel('girth', 'Ring gauge', p.girth, p.girthOpts)}${sel('maxT', 'Max smoke time', p.maxT, p.timeOpts)}${sel('shape', 'Preferred shape', p.shape, p.shapeOpts)}
+      <button type="button" class="hv-tube ${side ? 't-m' : 't-k'}" data-a="prefsub" data-k="${k}-sub">${p.label}</button>
+      <span class="note t-m">${esc(p.note)}</span></div>`;
+  }
+
+  function draw(roundOnly) {
+    const V = model(); const LY = V.LY;
+    // Round-dependent parts (the only ones a poll touches)
+    put('roundLabel', esc(V.vote.roundLabel));
+    put('voteStatus', `<span class="t-s" style="line-height:1.45;color:${V.vote.statusCol}">${esc(V.vote.status)}</span>`);
+    put('submit', movedOn ? '<p class="t-s" role="status" style="margin:0;color:var(--neon-amber-text);line-height:1.45">The round moved on. Reload to continue.</p>'
+      : `<button type="button" class="hv-submit t-s" data-a="submit" data-k="submit"${V.vote.cant ? ' disabled' : ''}>${V.vote.label}</button>`);
+    put('voted', !V.voted.on ? '' : `<section class="hv-voted hm-pop" aria-live="polite"><span class="t-k up" style="color:var(--neon-green-text)">${esc(V.voted.kicker)}</span>
+      <span class="t-br" style="line-height:1.35;font-weight:500;color:var(--neon-pink-text)">${esc(V.voted.sum)}</span>
+      ${V.voted.canEdit ? '<button type="button" class="hv-edit t-u" data-flash="edit" data-a="edit" data-k="edit">EDIT MY TASTE</button>' : ''}</section>`);
+    if (roundOnly) return;
+
+    // Section headers and bodies
+    for (let k = 1; k <= 4; k++) {
+      const s = V.sec(k), h = R['sh' + k], b = R['sb' + k];
+      h.className = 'hv-sh' + (s.voted ? ' voted' : s.locked ? ' locked' : s.open ? ' open' : '') + (s.glow ? ' glow hm-roll' : '');
+      h.tabIndex = s.voted ? -1 : 0; h.setAttribute('aria-expanded', String(s.open)); h.setAttribute('aria-disabled', String(!!s.locked));
+      put('st' + k, esc(s.status));
+      b.className = 'hv-sb' + (s.open ? ' open' : '') + (s.ov ? ' ov' : '');
+      if (s.open) b.removeAttribute('inert'); else b.setAttribute('inert', '');
+    }
+    ['h3verb', 'h4verb'].forEach((k, i) => put(k, esc(LY.verb + (i ? ' a budget · per cigar' : ' a colour · then a taste family'))));
+
+    // My preferences
+    const pw = R.prefwrap; const showPw = S.seen1;
+    if (showPw && pw.hidden) { pw.hidden = false; pw.classList.add('hm-pref'); }
+    pw.style.maxWidth = V.MD === 'd' ? '360px' : 'none';
+    put('pref1', prefPanel(V, true)); put('pref2', prefPanel(V, false));
+
+    // Poster cards
+    const cl = V.cardLab;
+    V.cards.forEach((v, i) => {
+      const el = R['card' + i];
+      css(el, `position:absolute;left:0;right:0;top:${LY.k25};height:${LY.k26};margin-top:${V.arw.mt};display:${LY.k28};flex-direction:${LY.k29};align-items:center;justify-content:${LY.k30};gap:${LY.k31};padding:${LY.k32};grid-template-columns:${LY.k33};justify-items:${LY.k34};align-content:${cl.ac};box-sizing:border-box;background:transparent;border:0;cursor:pointer;pointer-events:${v.pe};transform-origin:0 50%;transform:${v.tf};opacity:${v.op};z-index:${v.z};transform-style:preserve-3d;will-change:transform;color:inherit`);
+      el.setAttribute('aria-label', v.name); el.tabIndex = v.pe === 'auto' ? 0 : -1; el.setAttribute('aria-hidden', String(v.pe !== 'auto'));
+      put('card' + i, `<span class="lab" style="position:${LY.k35};left:${LY.k36};top:${LY.k37};right:${LY.k38};display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:${cl.pad};justify-self:${cl.js};grid-column:${cl.gc};grid-row:${cl.gr};margin-bottom:${cl.mb};max-width:${LY.k41};box-sizing:border-box;opacity:${v.labOp};transition-delay:${v.labDelay}">
+          <span class="t-s up6" style="color:var(--neon-teal)">${esc(v.prefixShape)}</span>
+          <span class="t-c" style="font-weight:500;line-height:1.15;letter-spacing:.05em;text-transform:uppercase;color:${v.lc};text-shadow:${v.ts};text-wrap:balance">${esc(v.sizeName)}</span>
+          <span class="t-m" style="letter-spacing:.05em;text-transform:uppercase;line-height:1.3;color:var(--fy-text-label);text-wrap:balance">${esc(v.kindShort)} · ${esc(v.burnWord)}</span></span>
+        <div class="img" style="opacity:${v.nmOp};filter:${v.nmF};width:${V.slot}px;height:70px;position:relative;flex:none;grid-column:${cl.igc};grid-row:${cl.igr};justify-self:${cl.ijs};margin-left:${cl.iml}">
+          <span class="len t-s" style="position:absolute;left:0;right:0;top:${v.lenTop};margin-top:${v.lenGap};display:flex;justify-content:${v.lj};align-items:center;gap:10px;color:var(--fy-text-body);font-variant-numeric:tabular-nums;white-space:nowrap;opacity:${v.labOp};transition-delay:${v.labDelay}"><span>${esc(v.lenTxt)}</span></span>
+          <div style="position:absolute;left:${v.cl};top:50%;width:${v.h}px;height:${v.w}px;margin-top:${v.nhw}px;margin-left:0">
+            <div style="position:absolute;left:50%;top:50%;width:${v.w}px;height:${v.h}px;margin-left:${v.nhw}px;margin-top:${v.nhh}px;transform:rotate(-90deg);filter:drop-shadow(0 0 ${v.glowPx}px ${v.glowCol})">${cigar(v, false)}</div>
+          </div></div>`);
+    });
+    // Ring ladder, cut marks, dots and arrows over the poster
+    const L = V.ladder, A = V.arw;
+    put('ring', `<div style="position:absolute;left:${LY.k42};right:${LY.k43};bottom:${LY.k44};display:flex;flex-direction:column;justify-content:${LY.k45};align-items:center;gap:${LY.k46};z-index:15;pointer-events:none;width:${LY.k47};top:${LY.k48};transform:${LY.k49};margin-top:${A.dm}">
+        <div style="position:relative;align-self:stretch;display:flex;justify-content:center">
+          <span aria-label="Cuts for this shape" style="position:absolute;left:16px;bottom:0;display:flex;flex-direction:column;gap:7px;align-items:center">${V.focusCuts.map(cc => `<span class="t-c" title="${esc(cc.name)}" aria-label="${esc(cc.name)} cut" style="width:34px;height:34px;border-radius:50%;border:1.5px solid var(--neon-amber-tube);box-sizing:border-box;display:grid;place-items:center;color:var(--neon-amber-text);font-weight:600;line-height:1;box-shadow:${cc.sh};opacity:${cc.op}">${cc.g}</span>`).join('')}<span class="t-m" style="position:absolute;top:100%;left:0;right:0;margin-top:5px;text-align:center;letter-spacing:.1em;text-transform:uppercase;color:var(--neon-amber-text)">Cut</span></span>
+          <div style="position:relative;width:${L.ringBox}px;height:${L.ringBox}px">${L.refs.map(r => `<span style="position:absolute;left:50%;bottom:0;width:${r.px}px;height:${r.px}px;margin-left:${r.ml}px;border-radius:50%;border:1px dashed color-mix(in srgb,var(--neon-teal) 60%,transparent);box-sizing:border-box"></span><span class="t-s" style="position:absolute;left:50%;top:${r.top}px;transform:translateX(-50%);line-height:1;color:var(--fy-text-secondary);font-variant-numeric:tabular-nums">${r.label}</span>`).join('')}<span class="hv-ring" style="position:absolute;left:50%;bottom:0;width:${L.ringPx}px;height:${L.ringPx}px;margin-left:${L.ringML}px;border-radius:50%;border:2px solid var(--neon-pink-tube);box-shadow:var(--glow-pink);box-sizing:border-box"></span></div>
+        </div>
+        <span class="t-s" style="color:var(--fy-text-body);font-variant-numeric:tabular-nums;text-align:center;line-height:1.4">${esc(L.dia)}</span></div>`);
+    put('nav', `<div role="tablist" aria-label="Shape position" style="position:absolute;right:${A.dr};top:${A.dt};bottom:${A.db};width:20px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;z-index:20">${V.dots.map(d => `<button type="button" role="tab" aria-selected="${d.on}" aria-label="${esc(d.name)}" data-a="dot" data-i="${d.i}" data-k="dot${d.i}" style="width:20px;height:${d.on ? 22 : 6}px;padding:0;border:0;background:transparent;cursor:pointer;display:grid;place-items:center"><span style="display:block;width:4px;height:${d.on ? 22 : 6}px;border-radius:2px;background:${d.on ? 'var(--neon-pink-tube)' : 'color-mix(in srgb,var(--neon-teal) 50%,transparent)'};box-shadow:${d.on ? 'var(--glow-pink)' : 'none'}"></span></button>`).join('')}</div>
+      <button type="button" class="hv-arrow" data-a="rot" data-i="-1" data-k="prev" aria-label="Previous shape" style="right:${A.r};top:${A.tp};width:${A.bx};height:${A.bx}"><span data-arrow-breath="" style="display:block;line-height:0"><svg viewBox="0 0 24 24" width="${A.sv}" height="${A.sv}" aria-hidden="true" style="display:block;overflow:visible;filter:drop-shadow(0 0 2px color-mix(in srgb,var(--color-neutral-100) 60%,transparent)) drop-shadow(0 0 5px color-mix(in srgb,var(--fy-text) 30%,transparent))"><polyline points="5,15.5 12,8.5 19,15.5" fill="none" style="stroke:var(--color-neutral-100)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></span></button>
+      <button type="button" class="hv-arrow" data-a="rot" data-i="1" data-k="next" aria-label="Next shape" style="right:${A.r};bottom:${A.bt};width:${A.bx};height:${A.bx}"><span data-arrow-breath="" class="late" style="display:block;line-height:0"><svg viewBox="0 0 24 24" width="${A.sv}" height="${A.sv}" aria-hidden="true" style="display:block;overflow:visible;filter:drop-shadow(0 0 2px color-mix(in srgb,var(--color-neutral-100) 60%,transparent)) drop-shadow(0 0 5px color-mix(in srgb,var(--fy-text) 30%,transparent))"><polyline points="5,8.5 12,15.5 19,8.5" fill="none" style="stroke:var(--color-neutral-100)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></span></button>`);
+    // Size slider
+    put('hint', `<div style="display:flex;justify-content:center;padding-right:${V.MD === 'm' ? '38px' : '0'}"><span class="t-k up6" style="color:var(--neon-teal)">${esc(L.hint)}</span></div>`);
+    put('ants', `<div style="position:absolute;left:11px;right:11px;top:50%;height:0;pointer-events:none;display:${L.antsShow};opacity:${L.antsOp}"><span data-ants="" style="position:absolute;top:-4px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--fy-text);filter:blur(1px)"></span><span data-ants="" class="late" style="position:absolute;top:-4px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--fy-text);filter:blur(1px)"></span></div>`);
+    put('ticks', L.ticks.map(on => `<span style="width:2px;height:10px;border-radius:1px;background:${on ? 'var(--fy-text)' : 'color-mix(in srgb,var(--fy-text) 55%,transparent)'}"></span>`).join(''));
+    const rg = R.range; rg.max = String(L.maxR); if (String(rg.value) !== String(L.idx)) rg.value = String(L.idx); rg.disabled = L.locked; rg.style.cursor = L.locked ? 'not-allowed' : 'pointer';
+    put('bands', L.bands.map(b => `<span class="hv-band" style="flex:${b.grow} 1 0;min-width:0;display:flex;align-items:center;justify-content:center;border-radius:4px;background:${b.bg};border:1px solid ${b.bc};box-shadow:${b.sh};${fsx('10px')};font-variant-numeric:tabular-nums;color:${b.col};white-space:nowrap;overflow:hidden" title="${esc(b.full)}">${esc(b.label)}</span>`).join(''));
+    put('fl', `<span>${esc(L.first)}</span><span>${esc(L.last)}</span>`);
+    // This size, photo, more information, brands
+    const si = V.sizeInfo, sh = V.sh, mob = V.MD === 'm';
+    const photoBox = `<div style="display:flex;min-height:150px${mob ? '' : ';height:100%'}"><div class="hv-photo">${V.photo ? `<img src="${esc(V.photo)}" alt="${esc(sh.name + ' · ' + si.name)}" loading="lazy">` : ''}</div></div>`;
+    const dl = (k, v) => `<div class="hv-dl"><span class="k t-k">${k}</span><span class="v t-s">${v}</span></div>`;
+    put('thisSize', `<div aria-label="This size" style="padding:12px 14px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text) 35%,transparent);background:color-mix(in srgb,var(--fy-surface) 45%,var(--fy-bg));display:grid;grid-template-columns:${mob ? 'minmax(0,1fr)' : 'minmax(0,1fr) minmax(200px,40%)'};gap:14px;align-items:stretch"><div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:6px 14px;padding-bottom:8px;border-bottom:1px solid color-mix(in srgb,var(--fy-text) 15%,transparent)"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px"><span class="neon-pink t24" style="font-weight:500;line-height:1.2">${esc(sh.name)}</span><span class="t-pt" style="font-weight:500;font-style:italic;line-height:1.2;color:var(--fy-text)">· ${esc(si.name)}</span></span><span class="t-m" style="line-height:1.4;color:var(--fy-text-label)">${esc(sh.kind)}</span></span><span class="t-c" style="font-weight:700;color:var(--color-neutral-100);font-variant-numeric:tabular-nums;white-space:nowrap;text-shadow:0 0 4px color-mix(in srgb,var(--fy-text) 90%,transparent),0 0 12px color-mix(in srgb,var(--neon-teal) 70%,transparent),0 0 22px color-mix(in srgb,var(--neon-teal) 40%,transparent)">${esc(si.spec)}</span></div>
+        <div style="display:grid;grid-template-columns:minmax(96px,auto) 1fr;gap:4px 10px;align-items:center"><span class="t-k up6" style="color:var(--neon-teal);white-space:nowrap">Beginner friendly</span><div style="display:flex;align-items:center;gap:10px;min-width:0"><div aria-hidden="true" style="display:flex;gap:3px;flex:0 1 140px">${si.bfBar.map(on => `<span style="flex:1;height:8px;border-radius:2px;background:${on ? 'var(--fy-text)' : 'color-mix(in srgb,var(--fy-text) 14%,transparent)'};box-shadow:${on ? '0 0 4px color-mix(in srgb,var(--fy-text) 50%,transparent)' : 'none'}"></span>`).join('')}</div><span class="t-b" style="font-weight:500;color:var(--fy-text);font-variant-numeric:tabular-nums;white-space:nowrap">${si.bf}</span></div><span></span><span class="t-m" style="line-height:1.4;color:var(--fy-text-label)">${esc(si.bfWhy)}</span></div>
+        ${dl('Smoke time', esc(si.time))}${dl('Burn', esc(si.burn))}${dl('Flavour from', esc(si.flav))}${dl('Best for', esc(si.best))}${si.hasAlt ? dl('Also called', esc(si.alt)) : ''}${dl('Shape range', esc(sh.lens) + ' · ring ' + esc(sh.rings))}
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px 14px;padding-top:6px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 20%,transparent)"><div style="display:flex;flex-direction:column;gap:2px"><span class="t-k up6" style="font-weight:700;color:var(--neon-green-text)">For</span><span class="t-s" style="line-height:1.45;color:var(--fy-text-secondary)">${esc(si.pro)}</span></div><div style="display:flex;flex-direction:column;gap:2px"><span class="t-k up6" style="font-weight:700;color:var(--neon-red-text)">Against</span><span class="t-s" style="line-height:1.45;color:var(--fy-text-secondary)">${esc(si.con)}</span></div></div>
+        ${si.note ? `<span class="t-m" style="line-height:1.45;color:var(--fy-text-label)">${esc(si.note)}</span>` : ''}
+      </div>${mob ? '' : photoBox}</div>`);
+    put('mobPhoto', mob ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;align-items:stretch">${photoBox}</div>` : '');
+    put('moreLbl', S.moreInfo ? 'Less information ↑' : 'More information →'); R.moreBtn.setAttribute('aria-expanded', String(S.moreInfo));
+    const cell = (k, v) => `<div class="hv-cell"><span class="hv-pinkk t-s">${k}</span><span class="t-s" style="line-height:1.45;color:var(--fy-text)">${esc(v)}</span></div>`;
+    put('moreBody', !S.moreInfo ? '' : `<div style="display:flex;flex-direction:column;gap:14px"><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border:1px solid color-mix(in srgb,var(--fy-text-label) 30%,transparent);background:color-mix(in srgb,var(--fy-surface) 45%,var(--fy-bg));border-radius:8px;overflow:hidden;align-content:stretch">${cell('The draw', sh.draw)}${cell('How it changes', sh.arc)}${cell('Sizes made', sh.range)}${cell('Famous for', sh.fame)}</div>
+      <div style="display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:8px;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);background:var(--fy-bg)"><span class="hv-pinkk t-k">Why it exists</span><p class="t-u" style="margin:0;line-height:1.55;color:var(--fy-text-body);text-wrap:pretty">${esc(sh.why)}</p><div style="height:1px;margin:6px 0;background:color-mix(in srgb,var(--neon-teal) 25%,transparent)"></div><span class="hv-pinkk t-k">What it does to the smoke</span><p class="t-u" style="margin:0;line-height:1.55;color:var(--fy-text-body);text-wrap:pretty">${esc(sh.smoke)}</p></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px 12px">
+        <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text-label) 30%,transparent);background:var(--fy-bg)"><span class="t-k up6" style="font-weight:700;color:var(--fy-text)">Cap · ${esc(sh.cap)}</span><span class="t-k up6" style="color:var(--fy-text-label)">${(sh.cuts || []).length > 1 ? 'Recommended cuts · in red' : 'Recommended cut · in red'}</span><div style="display:flex;gap:6px 12px;flex-wrap:wrap">${V.recCuts.map(cc => `<span style="display:flex;align-items:center;gap:6px;white-space:nowrap"><span class="t-k" style="width:22px;height:22px;border-radius:50%;border:1.5px solid ${cc.y ? 'var(--neon-red-tube)' : 'color-mix(in srgb,var(--color-neutral-600) 60%,var(--fy-bg))'};box-sizing:border-box;display:grid;place-items:center;color:${cc.y ? 'var(--neon-red-text)' : 'var(--color-neutral-600)'};font-weight:600;line-height:1;box-shadow:${cc.y ? '0 0 5px color-mix(in srgb,var(--neon-red-tube) 60%,transparent)' : 'none'}">${cc.g}</span><span class="t-m up6" style="color:${cc.y ? 'var(--neon-red-text)' : 'var(--color-neutral-600)'}">${esc(cc.name)}</span></span>`).join('')}</div><span class="t-m" style="line-height:1.45;color:var(--color-neutral-500)">${esc(sh.tip)}</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text-label) 30%,transparent);background:var(--fy-bg)"><span class="t-k up6" style="color:var(--fy-text)">Where it's rolled · see 2 below</span><div style="display:flex;gap:8px;flex-wrap:wrap">${V.rolled.map(cc => `<span class="t-u" style="flex:1 1 0;min-width:max-content;text-align:center;padding:8px 14px;border-radius:19px;border:${cc.on ? '2px' : '1px'} solid ${cc.on ? 'var(--neon-red-tube)' : 'color-mix(in srgb,var(--fy-text) 45%,transparent)'};color:${cc.on ? 'var(--neon-red-text)' : 'var(--fy-text-secondary)'};box-shadow:${cc.on ? '0 0 6px var(--neon-red-tube),0 0 14px color-mix(in srgb,var(--neon-red-tube) 50%,transparent)' : 'none'};white-space:nowrap">${esc(cc.name)}</span>`).join('')}</div></div>
+      </div></div>`);
+    put('brandsLbl', S.brandsInfo ? 'The brands &amp; heritage ↑' : 'The brands &amp; heritage →'); R.brandsBtn.setAttribute('aria-expanded', String(S.brandsInfo));
+    put('brandsBody', !S.brandsInfo ? '' : `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;padding:10px 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text-label) 30%,transparent);background:color-mix(in srgb,var(--fy-surface) 45%,var(--fy-bg))"><div style="display:flex;flex-direction:column;gap:6px;min-width:0"><span class="t-u up6" style="font-weight:600;color:var(--fy-text)">Names to look for</span>
+      <ol style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px">${V.brands.map(b => `<li class="t-s" style="display:grid;grid-template-columns:20px 1fr;gap:8px;align-items:baseline"><span style="color:var(--color-neutral-600);opacity:.85;font-variant-numeric:tabular-nums">${b.n}</span><span style="color:var(--fy-text-label);opacity:.85"><span style="color:var(--fy-text-label)">${esc(b.name)}</span> <span style="color:var(--color-neutral-500)">· ${esc(b.note)}</span></span></li>`).join('')}</ol></div>
+      <div aria-label="Brand logos" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start">${V.logos.map(lg => `<div style="position:relative;aspect-ratio:2/1;border-radius:6px;overflow:hidden;border:1px solid color-mix(in srgb,var(--fy-text-label) 22%,transparent)">${lg.src ? `<img src="${esc(lg.src)}" alt="${esc(lg.alt)}" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:${lg.inv ? 'invert(1)' : 'none'}">` : ''}</div>`).join('')}</div></div>`);
+
+    // 2 · About the plant
+    put('originHelp', `${esc(LY.verb)} to select 2 preferences <span style="color:var(--fy-text-label)">(optional)</span>`);
+    put('origins', V.origins.map(o => `<button type="button" class="hv-orig" data-a="origin" data-v="${esc(o.key)}" data-k="o-${esc(o.key)}" data-card="${o.card}" aria-pressed="${o.on}" style="cursor:${o.cur};border:${o.bw} solid ${o.bc};box-shadow:${o.sh};opacity:${o.op}">
+        <span style="display:${o.rolls ? 'flex' : 'none'};align-self:flex-start;padding:3px 9px;border-radius:19px;border:1px solid color-mix(in srgb,var(--fy-text) 60%,transparent);color:var(--fy-text);box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 30%,transparent);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap" class="t10">${esc(o.rollTag)}</span>
+        <span class="t-b" style="font-weight:500;color:${o.lc}">${esc(o.name)}</span><span class="t-k up6" style="color:var(--neon-teal)">${esc(o.region)}</span>
+        <span class="t-s" style="line-height:1.45;color:var(--fy-text-secondary)">${esc(o.blurb)}</span><span class="t-k" style="color:${o.ctaCol};margin-top:2px">${esc(o.cta)}</span></button>`).join(''));
+    put('originNote', `Four countries make most of what you'll see in a UK shop. Soil and sun change the smoke more than the brand does. The countries that roll the ${esc(V.focusShapeName)} you're looking at come first. Leaning towards one is optional and only nudges the picks.`);
+    put('leaves', V.leaves.map(l => `<span style="position:absolute;left:0;width:62%;top:${l.top};height:${l.h};background:${l.band};border-top:1px dashed ${l.line};pointer-events:none"></span>
+        <button type="button" data-learn="1" data-a="leaf" data-i="${l.i}" data-k="leaf${l.i}" title="Learn about ${esc(l.name)}" style="position:absolute;right:6px;top:${l.top};transform:translateY(calc(${l.h} / 2 - 50%));margin-top:6px;display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 6px;border-radius:0;background:transparent;cursor:help;text-align:left;border:0;box-shadow:none;color:inherit">
+          <span style="width:18px;height:2px;background:${l.bc};box-shadow:${l.sh};flex:none"></span><span style="display:flex;flex-direction:column"><span class="t-u" style="color:${l.lc}">${esc(l.name)}</span><span class="t10" style="color:var(--fy-text-label);white-space:nowrap">${esc(l.pos)}</span></span></button>`).join(''));
+    put('pc', `<div style="display:flex;align-items:stretch;gap:12px"><div aria-label="Where the leaf sits in a cigar" style="position:relative;width:46px;height:340px;flex:none">
+        <span style="position:absolute;inset:0;border:2px solid color-mix(in srgb,var(--fy-text) 70%,transparent);border-radius:23px 23px 4px 4px;box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 25%,transparent);box-sizing:border-box;background:var(--fy-surface)"></span>
+        <span style="position:absolute;inset:5px 5px 0;border:1px dashed color-mix(in srgb,var(--neon-teal) 55%,transparent);border-bottom:0;border-radius:18px 18px 0 0;box-sizing:border-box"></span>
+        <span style="position:absolute;inset:0;border-radius:23px 23px 4px 4px;overflow:hidden">${V.pcLines.map(ln => `<span style="position:absolute;left:${ln.x};top:9%;bottom:1%;width:2px;margin-left:-1px;background:${ln.c};opacity:${ln.op};box-shadow:${ln.sh}"></span>`).join('')}<span style="position:absolute;left:0;right:0;top:5%;height:1px;background:var(--neon-amber-tube);box-shadow:0 0 3px var(--neon-amber)"></span><span style="position:absolute;left:0;right:0;top:16%;height:7px;background:var(--fy-text);box-shadow:0 0 4px color-mix(in srgb,var(--fy-text) 80%,transparent)"></span></span></div>
+      <div class="t-k" style="display:flex;flex-direction:column;justify-content:space-between;padding:4px 0;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap"><span style="color:var(--neon-amber-tube)">Cap</span><span style="color:var(--fy-text)">Band</span>${V.pcKey.map(k => `<span style="display:flex;align-items:center;gap:6px;color:${k.tc};opacity:${k.op}"><span style="width:12px;height:2px;background:${k.c}"></span>${esc(k.label)}</span>`).join('')}<span style="color:var(--color-neutral-500)">Foot</span></div></div>
+      <span class="t-m" style="color:var(--hint-text);text-align:center;line-height:1.4;text-shadow:0 0 6px color-mix(in srgb,var(--neon-teal) 60%,transparent)">${esc(V.leaf[4])}</span>`);
+    put('leafInfo', `<div style="border:1px solid var(--hint-border);border-radius:10px;padding:12px 14px;box-shadow:var(--glow-teal);display:flex;flex-direction:column;gap:4px;background:var(--fy-bg)"><span class="neon-pink t-b" style="font-weight:500">${esc(V.leaf[0])}</span><p class="t-u" style="margin:0;line-height:1.5;color:var(--hint-text)">${esc(V.leaf[2])}</p></div>`);
+    put('strengths', `<span class="t-m" style="font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink);flex:none">Strength</span>${V.strengths.map(s => `<button type="button" class="hv-str t-s" data-str="1" data-a="str" data-v="${s.x}" data-k="str-${s.x}" aria-pressed="${s.label.startsWith('★')}" style="border:${s.bw} solid ${s.bc};color:${s.lc};box-shadow:${s.sh};text-shadow:${s.ts}"><span style="display:block">${esc(s.label)}</span><span class="t10" style="display:${s.typ ? 'block' : 'none'};letter-spacing:.06em;text-transform:uppercase;color:var(--neon-green-text);margin-top:2px">${esc(s.typ)}</span></button>`).join('')}`);
+
+    // 3 · Wrapper and flavour
+    put('wrapHelp', `${esc(LY.verb)} two colours to set a range. The picks only use wrappers inside it.`);
+    put('swatches', V.swatches.map(w => `<button type="button" data-a="sw" data-i="${w.i}" data-k="sw${w.i}" aria-label="${esc(w.name)}" aria-pressed="${w.bc === 'var(--neon-pink-tube)'}" style="position:relative;flex:1;min-width:0;height:56px;border-radius:8px;cursor:pointer;background:${w.hex};border:${w.bw} solid ${w.bc};box-shadow:${w.sh};padding:0"><span style="display:${w.mark ? 'block' : 'none'};position:absolute;left:50%;bottom:6px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--color-neutral-100);box-shadow:0 0 6px var(--color-neutral-100),0 0 10px color-mix(in srgb,var(--color-neutral-100) 60%,transparent)"></span></button>`).join(''));
+    const kk = t => `<span class="t-k up6" style="color:var(--neon-teal)">${t}</span>`;
+    put('swatchInfo', `<div style="border:1px solid var(--hint-border);border-radius:10px;padding:12px 14px;box-shadow:var(--glow-teal);display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:baseline;background:var(--fy-bg)"><span class="neon-pink t-b" style="font-weight:500;grid-column:1/-1">${esc(V.W[0])}</span>${kk('Looks')}<span class="t-s" style="color:var(--hint-text)">${esc(V.W[2])}</span>${kk('Tastes')}<span class="t-s" style="color:var(--hint-text)">${esc(V.W[3])}</span>${kk('Why')}<span class="t-s" style="color:var(--hint-text)">${esc(V.W[4])}</span></div>`);
+    const wb = lit(V.wOn);
+    put('wrapBtn', `<button type="button" class="t-s" data-a="wrapclear" data-k="wrapclear" style="align-self:flex-start;min-height:44px;padding:0 18px;border-radius:19px;background:transparent;cursor:pointer;border:${wb.bw} solid ${wb.bc};color:${wb.lc};box-shadow:${wb.sh};text-shadow:${wb.ts}">${esc(V.wOn ? '★ RANGE · ' + V.wrLabel.toUpperCase() + ' · CLEAR' : 'TAP TWO COLOURS TO SET A RANGE')}</button>`);
+    put('flavHelp', `Lit families are typical of your wrapper colour. ${esc(LY.verb)} up to three · nice-to-have.`);
+    put('tasteLead', `${esc(V.tasteLead)} · dots show which wrapper carries each taste`);
+    put('tasteRows', V.tasteRows.map(t => `<div class="hv-taste"><button type="button" data-a="fam" data-v="${esc(t.f)}" data-k="fam-${esc(t.f)}" aria-pressed="${t.fam.startsWith('★')}" style="justify-self:start;display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:5px 10px;min-height:44px;justify-content:center;border-radius:8px;background:transparent;border:${t.bw} solid ${t.bc};box-shadow:${t.sh};cursor:${t.cur};opacity:${t.op};text-align:left">
+        <span style="display:flex;align-items:center;gap:6px"><span class="t-k up6" style="font-weight:700;color:${t.fc};white-space:nowrap">${esc(t.fam)}</span><span style="display:flex;gap:2px">${t.dots.map(d => `<span title="${esc(d.name)}" style="width:10px;height:10px;border-radius:50%;background:${d.hex};border:1px solid color-mix(in srgb,var(--fy-text) 50%,transparent)"></span>`).join('')}</span></span>
+        <span style="display:${t.warn ? 'block' : 'none'};font-size:max(9px,calc(9px * var(--ts,1)));letter-spacing:.04em;text-transform:uppercase;color:var(--fy-text-label);white-space:nowrap">Not typical · tap to clear</span></button>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${t.words.map(w => `<span class="t-m" style="padding:2px 9px;border-radius:19px;border:1px solid ${w.bc};color:${w.c}">${esc(w.t)}</span>`).join('')}</div></div>`).join(''));
+
+    // 4 · Budget
+    put('budgets', BUDGETS.map(b => { const on = S.profile.budget === b, l = lit(on); return `<button type="button" class="hv-pill t-u" role="radio" aria-checked="${on}" data-a="budget" data-v="${esc(b)}" data-k="b-${esc(b)}" style="border:${l.bw} solid ${l.bc};color:${l.lc};box-shadow:${l.sh};text-shadow:${l.ts}">${esc((on ? '★ ' : '') + b)}</button>`; }).join(''));
+
+    // Your vote
+    const vb = R.vote;
+    if (V.vote.show && vb.hidden) { vb.hidden = false; vb.classList.remove('hm-pop'); void vb.offsetWidth; vb.classList.add('hm-pop'); }
+    else if (!V.vote.show) vb.hidden = true;
+    put('voteCount', esc(V.vote.count));
+    put('voteRows', V.vote.rows.map(r => `<span class="t-k up6" style="color:var(--neon-teal)">${esc(r.label)}</span><button type="button" class="t-u" data-a="go" data-i="${r.go}" data-k="vr-${esc(r.label)}" style="color:${r.col};text-shadow:${r.ts}">${esc(r.val)}</button>`).join(''));
+
+    // Close-up
+    const z = R.zoom;
+    if (S.zoom) {
+      const zc = V.cards[S.focus], zm = V.zm;
+      put('zoom', `<div data-a="zstop" style="display:flex;flex-direction:column;gap:20px;align-items:center;cursor:default;max-width:100%">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;width:${zm.L}px;max-width:100%"><span class="neon-pink t-pt" style="font-weight:500">${esc(zm.title)}</span><span style="display:flex;align-items:center;gap:16px"><span class="t-br" style="font-weight:600;color:var(--fy-text);font-variant-numeric:tabular-nums">${esc(zm.spec)}</span><button type="button" class="hv-close t-br" data-a="zclose" data-k="zclose" aria-label="Close">×</button></span></div>
+          <div style="position:relative;width:${zm.L}px;height:${zm.D}px"><div style="position:absolute;left:50%;top:50%;width:${zm.D}px;height:${zm.L}px;margin-left:${-zm.D / 2}px;margin-top:${-zm.L / 2}px;transform:rotate(-90deg);filter:drop-shadow(0 0 8px color-mix(in srgb,var(--neon-pink) 60%,transparent))">${cigar(zc, true)}</div></div>
+          <div class="t-s" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;letter-spacing:.06em;text-transform:uppercase;color:var(--fy-text)"><span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:2px;background:var(--neon-red-tube)"></span><span>Ligero · strength</span></span><span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:2px;background:var(--neon-green-tube)"></span><span>Seco · aroma</span></span><span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:2px;background:var(--neon-amber-tube)"></span><span>Cap line</span></span></div>
+          <span class="t-m" style="color:var(--color-neutral-500)">Cap on the left. Lines show where each leaf sits in the filler. Click anywhere to close.</span></div>`);
+      if (z.hidden) { z.hidden = false; const cb = z.querySelector('[data-a="zclose"]'); if (cb) cb.focus({ preventScroll: true }); }
+    } else if (!z.hidden) { z.hidden = true; const card = R['card' + S.focus]; if (card) card.focus({ preventScroll: true }); }
+  }
+
+  // ---------- skeleton (drawn once) ----------
+  function head(k, title, blurb, verbKey) {
+    return `<div class="hv-sh" id="sh${k}" role="button" tabindex="0" data-a="sec" data-i="${k}" aria-controls="sb${k}">
+        <div class="hv-shrow"><h2>${title}</h2>${verbKey ? `<span class="verb t-s" data-r="${verbKey}"></span>` : ''}<span class="st t-k"><span data-r="st${k}"></span><span class="arr t16" aria-hidden="true">▾</span></span></div>
+        <p class="hv-p t-s">${blurb}</p></div>`;
+  }
+  function body(k, inner) { return `<div class="hv-sb" id="sb${k}" inert><div class="hv-sbi"><div class="hv-sbc">${inner}</div></div></div>`; }
+  const change = html => `<div class="hv-change"><span class="t-k up hv-teal">What this changes</span><span class="t-s" style="line-height:1.45;color:var(--fy-text-body)">${html}</span></div>`;
+
+  function skeleton(main) {
+    main.innerHTML = `<div class="hv" id="hv">
+      <div class="hv-zoom" data-r="zoom" data-a="zclose" role="dialog" aria-modal="true" aria-label="Cigar close-up" hidden></div>
+      <div class="hv-prefwrap" data-r0="prefwrap" hidden><span class="lab t-k up">My preferences</span><div data-r="pref1"></div></div>
+      <div class="hv-secs">
+        <section class="hv-sec" id="m1" aria-label="1 Shape and size">${head(1, '1. SHAPE &amp; SIZE', 'It\'s all in here. The shape decides how the smoke reaches you; the size decides how long you\'re sat with it.')}
+          ${body(1, `<div class="hv-m1">
+            <div class="hv-rel"><div class="hv-rel">
+              <div class="hv-ell"></div><div class="hv-vl"></div>
+              <div class="poster" data-r0="poster">${SHAPES.map((x, i) => `<button type="button" class="hv-card" data-a="card" data-i="${i}" data-k="card${i}" data-r="card${i}"></button>`).join('')}</div>
+              <div data-r="ring" style="display:contents"></div>
+              <div data-r="nav" style="display:contents"></div>
+            </div>
+            <div class="hv-slide"><div style="display:flex;flex-direction:column;gap:8px;padding:0">
+              <div data-r="hint"></div>
+              <div style="position:relative;height:28px;display:flex;align-items:center">
+                <div style="position:absolute;left:11px;right:11px;top:50%;height:4px;margin-top:-2px;border-radius:2px;background:color-mix(in srgb,var(--neon-teal) 35%,transparent)"></div>
+                <div data-r="ants" style="display:contents"></div>
+                <div data-r="ticks" style="position:absolute;left:11px;right:11px;top:50%;height:10px;margin-top:-5px;display:flex;justify-content:space-between;pointer-events:none"></div>
+                <input type="range" class="hv-range" data-r0="range" min="0" max="2" step="1" value="1" aria-label="Size">
+              </div>
+              <div data-r="bands" aria-label="Estimated smoke time" style="display:flex;gap:2px;margin:10px 11px 0;height:22px"></div>
+              <div data-r="fl" class="t-m" style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;color:var(--fy-text-secondary);white-space:nowrap"></div>
+            </div></div></div>
+            <div class="hv-rule"></div>
+            <div style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px">
+              <div data-r="thisSize"></div>
+              <div data-r="mobPhoto"></div>
+              <button type="button" class="hv-more t-m" data-a="more" data-k="more" data-r0="moreBtn"><span data-r="moreLbl"></span></button>
+              <div data-r="moreBody"></div>
+              <button type="button" class="hv-more t-m" data-a="brands" data-k="brands" data-r0="brandsBtn"><span data-r="brandsLbl"></span></button>
+              <div data-r="brandsBody"></div>
+            </div>
+            <div class="hv-rule"></div>
+            <div data-r="pref2"></div>
+          </div>`)}</section>
+        <section class="hv-sec" id="m2" aria-label="2 About the plant">${head(2, '2. ABOUT THE PLANT', 'Where it grows and which leaf it comes from. Together they decide how it tastes and how hard it hits.')}
+          ${body(2, `<div class="hv-box" style="background:linear-gradient(color-mix(in srgb,var(--medal-bronze) 9%,transparent),color-mix(in srgb,var(--medal-bronze) 9%,transparent)),var(--fy-bg)">
+            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px"><h3 class="hv-pinkh t-c">Where on the planet</h3><span class="t16" style="color:var(--fy-text);text-align:left" data-r="originHelp"></span></div>
+            <div class="hv-origins" data-r="origins"></div>
+            <p class="hv-p t-s" data-r="originNote"></p>
+            <div class="hv-rule in"></div>
+            <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 14px"><h3 class="hv-pinkh t-c">Pick your strength</h3><span class="t16" style="color:var(--fy-text-label);text-align:right">The plant shows why it hits harder or softer</span></div><p class="hv-p t-s">One plant, four floors. The higher the leaf, the more sun it got and the harder it hits. Pick a strength and the leaves it leans on light up; tap any leaf to see what it does.</p></div>
+            <div class="hv-plant"><div class="hv-plantg">
+              <div class="hv-plantg2">
+                <div class="hv-plantimg"><img src="assets/humidor/plant-primings.jpg" alt="Tobacco plant, bottom to top: volado, seco, viso, ligero"><div data-r="leaves" style="position:absolute;inset:0"></div></div>
+                <div data-r="pc" style="display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center"></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:14px" data-r="leafInfo"></div>
+            </div><div class="hv-strrow" data-r="strengths"></div></div>
+            ${change('<b>Strength</b> · the brief asks for this strength. The leaves just show you why. <b>Country</b> · a nice-to-have; it never rules a cigar out.')}
+          </div>`)}</section>
+        <section class="hv-sec" id="m3" aria-label="3 Wrapper colour and flavour">${head(3, '3. WRAPPER &amp; FLAVOUR', 'Colour is how you\'ll pick off a shelf. Light is usually mild and creamy, dark is sweet and rich. Usually. Dark does not mean strong.', 'h3verb')}
+          ${body(3, `<div class="hv-box" style="background:linear-gradient(color-mix(in srgb,var(--color-accent-2) 8%,transparent),color-mix(in srgb,var(--color-accent-2) 8%,transparent)),var(--fy-bg)">
+            <div class="hv-m3g">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;flex-direction:column;gap:2px"><h3 class="hv-pinkh t-c">3.1 · Pick your wrapper colour</h3><span class="t-s" style="color:var(--fy-text-label)" data-r="wrapHelp"></span></div>
+                <div style="display:flex;gap:6px" data-r="swatches"></div>
+                <div data-r="swatchInfo"></div>
+                <div data-r="wrapBtn" style="display:flex"></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px;background:var(--fy-bg)">
+                <div style="display:flex;flex-direction:column;gap:2px"><h3 class="hv-pinkh t-c">3.2 · Pick your flavours</h3><span class="t-s" style="color:var(--fy-text-label)" data-r="flavHelp"></span></div>
+                <span class="t-k up6" style="color:var(--fy-text-label)" data-r="tasteLead"></span>
+                <div style="display:flex;flex-direction:column;gap:6px" data-r="tasteRows"></div>
+              </div>
+            </div>
+            ${change('<b>Wrapper range</b> · the brief asks for wrappers in this range. <b>Taste</b> · a nice-to-have in the brief.')}
+          </div>`)}</section>
+        <section class="hv-sec" id="m4" aria-label="4 Price range">${head(4, '4. PRICE RANGE', 'What you\'d pay for one cigar. Everyone chips in the same share, so the yard\'s most common answer sets the ceiling.', 'h4verb')}
+          ${body(4, `<div style="display:flex;flex-direction:column;gap:12px;padding:14px 16px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg)">
+            <span class="t-k up6 hv-teal">Budget per cigar</span>
+            <div class="hv-budgets" role="radiogroup" aria-label="Budget per cigar" data-r="budgets"></div></div>
+            ${change('<b>Budget</b> · Hank only looks at cigars in this price band.')}`)}</section>
+        <div data-r="voted"></div>
+        <section class="hv-vote" id="vote" data-r0="vote" aria-label="Your vote" hidden>
+          <div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px"><h2 class="t22" style="margin:0;font-weight:500;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)">Your vote</h2><span class="t-m up6 hv-teal" data-r="roundLabel"></span></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-top:2px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 25%,transparent)"><span class="t-k up" style="color:var(--fy-text-label);padding-top:10px">Your selections · tap one to change it</span><span class="t-k" style="color:var(--fy-text-label);font-variant-numeric:tabular-nums" data-r="voteCount"></span></div>
+          <p class="t-u" style="margin:0;line-height:1.5;color:var(--fy-text-body);text-wrap:pretty">Everyone's answers go into one brief. Hank takes the most common answer at each stop, finds three cigars that fit, and the yard votes on which one we buy.</p>
+          <div class="hv-vrows" data-r="voteRows"></div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center" data-r="submit"></div>
+          <div data-r="voteStatus"></div>
+        </section>
+      </div></div>`;
+    root = main.querySelector('#hv');
+    R = {}; root.querySelectorAll('[data-r]').forEach(el => { R[el.getAttribute('data-r')] = el; });
+    root.querySelectorAll('[data-r0]').forEach(el => { R[el.getAttribute('data-r0')] = el; });
+    for (let k = 1; k <= 4; k++) { R['sh' + k] = root.querySelector('#sh' + k); R['sb' + k] = root.querySelector('#sb' + k); }
+    wire();
+  }
+
+  // ---------- behaviour ----------
+  const scrollToEl = el => { if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 24, behavior: 'smooth' }); };
+  function measure() { const el = R.poster; if (el && el.clientWidth && el.clientWidth !== S.stageW) { S.stageW = el.clientWidth; return true; } return false; }
+  function toggleSec(k) {
+    const s = model().sec(k); if (s.voted || s.locked) return;
+    const v = !S.secOpen[k]; S.secOpen = { ...S.secOpen, [k]: v }; S.secOv = { ...S.secOv, [k]: false }; if (k === 1 && v) S.seen1 = true;
+    clearTimeout(toggleSec['t' + k]);
+    if (v) toggleSec['t' + k] = setTimeout(() => { S.secOv = { ...S.secOv, [k]: true }; measure(); draw(); }, 650);
+    measure(); draw();
+  }
+  function submitPrefs() {
+    const ff = S.filt; const v = { minR: ff.minR ?? null, maxR: ff.maxR ?? null, maxT: ff.maxT ?? null, shape: ff.shape ?? null };
+    const pr = { ...S.profile }; if (Object.values(v).every(x => x == null)) delete pr.sizePrefs; else pr.sizePrefs = v;
+    S.profile = pr; S.m1Sent = true;
+  }
+  async function submitVote() {
+    const V = model(); if (V.vote.cant || movedOn) return;
+    const prefs = V.vote.prefs; busy = true; draw(true);
+    try { await FY.rpc('humidor_submit_prefs', { p_prefs: prefs }); }
+    catch (e) { busy = false; draw(true); FY.toast(e.message); return; }
+    S.saved = { round: data.round && data.round.id, prefs, at: new Date().toISOString() };
+    if (data.round) lastN = data.round.n;
+    try { data = await Humidor.refresh(); } catch (e) { /* humidor.js has logged it */ }
+    busy = false; S.editing = false; S.voted = true; draw();
+  }
+  function editTaste() {
+    const m = mineNow(); if (!m || !(data.round && data.round.status === 'collecting')) return;
+    const pr = m.prefs || {}; const p = {};
+    ['size', 'strength', 'origin', 'budget'].forEach(k => { if (pr[k]) p[k] = pr[k]; });
+    if (Array.isArray(pr.wr) && pr.wr.length === 2) p.wr = pr.wr.map(n => Math.max(0, SW.findIndex(x => x[0] === n)));
+    if (Array.isArray(pr.flavour) && pr.flavour.length) p.flavour = pr.flavour.filter(f => FAM.some(x => x[0] === f)).slice(0, 3);
+    if (pr.origin) p.origins = String(pr.origin).split(' & ').filter(o => ORIG.some(x => x[0] === o)).slice(0, 2);
+    const sp = pr.sizePrefs; const filt = {};
+    if (sp && typeof sp === 'object') { const v = { minR: sp.minR ?? null, maxR: sp.maxR ?? null, maxT: sp.maxT ?? null, shape: sp.shape ?? null }; p.sizePrefs = v; for (const k in v) if (v[k] != null) filt[k] = v[k]; }
+    S.profile = p; S.filt = filt; S.editing = true; S.voted = false; S.m1Sent = true; S.seen1 = true; S.secOpen = { 1: true }; S.secOv = {};
+    formRound = { id: data.round.id, status: data.round.status }; movedOn = false;
+    clearTimeout(toggleSec.t1); toggleSec.t1 = setTimeout(() => { S.secOv = { ...S.secOv, 1: true }; measure(); draw(); }, 650);
+    draw(); measure() && draw();
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { /* old browser */ }
+  }
+
+  function act(a, el) {
+    const i = +el.getAttribute('data-i'), v = el.getAttribute('data-v');
+    switch (a) {
+      case 'sec': return toggleSec(i);
+      case 'card': if (S.focus !== i) S.focus = i; else S.zoom = true; break;
+      case 'dot': S.focus = i; break;
+      case 'rot': measure(); S.focus = (S.focus + i + SHAPES.length) % SHAPES.length; break;
+      case 'more': S.moreInfo = !S.moreInfo; break;
+      case 'brands': S.brandsInfo = !S.brandsInfo; break;
+      case 'prefsub': submitPrefs(); break;
+      case 'origin': {
+        const o = model().origins.find(x => x.key === v); if (!o || !(o.rolls || o.on)) return;
+        const pr = { ...S.profile }; let arr = (pr.origins || (pr.origin ? [pr.origin] : [])).slice();
+        if (arr.includes(v)) arr = arr.filter(x => x !== v); else { arr.push(v); if (arr.length > 2) arr = arr.slice(-2); }
+        if (arr.length) { pr.origins = arr; pr.origin = arr.join(' & '); } else { delete pr.origins; delete pr.origin; }
+        S.profile = pr; break;
+      }
+      case 'leaf': S.leaf = i; break;
+      case 'str': setProfile('strength', v); S.leaf = { Mild: 2, Medium: 1, Full: 0 }[v]; break;
+      case 'sw': {
+        const pr = { ...S.profile }; const cur = pr.wr; let nx;
+        if (!cur) nx = [i, i]; else if (cur[0] === i && cur[1] === i) nx = null; else if (i < cur[0]) nx = [i, cur[1]]; else if (i > cur[1]) nx = [cur[0], i]; else nx = [i, i];
+        if (nx) pr.wr = nx; else delete pr.wr; S.swatch = i; S.profile = pr; break;
+      }
+      case 'wrapclear': { const pr = { ...S.profile }; delete pr.wr; S.profile = pr; break; }
+      case 'fam': {
+        const t = model().tasteRows.find(x => x.f === v); if (!t || t.cur !== 'pointer') return;
+        const pr = { ...S.profile }; let fl = [...(pr.flavour || [])];
+        if (fl.includes(v)) fl = fl.filter(x => x !== v); else { fl.push(v); if (fl.length > 3) fl.shift(); }
+        if (fl.length) pr.flavour = fl; else delete pr.flavour; S.profile = pr; break;
+      }
+      case 'budget': setProfile('budget', v); break;
+      case 'go': return scrollToEl(document.getElementById('m' + i));
+      case 'submit': return submitVote();
+      case 'edit': return editTaste();
+      case 'zclose': S.zoom = false; break;
+      case 'zstop': return;
+      default: return;
+    }
+    draw();
+  }
+
+  function wire() {
+    root.addEventListener('click', e => {
+      const el = e.target.closest('[data-a]'); if (!el || !root.contains(el)) return;
+      if (el.disabled) return;
+      act(el.getAttribute('data-a'), el);
+    });
+    root.addEventListener('keydown', e => {
+      const h = e.target.closest('.hv-sh'); if (h && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleSec(+h.getAttribute('data-i')); }
+    });
+    root.addEventListener('change', e => {
+      const f = e.target.getAttribute('data-f'); if (!f) return; const val = e.target.value; const nf = { ...S.filt };
+      if (f === 'girth') { const G = { skinny: [null, 42], medium: [43, 50], fat: [52, null] }[val] || [null, null]; if (G[0] == null) delete nf.minR; else nf.minR = G[0]; if (G[1] == null) delete nf.maxR; else nf.maxR = G[1]; }
+      if (f === 'maxT') { if (val === '') delete nf.maxT; else nf.maxT = +val; }
+      if (f === 'shape') { if (!val) delete nf.shape; else { nf.shape = val; const k = SHAPES.findIndex(x => x.name === val); if (k >= 0) S.focus = k; } }
+      S.filt = nf; draw();
+    });
+    const onRange = e => { const n = +e.target.value; const fx = SHAPES[S.focus]; if (model().ladder.locked) return; S.sizeIdx = { ...S.sizeIdx, [fx.name]: n }; draw(); };
+    R.range.addEventListener('input', onRange); R.range.addEventListener('change', onRange);
+    window.addEventListener('keydown', e => { if (e.key === 'Escape' && S.zoom) { S.zoom = false; draw(); } });
+    let rt = null; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { measure(); draw(); }, 80); });
+  }
+
+  // R8: the poll redraws only round-dependent, non-input parts. If the round moves on under an open form,
+  // the submit button becomes a notice and every pick stays.
+  function onPoll(d) {
+    data = d || { stage: null, round: null };
+    if (data.round) lastN = data.round.n;
+    if (!S.voted) {
+      if (formRound && formRound.status === 'collecting' && (!data.round || data.round.id !== formRound.id || data.round.status !== 'collecting')) movedOn = true;
+      else if (!formRound && data.round && data.round.status === 'collecting') formRound = { id: data.round.id, status: 'collecting' };
+    }
+    draw(true);
+  }
+
+  (async function () {
+    const H = await Humidor.start('vote');
+    if (!H) { const b = document.getElementById('hm-body'); if (b && b.textContent.trim()) FY.toast(b.textContent.trim()); return; }
+    me = H.me; data = H.data || { stage: null, round: null };
+    if (data.round) lastN = data.round.n;
+    S.voted = !!mineRow();
+    formRound = data.round ? { id: data.round.id, status: data.round.status } : null;
+    skeleton(H.main);
+    draw(); if (measure()) draw();
+    Humidor.poll(onPoll);   // synchronous onChange
+  })().catch(e => FY.toast(e.message));
+})();
+</script>
+</body>
+</html>
