@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><title>The Farmyard · Archive</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="../../_ds/farmyard-design-system-f1e07c7c-e8a7-4fa2-bcbb-a89d4d09e22d/styles.css"><script src="../../_ds/farmyard-design-system-f1e07c7c-e8a7-4fa2-bcbb-a89d4d09e22d/_ds_bundle.js"></script><script src="humidor-club.js"></script><script src="image-slot.js"></script><style>@keyframes vcBreathe{0%,100%{opacity:.55;text-shadow:0 0 2px var(--neon-teal)}50%{opacity:1;text-shadow:0 0 8px var(--neon-teal),0 0 22px color-mix(in srgb,var(--neon-teal) 75%,transparent),0 0 40px color-mix(in srgb,var(--neon-teal) 35%,transparent)}}html,body{margin:0}body{font-family:var(--font-body);color:var(--fy-text);-webkit-font-smoothing:antialiased}a{color:var(--neon-pink-link)}a:hover{color:var(--neon-pink-hover)}</style></helmet>
+<div style="width:100%;min-height:100vh;box-sizing:border-box;padding:{{ B.wrapPad }}">
+<div data-screen-label="Barn · The Humidor" style="min-height:{{ B.barnMin }};display:grid;grid-template-columns:{{ B.cols }};background:radial-gradient(900px 500px at 85% -10%,color-mix(in srgb,var(--color-accent-900) 70%,transparent),transparent 60%),var(--fy-bg);border:1px solid var(--neon-teal);box-shadow:0 0 6px var(--neon-teal),0 0 14px color-mix(in srgb,var(--neon-teal) 45%,transparent),inset 0 0 18px color-mix(in srgb,var(--neon-teal) 20%,transparent);border-radius:12px;overflow:hidden">
+
+<nav aria-label="The Barn" style="border-right:{{ B.sideBr }};border-bottom:{{ B.sideBb }};box-shadow:{{ B.sideSh }};padding:{{ B.sidePad }};display:flex;flex-direction:{{ B.sideDir }};flex-wrap:{{ B.sideWrap }};align-items:{{ B.sideAlign }};gap:{{ B.sideGap }};min-width:0">
+<a href="#dashboard" style="display:flex;align-items:center;gap:6px;padding:0 2px 6px;color:var(--fy-text);text-decoration:none"><img src="../assets/hank-oink.png" alt="" style="width:{{ B.brandImg }};height:{{ B.brandImg }};object-fit:contain;display:block;flex:none;filter:drop-shadow(0 0 10px color-mix(in srgb,var(--neon-pink) 70%,transparent))"><span style="font-family:var(--font-heading);font-size:{{ B.brandFs }};letter-spacing:-.01em">The Farmyard</span></a>
+<div style="display:{{ B.blockD }};margin:4px 6px 8px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent)"></div>
+<a href="#dashboard" style="display:flex;gap:10px;align-items:center;padding:5px 6px;border-radius:6px;font-size:14px;color:var(--fy-text-label);text-shadow:0 0 6px currentColor;background:transparent;border:1px solid transparent;box-shadow:none;box-sizing:border-box;width:{{ B.navW }};text-decoration:none;transition:box-shadow .25s ease,background .25s ease,border-color .25s ease" style-hover="border-color:var(--neon-teal);box-shadow:inset 0 0 0 .5px var(--neon-teal),0 0 10px color-mix(in srgb,var(--neon-teal) 55%,transparent);background:color-mix(in srgb,var(--neon-teal) 8%,transparent)"><i class="ph ph-squares-four" aria-hidden="true" style="color:var(--fy-text-label);text-shadow:0 0 6px currentColor"></i><span style="flex:1">Dashboard</span></a>
+<div style="display:{{ B.blockD }};padding:10px 6px 2px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)">Sections</div>
+<a href="#poker" style="display:flex;gap:10px;align-items:center;padding:5px 6px;border-radius:6px;font-size:14px;color:var(--fy-text-label);text-shadow:0 0 6px currentColor;background:transparent;border:1px solid transparent;box-shadow:none;box-sizing:border-box;width:{{ B.navW }};text-decoration:none;transition:box-shadow .25s ease,background .25s ease,border-color .25s ease" style-hover="border-color:var(--neon-teal);box-shadow:inset 0 0 0 .5px var(--neon-teal),0 0 10px color-mix(in srgb,var(--neon-teal) 55%,transparent);background:color-mix(in srgb,var(--neon-teal) 8%,transparent)"><i class="ph ph-club" aria-hidden="true" style="color:var(--fy-text-label);text-shadow:0 0 6px currentColor"></i><span style="flex:1">Poker</span></a>
+<a href="#football" style="display:flex;gap:10px;align-items:center;padding:5px 6px;border-radius:6px;font-size:14px;color:var(--fy-text-label);text-shadow:0 0 6px currentColor;background:transparent;border:1px solid transparent;box-shadow:none;box-sizing:border-box;width:{{ B.navW }};text-decoration:none;transition:box-shadow .25s ease,background .25s ease,border-color .25s ease" style-hover="border-color:var(--neon-teal);box-shadow:inset 0 0 0 .5px var(--neon-teal),0 0 10px color-mix(in srgb,var(--neon-teal) 55%,transparent);background:color-mix(in srgb,var(--neon-teal) 8%,transparent)"><i class="ph ph-soccer-ball" aria-hidden="true" style="color:var(--fy-text-label);text-shadow:0 0 6px currentColor"></i><span style="flex:1">Football : League</span></a>
+<div style="display:{{ B.blockD }};padding:10px 6px 2px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)">Core</div>
+<a href="#calendar" style="display:flex;gap:10px;align-items:center;padding:5px 6px;border-radius:6px;font-size:14px;color:var(--fy-text-label);text-shadow:0 0 6px currentColor;background:transparent;border:1px solid transparent;box-shadow:none;box-sizing:border-box;width:{{ B.navW }};text-decoration:none;transition:box-shadow .25s ease,background .25s ease,border-color .25s ease" style-hover="border-color:var(--neon-teal);box-shadow:inset 0 0 0 .5px var(--neon-teal),0 0 10px color-mix(in srgb,var(--neon-teal) 55%,transparent);background:color-mix(in srgb,var(--neon-teal) 8%,transparent)"><i class="ph ph-calendar-blank" aria-hidden="true" style="color:var(--fy-text-label);text-shadow:0 0 6px currentColor"></i><span style="flex:1">Calendar</span></a>
+<div style="display:{{ B.blockD }};padding:10px 6px 2px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)">Cigars</div>
+<a href="P15.009 HUMIDOR IN THE BARN REV.01.dc.html" aria-current="page" style="display:flex;gap:10px;align-items:center;padding:5px 6px;border-radius:6px;font-size:14px;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink);background:transparent;border:1px solid var(--neon-pink-tube);box-shadow:var(--glow-pink);box-sizing:border-box;width:{{ B.navW }};text-decoration:none;transition:box-shadow .25s ease,background .25s ease,border-color .25s ease"><i class="ph " aria-hidden="true" style="color:var(--neon-pink);text-shadow:0 0 6px currentColor;-webkit-mask:url('img/icons/cigar.svg') center/contain no-repeat;mask:url('img/icons/cigar.svg') center/contain no-repeat"></i><span style="flex:1">The Humidor</span></a>
+<div style="display:{{ B.blockD }};flex:1"></div>
+<div style="display:{{ B.blockD }};margin:0 6px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent)"></div>
+<div style="width:{{ B.vcW }};padding:{{ B.vcPad }};font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal);text-shadow:0 0 6px var(--neon-teal),0 0 14px color-mix(in srgb,var(--neon-teal) 60%,transparent);animation:vcBreathe 4s ease-in-out infinite">Voice channel</div>
+<a href="#voice-lounge" style="display:flex;gap:10px;align-items:center;min-height:48px;padding:8px;border-radius:8px;font-size:13px;font-weight:700;letter-spacing:.14em;background:transparent;border:2px solid color-mix(in srgb,var(--neon-green) 40%,transparent);box-sizing:border-box;width:{{ B.navW }};flex:{{ B.pillFlex }};margin-top:{{ B.pillMtL }};text-decoration:none;color:color-mix(in srgb,var(--neon-green-tube) 40%,transparent);transition:box-shadow .3s ease,color .3s ease,border-color .3s ease" style-hover="color:var(--neon-green-text);text-shadow:var(--text-glow-green);box-shadow:var(--glow-green);border-color:var(--neon-green-tube)"><i class="ph ph-speaker-high" aria-hidden="true" style="font-size:13px;color:var(--neon-green-text);text-shadow:var(--text-glow-green)"></i><span style="flex:1;line-height:normal">LIVE<small style="display:block;font-size:11px;font-weight:400;letter-spacing:0;text-shadow:none">via Discord</small></span></a>
+<a href="#voice-parked" style="display:flex;gap:10px;align-items:center;min-height:48px;padding:8px;border-radius:8px;font-size:13px;font-weight:700;letter-spacing:.14em;background:transparent;border:2px solid color-mix(in srgb,var(--neon-red) 40%,transparent);box-sizing:border-box;width:{{ B.navW }};flex:{{ B.pillFlex }};margin-top:{{ B.pillMtM }};text-decoration:none;color:color-mix(in srgb,var(--neon-red-tube) 40%,transparent);transition:box-shadow .3s ease,color .3s ease,border-color .3s ease" style-hover="color:var(--neon-red-text);text-shadow:var(--text-glow-red);box-shadow:var(--glow-red);border-color:var(--neon-red-tube)"><i class="ph ph-speaker-slash" aria-hidden="true" style="font-size:13px;color:var(--neon-red-text);text-shadow:var(--text-glow-red)"></i><span style="flex:1;line-height:normal">MUTED<small style="display:block;font-size:11px;font-weight:400;letter-spacing:0;text-shadow:none">on Discord</small></span><span style="font-size:12px;color:var(--fy-text-label);font-weight:400;letter-spacing:0">0</span></a>
+<div style="display:{{ B.blockD }};margin:10px 6px 0;border-top:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent)"></div>
+<a href="#profile" style="display:flex;flex:none;gap:10px;align-items:center;padding:6px 4px;margin-top:{{ B.meMt }};margin-left:{{ B.meMl }};width:{{ B.navW }};border-radius:8px;font-size:13px;color:var(--fy-text);text-decoration:none;transition:box-shadow .25s ease,background .25s ease" style-hover="box-shadow:inset 0 0 0 1.5px var(--neon-teal),0 0 10px color-mix(in srgb,var(--neon-teal) 55%,transparent);background:color-mix(in srgb,var(--neon-teal) 8%,transparent)"><span role="img" aria-label="Your character" style="width:32px;height:32px;border-radius:50%;flex:none;box-sizing:border-box;border:1.5px solid var(--neon-teal);box-shadow:0 0 6px color-mix(in srgb,var(--neon-teal) 60%,transparent);background:var(--fy-bg) url('img/avatars/pig.svg') center/contain no-repeat"></span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ meName }}</span></a>
+</nav>
+
+<main style="padding:{{ B.mainPad }};display:flex;flex-direction:column;gap:18px;min-width:0;background-image:radial-gradient(640px 460px at 0% 100%,color-mix(in srgb,var(--neon-green) 20%,transparent),transparent 70%),radial-gradient(600px 440px at 100% 0%,color-mix(in srgb,var(--neon-pink) 16%,transparent),transparent 70%),radial-gradient(520px 380px at 100% 100%,color-mix(in srgb,var(--neon-green) 8%,transparent),transparent 70%)">
+
+<header data-screen-label="Humidor head" style="display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><h2 style="font-family:var(--font-heading);font-weight:600;font-size:var(--text-page-title);margin:0;letter-spacing:-.01em;color:var(--fy-text)">Archive</h2><x-import component-from-global-scope="FarmyardDesignSystem_f1e07c.Chip" tone="teal" hint-size="150px,24px">{{ barnChip }}</x-import></div>
+<nav aria-label="Humidor pages" style="display:flex;gap:6px;flex-wrap:wrap">
+<a href="P15.009 HUMIDOR IN THE BARN REV.01.dc.html" style="display:flex;align-items:center;min-height:36px;border-radius:999px;padding:0 14px;font-size:var(--text-small);text-decoration:none;background:transparent;color:var(--fy-text-secondary);border:1px solid var(--rule-teal);box-shadow:none;text-shadow:none;transition:background .15s,box-shadow .15s" style-hover="border-color:var(--neon-teal);color:var(--hint-text)">Home</a>
+<a href="P15.003 HUMIDOR CHOOSE REV.05.dc.html" style="display:flex;align-items:center;min-height:36px;border-radius:999px;padding:0 14px;font-size:var(--text-small);text-decoration:none;background:transparent;color:var(--fy-text-secondary);border:1px solid var(--rule-teal);box-shadow:none;text-shadow:none;transition:background .15s,box-shadow .15s" style-hover="border-color:var(--neon-teal);color:var(--hint-text)">Vote</a>
+<a href="P15.003 HUMIDOR VOTE.dc.html" style="display:flex;align-items:center;min-height:36px;border-radius:999px;padding:0 14px;font-size:var(--text-small);text-decoration:none;background:transparent;color:var(--fy-text-secondary);border:1px solid var(--rule-teal);box-shadow:none;text-shadow:none;transition:background .15s,box-shadow .15s" style-hover="border-color:var(--neon-teal);color:var(--hint-text)">Results</a>
+<a href="P15.003 HUMIDOR ARCHIVE.dc.html" aria-current="page" style="display:flex;align-items:center;min-height:36px;border-radius:999px;padding:0 14px;font-size:var(--text-small);text-decoration:none;background:transparent;color:var(--neon-pink-text);border:1px solid var(--neon-pink-tube);box-shadow:var(--glow-pink);text-shadow:var(--text-glow-pink);transition:background .15s,box-shadow .15s">Archive</a>
+<sc-if value="{{ isLeader }}" hint-placeholder-val="{{ true }}"><a href="P15.003 HUMIDOR ADMIN.dc.html" style="display:flex;align-items:center;white-space:nowrap;min-height:36px;border-radius:999px;padding:0 14px;font-size:var(--text-small);text-decoration:none;background:transparent;color:var(--fy-text-secondary);border:1px solid var(--rule-teal);box-shadow:none;text-shadow:none;transition:background .15s,box-shadow .15s" style-hover="border-color:var(--neon-teal);color:var(--hint-text)"><span style="display:flex;align-items:center;gap:6px;white-space:nowrap">Admin<span style="white-space:nowrap;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)">· leader</span></span></a></sc-if>
+</nav>
+</header>
+
+
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)">The archive</span><h1 class="neon-pink" style="margin:0;font-size:clamp(26px,4vw,40px);line-height:1.05;font-weight:500">What the yard's smoked</h1><p style="margin:0;font-size:var(--text-body-size);line-height:1.5;color:var(--fy-text-body);max-width:62ch">{{ lede }}</p></div>
+
+<sc-if value="{{ hasLast }}" hint-placeholder-val="{{ true }}">
+<article data-screen-label="Last round" aria-label="Last round's final choice" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px 24px;padding:18px;border:2px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg)">
+<div style="position:relative;min-height:220px;border-radius:8px;overflow:hidden;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent)"><image-slot id="{{ last.slot }}" src="{{ last.img }}" shape="rounded" radius="8" fit="contain" placeholder="Drop a photo of the winning cigar"></image-slot></div>
+<div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+<span style="font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-green-text)">Last round · round {{ last.n }} · {{ last.date }}</span>
+<span style="font-size:var(--text-page-title);font-weight:500;line-height:1.15;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)">{{ last.winner }}</span>
+<span style="font-size:var(--text-ui);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums">{{ last.meta }}</span>
+<span style="font-size:var(--text-meta);line-height:1.45;color:var(--fy-text-label)">{{ last.brief }}</span>
+<div style="display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 25%,transparent)">
+<span style="font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)">Final standings</span>
+<sc-for list="{{ last.opts }}" as="o" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;align-items:baseline"><span style="font-size:var(--text-small);color:{{ o.col }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ o.name }}</span><span style="font-size:var(--text-meta);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums">{{ o.votes }}</span><div style="grid-column:1/-1;height:4px;border-radius:2px;background:color-mix(in srgb,var(--neon-teal) 15%,transparent);overflow:hidden"><div style="height:100%;width:{{ o.pct }}%;background:{{ o.bar }}"></div></div></div></sc-for>
+</div>
+</div>
+</article>
+</sc-if>
+
+<sc-if value="{{ hasEarlier }}" hint-placeholder-val="{{ true }}">
+<section aria-labelledby="earlier-h" style="display:flex;flex-direction:column;gap:12px">
+<h2 id="earlier-h" style="margin:0;font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal)">Earlier rounds</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:12px">
+<sc-for list="{{ earlier }}" as="r" hint-placeholder-count="3">
+<article style="display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg)">
+<div style="position:relative;height:130px;border-radius:8px;overflow:hidden;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent)"><image-slot id="{{ r.slot }}" src="{{ r.img }}" shape="rounded" radius="8" fit="contain" placeholder="Drop a photo"></image-slot></div>
+<span style="font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)">Round {{ r.n }} · {{ r.date }}</span>
+<span style="font-size:var(--text-card-title);font-weight:500;line-height:1.2;color:var(--neon-pink-text)">{{ r.winner }}</span>
+<span style="font-size:var(--text-meta);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums">{{ r.meta }}</span>
+<span style="font-size:var(--text-meta);color:var(--fy-text-label)">{{ r.runners }}</span>
+</article>
+</sc-for>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{ isSample }}" hint-placeholder-val="{{ false }}"><span style="font-size:var(--text-meta);color:var(--fy-text-label);padding:10px 12px;border:1px dashed color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px">Sample rounds. Real ones replace these once Hank places the first order.</span></sc-if>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;sample&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Preview&quot;},&quot;view&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Auto&quot;,&quot;Desktop&quot;,&quot;Tablet&quot;,&quot;Mobile&quot;],&quot;default&quot;:&quot;Auto&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;leader&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Preview&quot;},&quot;meName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;RAY&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Preview&quot;}}">
+class Component extends DCLogic {
+  state = { club: null };
+  PH = ['belicoso-belicoso-grande.jpg','belicoso-belicoso.jpg','belicoso-campana.png','belicoso-mini-belicoso.png','belicoso-petit-belicoso.jpg','chisel-big-chisel.png','chisel-chisel.png','culebra-culebra.png','parejo-carlota.png','parejo-churchill.png','parejo-corona-gorda.png','parejo-corona-grande.png','parejo-corona.png','parejo-double-corona.png','parejo-gordo.jpg','parejo-gran-corona.jpg','parejo-laguito-no-2.png','parejo-laguito-no-3.png','parejo-lancero.png','parejo-mini-cigarillo.jpg','parejo-perla.png','parejo-petit-corona.png','parejo-petit-edmundo.png','parejo-petit-robusto.png','parejo-presidente.png','parejo-robusto.png','parejo-rothschild.jpg','parejo-toro.jpg','perfecto-diadema.jpg','perfecto-exquisito.png','perfecto-favorito.png','perfecto-generoso.png','perfecto-petit-bouquet.png','perfecto-romeo.png','perfecto-salomo-n.png','pyramid-pira-mide.png','torpedo-long-torpedo.jpg','torpedo-torpedo.png'];
+  componentDidMount(){ this._rz=()=>this.setState({vw:window.innerWidth}); window.addEventListener('resize',this._rz); const go=()=>{ if(!window.HumidorClub) return setTimeout(go,50); this.setState({club:window.HumidorClub.load()}); this._u=window.HumidorClub.subscribe(d=>this.setState({club:d})); }; go(); }
+  componentWillUnmount(){ if(this._u) this._u(); }
+  norm(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,''); }
+  photoFor(o){
+    if(o.img) return o.img;
+    if(!this._keys) this._keys=this.PH.map(f=>{ const base=f.replace(/\.(png|jpg)$/,''); const vit=base.split('-').slice(1).join(''); return { k:this.norm(vit), f }; }).sort((a,b)=>b.k.length-a.k.length);
+    const txt=this.norm((o.size||'')+' '+(o.name||'')); const hit=this._keys.find(x=>txt.includes(x.k)) || this._keys.find(x=>txt.includes(x.k.replace(/no\d$/,'')));
+    return hit ? 'img/cigars/size-photo-'+hit.f : '';
+  }
+  sample(){
+    const d=n=>Date.now()-86400000*n;
+    const mk=(n,days,w,opts,votes,pts)=>({ n, closedAt:d(days), winner:w, options:opts, votes:Array.from({length:votes},(_,i)=>({name:'M'+i,prefs:{}})), _pts:pts });
+    return [
+      mk(3,21,0,[{name:'Padrón 1964 Anniversary Exclusivo',size:'Robusto 5½ × 50',price:'18'},{name:'Oliva Serie V Torpedo',size:'Torpedo 6½ × 52',price:'12'},{name:'My Father Le Bijou 1922',size:'Toro 6 × 52',price:'14'}],5,[11,7,6]),
+      mk(2,56,1,[{name:'Arturo Fuente Hemingway Short Story',size:'Perfecto 4 × 49',price:'9'},{name:'Cuaba Salomones',size:'Salomón 7¼ × 57',price:'32'},{name:'Romeo y Julieta Short Churchill',size:'Robusto 4⅞ × 50',price:'13'}],6,[10,13,13]),
+      mk(1,98,2,[{name:'Montecristo No.4',size:'Petit Corona 5⅛ × 42',price:'11'},{name:'Rocky Patel Vintage 1990',size:'Robusto 5½ × 50',price:'10'},{name:'Partagás Serie D No.4',size:'Robusto 4⅞ × 50',price:'16'}],4,[7,6,11])
+    ];
+  }
+  renderVals(){
+    const H=window.HumidorClub; const real=(this.state.club&&this.state.club.archive)||[];
+    const useSample=!real.length&&(this.props.sample??true); const A=useSample?this.sample():real;
+    const fmt=t=>new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    const ptsOf=r=>r._pts?r._pts:(H?H.points(r).p:r.options.map(()=>0));
+    const rounds=A.map(r=>{ const w=r.options[r.winner]||{}; const b=H&&!r._pts?H.brief(r):null; const v=x=>x?x.value:null; const P=ptsOf(r); const mx=Math.max(1,...P);
+      const price=w.price?'£'+String(w.price).replace(/^£/,'')+' a cigar':null; const nV=(r.votes||[]).length;
+      return { n:r.n, date:fmt(r.closedAt||r.openedAt||Date.now()), winner:w.name||'No winner', img:this.photoFor(w), slot:r._pts?('archive-sample-'+r.n):('archive-'+(r.id||('r'+r.n+'-'+(r.closedAt||r.openedAt||0)))),
+        meta:[w.size,price,nV+(nV===1?' member':' members')].filter(Boolean).join(' · '),
+        brief:b?('Asked for: '+[v(b.time),v(b.strength),v(b.wrapper),v(b.budget)].filter(Boolean).join(' · ')):'',
+        opts:r.options.map((o,i)=>({ name:(i===r.winner?'★ ':'')+(o.name||'Option '+(i+1)), votes:P[i]+(P[i]===1?' pt':' pts'), pct:Math.round(P[i]/mx*100), bar:i===r.winner?'var(--neon-pink-tube)':'color-mix(in srgb,var(--neon-teal) 60%,transparent)', col:i===r.winner?'var(--neon-pink-text)':'var(--fy-text-secondary)' })),
+        runners:'Beat '+r.options.filter((_,i)=>i!==r.winner).map(o=>o.name).filter(Boolean).join(' and ') }; });
+    const last=rounds[0]||{opts:[]};
+    const MD=(this.props.view??'Auto')==='Desktop'?'d':(this.props.view??'Auto')==='Mobile'?'m':(this.props.view??'Auto')==='Tablet'?'t':((this.state.vw||window.innerWidth)>=1024?'d':(this.state.vw||window.innerWidth)>=700?'t':'m');
+    const narrow = MD!=='d';
+    const B = !narrow ? { wrapPad:'16px', barnMin:'calc(100vh - 32px)', cols:'232px minmax(0,1fr)', sideBr:'1px solid var(--neon-teal)', sideBb:'0', sideSh:'4px 0 10px -4px var(--neon-teal)', sidePad:'12px 8px', sideDir:'column', sideWrap:'nowrap', sideAlign:'stretch', sideGap:'1px', brandImg:'96px', brandFs:'20px', blockD:'block', navW:'100%', vcW:'auto', vcPad:'10px 6px 8px', pillFlex:'none', pillMtL:'4px', pillMtM:'6px', meMt:'8px', meMl:'0', mainPad:'18px 22px' }
+      : { wrapPad:'8px', barnMin:'calc(100vh - 16px)', cols:'minmax(0,1fr)', sideBr:'0', sideBb:'1px solid var(--neon-teal)', sideSh:'0 4px 10px -4px var(--neon-teal)', sidePad:'8px', sideDir:'row', sideWrap:'wrap', sideAlign:'center', sideGap:'6px', brandImg:'48px', brandFs:'16px', blockD:'none', navW:'auto', vcW:'100%', vcPad:'4px 6px 0', pillFlex:'1 1 140px', pillMtL:'0', pillMtM:'0', meMt:'0', meMl:'auto', mainPad:'14px 12px' };
+    
+    const barnChip=rounds.length+(rounds.length===1?' round smoked':' rounds smoked')+(useSample?' · sample':'');
+    
+    return { B, barnChip, isLeader:this.props.leader ?? true, meName:this.props.meName ?? 'RAY', hasLast:!!rounds[0], last, hasEarlier:rounds.length>1, earlier:rounds.slice(1), isSample:useSample,
+      lede:rounds.length?'Every round, what we asked for and what won. Drop a real photo on any cigar to replace the size shot.':'Nothing yet. Once Hank closes the first vote, the winner lands here.' };
+  }
+}
+</script>
+</body>
+</html>
