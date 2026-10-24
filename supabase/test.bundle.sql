@@ -668,7 +668,7 @@ end $$;
 
 create or replace function fy.poker_set_link(p_table uuid, p_url text) returns void
 language plpgsql security definer set search_path = fy, public as $$
-declare me fy.member; t fy.poker_table; v_url text := btrim(coalesce(p_url, '')); v_seat int;
+declare me fy.member; t fy.poker_table; v_url text := btrim(coalesce(p_url, ''));
 begin
   me := fy._require_member();
   select * into t from fy.poker_table where id = p_table for update;
@@ -680,14 +680,7 @@ begin
     raise exception 'that is not a PokerNow game link';
   end if;
   update fy.poker_table set pokernow_url = v_url, status = 'open' where id = p_table;
-  -- The initiator is already on PokerNow under their yard name: their seat shows taken the moment the table opens.
-  if not exists (select 1 from fy.poker_seat where table_id = p_table and member_id = t.started_by) then
-    select coalesce(min(n), 1) into v_seat from generate_series(1, 10) n
-    where not exists (select 1 from fy.poker_seat s where s.table_id = p_table and s.seat_no = n);
-    insert into fy.poker_seat (table_id, seat_no, member_id, table_name)
-    select p_table, v_seat, m.id, m.nickname from fy.member m where m.id = t.started_by;
-    delete from fy.poker_hold where table_id = p_table and member_id = t.started_by;
-  end if;
+  -- Opening seats nobody: the initiator takes a seat through the TAKE THE SEAT card (poker_take_seat) like every member.
 end $$;
 
 -- Reserves the seat at once (so two members cannot take it); the client opens the returned link after its countdown.
@@ -1996,7 +1989,7 @@ end $$;
 
 create or replace function fy.poker_set_link(p_table uuid, p_url text) returns void
 language plpgsql security definer set search_path = fy, public as $$
-declare me fy.member; t fy.poker_table; v_url text := btrim(coalesce(p_url, '')); v_seat int;
+declare me fy.member; t fy.poker_table; v_url text := btrim(coalesce(p_url, ''));
 begin
   me := fy._require_member();
   select * into t from fy.poker_table where id = p_table for update;
@@ -2008,14 +2001,7 @@ begin
     raise exception 'that is not a PokerNow game link';
   end if;
   update fy.poker_table set pokernow_url = v_url, status = 'open' where id = p_table;
-  -- The initiator is already on PokerNow under their yard name: their seat shows taken the moment the table opens.
-  if not exists (select 1 from fy.poker_seat where table_id = p_table and member_id = t.started_by) then
-    select coalesce(min(n), 1) into v_seat from generate_series(1, 10) n
-    where not exists (select 1 from fy.poker_seat s where s.table_id = p_table and s.seat_no = n);
-    insert into fy.poker_seat (table_id, seat_no, member_id, table_name)
-    select p_table, v_seat, m.id, m.nickname from fy.member m where m.id = t.started_by;
-    delete from fy.poker_hold where table_id = p_table and member_id = t.started_by;
-  end if;
+  -- Opening seats nobody: the initiator takes a seat through the TAKE THE SEAT card (poker_take_seat) like every member.
 end $$;
 
 -- Reserves the seat at once (so two members cannot take it); the client opens the returned link after its countdown.
@@ -3105,11 +3091,22 @@ begin
   exception when others then if sqlerrm not like '%not open%' then raise; end if; end;
   perform fy.poker_set_link(tbl, 'https://www.pokernow.com/games/pglabc123');
   pj := fy.poker_current(); assert pj->>'status' = 'open', 'link opens the table';
-  -- Opening the table seats the initiator (lowest free seat, yard name as table name).
+  -- Opening the table seats nobody: the initiator takes a seat through the card, like every member.
+  assert jsonb_array_length(pj->'seats') = 0 and jsonb_array_length(pj->'holds') = 0, 'opening the table seats nobody';
+  -- Saving the same link again changes nothing: still open, same link, still nobody seated.
+  perform fy.poker_set_link(tbl, 'https://www.pokernow.com/games/pglabc123');
+  pj := fy.poker_current();
+  assert pj->>'status' = 'open' and pj->>'pokernow_url' = 'https://www.pokernow.com/games/pglabc123'
+     and jsonb_array_length(pj->'seats') = 0, 'saving the link again changes nothing';
+  -- The initiator picks seat 1 (the card holds it), then takes it and gets the PokerNow link back; the hold clears.
+  perform fy.poker_hold_seat(tbl, 1);
+  pj := fy.poker_current(); assert jsonb_array_length(pj->'holds') = 1 and pj->'holds'->0->>'member_id' = sock::text, 'the unseated initiator can hold a seat';
+  d := fy.poker_take_seat(tbl, 1, 'The Sock');
+  assert d = 'https://www.pokernow.com/games/pglabc123', 'the initiator''s take_seat returns the link';
+  pj := fy.poker_current();
   assert jsonb_array_length(pj->'seats') = 1 and (pj->'seats'->0->>'seat_no')::int = 1
-     and pj->'seats'->0->>'member_id' = sock::text and pj->'seats'->0->>'table_name' = 'The Sock', 'initiator is seated when the table opens';
-  begin perform fy.poker_set_link(tbl, 'https://www.pokernow.com/games/pglabc123'); exception when others then raise; end;
-  pj := fy.poker_current(); assert jsonb_array_length(pj->'seats') = 1, 'setting the link again does not seat the initiator twice';
+     and pj->'seats'->0->>'member_id' = sock::text and pj->'seats'->0->>'table_name' = 'The Sock', 'the initiator is seated once they take the seat';
+  assert jsonb_array_length(pj->'holds') = 0, 'taking the seat clears the initiator''s hold';
 
   -- Seats: one each, no double-booking, 1 to 10, name 1 to 24.
   begin perform fy.poker_take_seat(tbl, 4, 'Again'); raise exception 'should have failed: second seat';
@@ -3235,10 +3232,14 @@ begin
   perform fy.poker_close(tbl);   -- closing twice is a no-op
   tbl2 := fy.poker_start();
   assert tbl2 <> tbl, 'a new table starts after close';
-  -- The leader may set the link on someone else's table; that seats the initiator (Pants), not the leader.
+  -- The leader may set the link on someone else's table; that opens it and seats nobody (not Pants, not the leader).
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
   perform fy.poker_set_link(tbl2, 'https://www.pokernow.club/games/pgl-xyz_9');
-  pj := fy.poker_current(); assert pj->'seats'->0->>'member_id' = pants::text, 'the initiator gets the seat, not the leader';
+  pj := fy.poker_current();
+  assert pj->>'status' = 'open' and jsonb_array_length(pj->'seats') = 0, 'the leader opening a member''s table seats nobody';
+  -- Pants, the initiator, takes a seat through the card.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  perform fy.poker_take_seat(tbl2, 1, 'Pants');
   -- Seated, no docket: a member cannot close it, the leader can (to unstick a night).
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000004');
   begin perform fy.poker_close(tbl2); raise exception 'should have failed: seated game, no docket';
@@ -3252,6 +3253,20 @@ begin
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
   perform fy.poker_close(tbl2);
   assert fy.poker_current() is null, 'empty table closes for anyone';
+  -- Open, but nobody took a seat yet (the initiator's card only holds one): any member closes it, and its holds go.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000004');
+  tbl2 := fy.poker_start();
+  perform fy.poker_set_link(tbl2, 'https://www.pokernow.com/games/pglnobody1');
+  perform fy.poker_hold_seat(tbl2, 1);
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  pj := fy.poker_current();
+  assert pj->>'id' = tbl2::text and pj->>'status' = 'open' and jsonb_array_length(pj->'seats') = 0
+     and jsonb_array_length(pj->'holds') = 1, 'an open table with a hold and no seats';
+  perform fy.poker_close(tbl2);
+  assert fy.poker_current() is null, 'an open table nobody sat at closes for any member';
+  perform pg_temp.as_owner();
+  select status into st from fy.poker_table where id = tbl2; assert st = 'closed', 'the open table is closed, got ' || coalesce(st, 'null');
+  select count(*) into n from fy.poker_hold where table_id = tbl2; assert n = 0, 'closing wipes the table''s holds, got ' || n;
   -- A table left over from yesterday neither shows nor blocks a new one.
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000004');
   tbl := fy.poker_start();

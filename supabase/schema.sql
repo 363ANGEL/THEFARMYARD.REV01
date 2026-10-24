@@ -665,7 +665,7 @@ end $$;
 
 create or replace function fy.poker_set_link(p_table uuid, p_url text) returns void
 language plpgsql security definer set search_path = fy, public as $$
-declare me fy.member; t fy.poker_table; v_url text := btrim(coalesce(p_url, '')); v_seat int;
+declare me fy.member; t fy.poker_table; v_url text := btrim(coalesce(p_url, ''));
 begin
   me := fy._require_member();
   select * into t from fy.poker_table where id = p_table for update;
@@ -677,14 +677,7 @@ begin
     raise exception 'that is not a PokerNow game link';
   end if;
   update fy.poker_table set pokernow_url = v_url, status = 'open' where id = p_table;
-  -- The initiator is already on PokerNow under their yard name: their seat shows taken the moment the table opens.
-  if not exists (select 1 from fy.poker_seat where table_id = p_table and member_id = t.started_by) then
-    select coalesce(min(n), 1) into v_seat from generate_series(1, 10) n
-    where not exists (select 1 from fy.poker_seat s where s.table_id = p_table and s.seat_no = n);
-    insert into fy.poker_seat (table_id, seat_no, member_id, table_name)
-    select p_table, v_seat, m.id, m.nickname from fy.member m where m.id = t.started_by;
-    delete from fy.poker_hold where table_id = p_table and member_id = t.started_by;
-  end if;
+  -- Opening seats nobody: the initiator takes a seat through the TAKE THE SEAT card (poker_take_seat) like every member.
 end $$;
 
 -- Reserves the seat at once (so two members cannot take it); the client opens the returned link after its countdown.
