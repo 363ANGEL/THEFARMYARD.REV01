@@ -17,14 +17,16 @@
   const TL = ['30 min', '45 min', '60 min', '90 min', '120 min', '2 hours+'];
   // Size photos in assets/humidor/cigars/ (no directory listing on GitHub Pages). Same list as the designs' PH[].
   const PH = ['belicoso-belicoso-grande.jpg', 'belicoso-belicoso.jpg', 'belicoso-campana.png', 'belicoso-mini-belicoso.png', 'belicoso-petit-belicoso.jpg', 'chisel-big-chisel.png', 'chisel-chisel.png', 'culebra-culebra.png', 'parejo-carlota.png', 'parejo-churchill.png', 'parejo-corona-gorda.png', 'parejo-corona-grande.png', 'parejo-corona.png', 'parejo-double-corona.png', 'parejo-gordo.jpg', 'parejo-gran-corona.jpg', 'parejo-laguito-no-2.png', 'parejo-laguito-no-3.png', 'parejo-lancero.png', 'parejo-mini-cigarillo.jpg', 'parejo-perla.png', 'parejo-petit-corona.png', 'parejo-petit-edmundo.png', 'parejo-petit-robusto.png', 'parejo-presidente.png', 'parejo-robusto.png', 'parejo-rothschild.jpg', 'parejo-toro.jpg', 'perfecto-diadema.jpg', 'perfecto-exquisito.png', 'perfecto-favorito.png', 'perfecto-generoso.png', 'perfecto-petit-bouquet.png', 'perfecto-romeo.png', 'perfecto-salomo-n.png', 'pyramid-pira-mide.png', 'torpedo-long-torpedo.jpg', 'torpedo-torpedo.png'];
-  const norm = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const norm = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
   let keys = null;
 
   // humidor-club.js mode(): most common non-empty value, first seen wins a tie.
   const mode = arr => { const c = {}; arr.filter(Boolean).forEach(x => c[x] = (c[x] || 0) + 1); let best = null, n = 0; for (const x in c) if (c[x] > n) { best = x; n = c[x]; } return best ? { value: best, count: n } : null; };
   const autoStage = r => !r ? -1 : r.status === 'collecting' ? 0 : r.status === 'ranking' ? 2 : r.status === 'paying' ? 4 : -1;
 
-  let last = null, onChange = null, head = null, pollT = null, busy = false, wired = false;
+  let last = null, onChange = null, head = null, pollT = null, wired = false, inflight = null, queued = null;
+  const next = () => { queued = null; return Humidor.refresh(); };
+  const quiet = () => { Humidor.refresh().catch(() => {}); };   // poll ticks: onChange errors are already logged
   const fetchCurrent = () => FY.rpc('humidor_current');
   const drawChip = d => { const c = head && head.querySelector('.hm-chip'); if (c) c.textContent = Humidor.chip(d); };
 
@@ -98,10 +100,12 @@
 
     // Opens the Barn on the Humidor, draws the header, loads the round and the yard's members.
     // Returns null when the Barn drew a door instead, or the load failed. main is the content area under the header.
+    // Every result carries leader (role says leader AND is_leader() agrees). On 'admin' a non-leader gets the
+    // shell, the header and a leader-only message in main, and { me, main, leader:false } with no data.
     async start(tab) {
       const B = await Barn.open('humidor'); if (!B) return null;
       const { me } = B;
-      if (tab === 'admin') { try { await FY.requireLeader(); } catch (e) { return null; } }
+      const leader = me.role === 'leader' && !!(await FY.rpc('is_leader').catch(() => false));
       B.main.innerHTML = `<header class="hm-head">
           <div class="hm-titlerow"><h2 class="hd2">${esc(TITLES[tab] || TITLES.home)}</h2><span class="tag tag-neutral hm-chip"></span></div>
           ${tab === 'home' ? '<p class="hm-tagline">A cigar club with a vote to suit your budget.</p>' : ''}
@@ -110,6 +114,10 @@
         </header><div class="hm-body" id="hm-body"></div>`;
       head = B.main.querySelector('.hm-head');
       const main = B.main.querySelector('#hm-body');
+      if (tab === 'admin' && !leader) {
+        main.innerHTML = '<div class="box-teal"><span class="kicker">Leader only</span><p style="margin:0">Only Hank can run the Humidor admin.</p></div>';
+        return { me, main, leader: false };
+      }
       let data, members;
       try {
         let q = FY.q('v_members_public').select('id,nickname,avatar,avatar_url').order('nickname');
@@ -123,29 +131,40 @@
       }
       last = JSON.stringify(data);
       drawChip(data);
-      return { me, main, data, members };
+      return { me, main, data, members, leader };
     },
 
-    // Fetch now; calls the poll's onChange (and redraws the chip) only if the round changed. Resolves to the data.
-    async refresh() {
-      if (busy) return JSON.parse(last || 'null');
-      busy = true;
-      try {
-        const d = (await fetchCurrent()) || { stage: null, round: null };
+    // Fetch now; redraws the chip and calls the poll's onChange only if the round changed. Resolves to the data.
+    // A call made while a fetch is in flight waits for it, then runs one more fetch (so it sees the caller's own
+    // write); calls in that window share that one extra fetch. A network failure resolves to the last data seen.
+    // If onChange throws, the error is logged and the promise rejects; the data is not marked as delivered, so the
+    // next refresh delivers it again.
+    refresh() {
+      if (inflight) return queued || (queued = inflight.then(next, next));
+      inflight = (async () => {
+        let d;
+        try { d = (await fetchCurrent()) || { stage: null, round: null }; }
+        catch (e) { return JSON.parse(last || 'null'); }
+        finally { inflight = null; }
         const j = JSON.stringify(d);
-        if (j !== last) { last = j; drawChip(d); if (onChange) onChange(d); }
+        if (j !== last) {
+          drawChip(d);
+          if (onChange) { try { onChange(d); } catch (e) { console.error(e); throw e; } }
+          last = j;
+        }
         return d;
-      } catch (e) { return JSON.parse(last || 'null'); } finally { busy = false; }
+      })();
+      return inflight;
     },
 
     // Every 5 s while visible; a hidden tab skips the poll and refetches the moment it is shown again (poker.js).
     // Returns a stop function. One poll per page: a second call replaces the first's onChange.
     poll(fn) {
       onChange = fn;
-      const startPoll = () => { clearInterval(pollT); pollT = setInterval(() => { if (!document.hidden) Humidor.refresh(); }, 5000); };
+      const startPoll = () => { clearInterval(pollT); pollT = setInterval(() => { if (!document.hidden) quiet(); }, 5000); };
       if (!wired) {
         wired = true;
-        const wake = () => { if (document.hidden || !onChange) return; Humidor.refresh(); startPoll(); };
+        const wake = () => { if (document.hidden || !onChange) return; quiet(); startPoll(); };
         document.addEventListener('visibilitychange', wake);
         window.addEventListener('pageshow', ev => { if (ev.persisted) wake(); });   // restored from the back-forward cache
         window.addEventListener('online', wake);
