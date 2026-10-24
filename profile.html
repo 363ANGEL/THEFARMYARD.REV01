@@ -3,47 +3,134 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Farmyard · Profile</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <link rel="stylesheet" href="app.css">
 <link rel="stylesheet" href="farmyard.css">
 <link rel="stylesheet" href="barn.css">
 <script src="fy-clucks.js"></script>
 <style>
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;align-items:start}
-.who{display:flex;gap:16px;align-items:center}
-.who .face{width:var(--char-host);height:var(--char-host);flex:none;border-radius:0;background-color:transparent}
-.who label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--fy-text-label);flex:1;min-width:0}
+.pgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:stretch}
+@media (min-width:1100px){.pgrid{grid-template-columns:minmax(280px,1fr) minmax(0,2fr)}.pgrid .full{grid-column:1 / -1}}
+.lbl{font-size:12px;color:var(--fy-text-label)}
+/* Who you are in the yard: view and edit */
+.who-view{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.who-view .mid{display:flex;flex-direction:column;gap:4px;flex:1 1 120px;min-width:120px}
+.who-view .nm{font-family:var(--font-heading);font-size:24px;color:var(--fy-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.who-view .ch{font-size:13px;color:var(--fy-text-secondary)}
+.host{width:var(--char-host);height:var(--char-host);flex:none;border-radius:0;background-color:transparent}
+.who-edit{display:flex;flex-direction:column;gap:14px}
+.who-edit .top{display:flex;gap:16px;align-items:center}
+.who-edit label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--fy-text-label);flex:1;min-width:0}
 .chars{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px}
-.char-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 2px;background:transparent;border:1px solid transparent;border-radius:8px;cursor:pointer;color:var(--fy-text);font-family:inherit;font-size:11px}
+.char-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 2px;min-height:44px;background:transparent;border:1px solid transparent;border-radius:8px;cursor:pointer;color:var(--fy-text);font-family:inherit;font-size:11px}
 .char-btn .face{width:48px;height:48px;border:1.5px solid var(--neon-teal);box-shadow:0 0 6px rgba(95,211,207,.6)}
 .char-btn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .char-btn.on{border-color:var(--neon-pink);box-shadow:var(--glow-pink)}
 .char-btn:hover{border-color:var(--rule-teal)}
-.sgrid{display:grid;grid-template-columns:minmax(0,1fr) 64px auto;gap:10px;align-items:center}
-.shead{padding:0 0 6px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fy-text-label)}
-.srow{padding:8px 0;border-top:1px solid var(--rule-teal);font-size:14px}
-.srow .to{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.srow .amt{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
-.srow .acts{display:flex;gap:6px;width:150px;justify-content:flex-end}
-.srow .acts .btn{min-height:32px;padding:0 12px;font-size:12px}
-.srow.done{opacity:.55}
-.srow .mark{font-size:12px;color:var(--neon-teal);white-space:nowrap}
-.lrow{display:flex;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--rule-teal)}
+.bd{display:flex;gap:8px}
+.bd select{min-height:44px;font-size:15px}
+.tbtn{min-height:44px;padding:0 16px;align-self:flex-start}
+/* Settle up: money you're due / money you owe */
+.settle{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
+.hist{display:flex;justify-content:flex-end}
+.hist button{min-height:44px;padding:0 12px;background:transparent;border:1px solid rgba(95,211,207,.55);border-radius:6px;color:var(--fy-text);font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.hist button:hover{box-shadow:0 0 8px rgba(95,211,207,.5)}
+.money{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:10px;box-sizing:border-box;min-width:0}
+.money>.tbl{container-type:inline-size}
+.money.due{border:1px solid var(--neon-green-tube);box-shadow:0 0 4px var(--neon-green-tube),0 0 14px rgba(10,158,67,.35)}
+.money.owe{border:1px solid var(--neon-pink);box-shadow:var(--glow-pink)}
+.money .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.money .big{font-size:18px;font-weight:800;letter-spacing:.22em;text-transform:uppercase}
+.money.due .big,.money.due .tot{color:var(--neon-green-text)}
+.money.due .big{text-shadow:var(--text-glow-green)}
+.money.owe .big,.money.owe .tot{color:var(--neon-pink-text)}
+.money.owe .big{text-shadow:var(--text-glow-pink),0 0 24px rgba(224,21,127,.4)}
+.money .tot{font-size:14px;font-weight:800}
+.money p{margin:0;font-size:12px;color:var(--fy-text-label)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--fy-text-secondary)}
+.legend span{display:flex;align-items:center;gap:6px}
+.r-red{--rag:var(--neon-red-tube);--rag-t:var(--neon-red-text)}
+.r-amb{--rag:var(--neon-amber);--rag-t:var(--neon-amber-text)}
+.r-grn{--rag:var(--neon-green-tube);--rag-t:var(--neon-green-text)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--rag);box-shadow:0 0 6px var(--rag);flex:none}
+.lh,.lr{display:grid;grid-template-columns:10px 46px 82px minmax(0,1fr) 72px 56px 168px;gap:10px;align-items:center}
+.lh{padding:0 0 6px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fy-text-label)}
+.lh .r,.lr .c-amt{text-align:right}
+.lr{padding:7px 0;border-top:1px solid var(--rule-teal);font-size:13px}
+.lr .c-date{font-variant-numeric:tabular-nums;color:var(--fy-text-secondary)}
+.lr .c-board{display:inline-flex;align-items:center;gap:6px;color:var(--fy-text);text-decoration:none;font-weight:700}
+.lr .c-board i{color:var(--neon-teal)}
+.lr .c-board:hover{text-shadow:0 0 6px var(--neon-teal)}
+.lr .c-what{color:var(--fy-text-body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lr .c-with{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lr .c-amt{font-variant-numeric:tabular-nums;font-weight:800;color:var(--rag-t)}
+.lr .c-st{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.lr .c-st .st{font-size:11.5px;color:var(--rag-t);white-space:nowrap}
+.lr .btn{min-height:44px;padding:0 10px;font-size:11.5px;white-space:nowrap}
+.smp{display:inline-block;margin-left:6px;padding:0 6px;border:1px solid var(--rule-teal);border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label);vertical-align:1px}
+.empty{display:block;padding:10px 0;border-top:1px solid var(--rule-teal);font-size:13px;color:var(--neon-green-text)}
+@container (max-width:720px){
+  .lh{display:none}
+  .lr{grid-template-columns:10px 52px minmax(0,1fr) auto;grid-template-areas:"dot date board amt" ". what what what" ". with st st";row-gap:4px}
+  .lr .c-dot{grid-area:dot}.lr .c-date{grid-area:date}.lr .c-board{grid-area:board}.lr .c-amt{grid-area:amt}
+  .lr .c-what{grid-area:what;white-space:normal}.lr .c-with{grid-area:with}.lr .c-st{grid-area:st}
+}
+/* Saving for (amber) */
+.save{display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--neon-amber);border-radius:10px;box-shadow:0 0 4px var(--neon-amber),0 0 14px rgba(255,154,31,.3)}
+.save .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.save .big{display:inline-flex;align-items:center;gap:8px;font-size:18px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--neon-amber-tube);text-shadow:0 0 6px rgba(255,154,31,.7),0 0 20px rgba(255,154,31,.35)}
+.save .all{font-size:12px;font-weight:700;color:var(--neon-amber-text);text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
+.save .all:hover{text-shadow:0 0 6px var(--neon-amber)}
+.save .ttl{font-family:var(--font-heading);font-size:20px;color:var(--fy-text)}
+.save .when{font-size:13px;color:var(--fy-text-secondary)}
+.save p{margin:0;font-size:12.5px;line-height:1.5;color:var(--fy-text-secondary);text-wrap:pretty}
+.save .three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.save .cell{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border:1px solid rgba(255,154,31,.35);border-radius:8px;min-width:0}
+.save .cell.g{border-color:rgba(63,224,127,.35)}
+.save .cell.a{border-color:rgba(255,154,31,.5)}
+.save .cell span:first-child{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fy-text-label)}
+.save .cell span:last-child{font-size:18px;font-weight:800;color:var(--fy-text)}
+.save .cell.g span:last-child{color:var(--neon-green-text)}
+.save .cell.a span:last-child,.save .due-l{color:var(--neon-amber-tube)}
+.save .pot{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--fy-text-secondary)}
+.save .pot strong{font-weight:800;color:var(--neon-amber-text)}
+.save .bar{position:relative;height:10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,154,31,.4);overflow:hidden}
+.save .bar span{position:absolute;left:0;top:0;bottom:0;background:var(--neon-amber);box-shadow:0 0 8px var(--neon-amber)}
+.save .foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.save .due-l{font-size:13px;font-weight:700}
+.save .pay{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;box-sizing:border-box;border:2px solid var(--neon-amber);border-radius:8px;color:var(--neon-amber-tube);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.55;cursor:not-allowed}
+.save .also{display:flex;flex-direction:column;gap:6px;padding-top:8px;border-top:1px dashed rgba(255,154,31,.35)}
+.save .also .k{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--neon-amber-text)}
+.save .also .g{display:grid;grid-template-columns:minmax(0,1fr) 90px 90px;gap:10px;align-items:center;font-size:13px}
+.save .also .g>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.save .also b{font-weight:700;color:var(--fy-text)}
+.save .also .r{text-align:right;color:var(--fy-text-secondary)}
+.save .also .l{text-align:right;font-weight:800;color:var(--neon-amber-tube)}
+.save .smp{border-color:rgba(255,154,31,.5);color:var(--neon-amber-text);letter-spacing:.08em;text-shadow:none}
+.net{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 16px;border:1px solid rgba(95,211,207,.45);border-radius:10px;font-size:14px;font-weight:800}
+.net .k{letter-spacing:.12em;text-transform:uppercase;font-size:12px;color:var(--fy-text)}
+.net .n{font-size:11px;font-weight:600;color:var(--fy-text-label)}
+/* Linked accounts */
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;align-items:start}
+.lcol{display:flex;flex-direction:column;min-width:0;border-top:1px solid var(--rule-teal)}
+.lrow{display:flex;gap:12px;align-items:center;padding:8px 0}
 .lrow>i{font-size:22px;flex:none;color:var(--fy-text-label)}
 .lrow>i.on{color:var(--neon-teal)}
 .lrow .mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
 .lrow .mid span:first-child{font-size:14px;color:var(--fy-text)}
 .lrow .mid span:last-child{font-size:12px;color:var(--fy-text-label)}
-.lrow .btn{min-height:32px;font-size:12px;white-space:nowrap}
-.revbox{display:flex;flex-direction:column;gap:8px;padding:0 0 10px 34px}
+.lrow .btn{min-height:44px;font-size:12px;white-space:nowrap}
+.revbox{display:flex;flex-direction:column;gap:8px;padding:0 0 10px}
 .revbox label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--fy-text-label)}
 .revbox .hint{font-size:12px;line-height:1.5;color:var(--fy-text-label)}
-.iou{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--rule-teal);font-size:14px}
-.iou .t{flex:1;min-width:160px}
-.iou .btn{min-height:32px;padding:0 12px;font-size:12px}
+/* Something wrong? claim form (kept from the 11 Oct page) */
 .field{display:grid;gap:4px}.field label{color:var(--fy-text-label);font-size:12px}
-.pf input,.pf select{font:inherit;font-size:14px;background:var(--fy-surface-2,#2b2e3f);color:var(--fy-text);border:1px solid var(--neon-teal);border-radius:8px;padding:8px 10px;min-width:0;box-sizing:border-box}
+.pf input,.pf select{font:inherit;font-size:14px;background:var(--fy-surface-2,#2b2e3f);color:var(--fy-text);border:1px solid var(--neon-teal);border-radius:8px;padding:8px 10px;min-width:0;min-height:44px;box-sizing:border-box}
+.signout{display:flex;justify-content:flex-end}
+.signout button{min-height:44px;padding:0 4px;background:transparent;border:0;color:var(--fy-text-label);font:inherit;font-size:12px;text-decoration:underline;cursor:pointer}
+.signout button:hover{color:var(--fy-text)}
 </style>
 </head>
 <body>
@@ -51,141 +138,286 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script>
 <script>
-/* 3.0 Barn Profile: who you are in the yard (name + logo), Settle up (what you owe, Pay on Revolut, Mark paid),
-   Linked accounts (Discord is the key; Revolut pay-me link lives here; the rest are not built yet),
-   plus what is owed to you (confirm / dispute) and the "Something wrong?" claim form. */
+/* 3.0 Barn Profile (24 Oct design): who you are in the yard (view / edit with Done: name, character, birthday),
+   Settle up as two tables, Money you're due and Money you owe, drawn from the real poker IOUs (my_ious, filtered
+   to rows where I am payer or payee), plus the design's sample football token rows; Saving for (sample);
+   Linked accounts (Discord and Revolut, with the pay-me link edit); the "Something wrong?" claim form; sign out. */
+/* Birthday field, copied from setup.html's BD (Task 4). Days are capped by the month (February = 29). Here it is
+   optional, so the "Day" / "Month" placeholders stay selectable: clearing both saves nulls. */
+const BD = {
+  M: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  DIM: [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+  max: m => m ? BD.DIM[+m - 1] : 31,
+  fit: (d, m) => d && +d <= BD.max(m) ? String(d) : '',
+  ok: (d, m) => !!m && !!d && +d <= BD.max(m),
+  dayOpts: (d, m) => `<option value="" ${d ? '' : 'selected'}>Day</option>` +
+    Array.from({ length: BD.max(m) }, (_, i) => { const v = String(i + 1); return `<option value="${v}" ${v === d ? 'selected' : ''}>${v}</option>`; }).join(''),
+  monthOpts: m => `<option value="" ${m ? '' : 'selected'}>Month</option>` +
+    BD.M.map((n, i) => { const v = String(i + 1); return `<option value="${v}" ${v === m ? 'selected' : ''}>${n}</option>`; }).join('')
+};
 (async function () {
   const B = await Barn.open('profile'); if (!B) return;
   const { me, main } = B, esc = FY.esc, GBP = 5;
   const ANIMALS = [['hen', 'Hen'], ['cock', 'Cock'], ['pig', 'Pig'], ['sheep', 'Sheep'], ['goat', 'Goat'], ['cow', 'Cow']];
   const names = {}; ((await FY.q('v_members_public').select('id,nickname,avatar,avatar_url')).data || []).forEach(m => names[m.id] = m);
   const mine = (await FY.q('member_logo').select('slot,name,url').eq('member_id', me.id).order('slot')).data || [];
-  const palette = [...mine.map(l => ({ id: 'url:' + l.url, name: l.name, img: l.url })), ...ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: `assets/avatars/${k}.svg` }))];
-  const D = { name: me.nickname, pick: me.avatar_url ? 'url:' + me.avatar_url : 'key:' + me.avatar, rev: me.revolut_url || '' };
-  const who = id => `${esc(names[id]?.nickname || '?')}`;
-  const live = s => ['open', 'marked_paid', 'disputed'].includes(s);
+  // img = the 96px character art; sm = the 48px picker face (Hank shows his face mark at that size).
+  const palette = [...mine.map(l => ({ id: 'url:' + l.url, name: l.name, img: l.url, sm: l.url })),
+                   ...ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: FY.face(k, 96), sm: FY.face(k, 48) }))];
+  const savedPick = me.avatar_url ? 'url:' + me.avatar_url : 'key:' + me.avatar;
+  const S = { edit: false, histAll: false, payClicked: {}, name: me.nickname, pick: savedPick, rev: me.revolut_url || '',
+              bm: me.birth_month ? String(me.birth_month) : '', bd: '' };
+  S.bd = BD.fit(me.birth_day, S.bm);
+  const nick = id => names[id]?.nickname || '?';
   const revLink = (url, gbp) => { const m = /^https:\/\/revolut\.me\/([A-Za-z0-9._-]+)$/.exec(url || ''); return m ? `https://revolut.me/${m[1]}/${gbp}gbp` : null; };
-  const label = { open: 'open', marked_paid: 'marked paid', confirmed: 'confirmed', disputed: 'disputed', settled: 'squared up' };
+  const pickOf = id => palette.find(p => p.id === id) || palette[0];
+  const DAY = 864e5;
 
-  async function render() {
-    const ious = await FY.rpc('my_ious');
-    const rev = {}; ((await FY.q('member').select('id,revolut_url')).data || []).forEach(m => rev[m.id] = m.revolut_url);
-    const owe = ious.filter(i => i.payer_id === me.id && live(i.state));
-    const owed = ious.filter(i => i.payee_id === me.id && live(i.state));
-    const closed = ious.filter(i => !live(i.state) && (i.payer_id === me.id || i.payee_id === me.id)).slice(0, 8);
-    // Settle up: grouped by payee. £ = buy-ins × 5 (league constant).
-    const groups = {};
-    owe.forEach(i => { const g = groups[i.payee_id] || (groups[i.payee_id] = { open: 0, ids: [], waiting: 0 }); if (i.state === 'open') { g.open += i.amount; g.ids.push(i.id); } else g.waiting += i.amount; });
-    const settleRows = Object.keys(groups).map(pid => { const g = groups[pid], link = revLink(rev[pid], g.open * GBP), done = !g.open;
-      return `<div class="sgrid srow ${done ? 'done' : ''}"><span class="to">${who(pid)}</span><span class="amt">£${(g.open || g.waiting) * GBP}</span><span class="acts">
-        ${done ? '<span class="mark"><i class="ph ph-check"></i> Marked paid</span>'
-               : `${link ? `<a class="btn btn-primary" href="${esc(link)}" target="_blank" rel="noopener"><i class="ph ph-hand-coins"></i>Pay</a>` : '<span class="mark" style="color:var(--fy-text-label)">No Revolut link</span>'}<button type="button" class="btn btn-ghost" data-paid="${g.ids.join(',')}">Paid</button>`}</span></div>`; }).join('');
-    const cur = palette.find(p => p.id === D.pick) || palette[0];
+  // Sample football token rows, verbatim from the design's finVals() (football rows only; poker rows are real).
+  // [date, board, wager, with, value (+ due to me / - I owe), unit, settled]
+  const SAMPLE_FOOTBALL = [
+    ['2026-10-10', 'football', 'Chelsea v Bournemouth · your call 2–1, Hank closer', 'Hank', -4, 'tk', false],
+    ['2026-10-04', 'football', 'Arsenal v Leeds · your call 1–1, Tali closer', 'Tali', -3, 'tk', false],
+    ['2026-09-19', 'football', 'Spurs v Fulham · your call 2–0, exact', 'Beck', 3, 'tk', true],
+    ['2026-08-30', 'football', 'Man Utd v Brighton · your call 1–2, closest', 'Ray', 2, 'tk', false]];
 
-    main.innerHTML = `
-      <div class="head"><h2 class="hd2">Profile</h2><span class="grow"></span><button type="button" id="out" class="btn btn-ghost">Leave the yard</button></div>
-      <div class="grid2">
-        <form class="box-teal pf" id="edit" style="gap:14px">
-          <span class="kicker">Who you are in the yard</span>
-          <div class="who"><div class="face" role="img" aria-label="Your character" style="background-image:url('${esc(cur.img)}')"></div>
-            <label>Yard name<input class="input" id="nick" value="${esc(D.name)}" maxlength="16" required style="min-height:40px"></label></div>
-          <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;color:var(--fy-text-label)">Character</span>
-            <div class="chars">${palette.map(p => `<button type="button" class="char-btn ${p.id === D.pick ? 'on' : ''}" data-pick="${esc(p.id)}" aria-label="${esc(p.name)}"><span class="face" style="background-image:url('${esc(p.img)}')"></span><span>${esc(p.name)}</span></button>`).join('')}</div></div>
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn btn-teal" type="submit">Save</button><span style="font-size:12px;color:var(--fy-text-label)">Up to 16 characters.</span></div>
-        </form>
-        <div class="box-pink" id="settle" style="scroll-margin-top:16px">
-          <span class="kicker" style="color:var(--neon-pink-text)">Settle up</span>
-          <p style="margin:0 0 6px;font-size:13px;line-height:1.5;color:var(--fy-text-secondary)">What you owe from poker. Each Pay button opens that member's Revolut with the amount filled in. Then tap Paid; they confirm and it's squared.</p>
-          <div class="sgrid shead"><span>Pay to</span><span style="text-align:right">Owed</span><span style="width:150px"></span></div>
-          ${settleRows}
-          ${!owe.length ? '<span style="font-size:13px;color:var(--neon-green-text)">All square. You owe nobody.</span>' : ''}
-        </div>
-        <div class="box-teal">
-          <span class="kicker">Linked accounts</span>
-          <p style="margin:0;font-size:13px;line-height:1.5;color:var(--fy-text-secondary)">Each link opens a room. Nothing's shared with the yard except what the room needs.</p>
-          <div class="lrow"><i class="ph ph-discord-logo on"></i><div class="mid"><span>Discord</span><span>Your key · Lounge voice</span></div><span class="btn btn-ghost off">Connected</span></div>
-          <div class="lrow"><i class="ph ph-hand-coins ${D.rev ? 'on' : ''}"></i><div class="mid"><span>Revolut</span><span>Get paid your poker winnings</span></div><span class="btn ${D.rev ? 'btn-ghost' : 'btn-primary'} off">${D.rev ? 'Linked' : 'Not linked'}</span></div>
-          <form class="revbox" id="revform">
-            <label>Your Revolut pay-me link<input class="input" id="rv" type="url" value="${esc(D.rev)}" maxlength="120" placeholder="https://revolut.me/yourname" style="min-height:44px;font-size:14px"></label>
-            <span class="hint">When you win, anyone who owes you gets a Pay button that opens this link with the amount filled in. 1 buy-in = £5. The Farmyard never holds money.</span>
-            <div><button class="btn btn-teal" type="submit">Save link</button></div>
-          </form>
-          <div class="lrow"><i class="ph ph-spotify-logo"></i><div class="mid"><span>Spotify</span><span>Queue tracks on the Jukebox</span></div><span class="btn off">Soon</span></div>
-          <div class="lrow"><i class="ph ph-steam-logo"></i><div class="mid"><span>Steam</span><span>Arcade lobbies · show what you're playing</span></div><span class="btn off">Soon</span></div>
-          <div class="lrow"><i class="ph ph-game-controller"></i><div class="mid"><span>itch.io</span><span>High-score sync for browser games</span></div><span class="btn off">Soon</span></div>
-        </div>
-        <div class="box-teal">
-          <span class="kicker">Owed to you</span>
-          ${owed.length ? owed.map(i => `<div class="iou"><span class="t">${who(i.payer_id)} owes you <strong class="num">£${i.amount * GBP}</strong> <span class="muted">· ${label[i.state]}</span></span>
-            ${i.state === 'marked_paid' ? `<button type="button" class="btn btn-primary" data-t="confirmed" data-id="${i.id}">Confirm</button><button type="button" class="btn btn-ghost" data-t="disputed" data-id="${i.id}">Dispute</button>` : ''}</div>`).join('')
-            : '<p class="muted" style="margin:0;font-size:13px">Nobody owes you. Yet.</p>'}
-          ${closed.length ? `<span class="kicker" style="padding-top:8px">Recent, closed</span>${closed.map(i => `<p class="muted" style="margin:0;font-size:12px">${who(i.payer_id)} → ${who(i.payee_id)} £${i.amount * GBP} · ${label[i.state]}</p>`).join('')}` : ''}
-        </div>
-        <form class="box-teal pf" id="claim" style="gap:12px">
-          <span class="kicker">Something wrong?</span>
-          <div class="field"><label for="ctype">Claim</label><select id="ctype"><option value="points">Points I should have</option><option value="iou">An IOU that is missing</option></select></div>
-          <div class="field" id="f-points"><label for="cpts">Poker points</label><input id="cpts" type="number" min="1" value="1"></div>
-          <div class="field" id="f-iou" hidden><label for="cpayer">Who owes whom</label>
-            <div class="row"><select id="cpayer">${Object.values(names).map(m => `<option value="${m.id}">${esc(m.nickname)}</option>`).join('')}</select><span>owes</span>
-            <select id="cpayee">${Object.values(names).map(m => `<option value="${m.id}">${esc(m.nickname)}</option>`).join('')}</select><input id="camt" type="number" min="1" value="1" style="width:5em"></div></div>
-          <div class="field"><label for="cnote">What happened</label><input id="cnote" required placeholder="e.g. side pot on the 12th"></div>
-          <div><button class="btn btn-teal">Send to RAY</button></div>
-        </form>
-      </div>`;
-
-    main.querySelector('#out').addEventListener('click', () => Barn.signOut());
-    main.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => {
-      D.pick = b.dataset.pick; const p = palette.find(x => x.id === D.pick);
-      main.querySelectorAll('[data-pick]').forEach(x => x.classList.toggle('on', x === b));
-      main.querySelector('.who .face').style.backgroundImage = `url('${p.img}')`;
-    }));
-    main.querySelector('#edit').addEventListener('submit', async ev => {
-      ev.preventDefault();
-      const name = main.querySelector('#nick').value.trim(); if (!name) return FY.toast("Yard name can't be blank");
-      const patch = { nickname: name };
-      if (D.pick.startsWith('url:')) patch.avatar_url = D.pick.slice(4); else { patch.avatar = D.pick.slice(4); patch.avatar_url = null; }
-      const { error } = await FY.q('member').update(patch).eq('id', me.id);
-      if (error) return FY.toast(/unique|duplicate/i.test(error.message) ? 'That yard name is taken.' : error.message);
-      Object.assign(me, patch); D.name = name; FY.toast('Saved.'); location.reload();
-    });
-    main.querySelector('#revform').addEventListener('submit', async ev => {
-      ev.preventDefault();
-      const rv = main.querySelector('#rv').value.trim() || null;
-      if (rv && !/^https:\/\/revolut\.me\/[A-Za-z0-9._-]+$/.test(rv)) return FY.toast('Revolut link must be exactly https://revolut.me/yourname');
-      const { error } = await FY.q('member').update({ revolut_url: rv }).eq('id', me.id);
-      if (error) return FY.toast(error.message);
-      me.revolut_url = rv; D.rev = rv || ''; FY.toast('Saved.'); await render();
-    });
-    main.querySelectorAll('button[data-t]').forEach(b => b.addEventListener('click', async () => {
-      // Only "Confirm" is irreversible: two taps within 5 seconds.
-      if (b.dataset.t === 'confirmed' && b.dataset.armed !== '1') { const was = b.textContent; b.dataset.armed = '1'; b.textContent = 'Tap again to confirm'; setTimeout(() => { b.dataset.armed = ''; b.textContent = was; }, 5000); return; }
-      b.disabled = true;
-      try { await FY.rpc('iou_transition', { p_iou: b.dataset.id, p_to: b.dataset.t }); FY.toast({ confirmed: 'Confirmed. Squared.', disputed: 'Disputed. RAY will sort it.' }[b.dataset.t]); await render(); }
-      catch (e) { FY.toast(e.message); b.disabled = false; }
-    }));
-    main.querySelectorAll('button[data-paid]').forEach(b => b.addEventListener('click', async () => {
-      b.disabled = true;
-      try { for (const id of b.dataset.paid.split(',')) await FY.rpc('iou_transition', { p_iou: id, p_to: 'marked_paid' }); FY.toast('Marked paid. Waiting for their tick.'); }
-      catch (e) { FY.toast(e.message); }
-      await render();
-    }));
-    const ctype = main.querySelector('#ctype');
-    ctype.addEventListener('change', () => { main.querySelector('#f-points').hidden = ctype.value !== 'points'; main.querySelector('#f-iou').hidden = ctype.value !== 'iou'; });
-    main.querySelector('#claim').addEventListener('submit', async ev => {
-      ev.preventDefault();
-      const note = main.querySelector('#cnote').value.trim();
-      const payload = ctype.value === 'points'
-        ? { type: 'points', type_key: 'poker', points: Number(main.querySelector('#cpts').value), note }
-        : { type: 'iou', payer_id: main.querySelector('#cpayer').value, payee_id: main.querySelector('#cpayee').value, amount: Number(main.querySelector('#camt').value), note };
-      if (payload.type === 'iou' && payload.payer_id === payload.payee_id) return FY.toast('Pick two different people.');
-      const btn = ev.submitter || ev.target.querySelector('button'); btn.disabled = true;
-      try { await FY.rpc('raise_claim', { p_payload: payload }); FY.toast('Sent. RAY will approve or reject it.'); ev.target.reset(); ctype.dispatchEvent(new Event('change')); }
-      catch (e) { FY.toast(e.message); }
-      finally { btn.disabled = false; }
-    });
-    if (location.hash === '#settle' && !render.scrolled) { render.scrolled = true; main.querySelector('#settle')?.scrollIntoView(); }
+  const D = { ious: [], rev: {}, events: {} };
+  async function load() {
+    const all = await FY.rpc('my_ious');
+    // my_ious() returns the whole league to the leader: keep only rows where I am payer or payee.
+    D.ious = (all || []).filter(i => i.payer_id === me.id || i.payee_id === me.id);
+    D.rev = {}; ((await FY.q('member').select('id,revolut_url')).data || []).forEach(m => D.rev[m.id] = m.revolut_url);
+    const ids = [...new Set(D.ious.map(i => i.event_id).filter(Boolean))];
+    D.events = {};
+    if (ids.length) ((await FY.q('event').select('id,played_at,note').in('id', ids)).data || []).forEach(e => D.events[e.id] = e);
   }
-  await render();
+
+  // One poker IOU -> one table row. £ = buy-ins × GBP.
+  function pokerRow(i) {
+    const due = i.payee_id === me.id, other = due ? i.payer_id : i.payee_id, nm = nick(other);
+    const ev = D.events[i.event_id], when = new Date(ev?.played_at || i.created_at);
+    const closed = i.state === 'confirmed' || i.state === 'settled', amber = i.state === 'marked_paid', gbp = i.amount * GBP;
+    const what = ev ? `${when.toLocaleDateString('en-GB', { weekday: 'long' })} night · ${due ? 'you' : nm} won` : 'Poker night';
+    let status, acts = '';
+    if (closed) status = 'Closed';
+    else if (i.state === 'disputed') status = 'Disputed · RAY will sort it';
+    else if (due) status = amber ? nm + ' says paid' : 'Waiting for ' + nm;
+    else status = amber ? 'Waiting for ' + nm + ' to confirm' : 'Unpaid';
+    if (!due && i.state === 'open') {
+      // Paid is locked until Pay is clicked, but only when there is a Pay link; with no link it is open straight away.
+      const link = revLink(D.rev[other], gbp), locked = !!link && !S.payClicked[i.id];
+      acts = (link ? `<a class="btn btn-primary" data-pay="${esc(i.id)}" href="${esc(link)}" target="_blank" rel="noopener"><i class="ph ph-hand-coins"></i>Pay</a>` : '') +
+        `<button type="button" class="btn btn-ghost" data-paid="${esc(i.id)}" ${locked ? 'disabled' : ''} title="${locked ? 'Click Pay first' : esc('Tell ' + nm + ' you have paid')}">Paid</button>`;
+    }
+    if (due && amber) acts = `<button type="button" class="btn btn-primary" data-t="confirmed" data-id="${esc(i.id)}">Confirm</button><button type="button" class="btn btn-ghost" data-t="disputed" data-id="${esc(i.id)}">Not received</button>`;
+    return { due, open: !closed, live: true, dt: when, board: 'poker', what, title: ev?.note || what, with: nm, v: gbp, u: '£', rag: closed ? 'grn' : amber ? 'amb' : 'red', status, acts };
+  }
+  function sampleRow([d, b, what, w, v, u, settled]) {
+    const due = v > 0, red = !settled;
+    return { due, open: !settled, live: false, dt: new Date(d), board: b, what, title: what, with: w, v: Math.abs(v), u, rag: settled ? 'grn' : 'red',
+      status: settled ? 'Closed' : due ? 'Waiting for ' + w : 'Unpaid',
+      acts: !due && red ? `<button type="button" class="btn btn-ghost" disabled title="Sample: football tokens are not live yet">Paid</button>` : '' };
+  }
+
+  function drawWho() {
+    const box = main.querySelector('#who'), cur = pickOf(S.pick);
+    if (!S.edit) {
+      box.innerHTML = `<span class="kicker">Who you are in the yard</span>
+        <div class="who-view"><div class="face host" role="img" aria-label="Your character" style="background-image:url('${esc(pickOf(savedPick).img)}')"></div>
+          <div class="mid"><span class="lbl">Yard name</span><span class="nm">${esc(me.nickname)}</span><span class="ch">Character: ${esc(pickOf(savedPick).name)}</span></div>
+          <button type="button" class="btn btn-ghost tbtn" data-act="edit"><i class="ph ph-pencil-simple"></i>Edit</button></div>`;
+      return;
+    }
+    box.innerHTML = `<span class="kicker">Who you are in the yard</span>
+      <form class="who-edit pf" id="edit">
+        <div class="top"><div class="face host" role="img" aria-label="Your character" style="background-image:url('${esc(cur.img)}')"></div>
+          <label>Yard name<input class="input" id="nick" value="${esc(S.name)}" maxlength="16" required style="min-height:44px"></label></div>
+        <div style="display:flex;flex-direction:column;gap:8px"><span class="lbl">Character</span>
+          <div class="chars">${palette.map(p => `<button type="button" class="char-btn ${p.id === S.pick ? 'on' : ''}" data-pick="${esc(p.id)}" aria-label="${esc(p.name)}"><span class="face" style="background-image:url('${esc(p.sm)}')"></span><span>${esc(p.name)}</span></button>`).join('')}</div></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span class="lbl" style="display:flex;gap:8px;align-items:center"><i class="ph ph-cake" style="color:var(--neon-pink-text);font-size:16px"></i>Birthday <span style="font-size:11px">Optional</span></span>
+          <span class="bd"><select id="bdDay" class="input" aria-label="Day" style="flex:0 0 92px">${BD.dayOpts(S.bd, S.bm)}</select><select id="bdMonth" class="input" aria-label="Month" style="flex:1">${BD.monthOpts(S.bm)}</select></span>
+          <span class="lbl" id="bdHint">Day and month only. It goes on the Barn calendar so the crew can celebrate.</span></div>
+        <button type="submit" class="btn btn-primary tbtn">Done</button>
+      </form>`;
+  }
+
+  function drawSettle() {
+    const now = Date.now(), all = S.histAll;
+    const rows = [...D.ious.map(pokerRow), ...SAMPLE_FOOTBALL.map(sampleRow)]
+      .filter(r => all || (now - r.dt) <= 28 * DAY || r.open)
+      .sort((a, b) => b.dt - a.dt);
+    const dueRows = rows.filter(r => r.due), oweRows = rows.filter(r => !r.due);
+    const sum = (list, u) => list.filter(r => r.open && r.u === u).reduce((s, r) => s + r.v, 0);
+    const [dp, dt2] = [sum(dueRows, '£'), sum(dueRows, 'tk')], [op, ot] = [sum(oweRows, '£'), sum(oweRows, 'tk')], np = dp - op, nt = dt2 - ot;
+    const part = (p, t) => [p ? '£' + p : '', t ? t + ' tk' : ''].filter(Boolean).join(' + ') || 'nothing';
+    const ragName = { red: 'Red', amb: 'Amber', grn: 'Closed' };
+    const row = r => `<div class="lr r-${r.rag}">
+        <span class="c-dot dot" title="${ragName[r.rag]}"></span>
+        <span class="c-date">${r.dt.getDate()} ${r.dt.toLocaleString('en-GB', { month: 'short' })}</span>
+        <a class="c-board" href="${r.board === 'poker' ? 'poker.html' : 'football.html'}"><i class="${r.board === 'poker' ? 'ph ph-club' : 'ph ph-soccer-ball'}"></i>${r.board === 'poker' ? 'Poker' : 'Football'}</a>
+        <span class="c-what" title="${esc(r.title)}">${esc(r.what)}${r.live ? '' : '<span class="smp">Sample</span>'}</span>
+        <span class="c-with">${esc(r.with)}</span>
+        <span class="c-amt">${r.u === '£' ? '£' + r.v : r.v + ' tk'}</span>
+        <span class="c-st"><span class="st">${esc(r.status)}</span>${r.acts}</span></div>`;
+    const legend = (red, amber) => `<div class="legend"><span><span class="dot r-red"></span>${red}</span><span><span class="dot r-amb"></span>${amber}</span><span><span class="dot r-grn"></span>Closed</span></div>`;
+    const head = '<div class="lh"><span></span><span>Date</span><span>Board</span><span>Wager</span><span>Member</span><span class="r">Amount</span><span class="r">Status</span></div>';
+    // "Nothing outstanding." whenever no live poker money is open in that table; the sample football rows follow it.
+    const empty = list => list.some(r => r.live && r.open) ? '' : '<span class="empty">Nothing outstanding.</span>';
+    // Saving for: the design's sample values (finVals kit, computed on its sample rows: nothing received since 1 Oct).
+    const money = v => '£' + v.toFixed(2), each = 20, members = 6, fromWins = 0, left = each - fromWins, pot = 64 + (each - left);
+    main.querySelector('#settle').innerHTML = `
+      <div class="hist"><button type="button" data-act="hist">${all ? 'Last 4 weeks' : 'Show all'}</button></div>
+      <div class="money due">
+        <div class="top"><span class="kicker big">Money you're due</span><span class="tot">Outstanding: ${part(dp, dt2)}</span></div>
+        <p>5% of each payment goes towards your share of the next group event, so you receive 95%.<span class="smp">Sample</span></p>
+        ${legend('Not paid yet', 'They say paid · confirm it')}
+        <div class="tbl">${head}${empty(dueRows)}${dueRows.map(row).join('')}</div>
+      </div>
+      <div class="money owe">
+        <div class="top"><span class="kicker big">Money you owe</span><span class="tot">Outstanding: ${part(op, ot)}</span></div>
+        ${legend('Unpaid', 'Paid · awaiting their confirm')}
+        <p>Pay opens that member's Revolut with the £ filled in. Tokens settle inside the Barn. After you press Paid, it stays amber until they confirm.</p>
+        <div class="tbl">${head}${empty(oweRows)}${oweRows.map(row).join('')}</div>
+      </div>
+      <div class="save">
+        <div class="top"><span class="kicker big"><i class="ph-fill ph-piggy-bank"></i>Saving for<span class="smp">Sample</span></span><a class="all" href="calendar.html">All savings goals ↗</a></div>
+        <div class="top"><span class="ttl">Hank's birthday night</span><span class="when">Sat 31 Oct · 20:00 · ${money(each)} each</span></div>
+        <p>When you win at Poker or Football, 5% of what you're paid goes towards your share automatically, with no cap. Anything over your share, or taken when no event is planned, is held for the next one. You pay whatever is left before the date. Everything collects in the Barn's Revolut group pocket.</p>
+        <div class="three"><span class="cell"><span>Your share</span><span>${money(each)}</span></span><span class="cell g"><span>From your winnings</span><span>${money(fromWins)}</span></span><span class="cell a"><span>Left to pay</span><span>${money(left)}</span></span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><div class="pot"><span>Group pot</span><span><strong>${money(pot)}</strong> of ${money(each * members)}</span></div>
+          <div class="bar"><span style="width:${Math.min(100, pot / (each * members) * 100)}%"></span></div></div>
+        <div class="foot"><span class="due-l">${money(left)} due by 31 Oct</span><span class="pay" role="link" aria-disabled="true" title="Sample: the Barn's Revolut group pocket is not live yet"><i class="ph ph-hand-coins"></i>Pay ${money(left)}</span></div>
+        <div class="also"><span class="k">Also saving for</span>
+          <div class="g"><span><b>Whisky group buy</b> <span class="muted">· 12 Dec</span></span><span class="r">£60 each</span><span class="l">${money(60)} left</span></div>
+          <div class="g"><span><b>Dmitri's stag weekend</b> <span class="muted">· 6 Mar 2027</span></span><span class="r">£300 each</span><span class="l">£300.00 left</span></div></div>
+      </div>
+      <div class="net"><span class="k">Net position</span><span style="color:${np < 0 || nt < 0 ? 'var(--neon-pink-text)' : 'var(--neon-green-text)'}">${(np < 0 ? 'You owe £' + -np : np > 0 ? "You're owed £" + np : '£ square') + ' · ' + (nt < 0 ? 'you owe ' + -nt + ' tk' : nt > 0 ? "you're owed " + nt + ' tk' : 'tokens square')}</span><span class="n">${all ? 'Showing every wager.' : 'Last 4 weeks, plus anything older still open.'}</span></div>`;
+  }
+
+  function drawLinks() {
+    const on = !!S.rev;
+    main.querySelector('#links').innerHTML = `<span class="kicker">Linked accounts</span>
+      <p style="margin:0;font-size:13px;line-height:1.5;color:var(--fy-text-secondary)">Each link opens a room. Nothing's shared with the yard except what the room needs.</p>
+      <div class="links">
+        <div class="lcol"><div class="lrow"><i class="ph ph-discord-logo on"></i><div class="mid"><span>Discord</span><span>Your key · Lounge voice</span></div><span class="btn btn-ghost off">Connected</span></div></div>
+        <div class="lcol"><div class="lrow"><i class="ph ph-hand-coins ${on ? 'on' : ''}"></i><div class="mid"><span>Revolut</span><span>Get paid your poker winnings</span></div><button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'}" data-act="rev">${on ? 'Unlink' : 'Connect'}</button></div>
+          <form class="revbox" id="revform">
+            <label>Your Revolut pay-me link<input class="input" id="rv" type="url" value="${esc(S.rev)}" maxlength="120" placeholder="https://revolut.me/yourname" style="min-height:44px;font-size:14px"></label>
+            <span class="hint">When you win, anyone who owes you gets a Pay button that opens this link with the amount filled in. 1 buy-in = £5. The Farmyard never holds money.</span>
+            <div><button class="btn btn-teal" type="submit" style="min-height:44px">Save link</button></div>
+          </form></div>
+      </div>`;
+  }
+
+  main.innerHTML = `
+    <div class="head"><h2 class="hd2">Profile</h2><span class="grow"></span></div>
+    <div class="pgrid">
+      <div class="box-teal" id="who" style="gap:14px"></div>
+      <div class="box-teal" id="links"></div>
+      <div class="settle full" id="settle"></div>
+      <form class="box-teal pf full" id="claim" style="gap:12px">
+        <span class="kicker">Something wrong?</span>
+        <div class="field"><label for="ctype">Claim</label><select id="ctype"><option value="points">Points I should have</option><option value="iou">An IOU that is missing</option></select></div>
+        <div class="field" id="f-points"><label for="cpts">Poker points</label><input id="cpts" type="number" min="1" value="1"></div>
+        <div class="field" id="f-iou" hidden><label for="cpayer">Who owes whom</label>
+          <div class="row"><select id="cpayer">${Object.values(names).map(m => `<option value="${esc(m.id)}">${esc(m.nickname)}</option>`).join('')}</select><span>owes</span>
+          <select id="cpayee">${Object.values(names).map(m => `<option value="${esc(m.id)}">${esc(m.nickname)}</option>`).join('')}</select><input id="camt" type="number" min="1" value="1" style="width:5em"></div></div>
+        <div class="field"><label for="cnote">What happened</label><input id="cnote" required placeholder="e.g. side pot on the 12th"></div>
+        <div><button class="btn btn-teal" style="min-height:44px">Send to RAY</button></div>
+      </form>
+    </div>
+    <div class="signout"><button type="button" id="out">Sign out</button></div>`;
+
+  async function refresh() { await load(); drawSettle(); }
+
+  // ---- Who you are: edit / pick / birthday / Done ----
+  main.querySelector('#who').addEventListener('click', ev => {
+    if (ev.target.closest('[data-act="edit"]')) { S.edit = true; S.name = me.nickname; S.pick = savedPick; S.bm = me.birth_month ? String(me.birth_month) : ''; S.bd = BD.fit(me.birth_day, S.bm); drawWho(); main.querySelector('#nick')?.focus(); return; }
+    const b = ev.target.closest('[data-pick]'); if (!b) return;
+    S.pick = b.dataset.pick;
+    main.querySelectorAll('#who [data-pick]').forEach(x => x.classList.toggle('on', x === b));
+    main.querySelector('#who .top .face').style.backgroundImage = `url('${pickOf(S.pick).img}')`;
+  });
+  main.querySelector('#who').addEventListener('input', ev => { if (ev.target.id === 'nick') S.name = ev.target.value; });
+  main.querySelector('#who').addEventListener('change', ev => {
+    if (ev.target.id === 'bdMonth') { S.bm = ev.target.value; S.bd = BD.fit(S.bd, S.bm); main.querySelector('#bdDay').innerHTML = BD.dayOpts(S.bd, S.bm); }
+    else if (ev.target.id === 'bdDay') S.bd = ev.target.value;
+    else return;
+    const half = !!S.bd !== !!S.bm, hint = main.querySelector('#bdHint');
+    hint.textContent = half ? 'Pick a day and a month, or clear both.' : 'Day and month only. It goes on the Barn calendar so the crew can celebrate.';
+    hint.style.color = half ? 'var(--neon-pink-text)' : '';
+  });
+  main.querySelector('#who').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const name = S.name.trim(); if (!name) return FY.toast("Yard name can't be blank");
+    if (!!S.bd !== !!S.bm || (S.bd && !BD.ok(S.bd, S.bm))) return FY.toast('Pick a day and a month, or clear both.');
+    const patch = {};
+    if (name !== me.nickname) patch.nickname = name;
+    if (S.pick !== savedPick) { if (S.pick.startsWith('url:')) patch.avatar_url = S.pick.slice(4); else { patch.avatar = S.pick.slice(4); patch.avatar_url = null; } }
+    const bd = S.bd ? +S.bd : null, bm = S.bm ? +S.bm : null;
+    if (bd !== (me.birth_day ?? null) || bm !== (me.birth_month ?? null)) { patch.birth_day = bd; patch.birth_month = bm; }
+    if (!Object.keys(patch).length) { S.edit = false; drawWho(); return; }
+    const btn = ev.submitter || ev.target.querySelector('[type="submit"]'); btn.disabled = true;
+    const { error } = await FY.q('member').update(patch).eq('id', me.id);
+    if (error) { btn.disabled = false; return FY.toast(/unique|duplicate/i.test(error.message) ? 'That yard name is taken.' : error.message); }
+    Object.assign(me, patch); FY.toast('Saved.'); location.reload();
+  });
+
+  // ---- Settle up: history toggle, Pay, Paid, Confirm / Not received ----
+  main.querySelector('#settle').addEventListener('click', async ev => {
+    if (ev.target.closest('[data-act="hist"]')) { S.histAll = !S.histAll; drawSettle(); return; }
+    const pay = ev.target.closest('a[data-pay]');
+    if (pay) { S.payClicked[pay.dataset.pay] = true; const p = main.querySelector(`button[data-paid="${CSS.escape(pay.dataset.pay)}"]`); if (p) { p.disabled = false; p.title = 'Tell them you have paid'; } return; }
+    const paid = ev.target.closest('button[data-paid]');
+    if (paid) {
+      paid.disabled = true;
+      try { await FY.rpc('iou_transition', { p_iou: paid.dataset.paid, p_to: 'marked_paid' }); FY.toast('Marked paid. Waiting for their tick.'); }
+      catch (e) { FY.toast(e.message); }
+      await refresh(); return;
+    }
+    const b = ev.target.closest('button[data-t]'); if (!b) return;
+    // Only "Confirm" is irreversible: two taps within 5 seconds.
+    if (b.dataset.t === 'confirmed' && b.dataset.armed !== '1') { const was = b.textContent; b.dataset.armed = '1'; b.textContent = 'Tap again to confirm'; setTimeout(() => { b.dataset.armed = ''; b.textContent = was; }, 5000); return; }
+    b.disabled = true;
+    try { await FY.rpc('iou_transition', { p_iou: b.dataset.id, p_to: b.dataset.t }); FY.toast({ confirmed: 'Confirmed. Squared.', disputed: 'Disputed. RAY will sort it.' }[b.dataset.t]); await refresh(); }
+    catch (e) { FY.toast(e.message); b.disabled = false; }
+  });
+
+  // ---- Linked accounts: Revolut link ----
+  main.querySelector('#links').addEventListener('click', ev => {
+    if (!ev.target.closest('[data-act="rev"]')) return;
+    const rv = main.querySelector('#rv'); if (S.rev) rv.value = ''; rv.focus();
+    if (S.rev) FY.toast('Link cleared. Tap Save link to unlink.');
+  });
+  main.querySelector('#links').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const rv = main.querySelector('#rv').value.trim() || null;
+    if (rv && !/^https:\/\/revolut\.me\/[A-Za-z0-9._-]+$/.test(rv)) return FY.toast('Revolut link must be exactly https://revolut.me/yourname');
+    const { error } = await FY.q('member').update({ revolut_url: rv }).eq('id', me.id);
+    if (error) return FY.toast(error.message);
+    me.revolut_url = rv; S.rev = rv || ''; FY.toast('Saved.'); drawLinks(); await refresh();
+  });
+
+  // ---- Something wrong? claim form (unchanged behaviour) ----
+  const ctype = main.querySelector('#ctype');
+  ctype.addEventListener('change', () => { main.querySelector('#f-points').hidden = ctype.value !== 'points'; main.querySelector('#f-iou').hidden = ctype.value !== 'iou'; });
+  main.querySelector('#claim').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const note = main.querySelector('#cnote').value.trim();
+    const payload = ctype.value === 'points'
+      ? { type: 'points', type_key: 'poker', points: Number(main.querySelector('#cpts').value), note }
+      : { type: 'iou', payer_id: main.querySelector('#cpayer').value, payee_id: main.querySelector('#cpayee').value, amount: Number(main.querySelector('#camt').value), note };
+    if (payload.type === 'iou' && payload.payer_id === payload.payee_id) return FY.toast('Pick two different people.');
+    const btn = ev.submitter || ev.target.querySelector('button'); btn.disabled = true;
+    try { await FY.rpc('raise_claim', { p_payload: payload }); FY.toast('Sent. RAY will approve or reject it.'); ev.target.reset(); ctype.dispatchEvent(new Event('change')); }
+    catch (e) { FY.toast(e.message); }
+    finally { btn.disabled = false; }
+  });
+  main.querySelector('#out').addEventListener('click', () => Barn.signOut());
+
+  drawWho(); drawLinks();
+  await load(); drawSettle();
+  if (location.hash === '#settle') main.querySelector('#settle')?.scrollIntoView();
 })().catch(e => FY.toast(e.message));
 </script>
 </body>
