@@ -165,7 +165,11 @@ const BD = {
   const palette = [...mine.map(l => ({ id: 'url:' + l.url, name: l.name, img: l.url, sm: l.url })),
                    ...ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: FY.face(k, 96), sm: FY.face(k, 48) }))];
   const savedPick = me.avatar_url ? 'url:' + me.avatar_url : 'key:' + me.avatar;
-  const S = { edit: false, histAll: false, payClicked: {}, name: me.nickname, pick: savedPick, rev: me.revolut_url || '',
+  // Pay clicks survive a reload (a phone tab coming back from Revolut), so Paid does not re-lock and invite a
+  // second payment. Per IOU id in localStorage; the page works without it.
+  const PAY_KEY = 'fy.payClicked';
+  const readPayClicked = () => { try { const o = JSON.parse(localStorage.getItem(PAY_KEY) || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } };
+  const S = { edit: false, histAll: false, payClicked: readPayClicked(), name: me.nickname, pick: savedPick, rev: me.revolut_url || '',
               bm: me.birth_month ? String(me.birth_month) : '', bd: '' };
   S.bd = BD.fit(me.birth_day, S.bm);
   const nick = id => names[id]?.nickname || '?';
@@ -249,7 +253,9 @@ const BD = {
     const dueRows = rows.filter(r => r.due), oweRows = rows.filter(r => !r.due);
     const sum = (list, u) => list.filter(r => r.open && r.u === u).reduce((s, r) => s + r.v, 0);
     const [dp, dt2] = [sum(dueRows, '£'), sum(dueRows, 'tk')], [op, ot] = [sum(oweRows, '£'), sum(oweRows, 'tk')], np = dp - op, nt = dt2 - ot;
-    const part = (p, t) => [p ? '£' + p : '', t ? t + ' tk' : ''].filter(Boolean).join(' + ') || 'nothing';
+    // Token figures come only from the sample football rows, so they carry a visible Sample tag.
+    const SMP = '<span class="smp">Sample</span>';
+    const part = (p, t) => [p ? '£' + p : '', t ? t + ' tk' + SMP : ''].filter(Boolean).join(' + ') || 'nothing';
     const ragName = { red: 'Red', amb: 'Amber', grn: 'Closed' };
     const row = r => `<div class="lr r-${r.rag}">
         <span class="c-dot dot" title="${ragName[r.rag]}"></span>
@@ -261,28 +267,30 @@ const BD = {
         <span class="c-st"><span class="st">${esc(r.status)}</span>${r.acts}</span></div>`;
     const legend = (red, amber) => `<div class="legend"><span><span class="dot r-red"></span>${red}</span><span><span class="dot r-amb"></span>${amber}</span><span><span class="dot r-grn"></span>Closed</span></div>`;
     const head = '<div class="lh"><span></span><span>Date</span><span>Board</span><span>Wager</span><span>Member</span><span class="r">Amount</span><span class="r">Status</span></div>';
-    // "Nothing outstanding." whenever no live poker money is open in that table; the sample football rows follow it.
-    const empty = list => list.some(r => r.live && r.open) ? '' : '<span class="empty">Nothing outstanding.</span>';
+    // Live poker rows first; "Nothing outstanding." when none of them is open; then the sample football rows.
+    const body = list => list.filter(r => r.live).map(row).join('') +
+      (list.some(r => r.live && r.open) ? '' : '<span class="empty">Nothing outstanding.</span>') +
+      list.filter(r => !r.live).map(row).join('');
     // Saving for: the design's sample values (finVals kit, computed on its sample rows: nothing received since 1 Oct).
     const money = v => '£' + v.toFixed(2), each = 20, members = 6, fromWins = 0, left = each - fromWins, pot = 64 + (each - left);
     main.querySelector('#settle').innerHTML = `
       <div class="hist"><button type="button" data-act="hist">${all ? 'Last 4 weeks' : 'Show all'}</button></div>
       <div class="money due">
         <div class="top"><span class="kicker big">Money you're due</span><span class="tot">Outstanding: ${part(dp, dt2)}</span></div>
-        <p>5% of each payment goes towards your share of the next group event, so you receive 95%.<span class="smp">Sample</span></p>
         ${legend('Not paid yet', 'They say paid · confirm it')}
-        <div class="tbl">${head}${empty(dueRows)}${dueRows.map(row).join('')}</div>
+        <div class="tbl">${head}${body(dueRows)}</div>
       </div>
       <div class="money owe">
         <div class="top"><span class="kicker big">Money you owe</span><span class="tot">Outstanding: ${part(op, ot)}</span></div>
         ${legend('Unpaid', 'Paid · awaiting their confirm')}
         <p>Pay opens that member's Revolut with the £ filled in. Tokens settle inside the Barn. After you press Paid, it stays amber until they confirm.</p>
-        <div class="tbl">${head}${empty(oweRows)}${oweRows.map(row).join('')}</div>
+        <div class="tbl">${head}${body(oweRows)}</div>
       </div>
       <div class="save">
         <div class="top"><span class="kicker big"><i class="ph-fill ph-piggy-bank"></i>Saving for<span class="smp">Sample</span></span><a class="all" href="calendar.html">All savings goals ↗</a></div>
         <div class="top"><span class="ttl">Hank's birthday night</span><span class="when">Sat 31 Oct · 20:00 · ${money(each)} each</span></div>
         <p>When you win at Poker or Football, 5% of what you're paid goes towards your share automatically, with no cap. Anything over your share, or taken when no event is planned, is held for the next one. You pay whatever is left before the date. Everything collects in the Barn's Revolut group pocket.</p>
+        <p>5% of each payment goes towards your share of the next group event, so you receive 95%.<span class="smp">Sample</span></p>
         <div class="three"><span class="cell"><span>Your share</span><span>${money(each)}</span></span><span class="cell g"><span>From your winnings</span><span>${money(fromWins)}</span></span><span class="cell a"><span>Left to pay</span><span>${money(left)}</span></span></div>
         <div style="display:flex;flex-direction:column;gap:6px"><div class="pot"><span>Group pot</span><span><strong>${money(pot)}</strong> of ${money(each * members)}</span></div>
           <div class="bar"><span style="width:${Math.min(100, pot / (each * members) * 100)}%"></span></div></div>
@@ -291,7 +299,7 @@ const BD = {
           <div class="g"><span><b>Whisky group buy</b> <span class="muted">· 12 Dec</span></span><span class="r">£60 each</span><span class="l">${money(60)} left</span></div>
           <div class="g"><span><b>Dmitri's stag weekend</b> <span class="muted">· 6 Mar 2027</span></span><span class="r">£300 each</span><span class="l">£300.00 left</span></div></div>
       </div>
-      <div class="net"><span class="k">Net position</span><span style="color:${np < 0 || nt < 0 ? 'var(--neon-pink-text)' : 'var(--neon-green-text)'}">${(np < 0 ? 'You owe £' + -np : np > 0 ? "You're owed £" + np : '£ square') + ' · ' + (nt < 0 ? 'you owe ' + -nt + ' tk' : nt > 0 ? "you're owed " + nt + ' tk' : 'tokens square')}</span><span class="n">${all ? 'Showing every wager.' : 'Last 4 weeks, plus anything older still open.'}</span></div>`;
+      <div class="net"><span class="k">Net position</span><span style="color:${np < 0 ? 'var(--neon-pink-text)' : 'var(--neon-green-text)'}">${(np < 0 ? 'You owe £' + -np : np > 0 ? "You're owed £" + np : '£ square') + ' · ' + (nt < 0 ? 'you owe ' + -nt + ' tk' : nt > 0 ? "you're owed " + nt + ' tk' : 'tokens square') + SMP}</span><span class="n">${all ? 'Showing every wager.' : 'Last 4 weeks, plus anything older still open.'}</span></div>`;
   }
 
   function drawLinks() {
@@ -364,10 +372,18 @@ const BD = {
   });
 
   // ---- Settle up: history toggle, Pay, Paid, Confirm / Not received ----
+  function payClick(ev) {
+    const pay = ev.target.closest('a[data-pay]'); if (!pay) return false;
+    const id = pay.dataset.pay; S.payClicked[id] = true;
+    try { const saved = readPayClicked(); saved[id] = true; localStorage.setItem(PAY_KEY, JSON.stringify(saved)); } catch (e) { /* storage blocked: unlock lasts this page view */ }
+    const p = main.querySelector(`button[data-paid="${CSS.escape(id)}"]`); if (p) { p.disabled = false; p.title = 'Tell them you have paid'; }
+    return true;
+  }
+  // Middle-click opens Revolut in a new tab too, so it unlocks Paid as well.
+  main.querySelector('#settle').addEventListener('auxclick', payClick);
   main.querySelector('#settle').addEventListener('click', async ev => {
     if (ev.target.closest('[data-act="hist"]')) { S.histAll = !S.histAll; drawSettle(); return; }
-    const pay = ev.target.closest('a[data-pay]');
-    if (pay) { S.payClicked[pay.dataset.pay] = true; const p = main.querySelector(`button[data-paid="${CSS.escape(pay.dataset.pay)}"]`); if (p) { p.disabled = false; p.title = 'Tell them you have paid'; } return; }
+    if (payClick(ev)) return;
     const paid = ev.target.closest('button[data-paid]');
     if (paid) {
       paid.disabled = true;
