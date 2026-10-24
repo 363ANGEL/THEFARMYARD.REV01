@@ -26,6 +26,7 @@
 .t5-rows{display:flex;flex-direction:column;gap:6px;padding-top:7px}
 .t5-row{align-items:center;font-size:14px;min-width:0}
 .t5-row .pos{font-variant-numeric:tabular-nums;color:var(--fy-text-label);font-size:12px}
+.t5-empty{color:var(--fy-text-secondary)}
 .t5-row .pl{display:flex;align-items:center;gap:6px;min-width:0}
 .t5-row .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .t5-row .won{font-variant-numeric:tabular-nums;font-weight:600;color:var(--neon-pink-text)}
@@ -35,7 +36,8 @@
 .t5-row .medal.silver{color:#e4ecf0;text-shadow:0 0 4px #c9d6dd,0 0 12px rgba(201,214,221,.7)}
 .t5-row .medal.copper{color:#d9894f;text-shadow:0 0 4px #b8692f,0 0 12px rgba(184,105,47,.75)}
 .t5-foot{display:flex;justify-content:flex-end;margin-top:12px;padding-top:10px;border-top:1px solid rgba(95,211,207,.2)}
-.t5-foot a{display:inline-flex;align-items:center;min-height:44px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--neon-teal);text-decoration:none;text-shadow:0 0 5px rgba(95,211,207,.5)}
+.t5-foot a{position:relative;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--neon-teal);text-decoration:none;text-shadow:0 0 5px rgba(95,211,207,.5)}
+.t5-foot a::before{content:"";position:absolute;inset:-13px 0}   /* 44px hit target, the design's card height */
 .t5-foot a:hover,.t5-foot a:focus-visible{color:#c8f4f2;text-shadow:0 0 8px var(--neon-teal),0 0 16px rgba(95,211,207,.6)}
 .t5-pin{position:absolute;top:-7px;left:50%;margin-left:-7px;width:14px;height:14px;border-radius:50%;background:var(--neon-pink);box-shadow:0 0 6px var(--neon-pink),0 0 14px rgba(224,21,127,.55),0 3px 4px rgba(0,0,0,.6)}
 .t5-pin-shade{position:absolute;top:-2px;left:50%;margin-left:8px;width:10px;height:6px;border-radius:0 0 6px 6px;background:rgba(0,0,0,.35);transform:rotate(-20deg)}
@@ -62,13 +64,14 @@ function top5Rows(rows) {
   }).join('');
 }
 
-// One pinned paper card. c: { title, tag, cols: [won, sub], rows, href, link, tilt }; all strings are page constants.
+// One pinned paper card. c: { title, tag, cols: [won, sub], rows, empty, href, link, tilt }; all strings are page constants.
+// empty: the line shown under the headers when there are no rows yet.
 function top5Card(c) {
   return `<div class="t5${c.tilt ? ' tilt-r' : ''}">
     <div class="t5-paper"><span class="t5-curl"></span><span class="t5-fold"></span>
       <div class="t5-top"><span class="t5-ttl">${c.title}</span><span class="t5-by">${c.tag || ''}<span>Pinned by Hank</span></span></div>
       <div class="t5-grid t5-cols"><span>Pos</span><span>Player</span><span class="r">${c.cols[0]}</span><span class="r">${c.cols[1]}</span></div>
-      <div class="t5-rows">${top5Rows(c.rows)}</div>
+      <div class="t5-rows">${(c.rows || []).length || !c.empty ? top5Rows(c.rows) : `<div class="t5-row t5-empty">${c.empty}</div>`}</div>
       <div class="t5-foot"><a href="${c.href}">${c.link}</a></div>
     </div>
     <span class="t5-pin"></span><span class="t5-pin-shade"></span>
@@ -88,7 +91,7 @@ function top5Card(c) {
   main.innerHTML = `
     <div class="head"><h2 class="hd2">Dashboard</h2><span class="tag tag-neutral">${members.length} in the yard</span></div>
     <div class="t5-wall">
-      ${top5Card({ title: 'Poker League · Top 5', cols: ['Wins', 'Buy-ins'], rows: pokerTop, href: 'poker.html', link: 'Full league in the Poker Room →' })}
+      ${top5Card({ title: 'Poker League · Top 5', cols: ['Wins', 'Buy-ins'], rows: pokerTop, empty: 'No games filed yet.', href: 'poker.html', link: 'Full league in the Poker Room →' })}
       ${top5Card({ title: 'Football League · Top 5', tag: '<span class="tag tag-neutral">Sample</span>', cols: ['Pots', 'Tokens'], rows: footTop, href: 'football.html', link: 'Full Token League →', tilt: true })}
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
