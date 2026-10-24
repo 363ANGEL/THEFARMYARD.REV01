@@ -132,6 +132,10 @@
 .pk-pop .note{padding:9px 11px;border:1px solid #9eeae6;border-radius:6px;box-shadow:0 0 4px var(--neon-teal),0 0 10px rgba(95,211,207,.4);font-size:13px;line-height:1.75;text-align:center;color:#c8f4f2;text-shadow:0 0 4px rgba(95,211,207,.5)}
 .pk-pop .note b{font-weight:400;color:var(--neon-green-tube);text-shadow:var(--text-glow-green)}
 .pk-pop .arrow{position:absolute;width:14px;height:14px;background:rgba(11,22,23,.9);border-right:2px solid #f2fbfb;border-bottom:2px solid #f2fbfb}
+/* The card is redrawn when TAKE THE SEAT starts the clock and when the clock ends: only its first appearance pops in,
+   and the clock fades in once (design: the card stays put and only the clock fades in). */
+.pk-pop.again{animation:none}
+.pk-pop.done .clock{animation:none}
 
 /* docket */
 .pk-docketcol{min-width:0;display:flex;justify-content:center;animation:fadeIn .6s ease-out}

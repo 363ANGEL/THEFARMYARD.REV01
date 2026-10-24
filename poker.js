@@ -133,6 +133,9 @@
     const c = S.cur, canManage = mine();
     const sig = JSON.stringify([c.id, c.status, canManage, S.pasteHint, !!S.draft.trim()]);
     if (sig === midSig && $('mid').innerHTML) return; midSig = sig;
+    // A redraw replaces the link box. Put focus and caret back, or a Ctrl+V pressed after the paste hint fades lands nowhere.
+    const had = document.activeElement && document.activeElement.id === 'link' ? document.activeElement : null;
+    const caret = had ? [had.selectionStart, had.selectionEnd] : null;
     if (c.status === 'open') {
       $('mid').innerHTML = `<div class="mid"><a class="pk-mini" href="${esc(c.pokernow_url)}" target="_blank" rel="noopener">GO TO TABLE</a></div>`;
     } else if (canManage) {                        // only the initiator (or leader) sees the link box
@@ -144,6 +147,8 @@
     } else {
       $('mid').innerHTML = '<div class="wait">WAITING FOR TABLE TO OPEN</div>';
     }
+    const box = had && $('link');
+    if (box) { box.focus(); try { box.setSelectionRange(caret[0], caret[1]); } catch (e) { /* caret not available */ } }
   }
   $('tablecol').addEventListener('click', async ev => {
     const t = ev.target.closest('button'); if (!t) return;
@@ -157,7 +162,7 @@
   $('tablecol').addEventListener('input', ev => {
     if (ev.target.id !== 'link') return;
     const had = !!S.draft.trim(); S.draft = ev.target.value;
-    if (had !== !!S.draft.trim()) { const pos = ev.target.selectionStart; renderMid(); const i = $('link'); if (i) { i.focus(); i.setSelectionRange(pos, pos); } }
+    if (had !== !!S.draft.trim()) renderMid();     // PASTE <-> OPEN TABLE; renderMid keeps focus and caret
   });
   $('tablecol').addEventListener('keydown', ev => { if (ev.target.id === 'link' && ev.key === 'Enter') { ev.preventDefault(); enterLink(); } });
   async function enterLink() {
@@ -203,6 +208,7 @@
     const sig = [S.sel, S.seat.phase, S.seat.blocked, S.seat.url, S.cur.pokernow_url].join('|');
     if (pop.dataset.sig === sig && pop.innerHTML) return;
     pop.dataset.sig = sig;
+    const again = !!pop.innerHTML;                 // card already up (new phase or another seat): no second entrance, as in the design
     const [x, y] = SEAT_XY[S.sel], above = y > 40, shift = x <= 12 ? 15 : x <= 20 ? 25 : x >= 88 ? 85 : x >= 80 ? 75 : 50;
     const busy = S.seat.phase !== 'idle';
     const lock = 'font-size:21px';
@@ -211,7 +217,7 @@
       : `<label>FARMYARD NAME<div class="field locked"><i class="ph-light ph-lock-simple" style="${lock};color:var(--neon-red-tube);text-shadow:var(--text-glow-red)"></i><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(me.nickname)}</span></div></label>
          <label>TABLE NAME<div class="field edit"><i class="ph-light ph-lock-simple-open" style="${lock};color:var(--neon-green-tube);text-shadow:var(--text-glow-green)"></i><input id="tname" value="${esc(S.seat.name)}" maxlength="16" placeholder="${esc(me.nickname)}" autocomplete="off"></div><span class="hint">Try an Alt Tag On? (Just for the table)</span></label>`;
     const note = busy ? `<div class="note">Your table name has been copied to your clipboard.<span style="display:block;height:.8em"></span><span style="display:block;white-space:nowrap;font-size:12px">TAKE <b>SEAT ${S.sel + 1}</b> ON POKERNOW.</span>${S.seat.blocked && S.seat.url ? `<a class="pk-btn green sm" style="margin-top:8px" href="${esc(S.seat.url)}" target="_blank" rel="noopener">OPEN POKERNOW</a>` : ''}</div>` : '';
-    pop.innerHTML = `<div class="pk-pop" style="left:${x}%;transform:translateX(-${shift}%);top:${above ? 'auto' : (y + 9) + '%'};bottom:${above ? (100 - y + 9) + '%' : 'auto'}" role="dialog" aria-label="Take seat ${S.sel + 1}">
+    pop.innerHTML = `<div class="pk-pop${again ? ' again' : ''}${S.seat.phase === 'done' ? ' done' : ''}" style="left:${x}%;transform:translateX(-${shift}%);top:${above ? 'auto' : (y + 9) + '%'};bottom:${above ? (100 - y + 9) + '%' : 'auto'}" role="dialog" aria-label="Take seat ${S.sel + 1}">
       ${body}<button type="button" id="take" class="pk-btn green take ${busy ? 'off' : ''}">TAKE THE SEAT</button>${note}
       <span class="arrow" style="left:${shift}%;top:${above ? 'auto' : '-9px'};bottom:${above ? '-9px' : 'auto'};transform:translateX(-50%) rotate(${above ? 45 : 225}deg)"></span></div>`;
   }
