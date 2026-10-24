@@ -12,7 +12,7 @@
 <script src="fy-clucks.js"></script>
 <style>
 .pgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:stretch}
-@media (min-width:1100px){.pgrid{grid-template-columns:minmax(280px,1fr) minmax(0,2fr)}.pgrid .full{grid-column:1 / -1}}
+@media (min-width:1100px){.pgrid{grid-template-columns:minmax(280px,calc((100% - 28px) / 3)) minmax(0,1fr)}.pgrid .full{grid-column:1 / -1}}   /* = the design's 3-column auto-fit grid, Linked accounts spanning two */
 .lbl{font-size:12px;color:var(--fy-text-label)}
 /* Who you are in the yard: view and edit */
 .who-view{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
@@ -31,11 +31,14 @@
 .char-btn:hover{border-color:var(--rule-teal)}
 .bd{display:flex;gap:8px}
 .bd select{min-height:44px;font-size:15px}
-.tbtn{min-height:44px;padding:0 16px;align-self:flex-start}
+.tbtn{position:relative;min-height:36px;padding:0 16px;align-self:flex-start}
+.tbtn[data-act="edit"]{padding:0 14px;gap:6px}
+.tbtn::before{content:"";position:absolute;inset:-6px 0}   /* 44px hit target around the design's 36px Edit / Done */
 /* Settle up: money you're due / money you owe */
 .settle{display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px}
 .hist{display:flex;justify-content:flex-end}
-.hist button{min-height:44px;padding:0 12px;background:transparent;border:1px solid rgba(95,211,207,.55);border-radius:6px;color:var(--fy-text);font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.hist button{position:relative;padding:4px 10px;line-height:normal;background:transparent;border:1px solid rgba(95,211,207,.55);border-radius:6px;color:#c8f4f2;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.hist button::before{content:"";position:absolute;inset:-12px 0}   /* 44px hit target around the design's 24px button */
 .hist button:hover{box-shadow:0 0 8px rgba(95,211,207,.5)}
 .money{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:10px;box-sizing:border-box;min-width:0}
 .money>.tbl{container-type:inline-size}
@@ -81,7 +84,8 @@
 .save{display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--neon-amber);border-radius:10px;box-shadow:0 0 4px var(--neon-amber),0 0 14px rgba(255,154,31,.3)}
 .save .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .save .big{display:inline-flex;align-items:center;gap:8px;font-size:18px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--neon-amber-tube);text-shadow:0 0 6px rgba(255,154,31,.7),0 0 20px rgba(255,154,31,.35)}
-.save .all{font-size:12px;font-weight:700;color:var(--neon-amber-text);text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
+.save .all{position:relative;font-size:12px;font-weight:700;color:var(--neon-amber-text);text-decoration:none}
+.save .all::before{content:"";position:absolute;inset:-13px 0}   /* 44px hit target, design line height */
 .save .all:hover{text-shadow:0 0 6px var(--neon-amber)}
 .save .ttl{font-family:var(--font-heading);font-size:20px;color:var(--fy-text)}
 .save .when{font-size:13px;color:var(--fy-text-secondary)}
@@ -122,6 +126,7 @@
 .lrow .mid span:first-child{font-size:14px;color:var(--fy-text)}
 .lrow .mid span:last-child{font-size:12px;color:var(--fy-text-label)}
 .lrow .btn{min-height:44px;font-size:12px;white-space:nowrap}
+.lrow .btn.lk{min-height:32px;padding:0 3px;cursor:default}.lrow .btn.lk:hover{background:transparent}   /* Discord "Connected": lit like the design, not a control */
 .revbox{display:flex;flex-direction:column;gap:8px;padding:0 0 10px}
 .revbox label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--fy-text-label)}
 .revbox .hint{font-size:12px;line-height:1.5;color:var(--fy-text-label)}
@@ -307,7 +312,7 @@ const BD = {
     main.querySelector('#links').innerHTML = `<span class="kicker">Linked accounts</span>
       <p style="margin:0;font-size:13px;line-height:1.5;color:var(--fy-text-secondary)">Each link opens a room. Nothing's shared with the yard except what the room needs.</p>
       <div class="links">
-        <div class="lcol"><div class="lrow"><i class="ph ph-discord-logo on"></i><div class="mid"><span>Discord</span><span>Your key · Lounge voice</span></div><span class="btn btn-ghost off">Connected</span></div></div>
+        <div class="lcol"><div class="lrow"><i class="ph ph-discord-logo on"></i><div class="mid"><span>Discord</span><span>Your key · Lounge voice</span></div><span class="btn btn-ghost lk">Connected</span></div></div>
         <div class="lcol"><div class="lrow"><i class="ph ph-hand-coins ${on ? 'on' : ''}"></i><div class="mid"><span>Revolut</span><span>Get paid your poker winnings</span></div><button type="button" class="btn ${on ? 'btn-ghost' : 'btn-primary'}" data-act="rev">${on ? 'Unlink' : 'Connect'}</button></div>
           <form class="revbox" id="revform">
             <label>Your Revolut pay-me link<input class="input" id="rv" type="url" value="${esc(S.rev)}" maxlength="120" placeholder="https://revolut.me/yourname" style="min-height:44px;font-size:14px"></label>
