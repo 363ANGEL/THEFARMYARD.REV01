@@ -16,7 +16,7 @@
 .lbl{font-size:12px;color:var(--fy-text-label)}
 /* Who you are in the yard: view and edit */
 .who-view{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-.who-view .mid{display:flex;flex-direction:column;gap:4px;flex:1 1 120px;min-width:120px}
+.who-view .mid{display:flex;flex-direction:column;gap:4px;flex:1 1 auto;min-width:120px}   /* auto basis: a long name pushes Edit onto the next line instead of being cut */
 .who-view .nm{font-family:var(--font-heading);font-size:24px;color:var(--fy-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .who-view .ch{font-size:13px;color:var(--fy-text-secondary)}
 .host{width:var(--char-host);height:var(--char-host);flex:none;border-radius:0;background-color:transparent}

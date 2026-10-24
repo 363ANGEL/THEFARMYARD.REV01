@@ -91,7 +91,7 @@ function top5Card(c) {
   main.innerHTML = `
     <div class="head"><h2 class="hd2">Dashboard</h2><span class="tag tag-neutral">${members.length} in the yard</span></div>
     <div class="t5-wall">
-      ${top5Card({ title: 'Poker League · Top 5', cols: ['Wins', 'Buy-ins'], rows: pokerTop, empty: 'No games filed yet.', href: 'poker.html', link: 'Full league in the Poker Room →' })}
+      ${top5Card({ title: 'Poker League · Top 5', cols: ['Wins', 'Buy-ins'], rows: pokerTop, empty: board ? 'No games filed yet.' : '', href: 'poker.html', link: 'Full league in the Poker Room →' })}
       ${top5Card({ title: 'Football League · Top 5', tag: '<span class="tag tag-neutral">Sample</span>', cols: ['Pots', 'Tokens'], rows: footTop, href: 'football.html', link: 'Full Token League →', tilt: true })}
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
