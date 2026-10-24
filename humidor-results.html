@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · The Humidor · Results</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
+<link rel="stylesheet" href="humidor.css">
+<style>
+/* 4.0 The Humidor · Results (rank and pay), ported from P15.003 HUMIDOR VOTE.dc.html.
+   --hint-text-glow is read by the design's shop link but defined nowhere in the pack; this is the teal hint glow. */
+:root{--hint-text-glow:0 0 6px color-mix(in srgb,var(--neon-teal) 60%,transparent)}
+.hr{display:flex;flex-direction:column;gap:18px;min-width:0}
+.hr .up{letter-spacing:.08em;text-transform:uppercase}
+.hr-k{font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)}
+
+/* Lede */
+.hr-lede{display:flex;flex-direction:column;gap:8px}
+.hr-lede h1{margin:0;font-size:clamp(30px,5vw,44px);line-height:1.05;font-weight:500;text-wrap:balance;overflow-wrap:anywhere}
+.hr-lede p{margin:0;font-size:var(--text-body-size);line-height:1.5;color:var(--fy-text-body);max-width:62ch;text-wrap:pretty}
+
+/* Pink tube link / button (ADD MY PREFERENCES, PAY ON REVOLUT, SUBMIT MY RANKING) */
+.hr-tube{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 22px;box-sizing:border-box;border-radius:19px;border:2px solid var(--neon-pink-tube);background:transparent;color:var(--neon-pink-text);font:inherit;font-size:var(--text-small);letter-spacing:.08em;font-weight:600;text-decoration:none;white-space:nowrap;box-shadow:var(--glow-pink);text-shadow:var(--text-glow-pink);cursor:pointer}
+.hr-tube:hover{color:var(--neon-pink-text)}
+.hr-tube.add{align-self:flex-start;padding:0 20px}
+.hr-tube:disabled{border-color:color-mix(in srgb,var(--neon-pink-tube) 40%,transparent);color:color-mix(in srgb,var(--neon-pink-text) 50%,transparent);box-shadow:none;text-shadow:none;cursor:default}
+.hr-mark{min-height:44px;padding:0 20px;border-radius:19px;background:transparent;font:inherit;font-size:var(--text-small);letter-spacing:.08em;font-weight:600;border:1px solid var(--neon-teal);color:var(--hint-text);cursor:pointer}
+.hr-mark:disabled{border-color:color-mix(in srgb,var(--neon-teal) 40%,transparent);color:var(--fy-text-label);cursor:default}
+.hr-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.hr-note{flex-basis:100%;font-size:var(--text-small);line-height:1.45;color:var(--fy-text-secondary)}
+.hr-note:empty{display:none}
+.hr-note.bad{color:var(--neon-red-text)}
+.hr-note.good{color:var(--neon-green-text)}
+.hr-moved{margin:0;font-size:var(--text-small);line-height:1.45;color:var(--neon-amber-text)}
+
+/* Ranking cards */
+.hr-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:14px;align-items:stretch}
+.hr-card{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:10px;background:var(--fy-surface);border:1px solid var(--neon-teal);box-shadow:var(--glow-teal);min-width:0}
+.hr-card.first{border:2px solid var(--neon-pink-tube);box-shadow:var(--glow-pink)}
+.hr-photo{position:relative;height:150px;border-radius:8px;overflow:hidden;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);background:var(--fy-bg)}
+.hr-photo img{display:block;width:100%;height:100%;object-fit:contain}
+.hr-photo .ph-tile{position:absolute;inset:0;display:grid;place-items:center;font-size:40px;color:color-mix(in srgb,var(--neon-teal) 40%,transparent)}
+.hr-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.hr-top .hr-k{white-space:nowrap}
+.hr-mine{font-size:var(--text-meta);letter-spacing:.06em;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
+.hr-name{display:flex;flex-direction:column;gap:4px}
+.hr-name .n{font-size:var(--text-brand);font-weight:500;line-height:1.2;color:var(--fy-text-body);overflow-wrap:anywhere}
+.hr-card.first .hr-name .n{color:var(--neon-pink-text)}
+.hr-name .p{font-size:var(--text-card-title);color:var(--neon-pink-text);font-variant-numeric:tabular-nums}
+.hr-name .p:empty{display:none}
+.hr-dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;align-items:baseline;padding:10px 0;border-top:1px solid color-mix(in srgb,var(--neon-teal) 25%,transparent);border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 25%,transparent)}
+.hr-dl dt{font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal);white-space:nowrap}
+.hr-dl dd{margin:0;font-size:var(--text-small);color:var(--fy-text-body);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.hr-blk{display:flex;flex-direction:column;gap:3px}
+.hr-blk span:last-child{font-size:var(--text-small);line-height:1.45;color:var(--fy-text-body);overflow-wrap:anywhere}
+.hr-shop{display:flex;align-items:center;min-height:44px;font-size:var(--text-meta);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal);text-decoration:none;text-shadow:var(--hint-text-glow);overflow-wrap:anywhere}
+.hr-shop:hover{color:var(--hint-text)}
+.hr-pick{display:flex;flex-direction:column;gap:6px;margin-top:auto}
+.hr-pick span{font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)}
+.hr-pick select{min-height:44px;padding:0 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);background:var(--fy-bg);color:var(--fy-text-body);font:inherit;font-size:var(--text-ui);cursor:pointer;outline:none;width:100%;box-sizing:border-box}
+.hr-pick select:focus-visible{outline:2px solid var(--neon-teal);outline-offset:2px}
+.hr-pick select.on{border:2px solid var(--neon-teal);color:var(--neon-pink-text)}
+.hr-pick select.on.first{border-color:var(--neon-pink-tube);box-shadow:var(--glow-pink)}
+.hr-pts{display:flex;flex-direction:column;gap:4px}
+.hr-pts[hidden]{display:none}
+.hr-pts .trk{height:6px;border-radius:3px;background:color-mix(in srgb,var(--neon-teal) 20%,transparent);overflow:hidden}
+.hr-pts .pfl{height:100%;width:0;background:var(--neon-pink-tube);box-shadow:var(--glow-pink)}
+.hr-pts .t{font-size:var(--text-meta);color:var(--fy-text-label);font-variant-numeric:tabular-nums}
+.hr-sub{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.hr-sub .cnt{font-size:var(--text-small);color:var(--fy-text-secondary)}
+
+/* Paying up */
+.hr-pay{display:flex;flex-direction:column;gap:16px;padding:18px;border:2px solid var(--neon-pink-tube);border-radius:10px;box-shadow:var(--glow-pink);background:var(--fy-bg);min-width:0}
+.hr-win{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 14px}
+.hr-win .l{display:flex;flex-direction:column;gap:4px;flex:1 1 240px;min-width:0}
+.hr-win .nm{font-size:24px;font-weight:500;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink);overflow-wrap:anywhere}
+.hr-win .meta{font-size:var(--text-small);color:var(--fy-text-secondary)}
+.hr-win .r{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.hr-win .r .hr-k{white-space:nowrap}
+.hr-win .amt{font-size:var(--text-page-title);font-weight:500;color:var(--neon-pink-text);font-variant-numeric:tabular-nums}
+.hr-bar{display:flex;flex-direction:column;gap:8px}
+.hr-cig{position:relative;height:46px}
+.hr-cig .edge,.hr-cig .in{position:absolute;clip-path:polygon(0 6%,94% 0,97% 10%,100% 30%,100% 70%,97% 90%,94% 100%,0 94%)}
+.hr-cig .edge{inset:0;background:var(--neon-teal)}
+.hr-cig .in{inset:2px;background:var(--fy-surface);overflow:hidden}
+.hr-cig .pend,.hr-cig .conf{position:absolute;left:0;top:0;bottom:0}
+.hr-cig .pend{background:color-mix(in srgb,var(--neon-pink-tube) 25%,transparent)}
+.hr-cig .conf{background:linear-gradient(90deg,#8a4a2e,#a5703f)}
+.hr-cig .ember{position:absolute;top:0;bottom:0;width:3px;margin-left:-3px;background:var(--neon-pink-tube);box-shadow:0 0 8px var(--neon-pink),0 0 16px color-mix(in srgb,var(--neon-pink) 60%,transparent)}
+.hr-cig .band{position:absolute;left:78%;top:0;bottom:0;width:12px;border-left:1px solid color-mix(in srgb,var(--neon-teal) 55%,transparent);border-right:1px solid color-mix(in srgb,var(--neon-teal) 55%,transparent)}
+.hr-bar .txt{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 10px;font-size:var(--text-small);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
+.hr-bar .txt span:first-child{white-space:nowrap}
+.hr-bar .txt .full{color:var(--neon-green-text)}
+.hr-who{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:14px 18px}
+.hr-who li{display:flex;flex-direction:column;align-items:center;gap:6px;width:64px}
+.hr-who .av{position:relative;width:52px;height:52px}
+.hr-who .av img{display:block;width:52px;height:52px;border-radius:50%;border:1.5px solid var(--neon-teal);box-sizing:border-box;background:var(--fy-surface);object-fit:contain}
+.hr-who .tk{position:absolute;right:-4px;bottom:-4px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:var(--text-small);font-weight:700;line-height:1;background:var(--fy-bg);box-sizing:border-box;border:2px solid var(--neon-red-text);color:var(--neon-red-text);box-shadow:0 0 6px color-mix(in srgb,var(--neon-red-tube) 40%,transparent)}
+.hr-who .ok .tk{border-color:var(--neon-green-text);color:var(--neon-green-text);box-shadow:0 0 6px color-mix(in srgb,var(--neon-green-tube) 45%,transparent)}
+.hr-who .nm{width:100%;text-align:center;font-size:var(--text-meta);color:var(--fy-text-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hr-who .st{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--neon-red-text);white-space:nowrap}
+.hr-who .ok .st{color:var(--neon-green-text)}
+.hr-foot{font-size:var(--text-meta);color:var(--fy-text-label)}
+
+/* Last round's winner */
+.hr-last{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal)}
+.hr-last .w{font-size:18px;color:var(--neon-pink-text);overflow-wrap:anywhere}
+.hr-last a{display:inline-flex;align-items:center;min-height:44px;align-self:flex-start;font-size:var(--text-small)}
+
+@keyframes ember{0%,100%{opacity:.75}50%{opacity:1}}
+@media (prefers-reduced-motion:no-preference){
+  .hr-card,.hr-pick select{transition:border-color .3s,box-shadow .3s}
+  .hr-pts .pfl{transition:width .4s ease-out}
+  .hr-cig .pend,.hr-cig .conf{transition:width .6s ease-out}
+  .hr-cig .ember{transition:left .6s ease-out}
+  .hr-cig .ember.lit{animation:ember 2.4s ease-in-out infinite}
+}
+</style>
+<script src="fy-clucks.js"></script>
+</head>
+<body>
+<div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script><script src="humidor.js"></script>
+<script>
+/* 4.0 The Humidor · Results. Ranking (three cards, a rank select each, picking a used rank swaps the two cards,
+   points bars once my ballot is in) and Paying up (winner, my share, the cigar bar, who's paid, Revolut link,
+   SUBMIT PAYMENT). Only this round's voters rank or pay. Copy from the design's renderVals(), verbatim.
+   R8: while I have a ranking form open, the 5 s poll touches only the points bars, the counts, the note and the
+   submit button; the selects are never redrawn. If the round moves on under the form, the submit button becomes
+   "The round moved on. Reload to continue." and every pick stays. Without a form, a poll redraws the body. */
+(function () {
+  const esc = s => FY.esc(s);
+  const ORD = ['1ST', '2ND', '3RD'];
+  const HTTPS = /^https:\/\/[^\s"'<>()]+$/;
+  let me = null, data = null, body = null, archive = [];
+  let draft = [null, null, null], formSig = null, movedOn = false, busy = false, payBusy = false, justPaid = null, justT = null;
+
+  const rnd = d => (d && d.round) || null;
+  const stt = d => { const r = rnd(d); return r && ['collecting', 'ranking', 'paying'].includes(r.status) ? r.status : 'none'; };
+  const prefsOf = d => (rnd(d) && rnd(d).prefs) || [];
+  const ballotsOf = d => (rnd(d) && rnd(d).ballots) || [];
+  const paysOf = d => (rnd(d) && rnd(d).pays) || [];
+  const isVoter = d => !!me && prefsOf(d).some(p => p.member_id === me.id);
+  const mine = d => (me && ballotsOf(d).find(b => b.member_id === me.id)) || null;
+  const myPay = d => (me && paysOf(d).find(p => p.member_id === me.id)) || null;
+  const sig = d => { const r = rnd(d); return r ? r.id + '|' + r.status + '|' + JSON.stringify(r.options || []) : ''; };
+  const hasForm = d => stt(d) === 'ranking' && isVoter(d);
+  const money = n => (n == null || n === '' || !isFinite(+n)) ? '£—' : '£' + (Number.isInteger(+n) ? String(+n) : (+n).toFixed(2));
+  // A full ballot: every option once, best first, as humidor_cast_ranking wants.
+  const goodRank = d => { const r = rnd(d), n = r && Array.isArray(r.options) ? r.options.length : 0;
+    return n > 0 && draft.length === n && draft.slice().sort().every((x, i) => x === i); };
+
+  // Points per option from the ballots: 1st 3, 2nd 2, 3rd 1 (humidor-club.js points()).
+  function points(d) {
+    const p = ((rnd(d) && rnd(d).options) || []).map(() => 0);
+    ballotsOf(d).forEach(b => (b.rank || []).forEach((opt, pos) => { if (p[opt] !== undefined) p[opt] += 3 - pos; }));
+    return p;
+  }
+
+  // Kicker, title, lede and the ADD MY PREFERENCES link, as renderVals().
+  function lede(d) {
+    const R = rnd(d), s = stt(d);
+    let kicker = 'The vote', title = 'No vote running', text = 'Hank opens a round when the humidor needs filling. Set your preferences on Choose and they go into the brief.', showLink = true;
+    if (s === 'collecting') { const n = prefsOf(d).length; kicker = 'Round ' + R.n + ' · collecting'; title = 'Tell Hank what you fancy'; text = n + (n === 1 ? ' member has' : ' members have') + ' put their preferences in. When Hank closes it, three cigars land here to rank.'; }
+    if (s === 'ranking') { kicker = 'Round ' + R.n + ' · ranking'; title = 'Rank the three. Most points wins.'; text = '1st gets 3 points, 2nd gets 2, 3rd gets 1. Only members who put preferences in this round can rank. You can change it until Hank closes it.'; showLink = false; }
+    if (s === 'paying') { kicker = 'Round ' + R.n + ' · paying up'; title = 'Fill the cigar'; text = 'Everyone who voted chips in their share. When the cigar is full, Hank orders.'; showLink = false; }
+    return `<div class="hr-lede"><span class="hr-k">${esc(kicker)}</span><h1 class="neon-pink">${esc(title)}</h1><p>${esc(text)}</p></div>
+      ${showLink ? '<a class="hr-tube add" href="humidor-vote.html">ADD MY PREFERENCES →</a>' : ''}`;
+  }
+
+  function card(o, i, voter) {
+    o = o && typeof o === 'object' ? o : {};
+    const nm = o.name || 'Option ' + (i + 1);
+    const img = o.img || Humidor.sizePhoto((o.size || '') + ' ' + (o.name || ''));
+    const specs0 = [['Size', o.size], ['Origin', o.origin], ['Wrapper', o.wrapper], ['Strength', o.strength], ['Shop', o.shop]].filter(x => x[1]).map(([k, v]) => ({ k, v: String(v) }));
+    const specs = specs0.length ? specs0 : [{ k: 'Details', v: 'Hank hasn’t added details yet' }];
+    const price = o.price ? '£' + String(o.price).replace(/^£/, '') + ' a cigar' : '';
+    const url = typeof o.url === 'string' && HTTPS.test(o.url) ? o.url : '';
+    return `<article class="hr-card" data-c="${i}" aria-label="Option ${i + 1}">
+      <div class="hr-photo">${img ? `<img src="${esc(img)}" alt="${esc(nm)}" loading="lazy">` : '<span class="ph-tile" aria-hidden="true"><i class="ph ph-cigarette"></i></span>'}</div>
+      <div class="hr-top"><span class="hr-k">Option ${i + 1}</span><span class="hr-mine" data-mine="${i}"></span></div>
+      <div class="hr-name"><span class="n">${esc(nm)}</span><span class="p">${esc(price)}</span></div>
+      <dl class="hr-dl">${specs.map(s => `<dt>${esc(s.k)}</dt><dd>${esc(s.v)}</dd>`).join('')}</dl>
+      ${o.notes ? `<div class="hr-blk"><span class="hr-k">Tasting notes</span><span>${esc(o.notes)}</span></div>` : ''}
+      ${o.note ? `<div class="hr-blk"><span class="hr-k">Why Hank picked it</span><span>${esc(o.note)}</span></div>` : ''}
+      ${url ? `<a class="hr-shop" href="${esc(url)}" target="_blank" rel="noopener">${esc('Buy from ' + (o.shop || 'the shop') + ' →')}</a>` : ''}
+      ${voter ? `<label class="hr-pick"><span>Your rank for this cigar</span><select data-i="${i}" aria-label="${esc('Your rank for ' + (o.name || 'option ' + (i + 1)))}">
+        <option value="">Choose a rank…</option><option value="0">1st choice · 3 points</option><option value="1">2nd choice · 2 points</option><option value="2">3rd choice · 1 point</option></select></label>` : ''}
+      <div class="hr-pts" data-pts="${i}" hidden><div class="trk"><div class="pfl"></div></div><span class="t"></span></div>
+    </article>`;
+  }
+
+  function ranking(d) {
+    const R = rnd(d), voter = isVoter(d);
+    return `<div class="hr-row"><span class="hr-note" id="hr-rnote"></span></div>
+      <div class="hr-cards">${(R.options || []).map((o, i) => card(o, i, voter)).join('')}</div>
+      <div class="hr-sub"><span id="hr-subw">${voter ? '<button type="button" class="hr-tube" id="hr-rank" data-a="rank" disabled>SUBMIT MY RANKING</button>' : ''}</span><span class="cnt" id="hr-cnt"></span></div>`;
+  }
+
+  function paying(d) {
+    const R = rnd(d), voter = isVoter(d), w = (R.options || [])[R.winner] || {};
+    const amt = money(R.share_gbp), url = typeof R.revolut_url === 'string' && HTTPS.test(R.revolut_url) ? R.revolut_url : '';
+    const ps = Humidor.payState(d), total = ps.voters, mp = myPay(d);
+    const fillPct = total ? Math.round(ps.confirmed / total * 100) : 0, pendPct = total ? Math.round((ps.confirmed + ps.pending) / total * 100) : 0;
+    const emberOn = ps.confirmed && !ps.full;
+    const note = justPaid ? ['good', 'Thanks ' + justPaid + '. Hank will tick you off once it lands.'] : !voter ? ['bad', 'You’re not on this round’s list.'] : !url ? ['', 'Hank hasn’t set the Revolut link yet. Pay him once he has, then submit.'] : ['', ''];
+    const paidBy = {}; paysOf(d).forEach(p => { paidBy[p.member_id] = p.state; });
+    const who = prefsOf(d).map(m => { const s = paidBy[m.member_id]; const ok = s === 'confirmed';
+      return `<li class="${ok ? 'ok' : ''}"><div class="av"><img src="${esc(FY.face(m, 52))}" alt="" width="52" height="52"><span class="tk" aria-label="${ok ? 'Paid' : 'Not paid yet'}">${ok ? '✓' : '✕'}</span></div>
+        <span class="nm">${esc(m.nickname)}</span><span class="st">${ok ? 'Paid' : s === 'pending' ? 'Sent' : 'Not paid'}</span></li>`; }).join('');
+    const barLabel = ps.confirmed + ' of ' + total + ' paid';
+    return `<div class="hr-row">
+        ${url && voter ? `<a class="hr-tube" href="${esc(url)}" target="_blank" rel="noopener">${esc('PAY ' + amt + ' ON REVOLUT →')}</a>` : ''}
+        <button type="button" class="hr-mark" data-a="paid"${!voter || mp || payBusy ? ' disabled' : ''}>SUBMIT PAYMENT</button>
+        <span class="hr-note ${note[0]}">${esc(note[1])}</span></div>
+      <section class="hr-pay" aria-label="Paying up">
+        <div class="hr-win"><div class="l"><span class="hr-k">The winner</span><span class="nm">${esc(w.name || '')}</span><span class="meta">${esc([w.size, w.shop].filter(Boolean).join(' · '))}</span></div>
+          <div class="r"><span class="hr-k">Your share</span><span class="amt">${esc(amt)}</span></div></div>
+        <div class="hr-bar">
+          <div class="hr-cig" role="img" aria-label="${esc(barLabel)}"><div class="edge"></div><div class="in">
+            <div class="pend" style="width:${pendPct}%"></div><div class="conf" style="width:${fillPct}%"></div>
+            <div class="ember${emberOn ? ' lit' : ''}" style="left:${fillPct}%;opacity:${emberOn ? 1 : 0}"></div><div class="band"></div></div></div>
+          <div class="txt"><span>${esc(barLabel + (ps.pending ? ' · ' + ps.pending + ' waiting for Hank' : ''))}</span><span class="full">${ps.full ? 'Full · Hank’s ordering' : ''}</span></div>
+        </div>
+        <ul class="hr-who" aria-label="Who's paid">${who}</ul>
+        <span class="hr-foot">Pay on Revolut, then submit. Hank ticks you off when it lands and your tick turns green. Full cigar, Hank orders.</span>
+      </section>`;
+  }
+
+  function last(d) {
+    const s = stt(d), L = archive[0], lw = L && (L.options || [])[L.winner];
+    if (!lw || s === 'ranking' || s === 'paying') return '';
+    return `<div class="hr-last"><span class="hr-k">Last round's winner</span><span class="w">${esc('Round ' + L.n + ': ' + (lw.name || ''))}</span><a href="humidor-archive.html">See the archive →</a></div>`;
+  }
+
+  // Whole body. Only called when no ranking form is open, or to build one.
+  function drawAll() {
+    const s = stt(data);
+    body.innerHTML = `<div class="hr" id="hr">${lede(data)}${s === 'ranking' ? ranking(data) : ''}${s === 'paying' ? paying(data) : ''}${last(data)}</div>`;
+    formSig = hasForm(data) ? sig(data) : null; movedOn = false;
+    if (s === 'ranking') { applyDraft(); updateRanking(); }
+  }
+
+  // My picks onto the cards: select values, 1st-choice pink, the "1ST CHOICE" tag, and the submit button.
+  function applyDraft() {
+    for (let i = 0; i < 3; i++) {
+      const pos = draft.indexOf(i), on = pos >= 0;
+      const c = body.querySelector('[data-c="' + i + '"]'); if (!c) continue;
+      c.classList.toggle('first', pos === 0);
+      const sel = c.querySelector('select');
+      if (sel) { const v = on ? String(pos) : ''; if (sel.value !== v) sel.value = v; sel.classList.toggle('on', on); sel.classList.toggle('first', pos === 0); }
+      const t = c.querySelector('[data-mine]'); if (t) t.textContent = on ? ORD[pos] + ' CHOICE' : '';
+    }
+    submitBtn();
+  }
+  function submitBtn() {
+    const b = document.getElementById('hr-rank'); if (!b) return;
+    b.textContent = mine(data) ? 'UPDATE MY RANKING' : 'SUBMIT MY RANKING';
+    b.disabled = busy || !draft.every(x => x != null);
+  }
+
+  // The parts of the ranking that show other members' state (R8): points bars, counts, note, button label.
+  function updateRanking() {
+    const voter = isVoter(data), m = mine(data), p = points(data), maxP = Math.max(1, ...p);
+    p.forEach((v, i) => {
+      const el = body.querySelector('[data-pts="' + i + '"]'); if (!el) return;
+      el.hidden = !m; el.querySelector('.pfl').style.width = Math.round(v / maxP * 100) + '%';
+      el.querySelector('.t').textContent = v + (v === 1 ? ' point' : ' points');
+    });
+    const nb = ballotsOf(data).length, nv = prefsOf(data).length;
+    const cnt = document.getElementById('hr-cnt'); if (cnt) cnt.textContent = nb + (nb === 1 ? ' ranking' : ' rankings') + ' in from ' + nv + (nv === 1 ? ' member' : ' members') + '.';
+    const n = document.getElementById('hr-rnote');
+    if (n) { n.className = 'hr-note' + (voter ? '' : ' bad'); n.textContent = voter ? (m ? 'Your ranking is in.' : 'Rank all three, then submit.') : 'You didn’t put preferences in this round, so you can’t rank. Catch the next one.'; }
+    submitBtn();
+  }
+  function showMoved() {
+    const w = document.getElementById('hr-subw');
+    if (w && !w.querySelector('.hr-moved')) w.innerHTML = '<p class="hr-moved" role="status">The round moved on. Reload to continue.</p>';
+  }
+
+  // Picking a rank already used on another card swaps the two (design setRank).
+  function setRank(opt, pos) {
+    const d = draft.slice(); const prev = d[pos]; const at = d.indexOf(opt);
+    if (at >= 0) d[at] = null; d[pos] = opt; if (at >= 0 && prev != null && prev !== opt) d[at] = prev;
+    draft = d;
+  }
+
+  async function submitRank() {
+    if (busy || movedOn || !formSig || !goodRank(data)) return;
+    const rank = draft.slice(); busy = true; submitBtn();
+    try { await FY.rpc('humidor_cast_ranking', { p_rank: rank }); }
+    catch (e) { busy = false; submitBtn(); FY.toast(e.message); return; }
+    try { await Humidor.refresh(); } catch (e) { /* humidor.js has logged it */ }
+    busy = false; if (!movedOn) updateRanking();
+  }
+
+  async function markPaid() {
+    if (payBusy || stt(data) !== 'paying' || !isVoter(data) || myPay(data)) return;
+    payBusy = true; drawAll();
+    try { await FY.rpc('humidor_mark_paid'); }
+    catch (e) { payBusy = false; drawAll(); FY.toast(e.message); return; }
+    justPaid = me.nickname || 'you'; clearTimeout(justT);
+    justT = setTimeout(() => { justPaid = null; if (!formSig) drawAll(); }, 5000);
+    try { await Humidor.refresh(); } catch (e) { /* humidor.js has logged it */ }
+    payBusy = false; if (!formSig) drawAll();
+  }
+
+  function wire() {
+    body.addEventListener('change', e => {
+      const sel = e.target.closest('select[data-i]'); if (!sel || !body.contains(sel)) return;
+      const i = +sel.getAttribute('data-i'), v = sel.value;
+      if (v === '') { const at = draft.indexOf(i); if (at >= 0) { draft = draft.slice(); draft[at] = null; } }
+      else setRank(i, +v);
+      applyDraft();
+    });
+    body.addEventListener('click', e => {
+      const el = e.target.closest('[data-a]'); if (!el || !body.contains(el) || el.disabled) return;
+      const a = el.getAttribute('data-a');
+      if (a === 'rank') submitRank().catch(err => FY.toast(err.message));
+      if (a === 'paid') markPaid().catch(err => FY.toast(err.message));
+    });
+  }
+
+  // Synchronous onChange (humidor.js). With a ranking form open, never redraw it (R8).
+  function onPoll(d) {
+    data = d || { stage: null, round: null };
+    if (formSig) {
+      if (!movedOn && sig(data) !== formSig) movedOn = true;
+      if (movedOn) { showMoved(); return; }
+      updateRanking(); return;
+    }
+    drawAll();
+  }
+
+  (async function () {
+    const H = await Humidor.start('results');
+    if (!H) { const b = document.getElementById('hm-body'); if (b && b.textContent.trim()) FY.toast(b.textContent.trim()); return; }
+    me = H.me; body = H.main; data = H.data || { stage: null, round: null };
+    try { const a = await FY.rpc('humidor_archive'); archive = Array.isArray(a) ? a : []; } catch (e) { archive = []; }
+    const m = mine(data); if (m && Array.isArray(m.rank) && m.rank.length === 3) draft = m.rank.slice();
+    wire(); drawAll();
+    Humidor.poll(onPoll);   // synchronous onChange
+  })().catch(e => FY.toast(e.message));
+})();
+</script>
+</body>
+</html>
