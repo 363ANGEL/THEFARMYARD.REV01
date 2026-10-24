@@ -45,8 +45,8 @@
 /* 1 · Round: action buttons */
 .ha-acts{display:flex;flex-wrap:wrap;gap:8px}
 .ha-act{min-height:44px;padding:0 18px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--text-meta);letter-spacing:.08em;font-weight:600;border:2px solid var(--neon-teal);color:var(--hint-text);box-shadow:none}
-.ha-act.pink{border-color:var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink)}
-.ha-act:disabled{opacity:.5;cursor:default}
+.ha-act.ha-pink{border-color:var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink)}
+.ha button[data-a]:disabled{opacity:.5;cursor:default}
 .ha-moved{margin:0;font-size:var(--text-small);line-height:1.45;color:var(--neon-amber-text)}
 
 /* Who's voted: scrolls sideways below 640px with the member column fixed */
@@ -132,6 +132,8 @@
 .ha-pins .ha-in{width:auto;min-width:0}
 .ha-pins .s{flex:0 1 200px}
 .ha-pins .u{flex:1 1 260px}
+.ha-lstat{flex-basis:100%;font-size:var(--text-small);line-height:1.45;color:var(--neon-amber-text)}
+.ha-lstat.ok{color:var(--neon-green-text)}
 .ha-save{min-height:44px;padding:0 16px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--text-meta);letter-spacing:.08em;font-weight:600;border:1px solid var(--neon-teal);color:var(--hint-text)}
 .ha-pbar{height:8px;border-radius:4px;background:color-mix(in srgb,var(--neon-teal) 20%,transparent);overflow:hidden}
 .ha-pbar div{height:100%;width:0;background:var(--neon-pink-tube);box-shadow:var(--glow-pink)}
@@ -182,6 +184,9 @@
 
   const $ = id => document.getElementById(id);
   const put = (el, html) => { if (el && el.innerHTML !== html) el.innerHTML = html; };
+  // While a write is in flight every action button is disabled, so a second tap is visibly refused, not dropped.
+  const dis = () => busy ? ' disabled' : '';
+  const lock = () => { if (body) body.querySelectorAll('button[data-a]').forEach(b => { b.disabled = busy; }); };
   const rnd = d => (d && d.round) || null;
   const stt = d => { const r = rnd(d); return r ? r.status : null; };
   const sig = d => { const r = rnd(d); return r ? r.id + '|' + r.status : ''; };
@@ -279,11 +284,13 @@
     const el = $('ha-notes'), R = rnd(data); let N = [];
     if (stt(data) === 'paying') {
       const P = payInfo(data), amt = money(R.share_gbp);
-      N = P.due.filter(m => P.paid[m.id] === 'pending').map(m => ({ id: m.id, text: m.name + ' says he\'s paid' + (amt ? ' £' + amt : '') + '. Check Revolut.', ago: P.at[m.id] ? '· ' + agoN(P.at[m.id]) : '' }));
+      // Oldest claim first, so a new one appends below instead of shuffling the rows under Hank's finger.
+      N = P.due.filter(m => P.paid[m.id] === 'pending').sort((x, y) => (P.at[x.id] || 0) - (P.at[y.id] || 0))
+        .map(m => ({ id: m.id, name: m.name, text: m.name + ' says he\'s paid' + (amt ? ' £' + amt : '') + '. Check Revolut.', ago: P.at[m.id] ? '· ' + agoN(P.at[m.id]) : '' }));
     }
     el.hidden = !N.length;
     put(el, N.length ? `<span class="t">${esc(N.length + (N.length === 1 ? ' payment to check' : ' payments to check'))}</span>` + N.map(n =>
-      `<div class="ha-note"><span class="x">${esc(n.text)} <span>${esc(n.ago)}</span></span><button type="button" class="ha-ok" data-a="paid" data-m="${esc(n.id)}" data-on="1">✓ MARK AS PAID</button></div>`).join('') : '');
+      `<div class="ha-note"><span class="x">${esc(n.text)} <span>${esc(n.ago)}</span></span><button type="button" class="ha-ok" data-a="paid" data-m="${esc(n.id)}" data-on="1" aria-label="${esc('Mark as paid: ' + n.name)}"${dis()}>✓ MARK AS PAID</button></div>`).join('') : '');
   }
 
   function drawStage() {
@@ -291,7 +298,7 @@
     $('ha-stnote').textContent = stOv != null ? 'Pinned by Hank · landing shows stage ' + (stOv + 1) : (autoS >= 0 ? 'Auto · landing shows stage ' + (autoS + 1) : 'Auto · no round open, no stage lit');
     const B = [{ n: 'AUTO', label: 'Follow the round', idx: null }].concat(Humidor.STAGES.map((l, i) => ({ n: String(i + 1).padStart(2, '0'), label: l, idx: i })));
     put($('ha-stages'), B.map(b => { const on = b.idx === null ? stOv == null : stOv === b.idx, lit = b.idx !== null && b.idx === curS;
-      return `<button type="button" role="radio" class="ha-st${lit ? ' lit' : ''}" aria-checked="${on}" data-a="stage" data-s="${b.idx === null ? '' : b.idx}"><span class="n">${b.n}</span><span class="l">${esc(b.label)}</span></button>`; }).join(''));
+      return `<button type="button" role="radio" class="ha-st${lit ? ' lit' : ''}" aria-checked="${on}" data-a="stage" data-s="${b.idx === null ? '' : b.idx}"${dis()}><span class="n">${b.n}</span><span class="l">${esc(b.label)}</span></button>`; }).join(''));
   }
 
   function drawActions() {
@@ -302,7 +309,7 @@
       : st === 'collecting' ? [[f === 3 ? 'CLOSE PREFERENCES · POST THE 3 FOR RANKING' : 'FILL IN 3 OPTIONS BELOW TO POST', f === 3, 'post']]
       : st === 'ranking' ? [['CLOSE RANKING · MOVE TO PAYMENT', true, 'close'], ['BACK TO COLLECTING', false, 'reopen'], ['UPDATE OPTIONS', false, 'post']]
       : st === 'paying' ? [[P.full ? 'ORDER PLACED · ARCHIVE THE ROUND' : 'WAITING FOR THE CIGAR TO FILL', P.full, 'order']] : [];
-    put(el, A.map(([l, pink, a]) => `<button type="button" class="ha-act${pink ? ' pink' : ''}" data-a="${a}"${busy ? ' disabled' : ''}>${esc(l)}</button>`).join(''));
+    put(el, A.map(([l, pink, a]) => `<button type="button" class="ha-act${pink ? ' ha-pink' : ''}" data-a="${a}"${dis()}>${esc(l)}</button>`).join(''));
   }
 
   function drawVoted() {
@@ -361,8 +368,16 @@
     $('ha-pfill').style.width = (P.total ? Math.round(P.confirmed / P.total * 100) : 0) + '%';
     $('ha-ptxt').textContent = P.confirmed + ' of ' + P.total + ' paid' + (P.full ? ' · full, order it' : '');
     put($('ha-prows'), P.due.map(m => { const s = P.paid[m.id];
-      return `<div class="ha-prow"><span class="nm">${esc(m.name)}</span><span class="st${s === 'confirmed' ? ' ok' : s === 'pending' ? ' pend' : ''}">${s === 'confirmed' ? '✓ Paid' : s === 'pending' ? 'Says sent · check Revolut' : 'Not yet'}</span><button type="button" class="ha-tick" data-a="paid" data-m="${esc(m.id)}" data-on="${s === 'confirmed' ? '' : '1'}">${s === 'confirmed' ? 'UNTICK' : 'MARK AS PAID'}</button></div>`; }).join(''));
-    prefillPay();
+      return `<div class="ha-prow"><span class="nm">${esc(m.name)}</span><span class="st${s === 'confirmed' ? ' ok' : s === 'pending' ? ' pend' : ''}">${s === 'confirmed' ? '✓ Paid' : s === 'pending' ? 'Says sent · check Revolut' : 'Not yet'}</span><button type="button" class="ha-tick" data-a="paid" data-m="${esc(m.id)}" data-on="${s === 'confirmed' ? '' : '1'}" aria-label="${esc((s === 'confirmed' ? 'Untick: ' : 'Mark as paid: ') + m.name)}"${dis()}>${s === 'confirmed' ? 'UNTICK' : 'MARK AS PAID'}</button></div>`; }).join(''));
+    prefillPay(); drawLinkStat();
+  }
+  // Under the link field: is the link members pay to saved on the round? Live as Hank types; never touches the field.
+  function drawLinkStat() {
+    const R = rnd(data), el = $('ha-lstat'); if (!R || !el) return;
+    const saved = R.revolut_url || '', cur = $('ha-link').value.trim(), ok = !!saved && cur === saved;
+    const t = !saved ? 'Not saved yet · members can\'t pay until you SAVE' : ok ? 'Saved · members pay to this link' : 'Unsaved change';
+    if (el.textContent !== t) el.textContent = t;
+    el.classList.toggle('ok', ok);
   }
   // The share and link show the saved values (round link, else my own Revolut link) until Hank types; SAVE sends them.
   function prefillPay() {
@@ -381,7 +396,7 @@
     $('ha-s5').hidden = stt(data) !== 'paying';
   }
 
-  function drawAll() { const M = model(); drawNotices(); drawStage(); drawActions(); drawVoted(); drawAsked(M); drawPrompt(M); drawTallies(); drawPay(); vis(); }
+  function drawAll() { const M = model(); drawNotices(); drawStage(); drawActions(); drawVoted(); drawAsked(M); drawPrompt(M); drawTallies(); drawPay(); vis(); lock(); }
 
   // Always a fresh build (typed values never reach the value attribute, so put() would wrongly skip it).
   function buildForms() {
@@ -402,9 +417,9 @@
   async function run(name, args, moves) {
     if (busy) return false;
     const before = sig(data);
-    busy = true; drawActions();
+    busy = true; lock();
     try { await FY.rpc(name, args); }
-    catch (e) { busy = false; drawActions(); FY.toast(e.message); return false; }
+    catch (e) { busy = false; lock(); FY.toast(e.message); return false; }
     try { await Humidor.refresh(); } catch (e) { /* humidor.js has logged it */ }
     busy = false; grace = !!moves && sig(data) === before;
     if (!movedOn) adopt();
@@ -416,9 +431,11 @@
 
   async function savePay() {
     const s = $('ha-share').value.trim().replace(/^£\s*/, ''), u = $('ha-link').value.trim();
-    const share = s === '' ? null : (isFinite(+s) ? +s : s);   // not a number: the server refuses it, and the toast says why
+    // Checked as humidor_set_pay checks, in its own words. Empty clears (null), as the server allows.
+    if (s !== '' && !/^\d{1,4}(\.\d{1,2})?$/.test(s)) { FY.toast('the share must be £0 to £9999.99'); return; }
+    if (u !== '' && !/^https:\/\/revolut\.me\/[A-Za-z0-9._-]+$/.test(u)) { FY.toast('that is not a revolut.me link'); return; }
     payDirty = true;   // a poll during the save must not overwrite what is typed; only a saved value replaces it
-    if (await run('humidor_set_pay', { p_share: share, p_url: u || null })) { payDirty = false; prefillPay(); }
+    if (await run('humidor_set_pay', { p_share: s === '' ? null : Number(s), p_url: u || null })) { payDirty = false; prefillPay(); drawLinkStat(); FY.toast('Saved.'); }
   }
 
   function copyPrompt() {
@@ -437,8 +454,13 @@
     }
     if (a === 'close') { if (confirm('Close ranking and lock in the winner?')) return run('humidor_close_ranking', null, true); return; }
     if (a === 'reopen') return run('humidor_reopen_collect', null, true);
-    // README: the order can go in whenever Hank decides; unpaid voters are simply not in it.
-    if (a === 'order') { if (confirm('Order placed? This archives the round.')) return run('humidor_place_order', null, true); return; }
+    // README: the order can go in whenever Hank decides; unpaid voters are simply not in it. Closing is for good,
+    // so the confirm names how many are left out.
+    if (a === 'order') {
+      const P = Humidor.payState(data), unpaid = P.voters - P.confirmed;
+      const msg = 'Order placed? This archives the round.' + (unpaid > 0 ? '\n' + unpaid + ' of ' + P.voters + ' haven\'t paid and won\'t be in the order. The round closes for good.' : '');
+      if (confirm(msg)) return run('humidor_place_order', null, true); return;
+    }
     if (a === 'stage') { const s = el.getAttribute('data-s'); return run('humidor_set_stage', { p_stage: s === '' ? null : +s }); }
     if (a === 'paid') return run('humidor_confirm_paid', { p_member: el.getAttribute('data-m'), p_on: el.getAttribute('data-on') === '1' });
     if (a === 'save') return savePay();
@@ -453,7 +475,7 @@
     body.addEventListener('input', e => {
       const t = e.target;
       if (t.matches('.ha-in[data-o]')) { const i = +t.getAttribute('data-o'), k = t.getAttribute('data-k'); draft = draft.map(x => ({ ...x })); draft[i][k] = t.value; drawActions(); }
-      else if (t.id === 'ha-share' || t.id === 'ha-link') payDirty = true;
+      else if (t.id === 'ha-share' || t.id === 'ha-link') { payDirty = true; if (t.id === 'ha-link') drawLinkStat(); }
     });
   }
 
@@ -491,8 +513,9 @@
         <h2 class="ha-h" id="ha-s5-h">5 · Paying up</h2>
         <div class="ha-pins">
           <input type="text" class="ha-in s" id="ha-share" inputmode="decimal" autocomplete="off" placeholder="Share per member, e.g. 14" aria-label="Share per member">
-          <input type="text" class="ha-in u" id="ha-link" inputmode="url" autocomplete="off" placeholder="Revolut link, e.g. https://revolut.me/hank" aria-label="Revolut link">
+          <input type="text" class="ha-in u" id="ha-link" inputmode="url" autocomplete="off" placeholder="Revolut link, e.g. https://revolut.me/hank" aria-label="Revolut link" aria-describedby="ha-lstat">
           <button type="button" class="ha-save" data-a="save">SAVE</button>
+          <span class="ha-lstat" id="ha-lstat" aria-live="polite"></span>
         </div>
         <div class="ha-pbar"><div id="ha-pfill"></div></div>
         <span class="ha-ptxt" id="ha-ptxt"></span>
