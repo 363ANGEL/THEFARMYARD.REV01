@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · Calendar</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
+<style>
+/* 1.1 Calendar, ported from 1.1 Calendar.dc.html. Sample data until the backend lands (BUILD-PLAN 1.1). */
+:root{--pg-amber:#ffb020;--pg-amber-text:#ffd27a;--pg-gold:#ffd84a;--pg-ink:#eef7f7;--pg-teal-text:#c8f4f2;--pg-teal-pale:#9eeae6}
+/* Top frame + hanging sign (shared shape with the Football page) */
+.pg-top{position:relative;flex:none;margin-top:42px;display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-height:96px;box-sizing:border-box;padding:16px;border:2px solid rgba(158,234,230,.72);border-radius:14px;box-shadow:var(--tube-teal-soft)}
+.pg-kick{align-self:stretch;min-height:90px;box-sizing:border-box;padding-right:340px;display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px 12px;color:var(--pg-teal-text);text-shadow:0 0 6px var(--neon-teal)}
+.pg-kick>span:first-child{white-space:nowrap}
+.pg-kick .tag{text-transform:none;letter-spacing:.04em;text-shadow:none}
+.pg-sign{position:absolute;right:22px;top:2px;z-index:3;transform-origin:78% 0;transform:rotate(5deg)}
+.pg-sign .wire{position:absolute;top:0;width:1px;height:22px;background:var(--pg-teal-pale);opacity:.75;transform-origin:50% 100%}
+.pg-sign .wire.l{left:26%;transform:translateY(-4px) rotate(-12deg)}
+.pg-sign .wire.r{right:18%;transform:translateY(-4px) rotate(10deg)}
+.pg-sign .plate{position:relative;display:flex;align-items:center;gap:6px;padding:22px 64px 20px 112px;border-radius:8px;background:#07090a;border:2px solid var(--neon-green-tube);border-left-color:transparent;box-shadow:0 0 4px var(--neon-green-tube),0 0 12px var(--neon-green),0 0 28px rgba(10,158,67,.5),inset 0 0 8px rgba(10,158,67,.45),0 10px 22px rgba(0,0,0,.55);margin-top:20px}
+.pg-sign .edge{position:absolute;left:-2px;top:-2px;bottom:-2px;width:16px;box-sizing:border-box;border:2px solid var(--neon-green-tube);border-right:0;border-radius:8px 0 0 8px;box-shadow:-2px 0 4px var(--neon-green-tube),-8px 0 12px rgba(10,158,67,.55),inset 2px 0 8px rgba(10,158,67,.45)}
+.pg-sign .badge{position:absolute;z-index:2;left:-14px;top:-30px;width:100px;height:100px;display:grid;place-items:center;border-radius:22px;background:#07090a;transform:rotate(-14deg);pointer-events:none}
+.pg-sign .badge i{font-size:92px;line-height:1;color:#fff2f4;text-shadow:0 0 3px var(--neon-red-tube),0 0 8px var(--neon-red),0 0 18px var(--neon-red)}
+.pg-sign h2{font-family:var(--font-heading);font-weight:600;font-size:19px;margin:0;letter-spacing:.26em;color:var(--neon-green-text);text-shadow:0 0 4px var(--neon-green-tube),0 0 12px var(--neon-green),0 0 28px rgba(10,158,67,.6)}
+.pg-sign{zoom:.99}
+@media (max-width:1400px){.pg-sign{zoom:.84}.pg-kick{padding-right:290px}}
+@media (max-width:1100px){.pg-sign{zoom:.69}.pg-kick{padding-right:240px}}
+@media (max-width:800px){.pg-sign{zoom:.55;right:12px}.pg-kick{padding-right:190px}}
+@media (max-width:520px){.pg-sign{zoom:.43;right:8px}.pg-kick{padding-right:150px;min-height:70px}}
+@keyframes pgSway{from{transform:rotate(3.5deg)}to{transform:rotate(10deg)}}
+@keyframes pgEdge{0%,14%,16%,17.5%,41%,43%,44%,45%,46.5%,71%,73%,100%{opacity:1}15%,17%,42%,44.5%,45.5%,72%{opacity:.12}}
+@keyframes pgLetter{0%,91%,93%,96%,100%{opacity:1}92%,95%{opacity:.18}}
+@media (prefers-reduced-motion:no-preference){
+  .pg-sign{animation:pgSway 6s ease-in-out infinite alternate}
+  .pg-sign .edge{animation:pgEdge 13s linear infinite}
+  .pg-sign h2 .fl{animation:pgLetter 9s 2s infinite}
+}
+
+/* Create event */
+.cal-range{font-size:13px;color:var(--fy-text-secondary)}
+.cal-new{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;background:#07090a;border:2px solid var(--neon-pink-tube);border-radius:8px;color:var(--neon-pink-text);font-family:inherit;font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:box-shadow .2s ease}
+.cal-new i{font-size:16px}
+.cal-new:hover{box-shadow:0 0 6px var(--neon-pink-tube),0 0 16px var(--neon-pink),0 0 30px rgba(224,21,127,.45)}
+.cal-form{align-self:stretch;display:flex;flex-direction:column;gap:10px;padding:12px;border:1px dashed rgba(95,211,207,.55);border-radius:8px;min-width:0}
+.cal-form .ttl{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--pg-teal-text)}
+.cal-form .row3{display:grid;grid-template-columns:minmax(0,2fr) minmax(130px,1fr) minmax(100px,.7fr);gap:10px}
+@media (max-width:640px){.cal-form .row3{grid-template-columns:minmax(0,1fr)}}
+.cal-form label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--fy-text-label);min-width:0}
+.cal-form label.inl{flex-direction:row;align-items:center;gap:6px}
+.cal-form .input{min-height:44px;font-size:14px;border-color:var(--neon-teal)}
+.cal-form .amt{width:90px;border-color:var(--pg-amber)}
+.cal-form .ppl{width:64px;border-color:var(--pg-amber)}
+.cal-form .line{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cal-form .lbl{font-size:11px;color:var(--fy-text-label)}
+.cal-form .grp{display:flex;gap:6px;flex-wrap:wrap}
+.cal-opt{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;border-radius:6px;border:1.5px solid rgba(178,182,202,.4);background:transparent;color:var(--fy-text-label);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.cal-opt.on-teal{border-color:var(--neon-teal);color:var(--pg-teal-text)}
+.cal-opt.on-amb{border-color:var(--pg-amber);color:var(--pg-amber)}
+.cal-opt.sm{font-size:11.5px;padding:0 10px}
+.cal-form .note{flex-basis:100%;font-size:11.5px;color:var(--pg-amber)}
+.cal-form .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cal-add{min-height:44px;padding:0 16px;background:#07090a;border:2px solid var(--neon-green-tube);border-radius:8px;color:var(--neon-green-text);font-family:inherit;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.cal-add:hover{box-shadow:0 0 6px var(--neon-green-tube),0 0 16px var(--neon-green)}
+.cal-add:disabled{opacity:.45;cursor:default;box-shadow:none}
+.cal-cancel{min-height:44px;padding:0 12px;background:transparent;border:1px solid rgba(178,182,202,.4);border-radius:8px;color:var(--fy-text-secondary);font-family:inherit;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.cal-form .hint{font-size:11.5px;color:var(--fy-text-label)}
+
+/* The 4-week grid */
+.cal-box{display:flex;flex-direction:column;gap:10px;padding:16px 14px 14px;border:1px solid rgba(95,211,207,.55);border-radius:9px;box-shadow:0 0 4px rgba(95,211,207,.4),inset 0 0 4px rgba(95,211,207,.25);min-width:0}
+.cal-key{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--fy-text-secondary)}
+.cal-key span{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.cal-scroll{overflow-x:auto}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+@media (max-width:640px){.cal-grid{min-width:600px}}
+.cal-dow{padding:0 4px 2px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--neon-teal)}
+.cal-day{min-height:108px;display:flex;flex-direction:column;gap:4px;padding:4px;border:1px solid rgba(95,211,207,.25);border-radius:8px;min-width:0;overflow:hidden}
+.cal-day.past{opacity:.45}
+.cal-day.today{border-color:var(--neon-pink-tube);background:color-mix(in srgb,var(--neon-pink) 8%,transparent);box-shadow:0 0 6px var(--neon-pink),0 0 14px rgba(224,21,127,.35)}
+.cal-day .hd{display:flex;align-items:baseline;justify-content:space-between;gap:4px}
+.cal-day .num{font-family:var(--font-heading);font-size:16px;font-weight:700;color:var(--pg-ink)}
+.cal-day.today .num{color:var(--neon-pink-text)}
+.cal-day .mon{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)}
+.cal-ev{display:flex;flex-direction:column;justify-content:center;gap:1px;min-height:44px;box-sizing:border-box;padding:3px 4px;border-left:2px solid var(--ev);border-radius:0 4px 4px 0;background:rgba(255,255,255,.04);font-size:11px;line-height:1.3;color:var(--pg-ink);text-decoration:none;min-width:0}
+a.cal-ev:hover{background:rgba(255,255,255,.09)}
+.cal-ev .t{display:flex;align-items:center;gap:3px;font-size:9.5px;font-weight:700;color:var(--ev)}
+.cal-ev .t i{flex:none}
+.cal-ev .s{font-size:9.5px;line-height:1.2;white-space:normal;overflow-wrap:break-word;word-break:normal;hyphens:auto}
+.cal-ev .v{font-size:9px;color:var(--fy-text-label)}
+.cal-more{display:flex;align-items:center;min-height:44px;font-size:10.5px;font-weight:700;color:var(--neon-green-tube);text-decoration:none;padding-left:7px}
+
+/* Savings goals */
+.cal-goals{display:flex;flex-direction:column;gap:10px;padding:16px 14px 14px;border:1px solid var(--pg-amber);border-radius:9px;box-shadow:0 0 4px var(--pg-amber),0 0 14px rgba(255,176,32,.3);min-width:0}
+.cal-goals .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.cal-goals .big{display:inline-flex;align-items:center;gap:8px;font-size:18px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--pg-amber);text-shadow:0 0 6px rgba(255,176,32,.7),0 0 20px rgba(255,176,32,.35)}
+.cal-goals .top a{display:inline-flex;align-items:center;min-height:44px;font-size:12px;font-weight:700;color:var(--pg-amber-text);text-decoration:none}
+.cal-goals .top a:hover{text-shadow:0 0 6px var(--pg-amber)}
+.cal-goals .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(240px,100%),1fr));gap:10px}
+.goal{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid rgba(255,176,32,.35);border-radius:8px;min-width:0}
+.goal .nm{font-family:var(--font-heading);font-size:16px;color:var(--pg-ink)}
+.goal .two{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--fy-text-secondary)}
+.goal .bar{position:relative;height:8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,176,32,.4);overflow:hidden}
+.goal .bar span{position:absolute;left:0;top:0;bottom:0;background:var(--pg-amber);box-shadow:0 0 8px var(--pg-amber)}
+.goal .pot{font-weight:800;color:var(--pg-amber-text)}
+.goal .of{color:var(--fy-text-label)}
+.goal .each{color:var(--pg-ink);font-weight:700}
+.goal .by{font-size:11px;color:var(--fy-text-label)}
+</style>
+<script src="fy-clucks.js"></script>
+</head>
+<body>
+<div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script>
+<script>
+/* 1.1 Calendar. Everything here is the design's sample data (BUILD-PLAN 1.1, Group savings events).
+   Like the design, the grid is the next 4 weeks counted from today's date: Friday poker nights,
+   the design's fixtures (12-19 Oct, then a Premier League matchday on weekends after the last one),
+   birthdays every year, and the design's sample member and money events. Create event saves nothing. */
+const CAL_EVENTS = [{ title: 'Cigar night', date: '2026-10-24', time: '20:00', money: false, by: 'Hank' }, { title: "Hank's birthday night", date: '2026-10-31', time: '20:00', money: true, amt: '20', target: 120, people: 6, by: 'Tali', pot: 64 }, { title: 'Whisky group buy', date: '2026-12-12', time: '', money: true, amt: '60', target: 360, people: 6, by: 'Hank', pot: 95 }, { title: "Dmitri's stag weekend", date: '2027-03-06', time: '', money: true, amt: '300', target: 1800, people: 6, by: 'Jo', pot: 240 }];
+const CAL_FB = { '2026-10-12': ['20:00 Coventry v Newcastle'], '2026-10-17': ['12:30 Everton v Chelsea', '15:00 Brentford v Liverpool', '15:00 Fulham v Hull', '15:00 Man City v Ipswich', '17:30 Newcastle v Villa'], '2026-10-18': ['14:00 Bournemouth v Sunderland', '14:00 Brighton v Palace', '14:00 Leeds v Man Utd', "16:30 Nott'm Forest v Arsenal"], '2026-10-19': ['20:00 Spurs v Coventry'] };
+const CAL_BD = { '10-14': ['Tali'], '10-23': ['Dmitri'], '10-31': ['Hank'], '11-6': ['Beck'] };
+
+function drawCalendar(B) {
+  const main = B.main, esc = FY.esc;
+  const st = { form: false, draft: null };
+  const D0 = { title: '', date: '', time: '', money: false, amt: '10', mode: 'pp', target: '600', people: '6' };
+  const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const fromIso = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+  const mon = d => d.toLocaleString('en-GB', { month: 'short' });
+  const f = d => d.getDate() + ' ' + mon(d);
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const start = new Date(today); start.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+  const end = new Date(start); end.setDate(start.getDate() + 27);
+
+  function days() {
+    return Array.from({ length: 28 }, (_, i) => {
+      const d = new Date(start); d.setDate(start.getDate() + i);
+      const k = iso(d), isToday = +d === +today, past = d < today, ev = [];
+      CAL_EVENTS.filter(x => x.date === k).forEach(x => ev.push(x.money
+        ? { title: x.title + ' · £' + x.amt + ' each to ' + x.by, time: (x.time || 'All day') + ' · £' + x.amt + 'pp', short: x.title, icon: 'ph-fill ph-piggy-bank', c: 'var(--pg-amber)', href: 'profile.html#settle' }
+        : { title: x.title + ' · ' + x.by, time: x.time || 'All day', short: x.title, icon: 'ph-fill ph-star', c: 'var(--neon-teal)', href: '' }));
+      (CAL_BD[(d.getMonth() + 1) + '-' + d.getDate()] || []).forEach(n => ev.push({ title: n + "'s birthday", time: 'Birthday', short: n, icon: 'ph-fill ph-cake', c: 'var(--pg-gold)', href: 'profile.html' }));
+      if (d.getDay() === 5) ev.push({ title: '21:00 Poker night', time: '21:00', short: 'Poker night', icon: 'ph-fill ph-club', c: 'var(--neon-pink-text)', href: 'poker.html' });
+      (CAL_FB[k] || ((d.getDay() === 6 || d.getDay() === 0) && !Object.keys(CAL_FB).some(x => x >= k) ? ['Premier League matchday'] : [])).forEach(t => {
+        const m = t.match(/^(\d\d:\d\d) (.+) v (.+)$/);
+        ev.push({ title: t, time: m ? m[1] : 'All day', short: m ? m[2] : t, away: m ? m[3] : '', icon: 'ph-fill ph-soccer-ball', c: 'var(--neon-green-tube)', href: 'football.html' });
+      });
+      return { num: d.getDate(), mon: d.getDate() === 1 || i === 0 ? mon(d) : '', events: ev.slice(0, 3), more: ev.length > 3 ? '+' + (ev.length - 3) + ' more' : '', past, isToday };
+    });
+  }
+
+  function goals() {
+    return CAL_EVENTS.filter(x => x.money && x.date >= iso(today)).sort((p, q) => p.date < q.date ? -1 : 1).map(x => {
+      const dt = fromIso(x.date), tgt = +x.target || (+x.amt * (+x.people || 6)), pot = +x.pot || 0;
+      return { title: x.title, when: dt.getDate() + ' ' + mon(dt) + ' ' + dt.getFullYear(), each: '£' + (+x.amt).toLocaleString('en-GB') + ' each', by: 'Set up by ' + x.by,
+        pot: '£' + pot.toLocaleString('en-GB'), target: '£' + tgt.toLocaleString('en-GB'), pct: Math.min(100, pot / tgt * 100) + '%', weeks: Math.max(0, Math.round((dt - today) / 6048e5)) + ' weeks to go' };
+    });
+  }
+
+  // The draft's derived values, as the design's calVals() works them out.
+  function derived() {
+    const dr = { ...D0, ...(st.draft || {}) };
+    const each = dr.mode === 't' ? Math.ceil((+dr.target || 0) / Math.max(1, +dr.people || 1)) : +dr.amt;
+    const cant = !dr.title.trim() || !dr.date || (dr.money && !(each > 0)) || (!dr.money && dr.date > iso(end));
+    const note = dr.mode === 't'
+      ? '£' + (+dr.target || 0) + ' ÷ ' + (+dr.people || 0) + ' people = £' + each + ' each. Savings events can be any date ahead; 5% of winnings counts towards your share.'
+      : 'Each member who joins owes £' + each + '. Savings events can be any date ahead; 5% of winnings counts towards your share.';
+    return { dr, each, cant, note };
+  }
+
+  function formHtml() {
+    const { dr, cant, note } = derived(), t = dr.mode === 't';
+    return `<form class="cal-form" id="cal-form" novalidate>
+      <span class="ttl">Create event</span>
+      <div class="row3">
+        <label>What<input class="input" data-f="title" value="${esc(dr.title)}" placeholder="e.g. Curry at Hank's" maxlength="40" required></label>
+        <label>Date<input class="input" type="date" data-f="date" value="${esc(dr.date)}" min="${esc(iso(today))}" max="${esc(dr.money ? '2030-12-31' : iso(end))}" required></label>
+        <label>Time<input class="input" type="time" data-f="time" value="${esc(dr.time)}"></label>
+      </div>
+      <div class="line">
+        <span class="lbl">Money event?</span>
+        <span class="grp" role="radiogroup" aria-label="Money event?">
+          <button type="button" class="cal-opt ${dr.money ? '' : 'on-teal'}" role="radio" aria-checked="${!dr.money}" data-act="money-no">No</button>
+          <button type="button" class="cal-opt ${dr.money ? 'on-amb' : ''}" role="radio" aria-checked="${dr.money}" data-act="money-yes"><i class="ph ph-piggy-bank"></i>Yes, everyone chips in</button>
+        </span>
+        ${dr.money ? `<span class="grp">
+            <button type="button" class="cal-opt sm ${t ? '' : 'on-amb'}" aria-pressed="${!t}" data-act="mode-pp">£ per person</button>
+            <button type="button" class="cal-opt sm ${t ? 'on-amb' : ''}" aria-pressed="${t}" data-act="mode-t">Target total</button>
+          </span>
+          ${t ? `<label class="inl">Target £<input class="input amt" type="number" min="1" max="50000" step="10" data-f="target" value="${esc(dr.target)}"></label>
+                 <label class="inl">People<input class="input ppl" type="number" min="2" max="40" step="1" data-f="people" value="${esc(dr.people)}"></label>`
+              : `<label class="inl">£ each<input class="input amt" type="number" min="1" max="5000" step="1" data-f="amt" value="${esc(dr.amt)}"></label>`}
+          <span class="note" id="cal-note">${esc(note)}</span>` : ''}
+      </div>
+      <div class="acts"><button type="submit" class="cal-add" id="cal-add" ${cant ? 'disabled' : ''}>Add to calendar</button><button type="button" class="cal-cancel" data-act="cancel">Cancel</button><span class="hint">Shows on everyone's calendar, with your name on it.</span></div>
+    </form>`;
+  }
+
+  function evHtml(e) {
+    const inner = `<span class="t"><i class="${esc(e.icon)}"></i>${esc(e.time)}</span><span class="s" lang="en">${esc(e.short)}</span>${e.away ? `<span class="v">v</span><span class="s" lang="en">${esc(e.away)}</span>` : ''}`;
+    return e.href ? `<a class="cal-ev" href="${esc(e.href)}" title="${esc(e.title)}" style="--ev:${esc(e.c)}">${inner}</a>`
+                  : `<span class="cal-ev" title="${esc(e.title)}" style="--ev:${esc(e.c)}">${inner}</span>`;
+  }
+
+  function render() {
+    const g = goals();
+    main.innerHTML = `
+      <section class="pg-top">
+        <div class="pg-kick kicker"><span>Next 4 weeks</span><span class="tag tag-neutral">Sample</span></div>
+        <span class="cal-range">${esc(f(start) + ' – ' + f(end))}</span>
+        ${st.form ? formHtml() : `<button type="button" class="cal-new" data-act="open"><i class="ph ph-calendar-plus"></i>Create event</button>`}
+        <div class="pg-sign"><span class="wire l"></span><span class="wire r"></span>
+          <div class="plate"><span class="edge" aria-hidden="true"></span><span class="badge" aria-hidden="true"><i class="ph ph-calendar-blank"></i></span>
+            <h2>CALEND<span class="fl">A</span>R</h2></div></div>
+      </section>
+      <section class="cal-box" aria-label="Next 4 weeks">
+        <div class="cal-key">
+          <span><i class="ph-fill ph-club" style="color:var(--neon-pink-text)"></i>Poker night</span>
+          <span><i class="ph-fill ph-soccer-ball" style="color:var(--neon-green-tube)"></i>Football</span>
+          <span><i class="ph-fill ph-cake" style="color:var(--pg-gold)"></i>Birthday</span>
+          <span><i class="ph-fill ph-star" style="color:var(--neon-teal)"></i>Member event</span>
+          <span><i class="ph-fill ph-piggy-bank" style="color:var(--pg-amber)"></i>Money event</span>
+        </div>
+        <div class="cal-scroll"><div class="cal-grid">
+          ${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(w => `<span class="cal-dow">${w}</span>`).join('')}
+          ${days().map(d => `<div class="cal-day ${d.isToday ? 'today' : ''} ${d.past ? 'past' : ''}">
+            <span class="hd"><span class="num">${esc(d.num)}</span><span class="mon">${esc(d.mon)}</span></span>
+            ${d.events.map(evHtml).join('')}${d.more ? `<a class="cal-more" href="football.html">${esc(d.more)}</a>` : ''}
+          </div>`).join('')}
+        </div></div>
+      </section>
+      ${g.length ? `<section class="cal-goals">
+        <div class="top"><span class="kicker big"><i class="ph-fill ph-piggy-bank"></i>Savings goals</span><a href="profile.html#settle">Your share in Profile ↗</a></div>
+        <div class="list">${g.map(x => `<div class="goal">
+          <span class="nm">${esc(x.title)}</span>
+          <span class="two"><span>${esc(x.when)}</span><span>${esc(x.weeks)}</span></span>
+          <div class="bar"><span style="width:${esc(x.pct)}"></span></div>
+          <span class="two" style="color:inherit"><span><span class="pot">${esc(x.pot)}</span> <span class="of">of ${esc(x.target)}</span></span><span class="each">${esc(x.each)}</span></span>
+          <span class="by">${esc(x.by)}</span>
+        </div>`).join('')}</div>
+      </section>` : ''}`;
+    const form = main.querySelector('#cal-form');
+    if (form) form.addEventListener('submit', e => { e.preventDefault(); if (derived().cant) return; FY.toast('Not wired up yet.'); });
+  }
+
+  // Typing updates the draft in place (no redraw, so focus stays put); clicks redraw.
+  main.addEventListener('input', e => {
+    const k = e.target.dataset && e.target.dataset.f; if (!k) return;
+    st.draft = { ...D0, ...(st.draft || {}), [k]: e.target.value };
+    const { cant, note } = derived();
+    const add = main.querySelector('#cal-add'); if (add) add.disabled = cant;
+    const n = main.querySelector('#cal-note'); if (n) n.textContent = note;
+  });
+  main.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b || !main.contains(b)) return;
+    const set = (k, v) => { st.draft = { ...D0, ...(st.draft || {}), [k]: v }; };
+    switch (b.dataset.act) {
+      case 'open': st.form = true; break;
+      case 'cancel': st.form = false; st.draft = null; break;
+      case 'money-no': set('money', false); break;
+      case 'money-yes': set('money', true); break;
+      case 'mode-pp': set('mode', 'pp'); break;
+      case 'mode-t': set('mode', 't'); break;
+      default: return;
+    }
+    render();
+    if (b.dataset.act === 'open') { const t = main.querySelector('[data-f="title"]'); if (t) t.focus(); }
+  });
+  render();
+}
+
+(async () => { const B = await Barn.open('calendar'); if (B) drawCalendar(B); })();
+</script>
+</body>
+</html>
