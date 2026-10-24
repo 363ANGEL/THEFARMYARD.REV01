@@ -49,20 +49,41 @@
 /* 0.2 New User Set-up. Shown once, right after the invite is claimed (and to anyone whose set-up is not done).
    Yard name is pre-filled with the name RAY gave the member; the logo palette is what RAY uploaded for them
    (fy.member_logo), topped up with the stock animals; Revolut is optional. Chess.com stays hidden until the
-   chess league is built. Finishing stamps member.setup_at. */
+   chess league is built. Birthday (day and month, no year) is required. Finishing stamps member.setup_at. */
+/* Birthday field, ported from the 0.2 design. Days are capped by the month (February = 29). A day past the
+   newly picked month's last day is dropped, so the Day select goes back to "Day" and Finish stays off. */
+const BD = {
+  M: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+  DIM: [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+  max: m => m ? BD.DIM[+m - 1] : 31,
+  fit: (d, m) => d && +d <= BD.max(m) ? String(d) : '',
+  ok: (d, m) => !!m && !!d && +d <= BD.max(m),
+  dayOpts: (d, m) => `<option value="" disabled ${d ? '' : 'selected'}>Day</option>` +
+    Array.from({ length: BD.max(m) }, (_, i) => { const v = String(i + 1); return `<option value="${v}" ${v === d ? 'selected' : ''}>${v}</option>`; }).join(''),
+  monthOpts: m => `<option value="" disabled ${m ? '' : 'selected'}>Month</option>` +
+    BD.M.map((n, i) => { const v = String(i + 1); return `<option value="${v}" ${v === m ? 'selected' : ''}>${n}</option>`; }).join(''),
+  border: ok => ok ? 'var(--neon-teal)' : 'var(--neon-pink-tube)',
+  hint: ok => ok ? 'Day and month only. It goes on the Barn calendar so the crew can celebrate.' : 'Needed to get in. Day and month only, no year.',
+  hintColor: ok => ok ? 'var(--fy-text-label)' : 'var(--neon-pink-text)'
+};
 (async function () {
   const B = await Barn.open('setup', { bare: true }); if (!B) return;
   const { me, session, root } = B, esc = FY.esc;
   const ANIMALS = [['hen', 'Hen'], ['cock', 'Cock'], ['pig', 'Pig'], ['sheep', 'Sheep'], ['goat', 'Goat'], ['cow', 'Cow']];
   const mine = (await FY.q('member_logo').select('slot,name,url').eq('member_id', me.id).order('slot')).data || [];
-  const palette = [...mine.map(l => ({ id: 'url:' + l.url, name: l.name, img: l.url })),
-                   ...ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: `assets/avatars/${k}.svg` }))].slice(0, 8);
-  while (palette.length < 8) palette.push({ id: 'empty' + palette.length, name: 'Logo ' + (palette.length + 1), img: null, empty: true });
-  const S = { name: me.nickname, pick: me.avatar_url ? 'url:' + me.avatar_url : 'key:' + me.avatar, rev: (me.revolut_url || '').replace(/^https:\/\/revolut\.me\//, ''), showChess: false };
+  // img = the 150px card art; sm = the 48px picker face (Hank shows his face mark at that size).
+  const palette = [...mine.map(l => ({ id: 'url:' + l.url, name: l.name, img: l.url, sm: l.url })),
+                   ...ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: FY.face(k, 150), sm: FY.face(k, 48) }))].slice(0, 8);
+  while (palette.length < 8) palette.push({ id: 'empty' + palette.length, name: 'Logo ' + (palette.length + 1), img: null, sm: null, empty: true });
+  const S = { name: me.nickname, pick: me.avatar_url ? 'url:' + me.avatar_url : 'key:' + me.avatar, rev: (me.revolut_url || '').replace(/^https:\/\/revolut\.me\//, ''), showChess: false,
+              bm: me.birth_month ? String(me.birth_month) : '', bd: '' };
+  S.bd = BD.fit(me.birth_day, S.bm);
+  const isRevBad = () => { const r = S.rev.trim(); return !!r && !/^[A-Za-z0-9._-]+$/.test(r); };
+  const cantFinish = () => !S.name.trim() || isRevBad() || !BD.ok(S.bd, S.bm);
 
   function render() {
     const cur = palette.find(p => p.id === S.pick) || palette[0];
-    const rev = S.rev.trim(), revBad = !!rev && !/^[A-Za-z0-9._-]+$/.test(rev), cant = !S.name.trim() || revBad;
+    const revBad = isRevBad(), cant = cantFinish(), bdOk = BD.ok(S.bd, S.bm), bdB = BD.border(bdOk);
     root.innerHTML = `<main class="door top">
       <div class="steps3"><div class="done"><span class="n"><i class="ph ph-check" style="font-size:14px"></i></span>Signed in</div><div class="now"><span class="n">2</span>Your profile</div><div><span class="n">3</span>Into the yard</div></div>
       <div class="centre"><span class="kicker">Discord's done. Now you.</span><h1 style="font-size:clamp(30px,6vw,46px)">What does Hank call you?</h1></div>
@@ -76,8 +97,11 @@
         <div class="col">
           <div class="neon-tube-teal tube">
             <label>Yard name<input class="input" id="name" value="${esc(S.name)}" maxlength="16" required style="min-height:46px;font-size:16px"><span>Auto Generated. Keep it or change it. 16 characters max.</span></label>
+            <label><span class="t"><i class="ph ph-cake" style="color:var(--neon-pink-text);font-size:18px"></i>Birthday <span style="font-size:11px;color:var(--neon-pink-text)">Required</span></span>
+              <span style="display:flex;gap:8px"><select id="bdDay" class="input" required aria-label="Day" style="min-height:46px;font-size:15px;border-color:${bdB};flex:0 0 92px">${BD.dayOpts(S.bd, S.bm)}</select><select id="bdMonth" class="input" required aria-label="Month" style="min-height:46px;font-size:15px;border-color:${bdB};flex:1">${BD.monthOpts(S.bm)}</select></span>
+              <span id="bdHint" style="color:${BD.hintColor(bdOk)}">${BD.hint(bdOk)}</span></label>
             <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;color:var(--fy-text-label)">Pre-Made Logos to select from</span>
-              <div class="logos">${palette.map(p => `<button type="button" class="logo ${p.id === S.pick ? 'on' : ''}" data-pick="${esc(p.id)}" aria-label="${esc(p.name)}" ${p.empty ? 'disabled' : ''}><span class="face" style="background-image:${p.img ? `url('${esc(p.img)}')` : 'none'}">${p.img ? '' : '<i class="ph ph-question"></i>'}</span><span>${esc(p.name)}</span></button>`).join('')}</div></div>
+              <div class="logos">${palette.map(p => `<button type="button" class="logo ${p.id === S.pick ? 'on' : ''}" data-pick="${esc(p.id)}" aria-label="${esc(p.name)}" ${p.empty ? 'disabled' : ''}><span class="face" style="background-image:${p.sm ? `url('${esc(p.sm)}')` : 'none'}">${p.sm ? '' : '<i class="ph ph-question"></i>'}</span><span>${esc(p.name)}</span></button>`).join('')}</div></div>
           </div>
           <div class="neon-tube-teal tube" style="gap:14px">
             <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="kicker">Linked accounts</span><span style="font-size:12px;color:var(--fy-text-label)">Optional. Add later in Profile.</span></div>
@@ -98,16 +122,25 @@
   render();
   // Re-render only on blur / click, so typing is never interrupted; live bits update in place.
   root.addEventListener('input', ev => {
-    if (ev.target.id === 'name') { S.name = ev.target.value; root.querySelector('.me-card .nm').textContent = S.name.trim() || 'Your name'; root.querySelector('#go').disabled = !S.name.trim() || isRevBad(); }
-    if (ev.target.id === 'rev') { S.rev = ev.target.value.replace(/^https?:\/\/(www\.)?revolut\.me\//, ''); if (S.rev !== ev.target.value) ev.target.value = S.rev; root.querySelector('.revwrap').classList.toggle('bad', isRevBad()); root.querySelector('#go').disabled = !S.name.trim() || isRevBad(); }
+    if (ev.target.id === 'name') { S.name = ev.target.value; root.querySelector('.me-card .nm').textContent = S.name.trim() || 'Your name'; root.querySelector('#go').disabled = cantFinish(); }
+    if (ev.target.id === 'rev') { S.rev = ev.target.value.replace(/^https?:\/\/(www\.)?revolut\.me\//, ''); if (S.rev !== ev.target.value) ev.target.value = S.rev; root.querySelector('.revwrap').classList.toggle('bad', isRevBad()); root.querySelector('#go').disabled = cantFinish(); }
   });
-  const isRevBad = () => { const r = S.rev.trim(); return !!r && !/^[A-Za-z0-9._-]+$/.test(r); };
+  // Birthday selects update in place: a month change rebuilds the day list to that month's length.
+  root.addEventListener('change', ev => {
+    if (ev.target.id === 'bdMonth') { S.bm = ev.target.value; S.bd = BD.fit(S.bd, S.bm); root.querySelector('#bdDay').innerHTML = BD.dayOpts(S.bd, S.bm); }
+    else if (ev.target.id === 'bdDay') S.bd = ev.target.value;
+    else return;
+    const ok = BD.ok(S.bd, S.bm), hint = root.querySelector('#bdHint');
+    root.querySelectorAll('#bdDay, #bdMonth').forEach(el => { el.style.borderColor = BD.border(ok); });
+    hint.textContent = BD.hint(ok); hint.style.color = BD.hintColor(ok);
+    root.querySelector('#go').disabled = cantFinish();
+  });
   root.addEventListener('click', ev => { const b = ev.target.closest('[data-pick]'); if (b) { S.pick = b.dataset.pick; render(); } });
   root.addEventListener('submit', async ev => {
     ev.preventDefault();
-    const name = S.name.trim(); if (!name || isRevBad()) return;
+    const name = S.name.trim(); if (cantFinish()) return;
     const btn = root.querySelector('#go'); btn.disabled = true;
-    const patch = { nickname: name, revolut_url: S.rev.trim() ? `https://revolut.me/${S.rev.trim()}` : null, setup_at: new Date().toISOString() };
+    const patch = { nickname: name, revolut_url: S.rev.trim() ? `https://revolut.me/${S.rev.trim()}` : null, birth_day: +S.bd, birth_month: +S.bm, setup_at: new Date().toISOString() };
     if (S.pick.startsWith('url:')) patch.avatar_url = S.pick.slice(4); else { patch.avatar = S.pick.slice(4); patch.avatar_url = null; }
     const { error } = await FY.q('member').update(patch).eq('id', me.id);
     if (error) { FY.toast(/unique|duplicate/i.test(error.message) ? 'That yard name is taken. Pick another.' : error.message); btn.disabled = false; return; }
