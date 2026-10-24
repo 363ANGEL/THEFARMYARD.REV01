@@ -61,9 +61,10 @@
     },
 
     // Paying up: counts against this round's voters (members with prefs). No pay row = not paid.
+    // A prefs row that is not an object is skipped, as in brief().
     payState(d) {
       const r = d && d.round;
-      const voters = new Set(((r && r.prefs) || []).map(p => p.member_id));
+      const voters = new Set((r && Array.isArray(r.prefs) ? r.prefs : []).filter(isObj).map(p => p.member_id));
       const pays = ((r && r.pays) || []).filter(p => voters.has(p.member_id));
       const confirmed = pays.filter(p => p.state === 'confirmed').length;
       const pending = pays.filter(p => p.state === 'pending').length;

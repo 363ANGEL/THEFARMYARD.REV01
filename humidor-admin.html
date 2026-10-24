@@ -199,19 +199,26 @@
   const paysOf = d => (rnd(d) && rnd(d).pays) || [];
   const ballotsOf = d => (rnd(d) && rnd(d).ballots) || [];
 
-  // A member's prefs, in the design's shape whatever was stored: strings, a flavour list, a wrapper pair, sizePrefs.
-  const str = x => (x == null || x === '' || typeof x === 'object') ? null : String(x);
-  const nm = x => (x == null || x === '' || !isFinite(+x)) ? null : +x;
+  const str = x => (x == null || x === '' || typeof x === 'object') ? null : String(x);   // option fields (draftFrom)
+  // A member's prefs, in the design's shape. The server takes any JSON object as a taste, so a field counts only as a
+  // primitive of its kind: text a non-empty string, ring gauges and max time finite numbers (JSON 1e999 is Infinity),
+  // flavour and wr arrays of strings, sizePrefs the one nested object. Anything else is absent and is never coerced
+  // (no String(), +x or template on it), so no taste can throw anywhere on this page.
+  const isObj = x => !!x && typeof x === 'object' && !Array.isArray(x);
+  const txt = x => typeof x === 'string' && x !== '' ? x : null;
+  const nm = x => typeof x === 'number' && isFinite(x) ? x : null;
+  const txts = x => Array.isArray(x) && x.every(s => typeof s === 'string') ? x : null;
   function clean(p) {
-    p = p && typeof p === 'object' ? p : {};
-    const sp = p.sizePrefs && typeof p.sizePrefs === 'object' ? p.sizePrefs : null;
-    const wr = Array.isArray(p.wr) && p.wr.length ? [str(p.wr[0]), str(p.wr[1] != null ? p.wr[1] : p.wr[0])] : null;
-    return { size: str(p.size), time: str(p.time), strength: str(p.strength), wr: wr && wr[0] && wr[1] ? wr : null,
-      flavour: Array.isArray(p.flavour) ? p.flavour.map(str).filter(Boolean) : [], origin: str(p.origin), budget: str(p.budget),
-      sizePrefs: sp ? { minR: nm(sp.minR), maxR: nm(sp.maxR), maxT: Number.isInteger(sp.maxT) && sp.maxT >= 0 && sp.maxT < TL.length ? sp.maxT : null, shape: str(sp.shape) } : null };
+    p = isObj(p) ? p : {};
+    const sp = isObj(p.sizePrefs) ? p.sizePrefs : null, w = txts(p.wr);
+    const wr = w && w.length ? [txt(w[0]), txt(w[1] != null ? w[1] : w[0])] : null;
+    return { size: txt(p.size), time: txt(p.time), strength: txt(p.strength), wr: wr && wr[0] && wr[1] ? wr : null,
+      flavour: (txts(p.flavour) || []).filter(Boolean), origin: txt(p.origin), budget: txt(p.budget),
+      sizePrefs: sp ? { minR: nm(sp.minR), maxR: nm(sp.maxR), maxT: Number.isInteger(sp.maxT) && sp.maxT >= 0 && sp.maxT < TL.length ? sp.maxT : null, shape: txt(sp.shape) } : null };
   }
   // This round's voters (prefs rows), oldest first, with clean prefs. vt.name is the nickname, as the design's votes.
-  const votes = d => ((rnd(d) && rnd(d).prefs) || []).map(p => ({ id: p.member_id, name: String(p.nickname || ''), at: ts(p.at), prefs: clean(p.prefs) }));
+  // A row that is not an object is skipped.
+  const votes = d => { const r = rnd(d); return (r && Array.isArray(r.prefs) ? r.prefs : []).filter(isObj).map(p => ({ id: p.member_id, name: typeof p.nickname === 'string' ? p.nickname : '', at: ts(p.at), prefs: clean(p.prefs) })); };
 
   // The design's two "ago" forms: the voter table, and the payment notices.
   const ago = t => { if (!t) return ''; const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' d ago'; };
@@ -257,12 +264,13 @@
         foot: 'A ✓ means the size meets every hard limit that voter set (size, shape, ring, max time). Smoke time only adds a point. Most ✓ wins; points break ties, then the brief’s most-picked size.' } };
   }
 
-  // The design's ws: vote summary stats and per-question bars.
+  // The design's ws: vote summary stats and per-question bars. The tallies have no prototype, so a value such as
+  // "constructor" counts like any other.
   function summary(V) {
     const N = V.length; if (!N) return { has: false };
     const get = { 'Time': p => p.time, 'Shape': p => p.sizePrefs && p.sizePrefs.shape, 'Min ring': p => p.sizePrefs && p.sizePrefs.minR != null ? String(p.sizePrefs.minR) : null, 'Max ring': p => p.sizePrefs && p.sizePrefs.maxR != null ? String(p.sizePrefs.maxR) : null, 'Max time': p => p.sizePrefs && p.sizePrefs.maxT != null ? TL[p.sizePrefs.maxT] : null, 'Strength': p => p.strength, 'Wrapper': p => p.wr ? (p.wr[0] === p.wr[1] ? p.wr[0] : p.wr[0] + ' → ' + p.wr[1]) : null, 'Flavour': p => (p.flavour && p.flavour.length) ? p.flavour : null, 'Origin': p => p.origin, 'Budget': p => p.budget };
     let agreeSum = 0, agreeN = 0, setCells = 0;
-    const dims = Object.keys(get).map(k => { const c = {}; let set = 0; V.forEach(vt => { const x = get[k](vt.prefs || {}); if (x == null || x === '') return; set++; (Array.isArray(x) ? x : [x]).forEach(y => c[y] = (c[y] || 0) + 1); });
+    const dims = Object.keys(get).map(k => { const c = Object.create(null); let set = 0; V.forEach(vt => { const x = get[k](vt.prefs || {}); if (x == null || x === '') return; set++; (Array.isArray(x) ? x : [x]).forEach(y => c[y] = (c[y] || 0) + 1); });
       setCells += set; const rows = Object.entries(c).sort((m, n) => n[1] - m[1]); const top = rows[0]; if (top && k !== 'Flavour') { agreeSum += top[1] / set; agreeN++; }
       return { k, sub: set + ' of ' + N + ' set', empty: !rows.length, rows: rows.slice(0, 4).map(([v, n], i) => ({ v, c: n + ' · ' + Math.round(n / (set || 1) * 100) + '%', pct: Math.round(n / (set || 1) * 100), top: i === 0 })) }; });
     const mem = members.length || N; const ag = agreeN ? Math.round(agreeSum / agreeN * 100) : 0; const done = Math.round(setCells / (N * Object.keys(get).length) * 100);

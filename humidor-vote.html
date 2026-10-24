@@ -282,6 +282,16 @@
 
   const mineRow = () => { const r = data && data.round; return r ? (r.prefs || []).find(p => p.member_id === me.id) || null : null; };
   const mineNow = () => mineRow() || (S.saved && data.round && S.saved.round === data.round.id ? S.saved : null);
+  // My stored taste, read back only as primitives of their kind (the server takes any JSON object): text a non-empty
+  // string, wr a pair and flavour a list of strings, sizePrefs an object of finite numbers and a shape string.
+  // Anything else is absent and never coerced, so a malformed taste cannot break this page.
+  const tasteOf = p => {
+    const obj = x => !!x && typeof x === 'object' && !Array.isArray(x), txt = x => typeof x === 'string' && x !== '' ? x : null;
+    const num = x => typeof x === 'number' && isFinite(x) ? x : null, txts = x => Array.isArray(x) && x.every(s => typeof s === 'string') ? x : null;
+    p = obj(p) ? p : {}; const sp = obj(p.sizePrefs) ? p.sizePrefs : null, wr = txts(p.wr);
+    return { size: txt(p.size), time: txt(p.time), strength: txt(p.strength), wr: wr && wr.length === 2 ? wr : null, flavour: txts(p.flavour) || [],
+      origin: txt(p.origin), budget: txt(p.budget), sizePrefs: sp && { minR: num(sp.minR), maxR: num(sp.maxR), maxT: Number.isInteger(sp.maxT) && sp.maxT >= 0 && sp.maxT < TLb.length ? sp.maxT : null, shape: txt(sp.shape) } };
+  };
 
   function setProfile(k, v) { const p = { ...S.profile }; if (p[k] === v) delete p[k]; else p[k] = v; S.profile = p; }
 
@@ -434,7 +444,7 @@
       statusCol: missing.length && R0 && R0.status === 'collecting' ? 'var(--neon-red-text)' : mine ? 'var(--neon-green-text)' : 'var(--fy-text-secondary)',
       prefs: { size: P.size || null, time: P.size ? timeOf() : null, strength: P.strength || null, wr: P.wr ? P.wr.map(i => SW[i][0]) : null, flavour: P.flavour || [], origin: P.origin || null, budget: P.budget || null, sizePrefs: P.sizePrefs || null } };
     let voted = { on: false };
-    if (VOTED) { const m = mine || S.saved; const pr = (m && m.prefs) || {}; const canEdit = !!mineNow() && open;
+    if (VOTED) { const m = mine || S.saved; const pr = tasteOf(m && m.prefs); const canEdit = !!mineNow() && open;
       const gone = !!(S.saved && S.saved.round) && (!R0 || R0.id !== S.saved.round);
       const sum = [pr.size, pr.strength, pr.wr ? (pr.wr[0] === pr.wr[1] ? pr.wr[0] : pr.wr[0] + ' → ' + pr.wr[1]) + ' wrapper' : null, (pr.flavour || []).join(', ') || null, pr.budget ? pr.budget + ' a cigar' : null].filter(Boolean).join(' · ');
       voted = { on: true, canEdit: canEdit && !gone, gone, kicker: 'Round ' + ((S.saved && S.saved.n) || (R0 ? R0.n : lastN)) + ' - your vote :', sum: sum || 'No picks set.' }; }
@@ -749,7 +759,7 @@
   }
   function editTaste() {
     const m = mineNow(); if (!m || !(data.round && data.round.status === 'collecting')) return;
-    const pr = m.prefs || {}; const p = {};
+    const pr = tasteOf(m.prefs); const p = {};
     ['size', 'strength', 'origin', 'budget'].forEach(k => { if (pr[k]) p[k] = pr[k]; });
     if (Array.isArray(pr.wr) && pr.wr.length === 2) p.wr = pr.wr.map(n => Math.max(0, SW.findIndex(x => x[0] === n)));
     if (Array.isArray(pr.flavour) && pr.flavour.length) p.flavour = pr.flavour.filter(f => FAM.some(x => x[0] === f)).slice(0, 3);
