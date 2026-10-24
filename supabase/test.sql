@@ -728,10 +728,22 @@ begin
   exception when others then if sqlstate <> '22023' then raise; end if; end;
   begin perform fy.humidor_post_options('[{"name":"  "},{"name":"B"},{"name":"C"}]'); raise exception 'should have failed: blank name';
   exception when others then if sqlstate <> '22023' then raise; end if; end;
+  begin perform fy.humidor_post_options(jsonb_build_array(jsonb_build_object('name', 'A', 'notes', repeat('a', 17000)),
+                                                           jsonb_build_object('name', 'B'), jsonb_build_object('name', 'C')));
+    raise exception 'should have failed: options over 16 KB';
+  exception when others then if sqlstate <> '22023' then raise; end if; end;
   perform fy.humidor_post_options('[{"name":"<img src=x onerror=alert(1)>","price":"£9","url":"https://shop.example/a"},{"name":"Option B","price":"10-15","img":""},{"name":"Option C","price":"£12.50","img":"https://shop.example/c.jpg"}]');
   pj := fy.humidor_current();
   assert pj->'round'->>'status' = 'ranking', 'three options move the round to ranking';
   assert pj->'round'->'options'->0->>'name' = '<img src=x onerror=alert(1)>', 'names are stored unchanged';
+  -- Reopen: back to collecting, then the same three are posted again (no ballots exist yet, so nothing is lost).
+  perform fy.humidor_reopen_collect();
+  assert fy.humidor_current()->'round'->>'status' = 'collecting', 'reopen goes back to collecting';
+  begin perform fy.humidor_reopen_collect(); raise exception 'should have failed: reopen while collecting';
+  exception when others then if sqlstate <> '55000' then raise; end if; end;
+  perform fy.humidor_post_options(pj->'round'->'options');
+  pj := fy.humidor_current();
+  assert pj->'round'->>'status' = 'ranking' and pj->'round'->'options'->2->>'price' = '£12.50', 'reposting returns to ranking with the same options';
 
   -- Ranking: only members who sent a taste; a permutation of 0..2.
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000004');
@@ -790,6 +802,10 @@ begin
   exception when others then if sqlstate <> '55000' then raise; end if; end;
   begin perform fy.humidor_set_pay(12.50, 'javascript:alert(1)'); raise exception 'should have failed: bad pay link';
   exception when others then if sqlstate <> '22023' then raise; end if; end;
+  begin perform fy.humidor_set_pay(10000, null); raise exception 'should have failed: share over £9999.99';
+  exception when others then if sqlstate <> '22023' then raise; end if; end;
+  begin perform fy.humidor_set_pay(-1, null); raise exception 'should have failed: negative share';
+  exception when others then if sqlstate <> '22023' then raise; end if; end;
   perform fy.humidor_set_pay(12.50, 'https://revolut.me/ray');
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
   perform fy.humidor_mark_paid();
@@ -803,6 +819,17 @@ begin
   perform fy.humidor_mark_paid();
   perform pg_temp.as_owner();
   select state into st from fy.humidor_pay where round_id = hr and member_id = sock; assert st = 'confirmed', 'a second mark paid leaves it confirmed, got ' || coalesce(st, 'null');
+  -- Unconfirm deletes the row (back to not paid); confirm again so the read and archive below see one confirmed payer.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  perform fy.humidor_confirm_paid(sock, false);
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.humidor_pay where round_id = hr and member_id = sock; assert n = 0, 'unconfirm deletes the pay row, got ' || n;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  begin perform fy.humidor_confirm_paid(gen_random_uuid(), true); raise exception 'should have failed: confirm an unknown member';
+  exception when others then if sqlstate <> 'P0002' then raise; end if; end;
+  perform fy.humidor_confirm_paid(sock, true);
+  perform pg_temp.as_owner();
+  select state into st from fy.humidor_pay where round_id = hr and member_id = sock; assert st = 'confirmed', 'confirmed again, got ' || coalesce(st, 'null');
   -- The read carries every list with names.
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
   pj := fy.humidor_current();
