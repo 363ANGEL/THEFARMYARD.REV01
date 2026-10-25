@@ -5,7 +5,7 @@
   --font-heading:'Inter',system-ui,sans-serif; --font-heading-weight:500;
   --color-text:var(--fy-text); --color-bg:var(--fy-bg); --color-accent:var(--neon-pink);
   --color-neutral-300:var(--fy-text-secondary); --color-neutral-400:var(--fy-text-label); --color-neutral-600:#5b5f72;
-  --color-accent-900:#2d0f22;
+  --color-accent-900:#2d0f22; --color-neutral-800:#1b4a4a;
   --tube-teal-soft:0 0 3px rgba(95,211,207,.7),0 0 9px rgba(95,211,207,.55),0 0 22px rgba(95,211,207,.3),0 0 48px rgba(95,211,207,.12),inset 0 0 3px rgba(95,211,207,.7),inset 0 0 11px rgba(95,211,207,.2);
 }
 body{font-family:var(--font-body)}
@@ -27,7 +27,7 @@ i.ph,i.ph-fill,i.ph-bold,i.ph-light{text-shadow:0 0 6px currentColor}
 .input{font:inherit;font-size:15px;background:var(--fy-surface-2,#2b2e3f);color:var(--fy-text);border:1px solid var(--neon-teal);border-radius:8px;padding:8px 12px;min-width:0;box-sizing:border-box;width:100%}
 .input:focus{outline:none;box-shadow:0 0 8px rgba(95,211,207,.5)}
 .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:400;letter-spacing:.02em}
-.tag-neutral{border:1px solid var(--neon-teal);color:var(--neon-teal);box-shadow:0 0 5px var(--neon-teal);background:#1b4a4a}   /* fill = the designs' --color-neutral-800 */
+.tag-neutral{border:1px solid var(--neon-teal);color:var(--neon-teal);box-shadow:0 0 5px var(--neon-teal);background:var(--color-neutral-800)}
 .tag-accent{border:1px solid var(--neon-pink);color:var(--neon-pink-text);box-shadow:var(--glow-pink);text-shadow:0 0 6px var(--neon-pink)}
 .kicker{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)}
 .hd2{font-family:var(--font-heading);font-weight:var(--font-heading-weight);font-size:28px;line-height:1.12;margin:0;letter-spacing:-.01em;color:var(--fy-text)}
@@ -129,3 +129,6 @@ i.ph,i.ph-fill,i.ph-bold,i.ph-light{text-shadow:0 0 6px currentColor}
   .me-btn{width:auto;margin-top:0;margin-left:auto}
   .main{padding:14px 12px}
 }
+/* Touch screens (a tablet is pointer:coarse at any width) and the strip: nav rows at least 44px tall.
+   A mouse on a wide screen keeps the designs' 30px pitch. The rows stay in flow, so they never overlap. */
+@media (max-width:860px),(pointer:coarse){.nav{min-height:44px}}
