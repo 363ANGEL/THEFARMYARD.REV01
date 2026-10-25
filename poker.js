@@ -131,9 +131,11 @@
   let midSig = '';
   function renderMid() {
     const c = S.cur, canManage = mine();
+    if (!c || !$('mid')) return;                   // the paste hint's timer can fire after the table has closed
     const sig = JSON.stringify([c.id, c.status, canManage, S.pasteHint, !!S.draft.trim()]);
     if (sig === midSig && $('mid').innerHTML) return; midSig = sig;
     // A redraw replaces the link box. Put focus and caret back, or a Ctrl+V pressed after the paste hint fades lands nowhere.
+    // Without scrolling: the starter may have scrolled down the page while the hint was up.
     const had = document.activeElement && document.activeElement.id === 'link' ? document.activeElement : null;
     const caret = had ? [had.selectionStart, had.selectionEnd] : null;
     if (c.status === 'open') {
@@ -148,7 +150,7 @@
       $('mid').innerHTML = '<div class="wait">WAITING FOR TABLE TO OPEN</div>';
     }
     const box = had && $('link');
-    if (box) { box.focus(); try { box.setSelectionRange(caret[0], caret[1]); } catch (e) { /* caret not available */ } }
+    if (box) { box.focus({ preventScroll: true }); try { box.setSelectionRange(caret[0], caret[1]); } catch (e) { /* caret not available */ } }
   }
   $('tablecol').addEventListener('click', async ev => {
     const t = ev.target.closest('button'); if (!t) return;
@@ -156,7 +158,7 @@
       let txt = ''; try { txt = (await navigator.clipboard.readText()) || ''; } catch (e) { /* blocked */ }
       if (txt.trim()) { S.draft = txt.trim(); renderMid(); return; }
       S.pasteHint = true; renderMid(); const i = $('link'); if (i) { i.focus(); i.select(); }
-      setTimeout(() => { S.pasteHint = false; renderMid(); }, 3500);
+      clearTimeout(S.pasteHintT); S.pasteHintT = setTimeout(() => { S.pasteHint = false; renderMid(); }, 3500);   // a second PASTE restarts the 3.5 s
     } else if (t.id === 'enter') enterLink();
   });
   $('tablecol').addEventListener('input', ev => {
