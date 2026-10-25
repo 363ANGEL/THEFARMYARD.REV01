@@ -15,8 +15,9 @@
    DS tokens the design reads that the site does not define yet (FARMYARD DS REV P01 values; bronze and the
    hint/popover edge are the site's own #cd7f32-like copper and #9eeae6 tube). */
 :root{--color-accent-2:#a7a1db;--color-neutral-500:#9397ab;--medal-silver:#e4ecf0;--medal-bronze:#cd7f32;--hint-border:#9eeae6}
+.main{gap:18px}   /* the design's 18px between the Humidor header and the sections, as on Home (the Barn default is 14px) */
 /* README §2: text x0.73 on tablet, x0.77 on mobile, never under 10px. The header title stays the shared 28px. */
-.hv{--ts:1;display:flex;flex-direction:column;gap:18px;min-width:0}
+.hv{--ts:1;display:flex;flex-direction:column;min-width:0}
 @media (max-width:1099px){.hv{--ts:.73}}
 @media (max-width:699px){.hv{--ts:.77}}
 .t-k{font-size:max(10px,calc(var(--text-kicker) * var(--ts,1)))}
@@ -34,6 +35,7 @@
 .hv .up{letter-spacing:.08em;text-transform:uppercase}
 .hv .up6{letter-spacing:.06em;text-transform:uppercase}
 .hv button,.hv select{font-family:inherit}
+.hv h2,.hv h3{line-height:1.12}   /* the design's headings take the DS h1–h6 line height; .barn's 1.55 is for body text */
 .hv-teal{color:var(--neon-teal)}
 .hv-pinkh{margin:0;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink),0 0 6px color-mix(in srgb,var(--neon-pink) 80%,transparent)}
 .hv-pinkk{font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink),0 0 6px color-mix(in srgb,var(--neon-pink) 80%,transparent);opacity:.7}
@@ -44,27 +46,17 @@
 .hv-change b{color:var(--neon-pink-text);font-weight:500}
 .hv-box{display:flex;flex-direction:column;gap:16px;padding:14px 16px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);min-width:0;background:var(--fy-bg)}
 
-/* My preferences (sidebar copy at the top, inline copy at the foot of section 1) */
-.hv-prefwrap{display:flex;flex-direction:column}
-.hv-prefwrap .lab{margin-top:14px;color:var(--fy-text-label);padding:0 10px}
-.hv-pref{display:flex;gap:10px;border-radius:10px;border:1px solid color-mix(in srgb,var(--fy-text) 60%,transparent);box-shadow:0 0 8px color-mix(in srgb,var(--fy-text) 30%,transparent);background:color-mix(in srgb,var(--fy-text) 15%,transparent)}
+/* My preferences: one panel, at the foot of section 1, at every width (RAY 2026-10-24: the design's top copy is not built) */
+.hv-pref{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin:14px 16px 16px;padding:12px 14px;border-radius:10px;border:1px solid color-mix(in srgb,var(--fy-text) 60%,transparent);box-shadow:0 0 8px color-mix(in srgb,var(--fy-text) 30%,transparent);background:color-mix(in srgb,var(--fy-text) 15%,transparent)}
 .hv-pref.same{border-color:var(--neon-green-tube);box-shadow:var(--glow-green)}
-.hv-pref.side{flex-direction:column;align-items:stretch;margin-top:6px;padding:12px}
-.hv-pref.inl{flex-wrap:wrap;align-items:flex-end;margin:14px 16px 16px;padding:12px 14px}
-.hv-pref label{display:flex;flex-direction:column;gap:4px;min-width:0}
-.hv-pref.side label{flex:0 0 auto}
-.hv-pref.inl label{flex:1 1 130px}
-.hv-pref .lt{letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text)}
-.hv-pref.inl .lt{color:var(--color-neutral-100);font-weight:600}
-.hv-sel{min-height:44px;padding:0 10px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text) 60%,transparent);box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 35%,transparent);background:var(--fy-bg);color:var(--fy-text);cursor:pointer;outline:none;width:100%}
-.hv-pref.inl .hv-sel{background:var(--fy-surface)}
+.hv-pref label{display:flex;flex-direction:column;gap:4px;flex:1 1 130px;min-width:0}
+.hv-pref .lt{letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-100);font-weight:600}
+.hv-sel{min-height:44px;padding:0 10px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text) 60%,transparent);box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 35%,transparent);background:var(--fy-surface);color:var(--fy-text);cursor:pointer;outline:none;width:100%}
 .hv-sel:hover,.hv-sel:focus{border-color:var(--color-neutral-100);box-shadow:0 0 6px color-mix(in srgb,var(--color-neutral-100) 90%,transparent),0 0 16px color-mix(in srgb,var(--fy-text) 55%,transparent)}
-.hv-tube{flex:0 0 auto;min-height:44px;padding:0 18px;border-radius:19px;background:transparent;cursor:pointer;letter-spacing:.08em;font-weight:600;white-space:nowrap;border:1.5px solid var(--color-neutral-100);color:var(--color-neutral-100);box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 35%,transparent);text-shadow:none}
+.hv-tube{flex:0 0 auto;align-self:flex-end;min-height:44px;padding:0 14px;border-radius:19px;background:transparent;cursor:pointer;letter-spacing:.08em;font-weight:600;white-space:nowrap;border:1.5px solid var(--color-neutral-100);color:var(--color-neutral-100);box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 35%,transparent);text-shadow:none}
 .hv-tube:hover{box-shadow:0 0 8px color-mix(in srgb,var(--color-neutral-100) 90%,transparent),0 0 18px color-mix(in srgb,var(--fy-text) 55%,transparent)}
-.hv-pref.inl .hv-tube{align-self:flex-end;min-height:44px;padding:0 14px}
-.hv-pref .note{line-height:1.4;color:var(--fy-text);white-space:normal}
-.hv-pref.inl .note{flex-basis:100%}
-@media (max-width:699px){.hv-pref.inl label{flex:1 1 100%}.hv-pref.inl .hv-tube{align-self:center;margin:4px auto 0;padding:0 12px}}
+.hv-pref .note{flex-basis:100%;color:var(--fy-text)}
+@media (max-width:699px){.hv-pref label{flex:1 1 100%}.hv-tube{align-self:center;margin:4px auto 0;padding:0 12px}}
 
 /* Sections: gated, collapsible */
 .hv-secs{display:flex;flex-direction:column;gap:64px;min-width:0}
@@ -92,6 +84,8 @@
 .hv-sbi{min-height:0;overflow:hidden;margin:0 -12px;padding:0 12px}
 .hv-sb.ov .hv-sbi{overflow:visible}
 .hv-sbc{display:flex;flex-direction:column;gap:16px;padding:16px 0 14px}
+/* An empty region is not in the design (it is rendered only when shown), so it must not add a flex gap */
+.hv [data-r="moreBody"]:empty,.hv [data-r="brandsBody"]:empty,.hv [data-r="voted"]:empty{display:none}
 
 /* 1 · Shape poster */
 .hv-m1{display:flex;flex-direction:column;gap:0;min-width:0;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:linear-gradient(color-mix(in srgb,var(--neon-green-tube) 8%,transparent),color-mix(in srgb,var(--neon-green-tube) 8%,transparent)),var(--fy-bg);overflow:hidden}
@@ -116,6 +110,7 @@
 .hv-more{align-self:flex-start;display:flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;background:color-mix(in srgb,var(--neon-teal) 6%,transparent);border:1px solid color-mix(in srgb,var(--neon-teal) 70%,transparent);border-radius:999px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal);text-shadow:0 0 6px color-mix(in srgb,var(--neon-teal) 50%,transparent)}
 .hv-more:hover{animation:none;color:#fff;background:color-mix(in srgb,var(--neon-teal) 22%,transparent);border-color:var(--hint-text);transform:translateY(-1px);text-shadow:0 0 6px var(--hint-border),0 0 14px color-mix(in srgb,var(--neon-teal) 90%,transparent);box-shadow:0 0 10px color-mix(in srgb,var(--hint-border) 95%,transparent),0 0 26px color-mix(in srgb,var(--neon-teal) 75%,transparent),0 0 48px color-mix(in srgb,var(--neon-teal) 40%,transparent)}
 .hv-photo{flex:1;position:relative;min-height:150px;border-radius:8px;overflow:hidden;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent)}
+@media (max-width:699px){[data-r="mobPhoto"] .hv-photo{aspect-ratio:3/2}}   /* the design's phone photo slot is 3:2 */
 .hv-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
 .hv-cell{display:flex;flex-direction:column;gap:3px;padding:10px 12px;box-shadow:-1px 0 0 color-mix(in srgb,var(--fy-text-label) 25%,transparent),0 -1px 0 color-mix(in srgb,var(--fy-text-label) 25%,transparent)}
 .hv-dl{display:grid;grid-template-columns:minmax(96px,auto) 1fr;gap:10px;align-items:baseline}
@@ -140,7 +135,6 @@
   .hv-plantg{grid-template-columns:minmax(0,1fr);gap:14px}
   .hv-plantg2{grid-template-columns:minmax(0,1fr) 84px;gap:10px}
   .hv-m3g{grid-template-columns:minmax(0,1fr);gap:14px}
-  .hv-taste{grid-template-columns:120px 1fr}
 }
 /* 4 · Budget */
 .hv-budgets{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:8px}
@@ -275,7 +269,7 @@
   const green = { bw: '2px', bc: 'var(--neon-green-tube)', sh: '0 0 6px var(--neon-green-tube),0 0 16px color-mix(in srgb,var(--neon-green-tube) 55%,transparent)', lc: 'var(--neon-green-text)', ts: 'none' };
 
   // Page state. profile = the taste being built (P in the design); filt = the My preferences selects.
-  const S = { profile: {}, filt: {}, focus: 0, sizeIdx: {}, secOpen: {}, secOv: {}, m1Sent: false, seen1: false, leaf: 1, swatch: 2,
+  const S = { profile: {}, filt: {}, focus: 0, sizeIdx: {}, secOpen: {}, secOv: {}, m1Sent: false, leaf: 1, swatch: 2,
     moreInfo: false, brandsInfo: false, zoom: false, editing: false, voted: false, saved: null, stageW: 0 };
   let me = null, data = { stage: null, round: null }, root = null, R = {}, formRound = null, movedOn = false, busy = false, lastN = null;
   const cache = {};
@@ -432,7 +426,7 @@
     const set = (v, go, txt) => v ? { val: txt || v, col: 'var(--neon-pink-text)', ts: 'var(--text-glow-pink)', go } : { val: 'Not set · go to it', col: 'var(--fy-text-label)', ts: 'none', go };
     const SP = P.sizePrefs || {};
     const ringTxt = (SP.minR != null || SP.maxR != null) ? ((SP.minR != null ? SP.minR : 'any') + ' to ' + (SP.maxR != null ? SP.maxR : 'any')) : '';
-    const vRows = [{ label: 'Ring gauge', ...set(ringTxt, 1) }, { label: 'Max time', req: true, ...set(SP.maxT != null ? TLb[SP.maxT] : '', 1, SP.maxT != null ? 'Up to ' + TLb[SP.maxT] : '') }, { label: 'Shape', req: true, ...set(SP.shape, 1) }, { label: 'Time', ...set(P.size, 1, P.size ? timeOf() + ' · ' + P.size : '') }, { label: 'Strength', ...set(P.strength, 2) }, { label: 'Wrapper', ...set(P.wr, 3, wrLabel) }, { label: 'Flavour', ...set((P.flavour || []).length, 3, (P.flavour || []).join(', ')) }, { label: 'Origin', ...set(P.origin, 2) }, { label: 'Budget', req: true, ...set(P.budget, 4, P.budget ? P.budget + ' a cigar' : '') }];
+    const vRows = [{ label: 'Ring gauge', ...set(ringTxt, 'pref') }, { label: 'Max time', req: true, ...set(SP.maxT != null ? TLb[SP.maxT] : '', 'pref', SP.maxT != null ? 'Up to ' + TLb[SP.maxT] : '') }, { label: 'Shape', req: true, ...set(SP.shape, 'pref') }, { label: 'Time', ...set(P.size, 1, P.size ? timeOf() + ' · ' + P.size : '') }, { label: 'Strength', ...set(P.strength, 2) }, { label: 'Wrapper', ...set(P.wr, 3, wrLabel) }, { label: 'Flavour', ...set((P.flavour || []).length, 3, (P.flavour || []).join(', ')) }, { label: 'Origin', ...set(P.origin, 2) }, { label: 'Budget', req: true, ...set(P.budget, 4, P.budget ? P.budget + ' a cigar' : '') }];
     vRows.forEach(r => { if (r.req && r.col !== 'var(--neon-pink-text)') { r.val = 'Required · go to it'; r.col = 'var(--neon-red-text)'; } if (r.req) r.label = r.label + ' *'; });
     const missing = [SP.shape ? null : 'shape', SP.maxT != null ? null : 'max smoke time', P.budget ? null : 'budget'].filter(Boolean);
     const voteCount = vRows.filter(r => r.col === 'var(--neon-pink-text)').length + ' of ' + vRows.length + ' set';
@@ -478,12 +472,12 @@
     return `<span style="position:absolute;inset:0;background:${v.bc};clip-path:${v.clip}"></span><span class="lay" aria-hidden="true" style="position:absolute;inset:${v.leafInset}px;clip-path:${v.clip};z-index:1;opacity:${v.labOp};transition-delay:${v.labDelay}">${svgs}</span><span class="lay" aria-hidden="true" style="position:absolute;inset:0;clip-path:${v.clip};z-index:2;opacity:${v.labOp};transition-delay:${v.labDelay}"><span style="position:absolute;left:0;right:0;top:${v.capTop};height:1px;background:var(--neon-amber-tube);box-shadow:0 0 3px var(--neon-amber)"></span></span><span style="position:absolute;inset:${v.inset}px;background:var(--fy-surface);clip-path:${v.clip}"></span><span style="position:absolute;inset:0;clip-path:${v.clip};display:${v.bandShow}"><span style="position:absolute;left:0;right:0;top:${v.bandTop};height:8px;background:var(--fy-text);box-shadow:0 0 4px color-mix(in srgb,var(--fy-text) 80%,transparent)"></span></span>`;
   }
 
-  function prefPanel(V, side) {
-    const p = V.prefBar, k = side ? 'a' : 'b';
-    const sel = (f, lab, val, opts) => `<label><span class="lt t10">${lab}</span><select class="hv-sel t-s" data-f="${f}" data-k="${k}-${f}" aria-label="${lab}">${opts.map(o => `<option value="${esc(o.v)}"${o.v === val ? ' selected' : ''}>${esc(o.l)}</option>`).join('')}</select></label>`;
-    return `<div class="hv-pref ${side ? 'side' : 'inl'}${p.same ? ' same' : ''}" aria-label="${side ? 'My preferences (sidebar)' : 'My preferences'}">
+  function prefPanel(V) {
+    const p = V.prefBar;
+    const sel = (f, lab, val, opts) => `<label><span class="lt t10">${lab}</span><select class="hv-sel t-s" data-f="${f}" data-k="${f}" aria-label="${lab}">${opts.map(o => `<option value="${esc(o.v)}"${o.v === val ? ' selected' : ''}>${esc(o.l)}</option>`).join('')}</select></label>`;
+    return `<div class="hv-pref${p.same ? ' same' : ''}" aria-label="My preferences">
       ${sel('girth', 'Ring gauge', p.girth, p.girthOpts)}${sel('maxT', 'Max smoke time', p.maxT, p.timeOpts)}${sel('shape', 'Preferred shape', p.shape, p.shapeOpts)}
-      <button type="button" class="hv-tube ${side ? 't-m' : 't-k'}" data-a="prefsub" data-k="${k}-sub">${p.label}</button>
+      <button type="button" class="hv-tube t-k" data-a="prefsub" data-k="prefsub">${p.label}</button>
       <span class="note t-m">${esc(p.note)}</span></div>`;
   }
 
@@ -510,11 +504,8 @@
     }
     ['h3verb', 'h4verb'].forEach((k, i) => put(k, esc(LY.verb + (i ? ' a budget · per cigar' : ' a colour · then a taste family'))));
 
-    // My preferences
-    const pw = R.prefwrap; const showPw = S.seen1;
-    if (showPw && pw.hidden) { pw.hidden = false; pw.classList.add('hm-pref'); }
-    pw.style.maxWidth = V.MD === 'd' ? '360px' : 'none';
-    put('pref1', prefPanel(V, true)); put('pref2', prefPanel(V, false));
+    // My preferences (one panel, at the foot of section 1)
+    put('pref', prefPanel(V));
 
     // Poster cards
     const cl = V.cardLab;
@@ -643,7 +634,6 @@
   function skeleton(main) {
     main.innerHTML = `<div class="hv" id="hv">
       <div class="hv-zoom" data-r="zoom" data-a="zclose" role="dialog" aria-modal="true" aria-label="Cigar close-up" hidden></div>
-      <div class="hv-prefwrap" data-r0="prefwrap" hidden><span class="lab t-k up">My preferences</span><div data-r="pref1"></div></div>
       <div class="hv-secs">
         <section class="hv-sec" id="m1" aria-label="1 Shape and size">${head(1, '1. SHAPE &amp; SIZE', 'It\'s all in here. The shape decides how the smoke reaches you; the size decides how long you\'re sat with it.')}
           ${body(1, `<div class="hv-m1">
@@ -674,7 +664,7 @@
               <div data-r="brandsBody"></div>
             </div>
             <div class="hv-rule"></div>
-            <div data-r="pref2"></div>
+            <div data-r="pref"></div>
           </div>`)}</section>
         <section class="hv-sec" id="m2" aria-label="2 About the plant">${head(2, '2. ABOUT THE PLANT', 'Where it grows and which leaf it comes from. Together they decide how it tastes and how hard it hits.')}
           ${body(2, `<div class="hv-box" style="background:linear-gradient(color-mix(in srgb,var(--medal-bronze) 9%,transparent),color-mix(in srgb,var(--medal-bronze) 9%,transparent)),var(--fy-bg)">
@@ -737,10 +727,16 @@
   function measure() { const el = R.poster; if (el && el.clientWidth && el.clientWidth !== S.stageW) { S.stageW = el.clientWidth; return true; } return false; }
   function toggleSec(k) {
     const s = model().sec(k); if (s.voted || s.locked) return;
-    const v = !S.secOpen[k]; S.secOpen = { ...S.secOpen, [k]: v }; S.secOv = { ...S.secOv, [k]: false }; if (k === 1 && v) S.seen1 = true;
+    const v = !S.secOpen[k]; S.secOpen = { ...S.secOpen, [k]: v }; S.secOv = { ...S.secOv, [k]: false };
     clearTimeout(toggleSec['t' + k]);
     if (v) toggleSec['t' + k] = setTimeout(() => { S.secOv = { ...S.secOv, [k]: true }; measure(); draw(); }, 650);
     measure(); draw();
+  }
+  // "Go to it" on Ring gauge, Max time and Shape: My preferences sits at the foot of section 1, so a shut
+  // section 1 is opened first and the panel is scrolled to once the open (.6s when motion is welcome) is done.
+  function goPref() {
+    const shut = !S.secOpen[1]; if (shut) toggleSec(1);
+    if (shut && scrollBehaviour() === 'smooth') setTimeout(() => scrollToEl(R.pref), 650); else scrollToEl(R.pref);
   }
   function submitPrefs() {
     const ff = S.filt; const v = { minR: ff.minR ?? null, maxR: ff.maxR ?? null, maxT: ff.maxT ?? null, shape: ff.shape ?? null };
@@ -766,7 +762,7 @@
     if (pr.origin) p.origins = String(pr.origin).split(' & ').filter(o => ORIG.some(x => x[0] === o)).slice(0, 2);
     const sp = pr.sizePrefs; const filt = {};
     if (sp && typeof sp === 'object') { const v = { minR: sp.minR ?? null, maxR: sp.maxR ?? null, maxT: sp.maxT ?? null, shape: sp.shape ?? null }; p.sizePrefs = v; for (const k in v) if (v[k] != null) filt[k] = v[k]; }
-    S.profile = p; S.filt = filt; S.editing = true; S.voted = false; S.m1Sent = true; S.seen1 = true; S.secOpen = { 1: true }; S.secOv = {};
+    S.profile = p; S.filt = filt; S.editing = true; S.voted = false; S.m1Sent = true; S.secOpen = { 1: true }; S.secOv = {};
     formRound = { id: data.round.id, status: data.round.status }; movedOn = false;
     clearTimeout(toggleSec.t1); toggleSec.t1 = setTimeout(() => { S.secOv = { ...S.secOv, 1: true }; measure(); draw(); }, 650);
     draw(); measure() && draw();
@@ -805,7 +801,7 @@
         if (fl.length) pr.flavour = fl; else delete pr.flavour; S.profile = pr; break;
       }
       case 'budget': setProfile('budget', v); break;
-      case 'go': return scrollToEl(document.getElementById('m' + i));
+      case 'go': return el.getAttribute('data-i') === 'pref' ? goPref() : scrollToEl(document.getElementById('m' + i));
       case 'submit': return submitVote();
       case 'edit': return editTaste();
       case 'zclose': S.zoom = false; break;
