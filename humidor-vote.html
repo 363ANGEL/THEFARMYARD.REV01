@@ -426,7 +426,7 @@
     const set = (v, go, txt) => v ? { val: txt || v, col: 'var(--neon-pink-text)', ts: 'var(--text-glow-pink)', go } : { val: 'Not set · go to it', col: 'var(--fy-text-label)', ts: 'none', go };
     const SP = P.sizePrefs || {};
     const ringTxt = (SP.minR != null || SP.maxR != null) ? ((SP.minR != null ? SP.minR : 'any') + ' to ' + (SP.maxR != null ? SP.maxR : 'any')) : '';
-    const vRows = [{ label: 'Ring gauge', ...set(ringTxt, 'pref') }, { label: 'Max time', req: true, ...set(SP.maxT != null ? TLb[SP.maxT] : '', 'pref', SP.maxT != null ? 'Up to ' + TLb[SP.maxT] : '') }, { label: 'Shape', req: true, ...set(SP.shape, 'pref') }, { label: 'Time', ...set(P.size, 1, P.size ? timeOf() + ' · ' + P.size : '') }, { label: 'Strength', ...set(P.strength, 2) }, { label: 'Wrapper', ...set(P.wr, 3, wrLabel) }, { label: 'Flavour', ...set((P.flavour || []).length, 3, (P.flavour || []).join(', ')) }, { label: 'Origin', ...set(P.origin, 2) }, { label: 'Budget', req: true, ...set(P.budget, 4, P.budget ? P.budget + ' a cigar' : '') }];
+    const vRows = [{ label: 'Ring gauge', ...set(ringTxt, 'pref:girth') }, { label: 'Max time', req: true, ...set(SP.maxT != null ? TLb[SP.maxT] : '', 'pref:maxT', SP.maxT != null ? 'Up to ' + TLb[SP.maxT] : '') }, { label: 'Shape', req: true, ...set(SP.shape, 'pref:shape') },{ label: 'Time', ...set(P.size, 1, P.size ? timeOf() + ' · ' + P.size : '') }, { label: 'Strength', ...set(P.strength, 2) }, { label: 'Wrapper', ...set(P.wr, 3, wrLabel) }, { label: 'Flavour', ...set((P.flavour || []).length, 3, (P.flavour || []).join(', ')) }, { label: 'Origin', ...set(P.origin, 2) }, { label: 'Budget', req: true, ...set(P.budget, 4, P.budget ? P.budget + ' a cigar' : '') }];
     vRows.forEach(r => { if (r.req && r.col !== 'var(--neon-pink-text)') { r.val = 'Required · go to it'; r.col = 'var(--neon-red-text)'; } if (r.req) r.label = r.label + ' *'; });
     const missing = [SP.shape ? null : 'shape', SP.maxT != null ? null : 'max smoke time', P.budget ? null : 'budget'].filter(Boolean);
     const voteCount = vRows.filter(r => r.col === 'var(--neon-pink-text)').length + ' of ' + vRows.length + ' set';
@@ -475,7 +475,7 @@
   function prefPanel(V) {
     const p = V.prefBar;
     const sel = (f, lab, val, opts) => `<label><span class="lt t10">${lab}</span><select class="hv-sel t-s" data-f="${f}" data-k="${f}" aria-label="${lab}">${opts.map(o => `<option value="${esc(o.v)}"${o.v === val ? ' selected' : ''}>${esc(o.l)}</option>`).join('')}</select></label>`;
-    return `<div class="hv-pref${p.same ? ' same' : ''}" aria-label="My preferences">
+    return `<div class="hv-pref${p.same ? ' same' : ''}" role="group" aria-label="My preferences">
       ${sel('girth', 'Ring gauge', p.girth, p.girthOpts)}${sel('maxT', 'Max smoke time', p.maxT, p.timeOpts)}${sel('shape', 'Preferred shape', p.shape, p.shapeOpts)}
       <button type="button" class="hv-tube t-k" data-a="prefsub" data-k="prefsub">${p.label}</button>
       <span class="note t-m">${esc(p.note)}</span></div>`;
@@ -734,8 +734,11 @@
   }
   // "Go to it" on Ring gauge, Max time and Shape: My preferences sits at the foot of section 1, so a shut
   // section 1 is opened first and the panel is scrolled to once the open (.6s when motion is welcome) is done.
-  function goPref() {
+  // f is the row's select (data-f). It takes focus as soon as toggleSec has drawn section 1 open, which has
+  // already lifted its inert; preventScroll keeps the browser from scrolling the clipped .hv-sbi as it opens.
+  function goPref(f) {
     const shut = !S.secOpen[1]; if (shut) toggleSec(1);
+    const sel = R.pref.querySelector('[data-f="' + f + '"]'); if (sel) sel.focus({ preventScroll: true });
     if (shut && scrollBehaviour() === 'smooth') setTimeout(() => scrollToEl(R.pref), 650); else scrollToEl(R.pref);
   }
   function submitPrefs() {
@@ -801,7 +804,7 @@
         if (fl.length) pr.flavour = fl; else delete pr.flavour; S.profile = pr; break;
       }
       case 'budget': setProfile('budget', v); break;
-      case 'go': return el.getAttribute('data-i') === 'pref' ? goPref() : scrollToEl(document.getElementById('m' + i));
+      case 'go': { const g = el.getAttribute('data-i') || ''; return g.startsWith('pref:') ? goPref(g.slice(5)) : scrollToEl(document.getElementById('m' + i)); }
       case 'submit': return submitVote();
       case 'edit': return editTaste();
       case 'zclose': S.zoom = false; break;
