@@ -30,7 +30,6 @@
   @keyframes editFlash{0%,100%{box-shadow:0 0 4px color-mix(in srgb,var(--neon-pink-tube) 35%,transparent),0 0 10px color-mix(in srgb,var(--neon-pink) 20%,transparent);border-color:color-mix(in srgb,var(--neon-pink-tube) 60%,transparent)}50%{box-shadow:0 0 10px color-mix(in srgb,var(--neon-pink-tube) 95%,transparent),0 0 26px color-mix(in srgb,var(--neon-pink) 60%,transparent);border-color:var(--neon-pink-tube)}}
   @keyframes liveDot{0%,100%{opacity:.55;box-shadow:0 0 3px color-mix(in srgb,var(--neon-green-tube) 40%,transparent)}50%{opacity:1;box-shadow:0 0 8px var(--neon-green-tube),0 0 16px color-mix(in srgb,var(--neon-green-tube) 60%,transparent)}}
   @keyframes popIn{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
-  @keyframes prefIn{from{transform:translateX(-24px);opacity:0}to{transform:none;opacity:1}}
 
   .hm-char{animation:charBreath 6s ease-in-out infinite}
   .hm-roll{animation:rollBreath 2.6s ease-in-out infinite}
@@ -38,6 +37,5 @@
   .hm-edit{animation:editFlash 1.4s ease-in-out infinite}
   .hm-dot.on{animation:liveDot 1.6s ease-in-out infinite}
   .hm-pop{animation:popIn .5s ease-out}
-  .hm-pref{animation:prefIn .5s ease-out}
   .hm-tabs .tab{transition:background .15s,box-shadow .15s,border-color .15s,color .15s}
 }
