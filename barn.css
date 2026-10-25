@@ -127,6 +127,7 @@ i.ph,i.ph-fill,i.ph-bold,i.ph-light{text-shadow:0 0 6px currentColor}
   .voice{width:auto;flex:1 1 140px;margin-top:0!important}
   .side .tip{flex-basis:100%}
   .me-btn{width:auto;margin-top:0;margin-left:auto}
+  .me-btn i{display:none}   /* the Humidor strip design has no gear on the profile button; the nav icons stay */
   .main{padding:14px 12px}
 }
 /* Touch screens (a tablet is pointer:coarse at any width) and the strip: nav rows at least 44px tall.
