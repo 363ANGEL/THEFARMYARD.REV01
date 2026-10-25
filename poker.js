@@ -169,7 +169,7 @@
   $('tablecol').addEventListener('keydown', ev => { if (ev.target.id === 'link' && ev.key === 'Enter') { ev.preventDefault(); enterLink(); } });
   async function enterLink() {
     const url = (S.draft || '').trim(); if (!url || !S.cur) return;
-    try { await FY.rpc('poker_set_link', { p_table: S.cur.id, p_url: url }); FY.toast('Table open. Pick your seat.'); S.draft = ''; }
+    try { await FY.rpc('poker_set_link', { p_table: S.cur.id, p_url: url }); FY.toast('Table Open'); S.draft = ''; }
     catch (e) { FY.toast(e.message); }
     await refresh(true);
   }
