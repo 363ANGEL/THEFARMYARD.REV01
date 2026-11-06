@@ -14,7 +14,7 @@
 
   const A = { tab: location.hash.replace('#', '') || 'members', members: [] };
   const TABS = [['members', 'Members'], ['humidor', 'Humidor'], ['poker', 'Poker'], ['league', 'League'], ['tokens', 'Tokens & IOUs'], ['site', 'Site']];
-  const loadMembers = async () => { A.members = (await FY.q('member').select('id,nickname,avatar,avatar_url,user_id,role,setup_at').order('nickname')).data || []; };
+  const loadMembers = async () => { A.members = (await FY.q('member').select('id,nickname,avatar,avatar_url,user_id,role,setup_at,invite_email,discord_username,mobile').order('nickname')).data || []; };
   const nick = id => A.members.find(m => m.id === id)?.nickname || '?';
   const opts = sel => A.members.map(m => `<option value="${m.id}" ${m.id === sel ? 'selected' : ''}>${esc(m.nickname)}</option>`).join('');
   const twoTap = (b, label, fn) => {
@@ -43,12 +43,16 @@
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Click a row to open their profile in admin view.</span>
       <table><thead><tr><th>Member</th><th>Status</th><th>Claim link</th></tr></thead><tbody>
       ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}"><td style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)}${m.role === 'leader' ? ' <span style="color:var(--fy-text-label)">(leader)</span>' : ''}</td>
-        <td>${m.user_id ? (m.setup_at ? 'Claimed' : 'Claimed · set-up pending') : '<span style="color:var(--fy-text-label)">Unclaimed</span>'}</td>
+        <td>${m.user_id ? (m.setup_at ? 'Claimed' : 'Claimed · set-up pending') : `<span style="color:var(--fy-text-label)">Invited · ${esc(m.invite_email || m.discord_username || 'no contact — cannot sign in')}</span>`}</td>
         <td>${m.user_id ? '' : `<button class="rowbtn" data-link="${m.id}">New link</button>`}</td></tr>`).join('')}
       </tbody></table>
       <form id="newmember" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input class="input" id="nm-nick" placeholder="Nickname" required maxlength="24" style="min-height:40px">
         <select class="input" id="nm-av" style="min-height:40px">${['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].map(a => `<option>${a}</option>`).join('')}</select>
+        <input class="input" id="nm-email" type="email" placeholder="Invite email" maxlength="254" style="min-height:40px">
+        <input class="input" id="nm-disc" placeholder="Discord username" maxlength="40" style="min-height:40px">
+        <input class="input" id="nm-mob" type="tel" placeholder="Mobile (contact only)" maxlength="20" style="min-height:40px">
         <button class="btn btn-primary" style="min-height:40px">Add member</button></form>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Invite-only: email and Discord username are each optional, but one is needed — Hank matches their Discord sign-in against it at the door. Mobile is contact only, never used for login.</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">A claim link works once and expires after 14 days. Send it on Discord.</span>
       <div id="linkbox" hidden style="display:flex;gap:8px"><input class="input" id="linkout" readonly style="flex:1;min-height:40px"><button class="rowbtn" id="copylink">Copy</button></div></div>
       <div class="acard"><span class="t-module">Icon palette</span>
@@ -61,8 +65,15 @@
     });
     pane.querySelector('#newmember').addEventListener('submit', async ev => {
       ev.preventDefault();
-      try { await FY.rpc('create_member', { p_nickname: pane.querySelector('#nm-nick').value.trim(), p_avatar: pane.querySelector('#nm-av').value }); FY.toast('Added.'); draw(); }
-      catch (e) { FY.toast(e.message); }
+      const email = pane.querySelector('#nm-email').value.trim(), disc = pane.querySelector('#nm-disc').value.trim();
+      if (!email && !disc) { FY.toast('Give an invite email or a Discord username (at least one).'); return; }
+      try {
+        await FY.rpc('create_member', {
+          p_nickname: pane.querySelector('#nm-nick').value.trim(), p_avatar: pane.querySelector('#nm-av').value,
+          p_invite_email: email || null, p_discord_username: disc || null, p_mobile: pane.querySelector('#nm-mob').value.trim() || null,
+        });
+        FY.toast('Added.'); draw();
+      } catch (e) { FY.toast(e.message); }
     });
     pane.querySelectorAll('button[data-link]').forEach(b => b.addEventListener('click', async () => {
       try {
