@@ -36,6 +36,18 @@
     <div class="card neon-tube-teal">${discordBtn('in', 'Sign in')}<span class="small">Not joined yet? Ask ${INVITER} for a new link.</span></div>`);
 
   if (!ok) {
+    // Signed in but no members row (guarded pages land here): explain, don't offer sign-in again.
+    const s = await FY.session();
+    if (s) {
+      const me = await FY.me().catch(() => null);
+      if (me) { location.replace('dashboard.html'); return; }
+      page(`
+        <div class="centre"><span class="kicker">Hank doesn't know you yet</span><h1>No profile on this Discord</h1>
+          <p style="max-width:40ch">You're signed in as <strong style="color:var(--fy-text)">${esc(Barn.discordName(s))}</strong>, but this Discord has no yard profile. Ask ${INVITER} for your invite link, then open it here while you're signed in.</p></div>
+        <div class="card neon-tube-teal"><button type="button" id="out" class="btn btn-ghost" style="min-height:44px;width:100%">Sign out and switch Discord</button></div>`);
+      document.getElementById('out').addEventListener('click', () => Barn.signOut());
+      return;
+    }
     used('No invite here', `This link has no invite on it. If you've already joined, just sign in. Otherwise ask ${INVITER} for your own link.`);
     document.getElementById('in').addEventListener('click', () => FY.signIn(`${location.origin}${location.pathname.replace(/claim\.html$/, 'dashboard.html')}`));
     return;

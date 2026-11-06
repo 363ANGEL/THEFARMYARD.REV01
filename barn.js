@@ -42,13 +42,10 @@
         </div></main>`;
       root.querySelector('#barn-in').addEventListener('click', () => FY.signIn(location.href.split('#')[0]));
     },
+    /* Signed in but no members row: the invite door explains it. Never the public holding page. */
     noProfile(root) {
-      root.innerHTML = `<main class="door">
-        <img class="hank" src="assets/hank-oink.png" alt="Hank">
-        <div class="centre"><span class="kicker">Hank doesn't know you yet</span><h1>No profile here</h1>
-          <p>You're signed in, but this Discord has no yard profile. Ask RAY for your invite link, then open it while signed in.</p></div>
-        <div class="card thin"><button type="button" id="barn-out" class="btn btn-ghost" style="min-height:44px;width:100%">Sign out and switch</button></div></main>`;
-      root.querySelector('#barn-out').addEventListener('click', () => Barn.signOut());
+      root.innerHTML = '<main class="door"><p class="muted">One moment…</p></main>';
+      location.replace('claim.html');
     },
 
     /* Viewport classes the design's phone/tablet overrides key off. */

@@ -21,7 +21,7 @@
       return data && data.id ? data : null;
     },
     signIn(redirectTo) {
-      return sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: redirectTo || location.href.split('#')[0] } });
+      return sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: redirectTo || window.location.origin + '/dashboard.html' } });
     },
     async signOut() { try { sessionStorage.removeItem('fy.voice'); } catch (e) {} await sb.auth.signOut(); location.reload(); },
     async rpc(name, args) {
