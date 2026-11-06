@@ -1833,3 +1833,38 @@ revoke select on fy.v_members_public, fy.v_standings, fy.v_overall, fy.v_badges 
 -- with the leader through fy.create_member / fy.admin_set_member.
 grant select (invite_email, discord_username, mobile, claimed) on fy.member to authenticated;
 grant execute on function fy.create_member(text, text, text, text, text) to authenticated;
+
+-- Remove an UNCLAIMED member row (bad invite, typo, changed mind). Refuses a claimed
+-- member, a leader, or anyone with poker / token / league history: that row stays.
+create or replace function fy.admin_delete_member(p_member uuid) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; m fy.member;
+begin
+  leader := fy._require_leader();
+  select * into m from fy.member where id = p_member;
+  if m.id is null then raise exception 'unknown member' using errcode = 'P0002'; end if;
+  if m.user_id is not null or m.claimed then
+    raise exception '% has claimed their profile - keep the row', m.nickname using errcode = 'P0001';
+  end if;
+  if m.role = 'leader' then
+    raise exception 'a leader row cannot be deleted' using errcode = 'P0001';
+  end if;
+  if exists (select 1 from fy.iou where payer_id = p_member or payee_id = p_member)
+     or exists (select 1 from fy.score_entry where member_id = p_member)
+     or exists (select 1 from fy.settlement where member_a = p_member or member_b = p_member or recorded_by = p_member)
+     or exists (select 1 from fy.claim where member_id = p_member or decided_by = p_member)
+     or exists (select 1 from fy.event where entered_by = p_member)
+     or exists (select 1 from fy.poker_table where started_by = p_member)
+     or exists (select 1 from fy.poker_seat where member_id = p_member)
+     or exists (select 1 from fy.poker_hold where member_id = p_member)
+     or exists (select 1 from fy.pool_call where member_id = p_member)
+     or exists (select 1 from fy.humidor_pref where member_id = p_member)
+     or exists (select 1 from fy.humidor_ballot where member_id = p_member)
+     or exists (select 1 from fy.humidor_pay where member_id = p_member) then
+    raise exception '% has poker, token or league history - keep the row instead of deleting it', m.nickname using errcode = 'P0001';
+  end if;
+  delete from fy.claim_link where member_id = p_member;   -- member_logo cascades with the row
+  delete from fy.member where id = p_member;
+  perform fy._admin_log(leader.id, 'member', p_member::text, 'delete', m.nickname, null);
+end $$;
+grant execute on function fy.admin_delete_member(uuid) to authenticated;

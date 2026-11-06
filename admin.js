@@ -55,7 +55,7 @@
       ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}"><td style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)}${m.role === 'leader' ? ' <span style="color:var(--fy-text-label)">(leader)</span>' : ''}</td>
         <td data-st="${m.id}">${invStatus(m)}</td>
         <td>${contactCell(m)}</td>
-        <td style="white-space:nowrap">${m.user_id ? '' : `<button class="rowbtn" data-link="${m.id}">New link</button>`}</td></tr>`).join('')}
+        <td style="white-space:nowrap">${m.user_id ? '' : `<button class="rowbtn" data-link="${m.id}">New link</button>${m.role === 'leader' ? '' : ` <button class="rowbtn warn" data-del="${m.id}">Delete</button>`}`}</td></tr>`).join('')}
       </tbody></table>
       <form id="newmember" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input class="input" id="nm-nick" placeholder="Nickname" required maxlength="24" style="min-height:40px">
         <select class="input" id="nm-av" style="min-height:40px">${['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].map(a => `<option>${a}</option>`).join('')}</select>
@@ -107,6 +107,15 @@
         FY.toast('Added.'); draw();
       } catch (e) { FY.toast(e.message); }
     });
+    // Delete an unclaimed row (never a claimed member or a leader; the RPC also refuses
+    // anyone with poker / token / league history and says to keep the row).
+    pane.querySelectorAll('button[data-del]').forEach(b => b.addEventListener('click', async () => {
+      const m = A.members.find(x => x.id === b.dataset.del); if (!m) return;
+      if (!window.confirm(`Remove ${m.nickname}? Their invite and claim link stop working.`)) return;
+      b.disabled = true;
+      try { await FY.rpc('admin_delete_member', { p_member: m.id }); FY.toast(`${m.nickname} removed.`); draw(); }
+      catch (e) { FY.toast(e.message); b.disabled = false; }
+    }));
     pane.querySelectorAll('button[data-link]').forEach(b => b.addEventListener('click', async () => {
       try {
         const tok = await FY.rpc('issue_claim_link', { p_member_id: b.dataset.link });
