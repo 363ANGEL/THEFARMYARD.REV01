@@ -21,6 +21,7 @@
     picks: {}, winner: null, stamp: false,         // docket (buy-ins per member id)
     draft: '', pasteHint: false, nickCopied: false, closeTip: false, seatTip: '',
     sel: null, seat: { phase: 'idle', name: '', count: 10, p: null, url: null, blocked: false },
+    go: { phase: 'idle', count: 10, t: null, blocked: false },   // START card: PokerNow opens only after the 10 s clock
     shell: '', vidOrder: null, vidPlay: false
   };
   ((await FY.q('v_members_public').select('id,nickname,avatar,avatar_url')).data || []).forEach(m => S.names[m.id] = m);
@@ -72,7 +73,7 @@
   let stepsSig = '';
   function renderSteps(force) {
     const c = S.cur, live = !!c, canManage = mine();
-    const sig = JSON.stringify([c && c.id, c && c.status, c && c.started_by, c && c.seats.length, filed(), canManage, S.nickCopied, S.closeTip, force && Math.random()]);
+    const sig = JSON.stringify([c && c.id, c && c.status, c && c.started_by, c && c.seats.length, filed(), canManage, S.nickCopied, S.closeTip, S.go.phase, S.go.blocked, force && Math.random()]);
     if (sig === stepsSig) return; stepsSig = sig;
     $('steps').classList.toggle('live', live);
     let sub = '';
@@ -80,23 +81,46 @@
     let note = '';
     if (S.closeTip) note = tip('Complete the <strong>Table Docket</strong> card and press <strong>FILE DOCKET</strong> before closing the game.');
     else if (live && !canManage) note = tip(c.status === 'open' ? `${nick(c.started_by)} has opened the table. Take a seat.` : `${nick(c.started_by)} has started a game. Waiting for the table to open.`);
+    // TAKE THE SEAT card after START (2.1 design): PokerNow opens when the clock hits zero, or sooner on the click.
+    const goBusy = S.go.phase !== 'idle';
+    const goCard = goBusy ? `
+      <div class="pk-pop ${S.go.phase === 'done' ? 'done' : ''}" style="position:static;margin:12px auto 2px;animation:none" role="dialog" aria-label="Take the seat">
+        <div class="clock"><span class="face"><span class="dot"></span><i style="width:2.5px;height:15px;margin-left:-1.25px;background:#f2fbfb;animation:handSpin 16s linear infinite"></i><i style="width:1.5px;height:21px;margin-left:-.75px;background:#9eeae6;box-shadow:0 0 4px var(--neon-teal);animation:handSpin 1.6s linear infinite"></i></span><span class="count" id="gocount">${S.go.count}</span></div>
+        <button type="button" id="goseat" class="pk-btn green take">TAKE THE SEAT</button>
+        <div class="note">Your yard name has been copied to your clipboard.<span style="display:block;height:.8em"></span><span style="display:block;white-space:nowrap;font-size:12px">SET UP THE TABLE ON POKERNOW.</span>${S.go.blocked ? `<a class="pk-btn green sm" style="margin-top:8px" href="${START_URL}" target="_blank" rel="noopener">OPEN POKERNOW</a>` : ''}</div>
+      </div>` : '';
     $('steps').innerHTML = SIGN +
       '<span class="pk-kicker pk-tealtext" style="align-self:flex-start;white-space:nowrap">Game checklist</span>' +
       `<div class="pk-step ${live ? '' : 'flash'}"><span class="n">1</span>
         <span class="txt"><span class="t">Start a New Table &amp; Take a Seat!</span>${sub ? `<span class="sub">${sub}</span>` : ''}</span>
         <span class="btns">
-          <a id="start" class="pk-btn green ${live ? 'off' : ''}" href="${START_URL}" target="_blank" rel="noopener" ${live ? 'aria-disabled="true" tabindex="-1"' : ''}>START</a>
+          <button type="button" id="start" class="pk-btn green ${live || goBusy ? 'off' : ''}" ${live || goBusy ? 'aria-disabled="true"' : ''}>START</button>
           ${live ? '<button type="button" id="close" class="pk-btn red">CLOSE</button>' : ''}
           ${note}
-        </span></div>`;
+        </span></div>` + goCard;
   }
   $('steps').addEventListener('click', async ev => {
     const t = ev.target.closest('a,button'); if (!t) return;
-    if (t.id === 'start') {                        // the link opens PokerNow in a new tab; here we open the shared table
-      if (S.cur) { ev.preventDefault(); return; }
+    if (t.id === 'start') {                        // nothing opens before the countdown (2.1 design)
+      if (S.cur || S.go.phase !== 'idle') return;
       copyText(me.nickname); S.nickCopied = true;
+      S.go = { phase: 'count', count: 10, t: null, blocked: false };
       try { await FY.rpc('poker_start'); } catch (e) { FY.toast(e.message); }
-      await refresh(true);
+      await refresh(true); renderSteps(true);
+      S.go.t = setInterval(() => {
+        S.go.count = Math.max(0, S.go.count - 1);
+        const el = $('gocount'); if (el) el.textContent = S.go.count;
+        if (S.go.count > 0) return;
+        clearInterval(S.go.t);
+        // The timer is not a user gesture, so the pop-up can be blocked: the card then offers the link.
+        S.go.blocked = !openPokerNow(START_URL);
+        if (S.go.blocked) { S.go.phase = 'done'; renderSteps(true); setTimeout(() => { if (S.go.phase === 'done') { S.go.phase = 'idle'; renderSteps(true); } }, 30000); }
+        else { S.go.phase = 'idle'; renderSteps(true); }
+      }, 1000);
+    } else if (t.id === 'goseat') {                // clicking the card opens PokerNow early
+      if (S.go.phase !== 'count') return;
+      clearInterval(S.go.t); S.go.phase = 'idle';
+      openPokerNow(START_URL); renderSteps(true);
     } else if (t.id === 'close') {
       if (!S.cur) return;
       if (S.cur.seats.length && !filed() && !isLeader) {   // rule 6: anyone sat → the docket must be filed first
