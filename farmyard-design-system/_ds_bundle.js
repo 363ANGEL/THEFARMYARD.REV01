@@ -213,7 +213,6 @@ const ROSTER = {
   hank: {
     name: 'Hank',
     img: 'characters/hank-oink.png',
-    face: 'characters/hank-face-mark.png',
     aspect: 1199 / 1312,
     ring: {
       l: 3.58,
@@ -232,7 +231,7 @@ const ROSTER = {
     }
   }
 };
-/** Character avatar. ≤75px renders the teal face mark in a CSS ring (question mark if none); ≥96px renders full-colour art with the layered pink ring (glow behind, tube over the baked ring). */
+/** Character avatar. Full-colour art at every size with the layered pink ring (glow behind, tube over the baked ring); an empty teal open-slot ring (question mark) when no art is set. Face marks retired (FARMYARD-STYLE.md, 28 Oct). */
 function Avatar({
   character = 'hank',
   size = 48,
@@ -247,7 +246,6 @@ function Avatar({
   const c = ROSTER[character] || {};
   const label = name || c.name || 'Member';
   const art = src || c.img && assetBase + c.img;
-  const mark = face || c.face && assetBase + c.face;
   const [broken, setBroken] = React.useState(false);
   const q = /*#__PURE__*/React.createElement("i", {
     className: "ph ph-question",
@@ -256,31 +254,20 @@ function Avatar({
       color: 'var(--fy-text-label)'
     }
   });
-  if (size <= 75) return /*#__PURE__*/React.createElement("span", {
-    className: "char-mark",
-    role: "img",
-    "aria-label": label,
-    style: {
-      width: size,
-      height: size,
-      overflow: 'hidden',
-      flex: 'none'
-    }
-  }, mark && !broken ? /*#__PURE__*/React.createElement("img", {
-    src: mark,
-    alt: "",
-    onError: () => setBroken(true)
-  }) : q);
   const b = breathe == null ? size >= 175 : breathe;
   if (!art || broken) return /*#__PURE__*/React.createElement("span", {
-    className: "char-mark",
+    className: "char-open-slot",
     role: "img",
     "aria-label": label,
     style: {
       width: size,
       height: size,
-      borderColor: 'var(--rule-teal)',
-      boxShadow: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: '50%',
+      border: '1.5px solid var(--rule-teal)',
+      boxSizing: 'border-box',
       flex: 'none'
     }
   }, q);

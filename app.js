@@ -30,12 +30,11 @@
       return data;
     },
     q(table) { return sb.from(table); },
-    // A member's face: their chosen logo (avatar_url) or the stock animal (avatar key). Takes a member row or a key.
-    // px = rendered size; at 75px and below the pig (Hank) shows his face mark instead of full art.
+    // A member's face: their chosen logo (avatar_url) or the full-colour stock animal (avatar key), at every size.
+    // Takes a member row or a key; px kept for callers but no longer changes the art (face marks retired, FARMYARD-STYLE.md 28 Oct).
     face(m, px) {
       if (m && typeof m === 'object' && m.avatar_url) return m.avatar_url;
       const key = m && typeof m === 'object' ? m.avatar : m;
-      if (px <= 75 && key === 'pig') return 'assets/hank-face-mark.png';
       return `assets/avatars/${['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].includes(key) ? key : 'hen'}.svg`;
     },
     avatar(m) { return `<img class="avatar" src="${FY.esc(FY.face(m, 48))}" alt="" width="48" height="48">`; },
