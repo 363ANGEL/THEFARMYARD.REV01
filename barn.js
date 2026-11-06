@@ -138,16 +138,26 @@
         <div class="fy-voice-head" id="vc">${[...'Voice channel'].map(c => `<span>${c}</span>`).join('')}</div>
         <button type="button" class="fy-voice fy-voice-live ${v === 'lounge' ? 'is-on' : ''}" data-voice="lounge"><i class="ph ph-speaker-high" style="font-size:var(--ic-sm)"></i><span style="flex:1">LIVE<small>via Discord</small></span><span id="fy-vc-live" style="font-size:var(--fs-xs); font-weight:400; letter-spacing:0; color:var(--color-neutral-400); text-shadow:none;">OFF AIR</span></button>
         <button type="button" class="fy-voice fy-voice-muted ${v === 'parked' ? 'is-on' : ''}" data-voice="parked"><i class="ph ph-speaker-slash" style="font-size:var(--ic-sm)"></i><span style="flex:1">MUTED<small>on Discord</small></span><span id="fy-vc-muted" style="font-size:var(--fs-xs); font-weight:400; letter-spacing:0; color:var(--color-neutral-400); text-shadow:none;">0</span></button>
-        <div id="vtip"></div>
+        <div id="vtip"></div>`;
+      const shield = `<a id="fy-admin-btn" href="/admin.html" title="Admin" aria-label="Admin" style="flex:none; display:grid; place-items:center; width:44px; border:1px solid var(--neon-teal); border-radius:8px; color:var(--neon-teal); text-decoration:none; box-sizing:border-box; box-shadow:${current === 'admin' ? 'inset 0 0 0 1.5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55)' : 'none'};"><i class="ph ph-shield-star" style="font-size:var(--ic-lg)" aria-hidden="true"></i></a>`;
+      side.innerHTML += `
         ${sep}
-        <div style="display:flex; gap:8px; align-items:stretch; margin-top:8px;">
+        <div id="fy-footer-row" style="display:flex; gap:8px; align-items:stretch; margin-top:8px;">
         <a href="profile.html" ${current === 'profile' ? 'aria-current="page"' : ''} style="flex:1; min-width:0; display:flex; gap:10px; align-items:center; padding:6px 10px 6px 8px; border-radius:8px; font-size:var(--fs-sm); font-weight:600; color:var(--color-text); text-decoration:none; border:1px solid var(--neon-teal); box-shadow:${current === 'profile' ? 'inset 0 0 0 1.5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55)' : 'none'};">
           ${Barn.faceDot(me)}
           <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(me.nickname)}</span>
           <i class="ph ph-gear" style="color:var(--color-neutral-400); font-size:var(--ic-lg)"></i></a>
-        ${(me.role === 'leader' || me.is_admin) ? `<a href="admin.html" title="Admin" aria-label="Admin" style="flex:none; display:grid; place-items:center; width:44px; border:1px solid var(--neon-teal); border-radius:8px; color:var(--neon-teal); text-decoration:none; box-sizing:border-box; box-shadow:${current === 'admin' ? 'inset 0 0 0 1.5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55)' : 'none'};"><i class="ph ph-shield-star" style="font-size:var(--ic-lg)" aria-hidden="true"></i></a>` : ''}
+        ${(me.role === 'leader' || me.is_admin) ? shield : ''}
         </div>
         <a href="about.html" style="display:block; text-align:center; padding:8px 6px 2px; font-size:var(--fs-xs); letter-spacing:.04em; color:var(--neon-teal); text-shadow:0 0 6px rgba(95,211,207,.5); text-decoration:none;">About the yard</a>`;
+      // Leaders always get the shield: if me.role was missing (a stale fy.me() on the live
+      // database), the server's own is_leader() check puts it in after render.
+      if (!side.querySelector('#fy-admin-btn')) {
+        FY.rpc('is_leader').then(ok => {
+          const row = side.querySelector('#fy-footer-row');
+          if (ok && row && !side.querySelector('#fy-admin-btn')) row.insertAdjacentHTML('beforeend', shield);
+        }).catch(() => { /* not signed in or rpc missing: no shield */ });
+      }
       Barn.voiceCounts(side);
       side.querySelectorAll('[data-voice]').forEach(b => b.addEventListener('click', () => {
         const k = b.dataset.voice; voice.set(k);
