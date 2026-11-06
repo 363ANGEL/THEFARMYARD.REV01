@@ -204,7 +204,7 @@
         return `<div style="display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid rgba(95,211,207,.22);font-size:var(--fs-sm)"><span style="flex:1">${esc(nick(a))} owes ${esc(nick(b))} <strong>${Math.abs(n.net)}</strong> net</span>
         <button class="rowbtn" data-square-a="${a}" data-square-b="${b}">Squared up</button></div>`; }).join('') || '<span style="font-size:var(--fs-sm);color:var(--fy-text-label)">Everyone is square.</span>'}</div>
       <div class="acard"><span class="t-module">IOU entries</span>
-      <table><thead><tr><th>From</th><th>To</th><th>Amount</th><th>State</th><th></th></tr></thead><tbody>
+      <table><thead><tr><th>From</th><th>To</th><th>Amount (buy-ins on poker nights, tk otherwise)</th><th>State</th><th></th></tr></thead><tbody>
       ${live.map(i => `<tr data-iou="${i.id}"><td>${esc(nick(i.payer_id))}</td><td>${esc(nick(i.payee_id))}</td>
         <td><span style="display:inline-flex;gap:6px;align-items:center"><button class="rowbtn" data-step="-1">−</button><strong style="min-width:2.5em;text-align:center">${i.amount}</strong><button class="rowbtn" data-step="1">+</button></span></td>
         <td style="color:var(--fy-text-label)">${esc(i.state)}</td>

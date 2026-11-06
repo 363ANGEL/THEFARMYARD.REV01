@@ -56,9 +56,9 @@ begin
   select count(*) into n from fy.iou where event_id = ev;
   assert n = 2, 'two IOU rows expected';
   select owes into n from fy.v_badges where member_id = pants;
-  assert n = 3, 'Pants owes 3';
+  assert n = 15, 'Pants owes 15 tk (3 buy-ins)';
   select owed into n from fy.v_badges where member_id = ray;
-  assert n = 4, 'RAY owed 4';
+  assert n = 20, 'RAY owed 20 tk (4 buy-ins)';
 
   -- Review focus 2: bad nights write nothing.
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
@@ -124,7 +124,7 @@ begin
   perform fy.iou_transition(i.id, 'confirmed');
   perform pg_temp.as_owner();
   select state into i.state from fy.iou where id = i.id; assert i.state = 'confirmed';
-  select owed into n from fy.v_badges where member_id = ray; assert n = 3, 'RAY now owed 3 (Pants only)';
+  select owed into n from fy.v_badges where member_id = ray; assert n = 15, 'RAY now owed 15 tk (Pants only)';
 
   -- RLS: Sock cannot read the Pants→RAY IOU; RAY (leader) can; anon reads standings only.
   perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
@@ -1152,4 +1152,81 @@ begin
   select count(*) into n from fy.room where id = 'calendar' and status = 'ship'; assert n = 1, 'room status changed';
   select count(*) into n from fy.admin_edit where tbl = 'room' and row_id = 'calendar'; assert n = 1, 'room edit logged';
   raise notice 'TASK 15 TESTS PASSED';
+end $$;
+
+-- ---- Final review fixes: tk-denominated views, admin_set_member gaps, payee confirm ----
+do $$
+declare ray uuid; sock uuid; pants uuid; n int; ev uuid; c1 uuid; c2 uuid;
+        owes0 int; owed0 int; net0 int; net1 int; a uuid; b uuid; v text; vu text; st text;
+begin
+  select id into ray from fy.member where nickname = 'RAY';
+  select id into sock from fy.member where nickname = 'The Sock';
+  select id into pants from fy.member where nickname = 'Pants';
+  a := least(ray, sock); b := greatest(ray, sock);
+
+  -- Baselines: earlier blocks leave live IOUs behind, so assert deltas, not totals.
+  perform pg_temp.as_owner();
+  select owes into owes0 from fy.v_badges where member_id = sock;
+  select owed into owed0 from fy.v_badges where member_id = ray;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  select coalesce((select net from fy.netting() where member_a = a and member_b = b), 0) into net0;
+
+  -- One poker night (Sock loses 2 buy-ins = 10 tk) plus a 3 tk correction: tk everywhere.
+  ev := fy.record_poker_result(jsonb_build_array(
+          jsonb_build_object('member_id', ray, 'buy_ins', 1),
+          jsonb_build_object('member_id', sock, 'buy_ins', 2)), ray, now(), 'units night');
+  c1 := fy.admin_add_iou(sock, ray, 3, 'units correction');
+  perform pg_temp.as_owner();
+  select owes into n from fy.v_badges where member_id = sock;
+  assert n - owes0 = 13, 'v_badges owes in tk (10 poker + 3 correction), got delta ' || (n - owes0);
+  select owed into n from fy.v_badges where member_id = ray;
+  assert n - owed0 = 13, 'v_badges owed in tk, got delta ' || (n - owed0);
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  select coalesce((select net from fy.netting() where member_a = a and member_b = b), 0) into net1;
+  if a = sock then
+    assert net1 - net0 = 13, 'netting in tk (Sock owes RAY 13), got ' || (net1 - net0);
+  else
+    assert net0 - net1 = 13, 'netting in tk (Sock owes RAY 13), got ' || (net0 - net1);
+  end if;
+
+  -- admin_set_member: empty string clears the nullable URL fields instead of tripping their checks.
+  perform fy.admin_set_member(sock, 'revolut_url', 'https://revolut.me/socko');
+  perform fy.admin_set_member(sock, 'revolut_url', '');
+  perform pg_temp.as_owner();
+  select revolut_url into v from fy.member where id = sock;
+  assert v is null, 'admin cleared revolut_url with an empty string';
+
+  -- admin_set_member: the stock animal is settable, and picking one clears the logo override.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  perform fy.admin_set_member(sock, 'avatar_url', 'https://x.test/logo.png');
+  perform fy.admin_set_member(sock, 'avatar', 'pig');
+  perform pg_temp.as_owner();
+  select avatar, avatar_url into v, vu from fy.member where id = sock;
+  assert v = 'pig', 'admin set the stock animal, got ' || v;
+  assert vu is null, 'a stock pick clears avatar_url';
+
+  -- A non-leader payee confirms straight from open (cash changed hands in person)...
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  c1 := fy.admin_add_iou(pants, sock, 3, 'cash in hand');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');  -- Sock, the payee
+  perform fy.iou_transition(c1, 'confirmed');
+  perform pg_temp.as_owner();
+  select state into st from fy.iou where id = c1; assert st = 'confirmed', 'payee confirmed from open';
+
+  -- ...and from disputed, so a bulk Received? never dead-ends; the payer still cannot.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  c2 := fy.admin_add_iou(pants, sock, 1, 'dispute path');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');  -- Pants, the payer
+  perform fy.iou_transition(c2, 'marked_paid');
+  begin
+    perform fy.iou_transition(c2, 'confirmed');
+    raise exception 'should have failed: payer cannot confirm';
+  exception when others then if sqlerrm <> 'not allowed' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');  -- Sock disputes, then confirms
+  perform fy.iou_transition(c2, 'disputed');
+  perform fy.iou_transition(c2, 'confirmed');
+  perform pg_temp.as_owner();
+  select state into st from fy.iou where id = c2; assert st = 'confirmed', 'payee confirmed from disputed';
+
+  raise notice 'FINAL REVIEW FIX TESTS PASSED';
 end $$;

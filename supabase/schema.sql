@@ -186,22 +186,29 @@ create or replace view fy.v_overall as
 create or replace view fy.v_live_iou as
   select * from fy.iou where state in ('open','marked_paid','disputed');
 
+-- Both money views are tk-denominated: iou.amount is buy-ins on poker events (1 buy-in = 5 tk)
+-- and plain tk on corrections/claims, so each row converts by its source before summing.
 create or replace view fy.v_badges as
   select m.league_id, m.id as member_id,
-         coalesce((select sum(amount) from fy.v_live_iou i where i.payer_id = m.id), 0)::int as owes,
-         coalesce((select sum(amount) from fy.v_live_iou i where i.payee_id = m.id), 0)::int as owed
+         coalesce((select sum(i.amount * case when e.type_key = 'poker' then 5 else 1 end)
+                   from fy.v_live_iou i left join fy.event e on e.id = i.event_id
+                   where i.payer_id = m.id), 0)::int as owes,
+         coalesce((select sum(i.amount * case when e.type_key = 'poker' then 5 else 1 end)
+                   from fy.v_live_iou i left join fy.event e on e.id = i.event_id
+                   where i.payee_id = m.id), 0)::int as owed
   from fy.member m
   join fy.league l on l.id = m.league_id
   where l.public_badges;
 
 create or replace view fy.v_netting as
-  select league_id,
-         least(payer_id, payee_id) as member_a,
-         greatest(payer_id, payee_id) as member_b,
-         sum(case when payer_id < payee_id then amount else -amount end)::int as net
-  from fy.v_live_iou
-  group by league_id, least(payer_id, payee_id), greatest(payer_id, payee_id);
--- net > 0 means member_a owes member_b that many buy-ins; net < 0 the other way.
+  select i.league_id,
+         least(i.payer_id, i.payee_id) as member_a,
+         greatest(i.payer_id, i.payee_id) as member_b,
+         sum((case when i.payer_id < i.payee_id then i.amount else -i.amount end)
+             * case when e.type_key = 'poker' then 5 else 1 end)::int as net
+  from fy.v_live_iou i left join fy.event e on e.id = i.event_id
+  group by i.league_id, least(i.payer_id, i.payee_id), greatest(i.payer_id, i.payee_id);
+-- net > 0 means member_a owes member_b that many tk; net < 0 the other way.
 
 grant select on fy.v_members_public, fy.v_standings, fy.v_overall, fy.v_badges to anon, authenticated;
 -- v_netting and v_live_iou are deliberately NOT granted: views run as their owner and would
@@ -424,7 +431,10 @@ begin
   elsif me.id = i.payer_id then
     ok := (i.state = 'open' and p_to = 'marked_paid');
   elsif me.id = i.payee_id then
-    ok := (i.state = 'marked_paid' and p_to in ('confirmed','disputed'));
+    -- The payee may confirm receipt from any live state (cash changes hands in person
+    -- before anyone taps Paid), but may dispute only what the payer claims to have paid.
+    ok := (p_to = 'confirmed' and i.state in ('open','marked_paid','disputed'))
+       or (p_to = 'disputed' and i.state = 'marked_paid');
   end if;
   if not ok then raise exception 'not allowed' using errcode = '42501'; end if;
 
@@ -1574,22 +1584,26 @@ revoke all on function fy._admin_log from public;
 -- Profile/member corrections: whitelisted fields only.
 create or replace function fy.admin_set_member(p_member uuid, p_field text, p_value text) returns void
 language plpgsql security definer set search_path = fy, public as $$
-declare leader fy.member; v_old text;
+declare leader fy.member; v_old text; v_new text;
 begin
   leader := fy._require_leader();
-  if p_field not in ('nickname','tagline','revolut_url','avatar_url','role') then
+  if p_field not in ('nickname','tagline','revolut_url','avatar_url','avatar','role') then
     raise exception 'field not allowed: %', p_field;
   end if;
+  -- The nullable fields clear on an empty string (their checks accept null, never '').
+  v_new := case when p_field in ('tagline','revolut_url','avatar_url') then nullif(p_value, '') else p_value end;
   execute format('select %I::text from fy.member where id = $1', p_field) into v_old using p_member;
   if not exists (select 1 from fy.member where id = p_member) then raise exception 'unknown member' using errcode = 'P0002'; end if;
   update fy.member set
-    nickname    = case when p_field = 'nickname'    then btrim(p_value) else nickname end,
-    tagline     = case when p_field = 'tagline'     then p_value else tagline end,
-    revolut_url = case when p_field = 'revolut_url' then p_value else revolut_url end,
-    avatar_url  = case when p_field = 'avatar_url'  then p_value else avatar_url end,
-    role        = case when p_field = 'role'        then p_value else role end
+    nickname    = case when p_field = 'nickname'    then btrim(v_new) else nickname end,
+    tagline     = case when p_field = 'tagline'     then v_new else tagline end,
+    revolut_url = case when p_field = 'revolut_url' then v_new else revolut_url end,
+    avatar      = case when p_field = 'avatar'      then v_new else avatar end,
+    -- A stock-animal pick replaces any logo override, matching the member's own flow.
+    avatar_url  = case when p_field = 'avatar_url' then v_new when p_field = 'avatar' then null else avatar_url end,
+    role        = case when p_field = 'role'        then v_new else role end
   where id = p_member;
-  perform fy._admin_log(leader.id, 'member', p_member::text, p_field, v_old, p_value);
+  perform fy._admin_log(leader.id, 'member', p_member::text, p_field, v_old, v_new);
 end $$;
 
 -- IOU corrections: add, resize, delete.

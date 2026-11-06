@@ -33,11 +33,15 @@
   const profHref = m => m.id === me.id ? 'profile.html' : 'profile.html?user=' + encodeURIComponent(m.nickname);
   const faceDot = (m, px) => `<a href="${profHref(m)}" aria-label="Open ${esc(m.nickname)}" style="display:contents"><span style="flex:none; width:${px}px; height:${px}px; align-self:center; border-radius:50%; display:grid; place-items:center; box-sizing:border-box; border:1px solid var(--neon-teal); background:url('${esc(FY.face(m, px))}') center / contain no-repeat; font-size:10px; font-weight:700; color:var(--neon-teal);"></span></a>`;
 
-  const [membersRes, postsRes, iousRes] = await Promise.all([
+  const [membersRes, postsRes, iousRes, eventsRes] = await Promise.all([
     FY.q('member').select('id, nickname, avatar, avatar_url'),
     FY.q('post').select('*').order('created_at', { ascending: false }).limit(30),
     FY.rpc('my_ious').catch(() => []),
+    FY.q('event').select('id,type_key'),
   ]);
+  // iou.amount is buy-ins on poker events (×5 tk) and plain tk otherwise.
+  const evType = Object.fromEntries((eventsRes.data || []).map(e => [e.id, e.type_key]));
+  const tkOf = i => i.amount * (i.event_id && evType[i.event_id] === 'poker' ? 5 : 1);
   const members = membersRes.data || [];
   const dir = Object.fromEntries(members.map(m => [m.id, m]));
   let rooms = [];
@@ -66,7 +70,7 @@
   // IOUs owed to you, net per payer, live states only.
   const owedRows = Object.values((Array.isArray(iousRes) ? iousRes : []).reduce((acc, i) => {
     if (i.payee_id !== me.id || !['open', 'marked_paid', 'disputed'].includes(i.state)) return acc;
-    (acc[i.payer_id] = acc[i.payer_id] || { who: i.payer_id, tk: 0 }).tk += i.amount;
+    (acc[i.payer_id] = acc[i.payer_id] || { who: i.payer_id, tk: 0 }).tk += tkOf(i);
     return acc;
   }, {})).sort((a, b) => b.tk - a.tk);
 

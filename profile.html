@@ -140,7 +140,7 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
       const link = revLink(dir[p.other]?.revolut_url);
       const payBtn = link
         ? `<a class="paybtn" data-pay="${p.other}" data-amt="${-p.net}" href="${esc(link)}" target="_blank" rel="noopener" title="Opens their Revolut pay page · amount copied">Pay</a>`
-        : `<a class="paybtn" aria-disabled="true" title="${esc(nick(p.other))} has no Revolut link yet. Settle in person.">Pay</a>`;
+        : `<span style="display:flex;flex-direction:column;align-items:center;gap:2px"><a class="paybtn" aria-disabled="true">Pay</a><span style="font-size:var(--fs-xs);color:var(--color-neutral-400);white-space:nowrap">No Revolut link · settle in person</span></span>`;
       return `<div class="ledrow" style="grid-template-columns:28px minmax(0,1fr) auto auto">${ini(p.other)}<span class="who">${esc(nick(p.other))}</span>
         <span style="display:flex;align-items:center;justify-content:center;gap:6px">${pm(p.other, 'dn')}<span title="${esc(partsTitle(p))}" style="cursor:help;font-variant-numeric:tabular-nums;font-weight:700;color:var(--neon-red-text);white-space:nowrap">−${-p.net} tk</span>${pm(p.other, 'up')}</span>
         <span style="display:flex;gap:6px">${payBtn}<button type="button" class="rcv" data-paid="${p.other}" title="Tell ${esc(nick(p.other))} you have paid">Paid</button></span></div>`;
@@ -295,7 +295,9 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
       const b = ev.target.closest('[data-pick]'); if (!b) return;
       const pick = b.dataset.pick;
       try {
-        if (admin) await FY.rpc('admin_set_member', { p_member: subject.id, p_field: 'avatar_url', p_value: pick.startsWith('url:') ? pick.slice(4) : '' });
+        if (admin) await FY.rpc('admin_set_member', pick.startsWith('url:')
+          ? { p_member: subject.id, p_field: 'avatar_url', p_value: pick.slice(4) }
+          : { p_member: subject.id, p_field: 'avatar', p_value: pick.slice(4) });
         else {
           const patch = pick.startsWith('url:') ? { avatar_url: pick.slice(4) } : { avatar: pick.slice(4), avatar_url: null };
           const { error } = await FY.q('member').update(patch).eq('id', subject.id); if (error) throw error;
