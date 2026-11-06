@@ -37,14 +37,25 @@
   });
 
   // ---- Members ----
+  // Invite status: which contact the sign-in gate will match this row on.
+  const invStatus = m => m.user_id
+    ? (m.setup_at ? 'Claimed' : 'Claimed · set-up pending')
+    : `<span style="color:var(--fy-text-label)">Invited · ${m.invite_email ? 'matches on email' : m.discord_username ? 'matches on Discord username' : 'no contact — cannot sign in'}</span>`;
   async function tabMembers() {
     await loadMembers();
+    const contactCell = m => m.user_id
+      ? `<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${esc(m.invite_email || m.discord_username || '')}</span>`
+      : `<span style="display:flex;gap:6px;flex-wrap:wrap">
+          <input class="input" data-inv="invite_email" data-m="${m.id}" type="email" placeholder="Invite email" maxlength="254" value="${esc(m.invite_email || '')}" style="width:12em;min-height:34px;font-size:12px">
+          <input class="input" data-inv="discord_username" data-m="${m.id}" placeholder="Discord username" maxlength="40" value="${esc(m.discord_username || '')}" style="width:10em;min-height:34px;font-size:12px">
+          <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="width:8em;min-height:34px;font-size:12px"></span>`;
     pane.innerHTML = `<div class="acard"><span class="t-module">Members</span>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Click a row to open their profile in admin view.</span>
-      <table><thead><tr><th>Member</th><th>Status</th><th>Claim link</th></tr></thead><tbody>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Click a row to open their profile in admin view. Invite contacts save as you leave each box; keep an email or a Discord username on every invited row — it is how Hank matches their sign-in.</span>
+      <table><thead><tr><th>Member</th><th>Status</th><th>Invite contact</th><th>Claim link</th></tr></thead><tbody>
       ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}"><td style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)}${m.role === 'leader' ? ' <span style="color:var(--fy-text-label)">(leader)</span>' : ''}</td>
-        <td>${m.user_id ? (m.setup_at ? 'Claimed' : 'Claimed · set-up pending') : `<span style="color:var(--fy-text-label)">Invited · ${esc(m.invite_email || m.discord_username || 'no contact — cannot sign in')}</span>`}</td>
-        <td>${m.user_id ? '' : `<button class="rowbtn" data-link="${m.id}">New link</button>`}</td></tr>`).join('')}
+        <td data-st="${m.id}">${invStatus(m)}</td>
+        <td>${contactCell(m)}</td>
+        <td style="white-space:nowrap">${m.user_id ? '' : `<button class="rowbtn" data-link="${m.id}">New link</button>`}</td></tr>`).join('')}
       </tbody></table>
       <form id="newmember" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input class="input" id="nm-nick" placeholder="Nickname" required maxlength="24" style="min-height:40px">
         <select class="input" id="nm-av" style="min-height:40px">${['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].map(a => `<option>${a}</option>`).join('')}</select>
@@ -61,8 +72,29 @@
       <form id="lg-f" style="display:flex;flex-direction:column;gap:8px"></form></div>`;
     pane.addEventListener('click', ev => {
       const tr = ev.target.closest('tr[data-open]');
-      if (tr && !ev.target.closest('button')) location.href = 'profile.html?view=admin&user=' + encodeURIComponent(tr.dataset.open);
+      if (tr && !ev.target.closest('button,input')) location.href = 'profile.html?view=admin&user=' + encodeURIComponent(tr.dataset.open);
     });
+    // Invite contacts save on blur (focusout bubbles; wired once, the pane node survives redraws).
+    if (!pane.dataset.invWired) {
+      pane.dataset.invWired = '1';
+      pane.addEventListener('focusout', async ev => {
+        const box = ev.target.closest && ev.target.closest('input[data-inv]'); if (!box) return;
+        const m = A.members.find(x => x.id === box.dataset.m); if (!m) return;
+        const f = box.dataset.inv;
+        let v = box.value.trim(); if (f !== 'mobile') v = v.toLowerCase();
+        box.value = v;
+        if ((m[f] || '') === v) return;
+        if (f !== 'mobile' && !v && !(f === 'invite_email' ? m.discord_username : m.invite_email)) {
+          FY.toast('Keep an email or a Discord username — it is how they sign in.'); box.value = m[f] || ''; return;
+        }
+        try {
+          await FY.rpc('admin_set_member', { p_member: m.id, p_field: f, p_value: v });
+          m[f] = v || null;
+          const st = pane.querySelector(`[data-st="${m.id}"]`); if (st) st.innerHTML = invStatus(m);
+          FY.toast('Saved.');
+        } catch (e) { FY.toast(e.message); box.value = m[f] || ''; }
+      });
+    }
     pane.querySelector('#newmember').addEventListener('submit', async ev => {
       ev.preventDefault();
       const email = pane.querySelector('#nm-email').value.trim(), disc = pane.querySelector('#nm-disc').value.trim();
