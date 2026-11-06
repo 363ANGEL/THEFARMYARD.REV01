@@ -1686,8 +1686,21 @@ begin
   perform fy._admin_log(leader.id, 'pool', p_pool::text, 'delete', v_old, null);
 end $$;
 
+-- Site tab: the leader flips a room's status (ship/stub/later/live/hidden), logged.
+create or replace function fy.admin_set_room(p_room text, p_status text) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_old text;
+begin
+  leader := fy._require_leader();
+  select status into v_old from fy.room where id = p_room for update;
+  if v_old is null then raise exception 'no such room' using errcode = 'P0002'; end if;
+  update fy.room set status = p_status where id = p_room;
+  perform fy._admin_log(leader.id, 'room', p_room, 'status', v_old, p_status);
+end $$;
+
 grant execute on function fy.admin_set_member, fy.admin_add_iou, fy.admin_set_iou, fy.admin_delete_iou,
-  fy.admin_edit_docket, fy.admin_delete_docket, fy.admin_set_pool, fy.admin_set_payout, fy.admin_delete_pool to authenticated;
+  fy.admin_edit_docket, fy.admin_delete_docket, fy.admin_set_pool, fy.admin_set_payout, fy.admin_delete_pool,
+  fy.admin_set_room to authenticated;
 
 -- Realtime for the wall, same guard style as the poker tables.
 do $$ begin
@@ -3387,8 +3400,21 @@ begin
   perform fy._admin_log(leader.id, 'pool', p_pool::text, 'delete', v_old, null);
 end $$;
 
+-- Site tab: the leader flips a room's status (ship/stub/later/live/hidden), logged.
+create or replace function fy.admin_set_room(p_room text, p_status text) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_old text;
+begin
+  leader := fy._require_leader();
+  select status into v_old from fy.room where id = p_room for update;
+  if v_old is null then raise exception 'no such room' using errcode = 'P0002'; end if;
+  update fy.room set status = p_status where id = p_room;
+  perform fy._admin_log(leader.id, 'room', p_room, 'status', v_old, p_status);
+end $$;
+
 grant execute on function fy.admin_set_member, fy.admin_add_iou, fy.admin_set_iou, fy.admin_delete_iou,
-  fy.admin_edit_docket, fy.admin_delete_docket, fy.admin_set_pool, fy.admin_set_payout, fy.admin_delete_pool to authenticated;
+  fy.admin_edit_docket, fy.admin_delete_docket, fy.admin_set_pool, fy.admin_set_payout, fy.admin_delete_pool,
+  fy.admin_set_room to authenticated;
 
 -- Realtime for the wall, same guard style as the poker tables.
 do $$ begin
@@ -4535,6 +4561,27 @@ begin
   select count(*) into n from fy.group_event; assert n = 0, 'group events readable (and empty)';
 
   raise notice 'TASK 3 TESTS PASSED';
+end $$;
+
+-- ---- Slice 1 · Task 15: admin edits a room's status (Site tab) ----
+do $$
+declare n int;
+begin
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  begin
+    perform fy.admin_set_room('calendar', 'ship');
+    raise exception 'should have failed: non-leader set a room status';
+  exception when others then if sqlerrm not like 'not allowed%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  perform fy.admin_set_room('calendar', 'ship');
+  begin
+    perform fy.admin_set_room('calendar', 'bogus');
+    raise exception 'should have failed: bad status';
+  exception when check_violation then null; end;
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.room where id = 'calendar' and status = 'ship'; assert n = 1, 'room status changed';
+  select count(*) into n from fy.admin_edit where tbl = 'room' and row_id = 'calendar'; assert n = 1, 'room edit logged';
+  raise notice 'TASK 15 TESTS PASSED';
 end $$;
 
 rollback;

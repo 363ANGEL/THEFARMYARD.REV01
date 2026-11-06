@@ -1132,3 +1132,24 @@ begin
 
   raise notice 'TASK 3 TESTS PASSED';
 end $$;
+
+-- ---- Slice 1 · Task 15: admin edits a room's status (Site tab) ----
+do $$
+declare n int;
+begin
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  begin
+    perform fy.admin_set_room('calendar', 'ship');
+    raise exception 'should have failed: non-leader set a room status';
+  exception when others then if sqlerrm not like 'not allowed%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  perform fy.admin_set_room('calendar', 'ship');
+  begin
+    perform fy.admin_set_room('calendar', 'bogus');
+    raise exception 'should have failed: bad status';
+  exception when check_violation then null; end;
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.room where id = 'calendar' and status = 'ship'; assert n = 1, 'room status changed';
+  select count(*) into n from fy.admin_edit where tbl = 'room' and row_id = 'calendar'; assert n = 1, 'room edit logged';
+  raise notice 'TASK 15 TESTS PASSED';
+end $$;

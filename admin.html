@@ -3,23 +3,31 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Farmyard · Admin</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
 <script src="fy-clucks.js"></script>
+<style>
+.atabs{display:flex;gap:6px;flex-wrap:wrap}
+.atab{min-height:36px;padding:0 14px;border:1px solid var(--rule-teal);border-radius:19px;background:transparent;color:var(--fy-text-label);font:inherit;font-size:13px;cursor:pointer}
+.atab[aria-selected="true"]{border-color:var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink);text-shadow:var(--text-glow-pink)}
+.acard{display:flex;flex-direction:column;gap:10px;padding:16px 14px;border:1px solid rgba(95,211,207,.55);border-radius:10px;box-shadow:0 0 4px rgba(95,211,207,.4);background:var(--fy-bg);min-width:0}
+.acard table{border-collapse:collapse;width:100%;font-size:var(--fs-sm)}
+.acard th{text-align:left;font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fy-text-label);padding:4px 8px 6px 0}
+.acard td{padding:7px 8px 7px 0;border-top:1px solid rgba(95,211,207,.22);vertical-align:middle}
+.acard .num{width:4.5em}
+.rowbtn{min-height:30px;padding:0 10px;background:transparent;border:1.5px solid var(--neon-teal);border-radius:6px;color:#c8f4f2;font:inherit;font-size:var(--fs-xs);cursor:pointer;white-space:nowrap}
+.rowbtn.warn{border-color:var(--neon-red-tube);color:var(--neon-red-text)}
+tr.clickable{cursor:pointer}
+tr.clickable:hover td{background:color-mix(in srgb,var(--neon-teal) 6%,transparent)}
+</style>
 </head>
 <body>
-<header id="fy-header"></header>
-<main class="wrap stack">
-  <h1>League manager</h1>
-  <section id="members" class="card stack"></section>
-  <section id="logos" class="card stack"></section>
-  <section id="result" class="card stack"></section>
-  <section id="claims" class="card stack"></section>
-  <section id="disputes" class="card stack"></section>
-  <section id="settle" class="card stack"></section>
-  <section id="settings" class="card stack"></section>
-</main>
+<div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js"></script><script src="app.js"></script><script src="admin.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script><script src="presence.js"></script><script src="sidebar-subs.js"></script>
+<script src="admin.js"></script>
 </body>
 </html>

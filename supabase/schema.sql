@@ -1683,8 +1683,21 @@ begin
   perform fy._admin_log(leader.id, 'pool', p_pool::text, 'delete', v_old, null);
 end $$;
 
+-- Site tab: the leader flips a room's status (ship/stub/later/live/hidden), logged.
+create or replace function fy.admin_set_room(p_room text, p_status text) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_old text;
+begin
+  leader := fy._require_leader();
+  select status into v_old from fy.room where id = p_room for update;
+  if v_old is null then raise exception 'no such room' using errcode = 'P0002'; end if;
+  update fy.room set status = p_status where id = p_room;
+  perform fy._admin_log(leader.id, 'room', p_room, 'status', v_old, p_status);
+end $$;
+
 grant execute on function fy.admin_set_member, fy.admin_add_iou, fy.admin_set_iou, fy.admin_delete_iou,
-  fy.admin_edit_docket, fy.admin_delete_docket, fy.admin_set_pool, fy.admin_set_payout, fy.admin_delete_pool to authenticated;
+  fy.admin_edit_docket, fy.admin_delete_docket, fy.admin_set_pool, fy.admin_set_payout, fy.admin_delete_pool,
+  fy.admin_set_room to authenticated;
 
 -- Realtime for the wall, same guard style as the poker tables.
 do $$ begin
