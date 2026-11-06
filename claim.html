@@ -94,7 +94,7 @@
   try { await FY.rpc('claim_profile', { p_token: token }); }
   catch (e) {
     if (/already claimed/.test(e.message)) { location.replace('dashboard.html'); return; }
-    if (/link used|unknown/.test(e.message)) { used("This invite's been used", `Someone has already signed in with it, or ${INVITER} sent a newer link. If you've already joined, just sign in.`); document.getElementById('in').addEventListener('click', () => location.href = 'dashboard.html'); return; }
+    if (/link used|link expired|unknown/.test(e.message)) { used("This invite's been used", `Someone has already signed in with it, or ${INVITER} sent a newer link. If you've already joined, just sign in.`); document.getElementById('in').addEventListener('click', () => location.href = 'dashboard.html'); return; }
     FY.toast(e.message); page(`<div class="centre"><h1>Something went wrong</h1><p>${esc(e.message)}. Try again, or ask ${INVITER}.</p></div>`); return;
   }
   try { sessionStorage.removeItem('fy_claim_token'); } catch (e) {}
