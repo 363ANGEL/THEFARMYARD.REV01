@@ -34,18 +34,25 @@
   const used = (title, body) => page(`
     <div class="centre"><span class="kicker">Door's shut</span><h1>${title}</h1><p>${body}</p></div>
     <div class="card neon-tube-teal">${discordBtn('in', 'Sign in')}<span class="small">Not joined yet? Ask ${INVITER} for a new link.</span></div>`);
+  const doorShut = () => page('<div class="centre"><span class="kicker">Door\'s shut</span><h1>Members only.</h1><p>Hank checks the door.</p></div>');
+
+  // Signing out below reloads the page (app.js watches SIGNED_OUT), so the door
+  // message rides a sessionStorage flag across that reload.
+  let shut = false;
+  try { shut = sessionStorage.getItem('fy_doorshut') === '1'; if (shut) sessionStorage.removeItem('fy_doorshut'); } catch (e) {}
+  if (shut) { doorShut(); return; }
 
   if (!ok) {
-    // Signed in but no members row (guarded pages land here): explain, don't offer sign-in again.
+    // Signed in but no members row (guarded pages land here): members only, no sign-up path.
+    // Sign them out and show the plain door.
     const s = await FY.session();
     if (s) {
       const me = await FY.me().catch(() => null);
       if (me) { location.replace('dashboard.html'); return; }
-      page(`
-        <div class="centre"><span class="kicker">Hank doesn't know you yet</span><h1>No profile on this Discord</h1>
-          <p style="max-width:40ch">You're signed in as <strong style="color:var(--fy-text)">${esc(Barn.discordName(s))}</strong>, but this Discord has no yard profile. Ask ${INVITER} for your invite link, then open it here while you're signed in.</p></div>
-        <div class="card neon-tube-teal"><button type="button" id="out" class="btn btn-ghost" style="min-height:44px;width:100%">Sign out and switch Discord</button></div>`);
-      document.getElementById('out').addEventListener('click', () => Barn.signOut());
+      try { sessionStorage.setItem('fy_doorshut', '1'); } catch (e) {}
+      doorShut();
+      Barn.voice.set(null);
+      await FY.sb.auth.signOut().catch(() => {});
       return;
     }
     used('No invite here', `This link has no invite on it. If you've already joined, just sign in. Otherwise ask ${INVITER} for your own link.`);
