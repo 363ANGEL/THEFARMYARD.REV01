@@ -1425,6 +1425,109 @@ insert into fy.room (id, label, path, icon, status, grp, parent_id, sort) values
   ('chess',           'Chess club',  'room.html?room=chess',    'ph ph-strategy',        'stub', 'next',    null,        54)
 on conflict (id) do nothing;
 
+-- Yard Wall (1.2): text-only posts, one reaction per member, Hank (the leader) pins.
+create table if not exists fy.post (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid not null references fy.member(id) on delete cascade,
+  body text not null check (char_length(btrim(body)) between 1 and 280),
+  pinned_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create table if not exists fy.post_like (
+  post_id uuid not null references fy.post(id) on delete cascade,
+  member_id uuid not null references fy.member(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (post_id, member_id)
+);
+alter table fy.post enable row level security;
+alter table fy.post_like enable row level security;
+grant select on fy.post, fy.post_like to authenticated;
+drop policy if exists post_read on fy.post;
+create policy post_read on fy.post for select to authenticated using (fy.is_member() or fy.is_leader());
+drop policy if exists post_like_read on fy.post_like;
+create policy post_like_read on fy.post_like for select to authenticated using (fy.is_member() or fy.is_leader());
+
+create or replace function fy.wall_post(p_body text) returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare v_me uuid; v_id uuid;
+begin
+  select id into v_me from fy.member where user_id = auth.uid();
+  if v_me is null then raise exception 'not a member' using errcode = '42501'; end if;
+  insert into fy.post (member_id, body) values (v_me, p_body) returning id into v_id;
+  return v_id;
+end $$;
+
+create or replace function fy.wall_delete(p_post uuid) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare v_me fy.member;
+begin
+  select * into v_me from fy.member where user_id = auth.uid();
+  if v_me.id is null then raise exception 'not a member' using errcode = '42501'; end if;
+  if not exists (select 1 from fy.post where id = p_post and (member_id = v_me.id or v_me.role = 'leader')) then
+    raise exception 'not your post' using errcode = '42501';
+  end if;
+  delete from fy.post where id = p_post;
+end $$;
+
+-- One reaction per member per post; p_on true likes (idempotent), false unlikes.
+create or replace function fy.wall_like(p_post uuid, p_on boolean) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare v_me uuid;
+begin
+  select id into v_me from fy.member where user_id = auth.uid();
+  if v_me is null then raise exception 'not a member' using errcode = '42501'; end if;
+  if p_on then
+    insert into fy.post_like (post_id, member_id) values (p_post, v_me) on conflict do nothing;
+  else
+    delete from fy.post_like where post_id = p_post and member_id = v_me;
+  end if;
+end $$;
+
+create or replace function fy.pin_post(p_post uuid, p_on boolean) returns void
+language plpgsql security definer set search_path = fy, public as $$
+begin
+  perform fy._require_leader();
+  update fy.post set pinned_at = case when p_on then now() end where id = p_post;
+end $$;
+
+-- Suggestion box (1.4 What's Next). Own rows only; the leader reads the lot.
+create table if not exists fy.suggestion (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid not null references fy.member(id) on delete cascade,
+  room_key text not null check (char_length(btrim(room_key)) between 1 and 40),
+  body text not null check (char_length(btrim(body)) between 1 and 280),
+  created_at timestamptz not null default now()
+);
+alter table fy.suggestion enable row level security;
+grant select on fy.suggestion to authenticated;
+drop policy if exists suggestion_own on fy.suggestion;
+create policy suggestion_own on fy.suggestion for select to authenticated using (
+  fy.is_leader() or exists (select 1 from fy.member m where m.user_id = auth.uid() and m.id = member_id));
+
+create or replace function fy.suggest(p_room text, p_body text) returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare v_me uuid; v_id uuid;
+begin
+  select id into v_me from fy.member where user_id = auth.uid();
+  if v_me is null then raise exception 'not a member' using errcode = '42501'; end if;
+  insert into fy.suggestion (member_id, room_key, body) values (v_me, p_room, p_body) returning id into v_id;
+  return v_id;
+end $$;
+
+grant execute on function fy.wall_post, fy.wall_delete, fy.wall_like, fy.pin_post, fy.suggest to authenticated;
+
+-- Realtime for the wall, same guard style as the poker tables.
+do $$ begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'fy' and tablename = 'post') then
+      alter publication supabase_realtime add table fy.post;
+    end if;
+    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'fy' and tablename = 'post_like') then
+      alter publication supabase_realtime add table fy.post_like;
+    end if;
+  end if;
+end $$;
+
 -- schema.sql again: every statement must be safe to re-run over itself (RAY re-applies it on live).
 create extension if not exists pg_cron with schema pg_catalog;
 grant usage on schema cron to postgres;
@@ -2850,6 +2953,109 @@ insert into fy.room (id, label, path, icon, status, grp, parent_id, sort) values
   ('chess',           'Chess club',  'room.html?room=chess',    'ph ph-strategy',        'stub', 'next',    null,        54)
 on conflict (id) do nothing;
 
+-- Yard Wall (1.2): text-only posts, one reaction per member, Hank (the leader) pins.
+create table if not exists fy.post (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid not null references fy.member(id) on delete cascade,
+  body text not null check (char_length(btrim(body)) between 1 and 280),
+  pinned_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create table if not exists fy.post_like (
+  post_id uuid not null references fy.post(id) on delete cascade,
+  member_id uuid not null references fy.member(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (post_id, member_id)
+);
+alter table fy.post enable row level security;
+alter table fy.post_like enable row level security;
+grant select on fy.post, fy.post_like to authenticated;
+drop policy if exists post_read on fy.post;
+create policy post_read on fy.post for select to authenticated using (fy.is_member() or fy.is_leader());
+drop policy if exists post_like_read on fy.post_like;
+create policy post_like_read on fy.post_like for select to authenticated using (fy.is_member() or fy.is_leader());
+
+create or replace function fy.wall_post(p_body text) returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare v_me uuid; v_id uuid;
+begin
+  select id into v_me from fy.member where user_id = auth.uid();
+  if v_me is null then raise exception 'not a member' using errcode = '42501'; end if;
+  insert into fy.post (member_id, body) values (v_me, p_body) returning id into v_id;
+  return v_id;
+end $$;
+
+create or replace function fy.wall_delete(p_post uuid) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare v_me fy.member;
+begin
+  select * into v_me from fy.member where user_id = auth.uid();
+  if v_me.id is null then raise exception 'not a member' using errcode = '42501'; end if;
+  if not exists (select 1 from fy.post where id = p_post and (member_id = v_me.id or v_me.role = 'leader')) then
+    raise exception 'not your post' using errcode = '42501';
+  end if;
+  delete from fy.post where id = p_post;
+end $$;
+
+-- One reaction per member per post; p_on true likes (idempotent), false unlikes.
+create or replace function fy.wall_like(p_post uuid, p_on boolean) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare v_me uuid;
+begin
+  select id into v_me from fy.member where user_id = auth.uid();
+  if v_me is null then raise exception 'not a member' using errcode = '42501'; end if;
+  if p_on then
+    insert into fy.post_like (post_id, member_id) values (p_post, v_me) on conflict do nothing;
+  else
+    delete from fy.post_like where post_id = p_post and member_id = v_me;
+  end if;
+end $$;
+
+create or replace function fy.pin_post(p_post uuid, p_on boolean) returns void
+language plpgsql security definer set search_path = fy, public as $$
+begin
+  perform fy._require_leader();
+  update fy.post set pinned_at = case when p_on then now() end where id = p_post;
+end $$;
+
+-- Suggestion box (1.4 What's Next). Own rows only; the leader reads the lot.
+create table if not exists fy.suggestion (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid not null references fy.member(id) on delete cascade,
+  room_key text not null check (char_length(btrim(room_key)) between 1 and 40),
+  body text not null check (char_length(btrim(body)) between 1 and 280),
+  created_at timestamptz not null default now()
+);
+alter table fy.suggestion enable row level security;
+grant select on fy.suggestion to authenticated;
+drop policy if exists suggestion_own on fy.suggestion;
+create policy suggestion_own on fy.suggestion for select to authenticated using (
+  fy.is_leader() or exists (select 1 from fy.member m where m.user_id = auth.uid() and m.id = member_id));
+
+create or replace function fy.suggest(p_room text, p_body text) returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare v_me uuid; v_id uuid;
+begin
+  select id into v_me from fy.member where user_id = auth.uid();
+  if v_me is null then raise exception 'not a member' using errcode = '42501'; end if;
+  insert into fy.suggestion (member_id, room_key, body) values (v_me, p_room, p_body) returning id into v_id;
+  return v_id;
+end $$;
+
+grant execute on function fy.wall_post, fy.wall_delete, fy.wall_like, fy.pin_post, fy.suggest to authenticated;
+
+-- Realtime for the wall, same guard style as the poker tables.
+do $$ begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'fy' and tablename = 'post') then
+      alter publication supabase_realtime add table fy.post;
+    end if;
+    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'fy' and tablename = 'post_like') then
+      alter publication supabase_realtime add table fy.post_like;
+    end if;
+  end if;
+end $$;
+
 -- Farmyard schema tests: the assertion body. Never run on its own. bundle_tests.py wraps it as
 --   begin; drop schema if exists fy cascade; <schema.sql>; <this file>; rollback;
 -- so it always runs on a fresh schema inside one transaction and leaves live data untouched.
@@ -3809,6 +4015,78 @@ begin
   assert fy.claim_profile(tok) = ed, 'fresh link claims Expired Ed';
 
   raise notice 'TASK 1 TESTS PASSED';
+end $$;
+
+-- ---- Slice 1 · Task 2: yard wall (posts, likes, suggestions) ----
+do $$
+declare ray uuid; sock uuid; pants uuid; p1 uuid; p2 uuid; n int; t text;
+begin
+  perform pg_temp.as_owner();
+  select id into ray from fy.member where nickname = 'RAY';
+  select id into sock from fy.member where nickname = 'The Sock';
+  select id into pants from fy.member where nickname = 'Pants';
+
+  -- Sock posts; everyone reads it; the API can never write the table directly.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  p1 := fy.wall_post('First squawk on the wall.');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  select body into t from fy.post where id = p1; assert t = 'First squawk on the wall.', 'Pants reads Sock''s post';
+  begin
+    insert into fy.post (member_id, body) values (pants, 'backdoor');
+    raise exception 'should have failed: direct insert into fy.post';
+  exception when insufficient_privilege then null; end;
+
+  -- Body rules live in the DB: 281 chars and whitespace-only are refused.
+  begin p2 := fy.wall_post(repeat('x', 281)); raise exception 'should have failed: 281-char post';
+  exception when check_violation then null; end;
+  begin p2 := fy.wall_post('   '); raise exception 'should have failed: whitespace-only post';
+  exception when check_violation then null; end;
+
+  -- One reaction per member per post; the like toggles.
+  perform fy.wall_like(p1, true);
+  perform fy.wall_like(p1, true);
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.post_like where post_id = p1; assert n = 1, 'a double like stays one like, got ' || n;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  perform fy.wall_like(p1, false);
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.post_like where post_id = p1; assert n = 0, 'unlike removes the like';
+
+  -- Delete own only; the leader deletes (and pins) anything.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  begin
+    perform fy.wall_delete(p1);
+    raise exception 'should have failed: Pants deleted Sock''s post';
+  exception when others then if sqlerrm not like 'not your post%' then raise; end if; end;
+  begin
+    perform fy.pin_post(p1, true);
+    raise exception 'should have failed: non-leader pinned';
+  exception when others then if sqlerrm not like 'not allowed%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  perform fy.pin_post(p1, true);
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.post where id = p1 and pinned_at is not null; assert n = 1, 'leader pin sets pinned_at';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  perform fy.wall_delete(p1);
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.post where id = p1; assert n = 0, 'Sock deleted his own post';
+
+  -- Suggestions: own rows only; the leader reads the lot; empty body refused.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  perform fy.suggest('arcade', 'Pinball cabinet, obviously.');
+  begin perform fy.suggest('arcade', '  '); raise exception 'should have failed: empty suggestion';
+  exception when check_violation then null; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  select count(*) into n from fy.suggestion where member_id = sock; assert n = 0, 'Pants must not read Sock''s suggestions';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  select count(*) into n from fy.suggestion where member_id = sock; assert n = 1, 'leader reads all suggestions';
+
+  -- Realtime: the wall tables are in the publication.
+  perform pg_temp.as_owner();
+  select count(*) into n from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'fy' and tablename in ('post', 'post_like');
+  assert n = 2, 'post and post_like are published for realtime, got ' || n;
+
+  raise notice 'TASK 2 TESTS PASSED';
 end $$;
 
 rollback;

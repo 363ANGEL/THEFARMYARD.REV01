@@ -958,3 +958,75 @@ begin
 
   raise notice 'TASK 1 TESTS PASSED';
 end $$;
+
+-- ---- Slice 1 · Task 2: yard wall (posts, likes, suggestions) ----
+do $$
+declare ray uuid; sock uuid; pants uuid; p1 uuid; p2 uuid; n int; t text;
+begin
+  perform pg_temp.as_owner();
+  select id into ray from fy.member where nickname = 'RAY';
+  select id into sock from fy.member where nickname = 'The Sock';
+  select id into pants from fy.member where nickname = 'Pants';
+
+  -- Sock posts; everyone reads it; the API can never write the table directly.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  p1 := fy.wall_post('First squawk on the wall.');
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  select body into t from fy.post where id = p1; assert t = 'First squawk on the wall.', 'Pants reads Sock''s post';
+  begin
+    insert into fy.post (member_id, body) values (pants, 'backdoor');
+    raise exception 'should have failed: direct insert into fy.post';
+  exception when insufficient_privilege then null; end;
+
+  -- Body rules live in the DB: 281 chars and whitespace-only are refused.
+  begin p2 := fy.wall_post(repeat('x', 281)); raise exception 'should have failed: 281-char post';
+  exception when check_violation then null; end;
+  begin p2 := fy.wall_post('   '); raise exception 'should have failed: whitespace-only post';
+  exception when check_violation then null; end;
+
+  -- One reaction per member per post; the like toggles.
+  perform fy.wall_like(p1, true);
+  perform fy.wall_like(p1, true);
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.post_like where post_id = p1; assert n = 1, 'a double like stays one like, got ' || n;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  perform fy.wall_like(p1, false);
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.post_like where post_id = p1; assert n = 0, 'unlike removes the like';
+
+  -- Delete own only; the leader deletes (and pins) anything.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  begin
+    perform fy.wall_delete(p1);
+    raise exception 'should have failed: Pants deleted Sock''s post';
+  exception when others then if sqlerrm not like 'not your post%' then raise; end if; end;
+  begin
+    perform fy.pin_post(p1, true);
+    raise exception 'should have failed: non-leader pinned';
+  exception when others then if sqlerrm not like 'not allowed%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  perform fy.pin_post(p1, true);
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.post where id = p1 and pinned_at is not null; assert n = 1, 'leader pin sets pinned_at';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  perform fy.wall_delete(p1);
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.post where id = p1; assert n = 0, 'Sock deleted his own post';
+
+  -- Suggestions: own rows only; the leader reads the lot; empty body refused.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  perform fy.suggest('arcade', 'Pinball cabinet, obviously.');
+  begin perform fy.suggest('arcade', '  '); raise exception 'should have failed: empty suggestion';
+  exception when check_violation then null; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  select count(*) into n from fy.suggestion where member_id = sock; assert n = 0, 'Pants must not read Sock''s suggestions';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  select count(*) into n from fy.suggestion where member_id = sock; assert n = 1, 'leader reads all suggestions';
+
+  -- Realtime: the wall tables are in the publication.
+  perform pg_temp.as_owner();
+  select count(*) into n from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'fy' and tablename in ('post', 'post_like');
+  assert n = 2, 'post and post_like are published for realtime, got ' || n;
+
+  raise notice 'TASK 2 TESTS PASSED';
+end $$;
