@@ -1513,6 +1513,179 @@ end $$;
 
 grant execute on function fy.wall_post, fy.wall_delete, fy.wall_like, fy.pin_post, fy.suggest to authenticated;
 
+-- Football pools and group events: tables now, UI later (slice 3 / PIGGY_ENABLED=false).
+create table if not exists fy.pool (
+  id uuid primary key default gen_random_uuid(),
+  fixture text not null,
+  kickoff timestamptz not null,
+  result text,  -- null = open
+  created_at timestamptz not null default now()
+);
+create table if not exists fy.pool_call (
+  pool_id uuid not null references fy.pool(id) on delete cascade,
+  member_id uuid not null references fy.member(id) on delete cascade,
+  call text not null,
+  stake int not null default 1 check (stake > 0),
+  payout int not null default 0,
+  primary key (pool_id, member_id)
+);
+create table if not exists fy.group_event (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  date date not null,
+  cost int not null default 0,
+  pot int not null default 0,
+  created_at timestamptz not null default now()
+);
+alter table fy.pool enable row level security;
+alter table fy.pool_call enable row level security;
+alter table fy.group_event enable row level security;
+grant select on fy.pool, fy.pool_call, fy.group_event to authenticated;
+drop policy if exists pool_read on fy.pool;
+create policy pool_read on fy.pool for select to authenticated using (fy.is_member() or fy.is_leader());
+drop policy if exists pool_call_read on fy.pool_call;
+create policy pool_call_read on fy.pool_call for select to authenticated using (fy.is_member() or fy.is_leader());
+drop policy if exists group_event_read on fy.group_event;
+create policy group_event_read on fy.group_event for select to authenticated using (fy.is_member() or fy.is_leader());
+
+-- Audit log: one row per changed field on every admin edit. Leader-only, even for reads.
+create table if not exists fy.admin_edit (
+  id uuid primary key default gen_random_uuid(),
+  admin_id uuid not null references fy.member(id),
+  tbl text not null,
+  row_id text not null,
+  field text not null,
+  old text,
+  new text,
+  created_at timestamptz not null default now()
+);
+alter table fy.admin_edit enable row level security;
+drop policy if exists admin_edit_leader on fy.admin_edit;
+create policy admin_edit_leader on fy.admin_edit for select to authenticated using (fy.is_leader());
+grant select on fy.admin_edit to authenticated;  -- the leader policy filters everyone else to zero rows
+
+-- Internal: write one audit row as the acting leader. No caller check; admin_* wrappers do that.
+create or replace function fy._admin_log(p_admin uuid, p_tbl text, p_row text, p_field text, p_old text, p_new text) returns void
+language sql security definer set search_path = fy, public as $$
+  insert into fy.admin_edit (admin_id, tbl, row_id, field, old, new) values (p_admin, p_tbl, p_row, p_field, p_old, p_new);
+$$;
+revoke all on function fy._admin_log from public;
+
+-- Profile/member corrections: whitelisted fields only.
+create or replace function fy.admin_set_member(p_member uuid, p_field text, p_value text) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_old text;
+begin
+  leader := fy._require_leader();
+  if p_field not in ('nickname','tagline','revolut_url','avatar_url','role') then
+    raise exception 'field not allowed: %', p_field;
+  end if;
+  execute format('select %I::text from fy.member where id = $1', p_field) into v_old using p_member;
+  if not exists (select 1 from fy.member where id = p_member) then raise exception 'unknown member' using errcode = 'P0002'; end if;
+  update fy.member set
+    nickname    = case when p_field = 'nickname'    then btrim(p_value) else nickname end,
+    tagline     = case when p_field = 'tagline'     then p_value else tagline end,
+    revolut_url = case when p_field = 'revolut_url' then p_value else revolut_url end,
+    avatar_url  = case when p_field = 'avatar_url'  then p_value else avatar_url end,
+    role        = case when p_field = 'role'        then p_value else role end
+  where id = p_member;
+  perform fy._admin_log(leader.id, 'member', p_member::text, p_field, v_old, p_value);
+end $$;
+
+-- IOU corrections: add, resize, delete.
+create or replace function fy.admin_add_iou(p_payer uuid, p_payee uuid, p_tk int, p_note text default null) returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_id uuid;
+begin
+  leader := fy._require_leader();
+  insert into fy.iou (league_id, payer_id, payee_id, amount) values (fy._league(), p_payer, p_payee, p_tk)
+  returning id into v_id;
+  perform fy._admin_log(leader.id, 'iou', v_id::text, 'add', null, p_tk::text || coalesce(' · ' || p_note, ''));
+  return v_id;
+end $$;
+
+create or replace function fy.admin_set_iou(p_iou uuid, p_tk int) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_old int;
+begin
+  leader := fy._require_leader();
+  select amount into v_old from fy.iou where id = p_iou for update;
+  if v_old is null then raise exception 'no such IOU' using errcode = 'P0002'; end if;
+  update fy.iou set amount = p_tk where id = p_iou;
+  perform fy._admin_log(leader.id, 'iou', p_iou::text, 'amount', v_old::text, p_tk::text);
+end $$;
+
+create or replace function fy.admin_delete_iou(p_iou uuid) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_old int;
+begin
+  leader := fy._require_leader();
+  select amount into v_old from fy.iou where id = p_iou;
+  if v_old is null then raise exception 'no such IOU' using errcode = 'P0002'; end if;
+  delete from fy.iou where id = p_iou;
+  perform fy._admin_log(leader.id, 'iou', p_iou::text, 'delete', v_old::text, null);
+end $$;
+
+-- Docket corrections: void the old event and refile with corrected players/winner.
+create or replace function fy.admin_edit_docket(p_event uuid, p_players jsonb, p_winner uuid) returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_new uuid; e fy.event;
+begin
+  leader := fy._require_leader();
+  select * into e from fy.event where id = p_event;
+  if e.id is null then raise exception 'no such event' using errcode = 'P0002'; end if;
+  perform fy._void_event(p_event, 'edited by admin');
+  v_new := fy._record_poker_result(leader.id, p_players, p_winner, e.played_at, coalesce(e.note, '') || ' · corrected');
+  perform fy._admin_log(leader.id, 'event', p_event::text, 'edit', p_event::text, v_new::text);
+  return v_new;
+end $$;
+
+create or replace function fy.admin_delete_docket(p_event uuid) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member;
+begin
+  leader := fy._require_leader();
+  perform fy._void_event(p_event, 'deleted by admin');
+  perform fy._admin_log(leader.id, 'event', p_event::text, 'delete', null, null);
+end $$;
+
+-- Pool corrections (UI slice 3; the Admin League tab uses these now).
+create or replace function fy.admin_set_pool(p_pool uuid, p_result text) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_old text;
+begin
+  leader := fy._require_leader();
+  select result into v_old from fy.pool where id = p_pool for update;
+  if not found then raise exception 'no such pool' using errcode = 'P0002'; end if;
+  update fy.pool set result = p_result where id = p_pool;
+  perform fy._admin_log(leader.id, 'pool', p_pool::text, 'result', v_old, p_result);
+end $$;
+
+create or replace function fy.admin_set_payout(p_pool uuid, p_member uuid, p_payout int) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_old int;
+begin
+  leader := fy._require_leader();
+  select payout into v_old from fy.pool_call where pool_id = p_pool and member_id = p_member for update;
+  if v_old is null then raise exception 'no such call' using errcode = 'P0002'; end if;
+  update fy.pool_call set payout = p_payout where pool_id = p_pool and member_id = p_member;
+  perform fy._admin_log(leader.id, 'pool', p_pool::text, 'payout', v_old::text, p_payout::text);
+end $$;
+
+create or replace function fy.admin_delete_pool(p_pool uuid) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_old text;
+begin
+  leader := fy._require_leader();
+  select fixture into v_old from fy.pool where id = p_pool;
+  if v_old is null then raise exception 'no such pool' using errcode = 'P0002'; end if;
+  delete from fy.pool where id = p_pool;
+  perform fy._admin_log(leader.id, 'pool', p_pool::text, 'delete', v_old, null);
+end $$;
+
+grant execute on function fy.admin_set_member, fy.admin_add_iou, fy.admin_set_iou, fy.admin_delete_iou,
+  fy.admin_edit_docket, fy.admin_delete_docket, fy.admin_set_pool, fy.admin_set_payout, fy.admin_delete_pool to authenticated;
+
 -- Realtime for the wall, same guard style as the poker tables.
 do $$ begin
   if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
