@@ -54,7 +54,7 @@ const SIGN = `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--ne
       <p style="margin:4px 0 0; max-width:64ch; font-size:var(--fs-body); line-height:1.5; color:var(--fy-text-secondary);">${esc(COPY.body)}</p></div>
     </div>
     <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-top:14px;">
-      ${next.map(r => `<a href="${esc(r.path)}" style="display:flex; flex-direction:column; gap:8px; padding:14px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); text-decoration:none; color:var(--fy-text);">
+      ${next.map(r => `<a href="${esc(Barn.stubPath(r))}" style="display:flex; flex-direction:column; gap:8px; padding:14px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); text-decoration:none; color:var(--fy-text);">
         <span style="display:flex; align-items:center; gap:10px;"><i class="${esc(r.icon)}" aria-hidden="true" style="font-size:var(--ic-lg); color:var(--neon-teal);"></i><span style="font-size:17px; font-weight:500;">${esc(r.label)}</span></span>
         <span style="font-size:var(--fs-sm); color:var(--fy-text-secondary); text-wrap:pretty;">${esc(TAGS[r.id] || '')}</span>
         <span class="kicker" style="margin-top:auto;">See the concept →</span></a>`).join('')}

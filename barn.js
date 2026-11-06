@@ -83,13 +83,20 @@
       return { me, session, main: document.getElementById('main'), root };
     },
 
+    /* A stub row always lands on the Room Template with its room name, never a 404, whatever
+       path the registry row carries. Sub-stubs (football-results) use the parent's room copy. */
+    stubPath(r) {
+      if (r.status !== 'stub' || /^room\.html\?room=/.test(r.path || '')) return r.path;
+      return 'room.html?room=' + encodeURIComponent(r.parent_id || r.id);
+    },
+
     /* One registry row as a nav row. Parents are .fy-nav-item, children .nav-sub. */
     _navRow(r, current, openParent) {
       const sub = !!r.parent_id;
       const on = current === r.id;
       const cls = sub ? 'nav-sub' : 'fy-nav-item';
       const open = sub && openParent === r.parent_id ? ' data-open="true"' : '';
-      return `<a class="${cls}" href="${esc(r.path)}" ${on ? 'aria-current="page"' : ''}${open} style="text-decoration:none">
+      return `<a class="${cls}" href="${esc(Barn.stubPath(r))}" ${on ? 'aria-current="page"' : ''}${open} style="text-decoration:none">
         <i class="${esc(r.icon)}" aria-hidden="true"></i><span style="flex:1">${esc(r.label)}</span></a>`;
     },
 
@@ -124,10 +131,14 @@
         <button type="button" class="fy-voice fy-voice-muted ${v === 'parked' ? 'is-on' : ''}" data-voice="parked"><i class="ph ph-speaker-slash" style="font-size:var(--ic-sm)"></i><span style="flex:1">MUTED<small>on Discord</small></span><span style="font-size:var(--fs-xs); color:var(--color-neutral-400)">0</span></button>
         <div id="vtip"></div>
         ${sep}
-        <a href="profile.html" ${current === 'profile' ? 'aria-current="page"' : ''} style="display:flex; gap:10px; align-items:center; padding:6px 10px 6px 8px; margin-top:8px; border-radius:8px; font-size:var(--fs-sm); font-weight:600; color:var(--color-text); text-decoration:none; border:1px solid var(--neon-teal); box-shadow:${current === 'profile' ? 'inset 0 0 0 1.5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55)' : 'none'};">
+        <div style="display:flex; gap:8px; align-items:stretch; margin-top:8px;">
+        <a href="profile.html" ${current === 'profile' ? 'aria-current="page"' : ''} style="flex:1; min-width:0; display:flex; gap:10px; align-items:center; padding:6px 10px 6px 8px; border-radius:8px; font-size:var(--fs-sm); font-weight:600; color:var(--color-text); text-decoration:none; border:1px solid var(--neon-teal); box-shadow:${current === 'profile' ? 'inset 0 0 0 1.5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55)' : 'none'};">
           <span style="width:32px; height:32px; border-radius:50%; border:1.5px solid var(--neon-teal); box-shadow:0 0 6px rgba(95,211,207,.6); overflow:hidden; flex:none;"><span role="img" aria-label="Your character" style="display:block; width:100%; height:100%; background:url('${esc(Barn.face(me, 32))}') center / contain no-repeat;"></span></span>
           <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(me.nickname)}</span>
-          <i class="ph ph-gear" style="color:var(--color-neutral-400); font-size:var(--ic-lg)"></i></a>`;
+          <i class="ph ph-gear" style="color:var(--color-neutral-400); font-size:var(--ic-lg)"></i></a>
+        ${(me.role === 'leader' || me.is_admin) ? `<a href="admin.html" title="Admin" aria-label="Admin" style="flex:none; display:grid; place-items:center; width:44px; border:1px solid var(--neon-teal); border-radius:8px; color:var(--neon-teal); text-decoration:none; box-sizing:border-box; box-shadow:${current === 'admin' ? 'inset 0 0 0 1.5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55)' : 'none'};"><i class="ph ph-shield-star" style="font-size:var(--ic-lg)" aria-hidden="true"></i></a>` : ''}
+        </div>
+        <a href="about.html" style="display:block; text-align:center; padding:8px 6px 2px; font-size:var(--fs-xs); letter-spacing:.04em; color:var(--neon-teal); text-shadow:0 0 6px rgba(95,211,207,.5); text-decoration:none;">About the yard</a>`;
       side.querySelectorAll('[data-voice]').forEach(b => b.addEventListener('click', () => {
         const k = b.dataset.voice; voice.set(k);
         side.querySelectorAll('[data-voice]').forEach(x => x.classList.toggle('is-on', x === b));
