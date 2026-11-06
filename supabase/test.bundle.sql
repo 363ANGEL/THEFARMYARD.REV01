@@ -31,6 +31,7 @@ create table if not exists fy.member (
   setup_at timestamptz,  -- when the member finished New User Set-up; null sends them there first
   birth_day smallint check (birth_day between 1 and 31),     -- birthday, day of the month; null = not given
   birth_month smallint check (birth_month between 1 and 12), -- birthday, month; null = not given
+  tagline text,  -- profile card one-liner; check + grants live in section 8 (slice 1)
   unique (league_id, nickname)
 );
 alter table fy.member add column if not exists revolut_url text;
@@ -38,6 +39,7 @@ alter table fy.member add column if not exists avatar_url text;
 alter table fy.member add column if not exists setup_at timestamptz;
 alter table fy.member add column if not exists birth_day smallint;
 alter table fy.member add column if not exists birth_month smallint;
+alter table fy.member add column if not exists tagline text;  -- before fy.me(), which selects it
 -- Members claimed before New User Set-up existed are not sent through it.
 update fy.member set setup_at = coalesce(setup_at, created_at) where user_id is not null and setup_at is null;
 
@@ -80,8 +82,10 @@ create table if not exists fy.claim_link (
   league_id uuid not null references fy.league(id),
   member_id uuid not null references fy.member(id),
   created_at timestamptz not null default now(),
-  used_at timestamptz
+  used_at timestamptz,
+  expires_at timestamptz  -- null = never (pre-slice-1 links)
 );
+alter table fy.claim_link add column if not exists expires_at timestamptz;
 
 create table if not exists fy.event_type (
   key text not null,
@@ -212,7 +216,7 @@ grant select on fy.v_members_public, fy.v_standings, fy.v_overall, fy.v_badges t
 create or replace function fy.me() returns fy.member
 language sql stable security definer set search_path = fy, public as $$
   select id, league_id, nickname, avatar, user_id, null::text, role, chesscom_username, created_at, revolut_url, avatar_url, setup_at,
-         birth_day, birth_month
+         birth_day, birth_month, tagline
   from fy.member where user_id = auth.uid() limit 1;
 $$;
 
@@ -252,15 +256,18 @@ begin
   return v_id;
 end $$;
 
-create or replace function fy.issue_claim_link(p_member_id uuid) returns text
+-- Slice 1: links now expire (default 14 days). Drop the old 1-arg signature so the
+-- defaulted parameter never leaves two overloads behind on a live re-run.
+drop function if exists fy.issue_claim_link(uuid);
+create or replace function fy.issue_claim_link(p_member_id uuid, p_days int default 14) returns text
 language plpgsql security definer set search_path = fy, public as $$
 declare v_token text;
 begin
   perform fy._require_leader();
   -- A new link burns any older unused one for the same member.
   update fy.claim_link set used_at = now() where member_id = p_member_id and used_at is null;
-  insert into fy.claim_link (member_id, league_id)
-  select id, league_id from fy.member where id = p_member_id
+  insert into fy.claim_link (member_id, league_id, expires_at)
+  select id, league_id, now() + make_interval(days => p_days) from fy.member where id = p_member_id
   returning token into v_token;
   if v_token is null then raise exception 'unknown member' using errcode = 'P0002'; end if;
   return v_token;
@@ -276,9 +283,14 @@ begin
   end if;
   -- Burn the token first, in one statement: two accounts racing on the same link cannot both pass.
   update fy.claim_link set used_at = now()
-  where token = p_token and used_at is null
+  where token = p_token and used_at is null and (expires_at is null or expires_at > now())
   returning member_id into v_member;
-  if v_member is null then raise exception 'link used or unknown' using errcode = 'P0002'; end if;
+  if v_member is null then
+    if exists (select 1 from fy.claim_link where token = p_token and used_at is null and expires_at <= now()) then
+      raise exception 'link expired' using errcode = 'P0002';
+    end if;
+    raise exception 'link used or unknown' using errcode = 'P0002';
+  end if;
   -- The Discord user id lives in auth.identities, not in the JWT.
   select provider_id into v_discord from auth.identities
   where user_id = auth.uid() and provider = 'discord' limit 1;
@@ -294,7 +306,8 @@ end $$;
 create or replace function fy.claim_peek(p_token text) returns text
 language sql stable security definer set search_path = fy, public as $$
   select m.nickname from fy.claim_link c join fy.member m on m.id = c.member_id
-  where c.token = p_token and c.used_at is null and m.user_id is null;
+  where c.token = p_token and c.used_at is null and m.user_id is null
+    and (c.expires_at is null or c.expires_at > now());
 $$;
 
 -- Leader replaces a member's logo palette. p_logos = [{"slot":1,"name":"Hank","url":"https://..."}, ...] (max 8).
@@ -1320,6 +1333,97 @@ grant execute on function fy.humidor_open_round, fy.humidor_submit_prefs, fy.hum
   fy.humidor_place_order, fy.humidor_set_stage, fy.humidor_current, fy.humidor_archive to authenticated;
 -- Internals: callable only from the security-definer functions above.
 revoke all on function fy._gbp, fy._humidor_round, fy._humidor_points from public;
+
+-- 8. Slice 1 — the spine ------------------------------------------------------
+
+-- Tagline on the member card (Profile header). Self-set like nickname.
+-- (Column added with the member alters in section 1, so fy.me() validates on a live re-run.)
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'member_tagline_check' and conrelid = 'fy.member'::regclass) then
+    alter table fy.member add constraint member_tagline_check check (tagline is null or char_length(btrim(tagline)) <= 80);
+  end if;
+end $$;
+grant select (tagline) on fy.member to authenticated;
+grant update (tagline) on fy.member to authenticated;
+
+-- Linked accounts (0.2 New User Set-up / 3.0 Profile). Owner + leader read; writes via fy.set_my_links.
+create table if not exists fy.member_link (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid not null references fy.member(id) on delete cascade,
+  provider text not null check (provider in ('discord','revolut','steam','chesscom','spotify')),
+  handle text not null check (char_length(btrim(handle)) between 1 and 120),
+  verified_at timestamptz,
+  enabled boolean not null default true,
+  unique (member_id, provider)
+);
+alter table fy.member_link enable row level security;
+grant select on fy.member_link to authenticated;
+drop policy if exists member_link_own on fy.member_link;
+create policy member_link_own on fy.member_link for select to authenticated using (
+  fy.is_leader() or exists (select 1 from fy.member m where m.user_id = auth.uid() and m.id = member_id));
+
+-- A member replaces their own links in one call. The Revolut handle doubles as the pay-me URL.
+create or replace function fy.set_my_links(p_links jsonb) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare v_me uuid; lnk jsonb;
+begin
+  select id into v_me from fy.member where user_id = auth.uid();
+  if v_me is null then raise exception 'not a member' using errcode = '42501'; end if;
+  if jsonb_typeof(p_links) <> 'array' or jsonb_array_length(p_links) > 8 then raise exception 'up to 8 links'; end if;
+  for lnk in select * from jsonb_array_elements(p_links) loop
+    if lnk->>'provider' not in ('discord','revolut','steam','chesscom','spotify') then
+      raise exception 'unknown provider %', coalesce(lnk->>'provider', 'null');
+    end if;
+    if char_length(btrim(coalesce(lnk->>'handle', ''))) = 0 then raise exception 'empty handle'; end if;
+  end loop;
+  delete from fy.member_link where member_id = v_me;
+  insert into fy.member_link (member_id, provider, handle, enabled)
+  select v_me, x->>'provider', btrim(x->>'handle'), coalesce((x->>'enabled')::boolean, true)
+  from jsonb_array_elements(p_links) x;
+  update fy.member set revolut_url = (
+    select l.handle from fy.member_link l
+    where l.member_id = v_me and l.provider = 'revolut' and l.enabled limit 1)
+  where id = v_me;
+end $$;
+grant execute on function fy.set_my_links to authenticated;
+
+-- Rooms registry: drives the sidebar on every page. grp = nav group; parent_id = sub-nav rows.
+-- status: ship = built page · stub = mounts room.html · later = hidden · live = external/legacy page · hidden = URL only.
+create table if not exists fy.room (
+  id text primary key,
+  label text not null,
+  path text not null,
+  icon text not null,
+  status text not null check (status in ('ship','stub','later','live','hidden')),
+  grp text not null check (grp in ('home','leagues','beta','next')),
+  parent_id text references fy.room(id),
+  sort int not null default 0
+);
+alter table fy.room enable row level security;
+grant select on fy.room to authenticated;
+drop policy if exists room_read on fy.room;
+create policy room_read on fy.room for select to authenticated using (fy.is_member() or fy.is_leader());
+
+-- Seed. "do nothing" on conflict: RAY's later status edits survive a schema re-run.
+insert into fy.room (id, label, path, icon, status, grp, parent_id, sort) values
+  ('dashboard',       'Home',        'dashboard.html',          'ph ph-house',           'ship', 'home',    null,        10),
+  ('calendar',        'Calendar',    'room.html?room=calendar', 'ph ph-calendar-blank',  'stub', 'home',    'dashboard', 11),
+  ('wall',            'Yard wall',   'wall.html',               'ph ph-chats-circle',    'ship', 'home',    'dashboard', 12),
+  ('poker',           'Poker',       'room.html?room=poker',    'ph ph-club',            'stub', 'leagues', null,        20),
+  ('football',        'Football',    'room.html?room=football', 'ph ph-soccer-ball',     'stub', 'beta',    null,        30),
+  ('football-results','Results',     'room.html?room=football', 'ph ph-ranking',         'stub', 'beta',    'football',  31),
+  ('football-news',   'News',        'room.html?room=football', 'ph ph-newspaper',       'stub', 'beta',    'football',  32),
+  ('humidor',         'The Humidor', 'humidor.html',            'ph ph-cigarette',       'live', 'beta',    null,        40),
+  ('humidor-vote',    'Vote',        'humidor-vote.html',       'ph ph-check-square',    'live', 'beta',    'humidor',   41),
+  ('humidor-results', 'Results',     'humidor-results.html',    'ph ph-ranking',         'live', 'beta',    'humidor',   42),
+  ('humidor-archive', 'Archive',     'humidor-archive.html',    'ph ph-archive',         'live', 'beta',    'humidor',   43),
+  ('humidor-admin',   'Admin',       'humidor-admin.html',      'ph ph-gear-six',        'live', 'beta',    'humidor',   44),
+  ('arcade',          'Arcade',      'room.html?room=arcade',   'ph ph-game-controller', 'stub', 'next',    null,        50),
+  ('movies',          'Movie night', 'room.html?room=movies',   'ph ph-film-slate',      'stub', 'next',    null,        51),
+  ('jukebox',         'Jukebox',     'room.html?room=jukebox',  'ph ph-music-notes',     'stub', 'next',    null,        52),
+  ('whisky',          'Whisky club', 'room.html?room=whisky',   'ph ph-brandy',          'stub', 'next',    null,        53),
+  ('chess',           'Chess club',  'room.html?room=chess',    'ph ph-strategy',        'stub', 'next',    null,        54)
+on conflict (id) do nothing;
 
 -- schema.sql again: every statement must be safe to re-run over itself (RAY re-applies it on live).
 create extension if not exists pg_cron with schema pg_catalog;
@@ -1352,6 +1456,7 @@ create table if not exists fy.member (
   setup_at timestamptz,  -- when the member finished New User Set-up; null sends them there first
   birth_day smallint check (birth_day between 1 and 31),     -- birthday, day of the month; null = not given
   birth_month smallint check (birth_month between 1 and 12), -- birthday, month; null = not given
+  tagline text,  -- profile card one-liner; check + grants live in section 8 (slice 1)
   unique (league_id, nickname)
 );
 alter table fy.member add column if not exists revolut_url text;
@@ -1359,6 +1464,7 @@ alter table fy.member add column if not exists avatar_url text;
 alter table fy.member add column if not exists setup_at timestamptz;
 alter table fy.member add column if not exists birth_day smallint;
 alter table fy.member add column if not exists birth_month smallint;
+alter table fy.member add column if not exists tagline text;  -- before fy.me(), which selects it
 -- Members claimed before New User Set-up existed are not sent through it.
 update fy.member set setup_at = coalesce(setup_at, created_at) where user_id is not null and setup_at is null;
 
@@ -1401,8 +1507,10 @@ create table if not exists fy.claim_link (
   league_id uuid not null references fy.league(id),
   member_id uuid not null references fy.member(id),
   created_at timestamptz not null default now(),
-  used_at timestamptz
+  used_at timestamptz,
+  expires_at timestamptz  -- null = never (pre-slice-1 links)
 );
+alter table fy.claim_link add column if not exists expires_at timestamptz;
 
 create table if not exists fy.event_type (
   key text not null,
@@ -1533,7 +1641,7 @@ grant select on fy.v_members_public, fy.v_standings, fy.v_overall, fy.v_badges t
 create or replace function fy.me() returns fy.member
 language sql stable security definer set search_path = fy, public as $$
   select id, league_id, nickname, avatar, user_id, null::text, role, chesscom_username, created_at, revolut_url, avatar_url, setup_at,
-         birth_day, birth_month
+         birth_day, birth_month, tagline
   from fy.member where user_id = auth.uid() limit 1;
 $$;
 
@@ -1573,15 +1681,18 @@ begin
   return v_id;
 end $$;
 
-create or replace function fy.issue_claim_link(p_member_id uuid) returns text
+-- Slice 1: links now expire (default 14 days). Drop the old 1-arg signature so the
+-- defaulted parameter never leaves two overloads behind on a live re-run.
+drop function if exists fy.issue_claim_link(uuid);
+create or replace function fy.issue_claim_link(p_member_id uuid, p_days int default 14) returns text
 language plpgsql security definer set search_path = fy, public as $$
 declare v_token text;
 begin
   perform fy._require_leader();
   -- A new link burns any older unused one for the same member.
   update fy.claim_link set used_at = now() where member_id = p_member_id and used_at is null;
-  insert into fy.claim_link (member_id, league_id)
-  select id, league_id from fy.member where id = p_member_id
+  insert into fy.claim_link (member_id, league_id, expires_at)
+  select id, league_id, now() + make_interval(days => p_days) from fy.member where id = p_member_id
   returning token into v_token;
   if v_token is null then raise exception 'unknown member' using errcode = 'P0002'; end if;
   return v_token;
@@ -1597,9 +1708,14 @@ begin
   end if;
   -- Burn the token first, in one statement: two accounts racing on the same link cannot both pass.
   update fy.claim_link set used_at = now()
-  where token = p_token and used_at is null
+  where token = p_token and used_at is null and (expires_at is null or expires_at > now())
   returning member_id into v_member;
-  if v_member is null then raise exception 'link used or unknown' using errcode = 'P0002'; end if;
+  if v_member is null then
+    if exists (select 1 from fy.claim_link where token = p_token and used_at is null and expires_at <= now()) then
+      raise exception 'link expired' using errcode = 'P0002';
+    end if;
+    raise exception 'link used or unknown' using errcode = 'P0002';
+  end if;
   -- The Discord user id lives in auth.identities, not in the JWT.
   select provider_id into v_discord from auth.identities
   where user_id = auth.uid() and provider = 'discord' limit 1;
@@ -1615,7 +1731,8 @@ end $$;
 create or replace function fy.claim_peek(p_token text) returns text
 language sql stable security definer set search_path = fy, public as $$
   select m.nickname from fy.claim_link c join fy.member m on m.id = c.member_id
-  where c.token = p_token and c.used_at is null and m.user_id is null;
+  where c.token = p_token and c.used_at is null and m.user_id is null
+    and (c.expires_at is null or c.expires_at > now());
 $$;
 
 -- Leader replaces a member's logo palette. p_logos = [{"slot":1,"name":"Hank","url":"https://..."}, ...] (max 8).
@@ -2641,6 +2758,97 @@ grant execute on function fy.humidor_open_round, fy.humidor_submit_prefs, fy.hum
   fy.humidor_place_order, fy.humidor_set_stage, fy.humidor_current, fy.humidor_archive to authenticated;
 -- Internals: callable only from the security-definer functions above.
 revoke all on function fy._gbp, fy._humidor_round, fy._humidor_points from public;
+
+-- 8. Slice 1 — the spine ------------------------------------------------------
+
+-- Tagline on the member card (Profile header). Self-set like nickname.
+-- (Column added with the member alters in section 1, so fy.me() validates on a live re-run.)
+do $$ begin
+  if not exists (select 1 from pg_constraint where conname = 'member_tagline_check' and conrelid = 'fy.member'::regclass) then
+    alter table fy.member add constraint member_tagline_check check (tagline is null or char_length(btrim(tagline)) <= 80);
+  end if;
+end $$;
+grant select (tagline) on fy.member to authenticated;
+grant update (tagline) on fy.member to authenticated;
+
+-- Linked accounts (0.2 New User Set-up / 3.0 Profile). Owner + leader read; writes via fy.set_my_links.
+create table if not exists fy.member_link (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid not null references fy.member(id) on delete cascade,
+  provider text not null check (provider in ('discord','revolut','steam','chesscom','spotify')),
+  handle text not null check (char_length(btrim(handle)) between 1 and 120),
+  verified_at timestamptz,
+  enabled boolean not null default true,
+  unique (member_id, provider)
+);
+alter table fy.member_link enable row level security;
+grant select on fy.member_link to authenticated;
+drop policy if exists member_link_own on fy.member_link;
+create policy member_link_own on fy.member_link for select to authenticated using (
+  fy.is_leader() or exists (select 1 from fy.member m where m.user_id = auth.uid() and m.id = member_id));
+
+-- A member replaces their own links in one call. The Revolut handle doubles as the pay-me URL.
+create or replace function fy.set_my_links(p_links jsonb) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare v_me uuid; lnk jsonb;
+begin
+  select id into v_me from fy.member where user_id = auth.uid();
+  if v_me is null then raise exception 'not a member' using errcode = '42501'; end if;
+  if jsonb_typeof(p_links) <> 'array' or jsonb_array_length(p_links) > 8 then raise exception 'up to 8 links'; end if;
+  for lnk in select * from jsonb_array_elements(p_links) loop
+    if lnk->>'provider' not in ('discord','revolut','steam','chesscom','spotify') then
+      raise exception 'unknown provider %', coalesce(lnk->>'provider', 'null');
+    end if;
+    if char_length(btrim(coalesce(lnk->>'handle', ''))) = 0 then raise exception 'empty handle'; end if;
+  end loop;
+  delete from fy.member_link where member_id = v_me;
+  insert into fy.member_link (member_id, provider, handle, enabled)
+  select v_me, x->>'provider', btrim(x->>'handle'), coalesce((x->>'enabled')::boolean, true)
+  from jsonb_array_elements(p_links) x;
+  update fy.member set revolut_url = (
+    select l.handle from fy.member_link l
+    where l.member_id = v_me and l.provider = 'revolut' and l.enabled limit 1)
+  where id = v_me;
+end $$;
+grant execute on function fy.set_my_links to authenticated;
+
+-- Rooms registry: drives the sidebar on every page. grp = nav group; parent_id = sub-nav rows.
+-- status: ship = built page · stub = mounts room.html · later = hidden · live = external/legacy page · hidden = URL only.
+create table if not exists fy.room (
+  id text primary key,
+  label text not null,
+  path text not null,
+  icon text not null,
+  status text not null check (status in ('ship','stub','later','live','hidden')),
+  grp text not null check (grp in ('home','leagues','beta','next')),
+  parent_id text references fy.room(id),
+  sort int not null default 0
+);
+alter table fy.room enable row level security;
+grant select on fy.room to authenticated;
+drop policy if exists room_read on fy.room;
+create policy room_read on fy.room for select to authenticated using (fy.is_member() or fy.is_leader());
+
+-- Seed. "do nothing" on conflict: RAY's later status edits survive a schema re-run.
+insert into fy.room (id, label, path, icon, status, grp, parent_id, sort) values
+  ('dashboard',       'Home',        'dashboard.html',          'ph ph-house',           'ship', 'home',    null,        10),
+  ('calendar',        'Calendar',    'room.html?room=calendar', 'ph ph-calendar-blank',  'stub', 'home',    'dashboard', 11),
+  ('wall',            'Yard wall',   'wall.html',               'ph ph-chats-circle',    'ship', 'home',    'dashboard', 12),
+  ('poker',           'Poker',       'room.html?room=poker',    'ph ph-club',            'stub', 'leagues', null,        20),
+  ('football',        'Football',    'room.html?room=football', 'ph ph-soccer-ball',     'stub', 'beta',    null,        30),
+  ('football-results','Results',     'room.html?room=football', 'ph ph-ranking',         'stub', 'beta',    'football',  31),
+  ('football-news',   'News',        'room.html?room=football', 'ph ph-newspaper',       'stub', 'beta',    'football',  32),
+  ('humidor',         'The Humidor', 'humidor.html',            'ph ph-cigarette',       'live', 'beta',    null,        40),
+  ('humidor-vote',    'Vote',        'humidor-vote.html',       'ph ph-check-square',    'live', 'beta',    'humidor',   41),
+  ('humidor-results', 'Results',     'humidor-results.html',    'ph ph-ranking',         'live', 'beta',    'humidor',   42),
+  ('humidor-archive', 'Archive',     'humidor-archive.html',    'ph ph-archive',         'live', 'beta',    'humidor',   43),
+  ('humidor-admin',   'Admin',       'humidor-admin.html',      'ph ph-gear-six',        'live', 'beta',    'humidor',   44),
+  ('arcade',          'Arcade',      'room.html?room=arcade',   'ph ph-game-controller', 'stub', 'next',    null,        50),
+  ('movies',          'Movie night', 'room.html?room=movies',   'ph ph-film-slate',      'stub', 'next',    null,        51),
+  ('jukebox',         'Jukebox',     'room.html?room=jukebox',  'ph ph-music-notes',     'stub', 'next',    null,        52),
+  ('whisky',          'Whisky club', 'room.html?room=whisky',   'ph ph-brandy',          'stub', 'next',    null,        53),
+  ('chess',           'Chess club',  'room.html?room=chess',    'ph ph-strategy',        'stub', 'next',    null,        54)
+on conflict (id) do nothing;
 
 -- Farmyard schema tests: the assertion body. Never run on its own. bundle_tests.py wraps it as
 --   begin; drop schema if exists fy cascade; <schema.sql>; <this file>; rollback;
@@ -3532,6 +3740,75 @@ begin
   exception when check_violation then null; end;
 
   raise notice 'ALL TESTS PASSED';
+end $$;
+
+-- ---- Slice 1 · Task 1: rooms registry, member links, tagline, claim expiry ----
+do $$
+declare ray uuid; sock uuid; pants uuid; ed uuid; n int; tok text; t text;
+begin
+  perform pg_temp.as_owner();
+  select id into ray from fy.member where nickname = 'RAY';
+  select id into sock from fy.member where nickname = 'The Sock';
+  select id into pants from fy.member where nickname = 'Pants';
+
+  -- Rooms registry seeded; members read it, nobody writes it from the API.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  select count(*) into n from fy.room where status = 'stub'; assert n >= 4, 'at least 4 stub rooms, got ' || n;
+  select count(*) into n from fy.room where id = 'humidor' and status = 'live' and path = 'humidor.html'; assert n = 1, 'humidor is live in the registry';
+  select count(*) into n from fy.room where grp = 'next'; assert n = 5, 'five holding rooms, got ' || n;
+  select count(*) into n from fy.room where parent_id = 'humidor'; assert n = 4, 'humidor has four sub-pages, got ' || n;
+  begin
+    insert into fy.room (id, label, path, icon, status, grp, sort) values ('hack', 'Hack', 'x.html', 'ph-x', 'stub', 'home', 99);
+    raise exception 'should have failed: member wrote fy.room';
+  exception when insufficient_privilege then null; end;
+
+  -- Member links: Sock sets his own, Revolut syncs member.revolut_url, Pants sees none of Sock's, leader sees all.
+  perform fy.set_my_links(jsonb_build_array(
+    jsonb_build_object('provider', 'revolut', 'handle', 'https://revolut.me/socko', 'enabled', true),
+    jsonb_build_object('provider', 'steam', 'handle', 'sock_the_steam', 'enabled', false)));
+  select count(*) into n from fy.member_link where member_id = sock; assert n = 2, 'Sock has two links, got ' || n;
+  select revolut_url into t from fy.member where id = sock; assert t = 'https://revolut.me/socko', 'revolut link syncs member.revolut_url, got ' || coalesce(t, 'null');
+  begin
+    perform fy.set_my_links(jsonb_build_array(jsonb_build_object('provider', 'myspace', 'handle', 'x', 'enabled', true)));
+    raise exception 'should have failed: unknown provider';
+  exception when others then if sqlerrm not like 'unknown provider%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  select count(*) into n from fy.member_link where member_id = sock; assert n = 0, 'Pants must not read Sock''s links';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  select count(*) into n from fy.member_link where member_id = sock; assert n = 2, 'leader reads all links';
+
+  -- Tagline: own yes, 81 chars no, another member's no.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  update fy.member set tagline = 'Here for the beans' where id = sock;
+  assert (fy.me()).tagline = 'Here for the beans', 'me() carries the tagline';
+  begin update fy.member set tagline = repeat('x', 81) where id = sock; raise exception 'should have failed: 81-char tagline';
+  exception when check_violation then null; end;
+  update fy.member set tagline = 'gotcha' where id = pants;
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.member where id = pants and tagline = 'gotcha'; assert n = 0, 'a member cannot set another''s tagline';
+
+  -- Claim expiry: an expired link peeks nothing and cannot be claimed; a fresh one still works.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  ed := fy.create_member('Expired Ed', 'goat');
+  tok := fy.issue_claim_link(ed, -1);
+  perform pg_temp.as_anon();
+  assert fy.claim_peek(tok) is null, 'an expired link peeks nothing';
+  perform pg_temp.as_owner();
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+  values ('00000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'newbie7@test.local', '', '{"provider":"discord"}', '{}', now(), now());
+  insert into auth.identities (user_id, provider, provider_id, identity_data, last_sign_in_at, created_at, updated_at)
+  values ('00000000-0000-0000-0000-000000000007', 'discord', '777', '{"sub":"444"}', now(), now(), now());
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000007');
+  begin
+    perform fy.claim_profile(tok);
+    raise exception 'should have failed: expired link claimed';
+  exception when others then if sqlerrm not like 'link expired%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  tok := fy.issue_claim_link(ed);
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000007');
+  assert fy.claim_profile(tok) = ed, 'fresh link claims Expired Ed';
+
+  raise notice 'TASK 1 TESTS PASSED';
 end $$;
 
 rollback;

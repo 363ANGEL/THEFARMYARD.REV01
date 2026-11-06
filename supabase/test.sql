@@ -889,3 +889,72 @@ begin
 
   raise notice 'ALL TESTS PASSED';
 end $$;
+
+-- ---- Slice 1 · Task 1: rooms registry, member links, tagline, claim expiry ----
+do $$
+declare ray uuid; sock uuid; pants uuid; ed uuid; n int; tok text; t text;
+begin
+  perform pg_temp.as_owner();
+  select id into ray from fy.member where nickname = 'RAY';
+  select id into sock from fy.member where nickname = 'The Sock';
+  select id into pants from fy.member where nickname = 'Pants';
+
+  -- Rooms registry seeded; members read it, nobody writes it from the API.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  select count(*) into n from fy.room where status = 'stub'; assert n >= 4, 'at least 4 stub rooms, got ' || n;
+  select count(*) into n from fy.room where id = 'humidor' and status = 'live' and path = 'humidor.html'; assert n = 1, 'humidor is live in the registry';
+  select count(*) into n from fy.room where grp = 'next'; assert n = 5, 'five holding rooms, got ' || n;
+  select count(*) into n from fy.room where parent_id = 'humidor'; assert n = 4, 'humidor has four sub-pages, got ' || n;
+  begin
+    insert into fy.room (id, label, path, icon, status, grp, sort) values ('hack', 'Hack', 'x.html', 'ph-x', 'stub', 'home', 99);
+    raise exception 'should have failed: member wrote fy.room';
+  exception when insufficient_privilege then null; end;
+
+  -- Member links: Sock sets his own, Revolut syncs member.revolut_url, Pants sees none of Sock's, leader sees all.
+  perform fy.set_my_links(jsonb_build_array(
+    jsonb_build_object('provider', 'revolut', 'handle', 'https://revolut.me/socko', 'enabled', true),
+    jsonb_build_object('provider', 'steam', 'handle', 'sock_the_steam', 'enabled', false)));
+  select count(*) into n from fy.member_link where member_id = sock; assert n = 2, 'Sock has two links, got ' || n;
+  select revolut_url into t from fy.member where id = sock; assert t = 'https://revolut.me/socko', 'revolut link syncs member.revolut_url, got ' || coalesce(t, 'null');
+  begin
+    perform fy.set_my_links(jsonb_build_array(jsonb_build_object('provider', 'myspace', 'handle', 'x', 'enabled', true)));
+    raise exception 'should have failed: unknown provider';
+  exception when others then if sqlerrm not like 'unknown provider%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000003');
+  select count(*) into n from fy.member_link where member_id = sock; assert n = 0, 'Pants must not read Sock''s links';
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  select count(*) into n from fy.member_link where member_id = sock; assert n = 2, 'leader reads all links';
+
+  -- Tagline: own yes, 81 chars no, another member's no.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000002');
+  update fy.member set tagline = 'Here for the beans' where id = sock;
+  assert (fy.me()).tagline = 'Here for the beans', 'me() carries the tagline';
+  begin update fy.member set tagline = repeat('x', 81) where id = sock; raise exception 'should have failed: 81-char tagline';
+  exception when check_violation then null; end;
+  update fy.member set tagline = 'gotcha' where id = pants;
+  perform pg_temp.as_owner();
+  select count(*) into n from fy.member where id = pants and tagline = 'gotcha'; assert n = 0, 'a member cannot set another''s tagline';
+
+  -- Claim expiry: an expired link peeks nothing and cannot be claimed; a fresh one still works.
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  ed := fy.create_member('Expired Ed', 'goat');
+  tok := fy.issue_claim_link(ed, -1);
+  perform pg_temp.as_anon();
+  assert fy.claim_peek(tok) is null, 'an expired link peeks nothing';
+  perform pg_temp.as_owner();
+  insert into auth.users (id, instance_id, aud, role, email, encrypted_password, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+  values ('00000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'newbie7@test.local', '', '{"provider":"discord"}', '{}', now(), now());
+  insert into auth.identities (user_id, provider, provider_id, identity_data, last_sign_in_at, created_at, updated_at)
+  values ('00000000-0000-0000-0000-000000000007', 'discord', '777', '{"sub":"444"}', now(), now(), now());
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000007');
+  begin
+    perform fy.claim_profile(tok);
+    raise exception 'should have failed: expired link claimed';
+  exception when others then if sqlerrm not like 'link expired%' then raise; end if; end;
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000001');
+  tok := fy.issue_claim_link(ed);
+  perform pg_temp.as_user('00000000-0000-0000-0000-000000000007');
+  assert fy.claim_profile(tok) = ed, 'fresh link claims Expired Ed';
+
+  raise notice 'TASK 1 TESTS PASSED';
+end $$;

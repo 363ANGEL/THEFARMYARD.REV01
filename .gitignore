@@ -2,3 +2,7 @@
 *.local
 node_modules/
 supabase/bootstrap.leader.sql
+tools/db-test/node_modules/
+tools/db-test/.pgdata/
+tools/db-test/out.log
+.superpowers/
