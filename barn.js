@@ -82,7 +82,7 @@
       root.innerHTML = `
         <div style="width:100%; min-height:100vh; box-sizing:border-box; padding:16px; overflow-x:auto;">
           <div class="fy-frame" style="min-height:calc(100vh - 32px); display:grid; grid-template-columns:232px minmax(0,1fr); align-items:start;">
-            <nav class="fy-side fy-sidebar" id="side" aria-label="The Barn" style="position:sticky; top:16px; height:calc(100vh - 32px); box-sizing:border-box;"></nav>
+            <nav class="fy-side fy-sidebar" id="side" aria-label="The Barn" style="position:sticky; top:16px; height:calc(100vh - 32px); box-sizing:border-box; overflow-y:auto;"></nav>
             <div class="main" id="main" style="padding:18px 22px; display:flex; flex-direction:column; gap:14px; min-width:0; min-height:calc(100vh - 34px); box-sizing:border-box;"></div>
           </div>
         </div>`;
@@ -123,6 +123,7 @@
       };
       const sep = '<div style="margin:8px 6px 0; border-top:1px solid color-mix(in srgb, var(--neon-teal) 35%, transparent);"></div>';
       const v = voice.get();
+      const shield = `<a id="fy-admin-btn" href="/admin.html" title="Admin" aria-label="Admin" style="flex:none; display:grid; place-items:center; width:44px; border:1px solid var(--neon-teal); border-radius:8px; color:var(--neon-teal); text-decoration:none; box-sizing:border-box; box-shadow:${current === 'admin' ? 'inset 0 0 0 1.5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55)' : 'none'};"><i class="ph ph-shield-star" style="font-size:var(--ic-lg)" aria-hidden="true"></i></a>`;
       side.innerHTML = `
         <a class="fy-brand" href="dashboard.html" style="text-decoration:none; color:inherit;"><img src="assets/hank-oink.png" alt="Farmyard"><span>The Farmyard</span></a>
         ${group('home')}
@@ -138,9 +139,7 @@
         <div class="fy-voice-head" id="vc">${[...'Voice channel'].map(c => `<span>${c}</span>`).join('')}</div>
         <button type="button" class="fy-voice fy-voice-live ${v === 'lounge' ? 'is-on' : ''}" data-voice="lounge"><i class="ph ph-speaker-high" style="font-size:var(--ic-sm)"></i><span style="flex:1">LIVE<small>via Discord</small></span><span id="fy-vc-live" style="font-size:var(--fs-xs); font-weight:400; letter-spacing:0; color:var(--color-neutral-400); text-shadow:none;">OFF AIR</span></button>
         <button type="button" class="fy-voice fy-voice-muted ${v === 'parked' ? 'is-on' : ''}" data-voice="parked"><i class="ph ph-speaker-slash" style="font-size:var(--ic-sm)"></i><span style="flex:1">MUTED<small>on Discord</small></span><span id="fy-vc-muted" style="font-size:var(--fs-xs); font-weight:400; letter-spacing:0; color:var(--color-neutral-400); text-shadow:none;">0</span></button>
-        <div id="vtip"></div>`;
-      const shield = `<a id="fy-admin-btn" href="/admin.html" title="Admin" aria-label="Admin" style="flex:none; display:grid; place-items:center; width:44px; border:1px solid var(--neon-teal); border-radius:8px; color:var(--neon-teal); text-decoration:none; box-sizing:border-box; box-shadow:${current === 'admin' ? 'inset 0 0 0 1.5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55)' : 'none'};"><i class="ph ph-shield-star" style="font-size:var(--ic-lg)" aria-hidden="true"></i></a>`;
-      side.innerHTML += `
+        <div id="vtip"></div>
         ${sep}
         <div id="fy-footer-row" style="display:flex; gap:8px; align-items:stretch; margin-top:8px;">
         <a href="profile.html" ${current === 'profile' ? 'aria-current="page"' : ''} style="flex:1; min-width:0; display:flex; gap:10px; align-items:center; padding:6px 10px 6px 8px; border-radius:8px; font-size:var(--fs-sm); font-weight:600; color:var(--color-text); text-decoration:none; border:1px solid var(--neon-teal); box-shadow:${current === 'profile' ? 'inset 0 0 0 1.5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55)' : 'none'};">
