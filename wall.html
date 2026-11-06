@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · Yard wall</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
+<script src="fy-clucks.js"></script>
+</head>
+<body>
+<div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script><script src="presence.js"></script><script src="sidebar-subs.js"></script>
+<script>
+/* 1.2 Yard Wall (REV C03): composer (<=280), feed pinned-first then newest, one heart per member,
+   delete own (leader deletes and pins anything). Live via realtime on fy.post / fy.post_like. */
+(async function () {
+  const B = await Barn.open('wall'); if (!B) return;
+  const { me, main } = B, esc = FY.esc, MAX = 280;
+  const isLeader = me.role === 'leader';
+  Presence.join(me).catch(() => {});
+
+  const ago = iso => {
+    const s = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (s < 60) return 'Just now';
+    if (s < 3600) return Math.floor(s / 60) + 'm ago';
+    if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+    if (s < 2 * 86400) return 'Yesterday';
+    return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short' });
+  };
+
+  const dir = Object.fromEntries(((await FY.q('member').select('id, nickname, avatar, avatar_url')).data || []).map(m => [m.id, m]));
+  let posts = [], likes = [];
+  async function fetchAll() {
+    [posts, likes] = await Promise.all([
+      FY.q('post').select('*').order('created_at', { ascending: false }).then(r => r.data || []),
+      FY.q('post_like').select('post_id, member_id').then(r => r.data || []),
+    ]);
+  }
+
+  function row(p, i) {
+    const m = dir[p.member_id] || { id: p.member_id, nickname: '?' };
+    const myLike = likes.some(l => l.post_id === p.id && l.member_id === me.id);
+    const n = likes.filter(l => l.post_id === p.id).length;
+    const mine = p.member_id === me.id;
+    return `<article style="display:flex; gap:12px; padding:14px; border-top:${i ? '1px solid var(--rule-teal)' : '0'}; min-width:0;">
+      <span role="img" aria-label="${esc(m.nickname)}" style="flex:none; width:36px; height:36px; border-radius:50%; display:grid; place-items:center; box-sizing:border-box; border:1.5px solid var(--neon-teal); box-shadow:0 0 5px color-mix(in srgb, var(--neon-teal) 50%, transparent); background:url('${esc(FY.face(m, 36))}') center/contain no-repeat; font-size:var(--fs-sm); font-weight:700; color:var(--neon-teal);"></span>
+      <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
+          <span style="font-size:var(--fs-sm); font-weight:600;">${esc(m.nickname)}</span>
+          <span style="font-size:var(--fs-xs); color:var(--fy-text-label);">${ago(p.created_at)}</span>
+          ${p.pinned_at ? '<span class="kicker" style="color:var(--neon-pink-text); text-shadow:var(--text-glow-pink);">Pinned by Hank</span>' : ''}
+        </div>
+        <p style="margin:0; font-size:var(--fs-body); line-height:1.5; color:var(--fy-text); white-space:pre-wrap; overflow-wrap:anywhere; text-wrap:pretty;">${esc(p.body)}</p>
+        <div style="display:flex; gap:14px; align-items:center; padding-top:2px;">
+          <button type="button" data-like="${p.id}" aria-pressed="${myLike}" style="display:inline-flex; align-items:center; gap:5px; min-height:32px; padding:0 8px; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:${myLike ? 'var(--neon-pink-text)' : 'var(--fy-text-label)'}; text-shadow:${myLike ? 'var(--text-glow-pink)' : 'none'};"><i class="${myLike ? 'ph-fill' : 'ph'} ph-heart"></i>${n || ''}</button>
+          ${mine || isLeader ? `<button type="button" data-del="${p.id}" style="min-height:32px; padding:0 8px; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:var(--fy-text-label);">Delete</button>` : ''}
+          ${isLeader ? `<button type="button" data-pin="${p.id}" data-on="${p.pinned_at ? '0' : '1'}" style="min-height:32px; padding:0 8px; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:var(--fy-text-label);">${p.pinned_at ? 'Unpin' : 'Pin'}</button>` : ''}
+        </div>
+      </div></article>`;
+  }
+
+  main.innerHTML = `
+    <header style="display:flex; flex-direction:column; gap:4px;"><h2 class="t-title-b">Yard wall</h2><span class="t-tagline">Say it to the yard. Hank pins what matters.</span></header>
+    <section style="flex:1; display:flex; flex-direction:column; gap:14px; width:100%; min-width:0;">
+      <div id="feed" style="display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;"></div>
+      <form id="composer" style="display:flex; flex-direction:column; gap:10px; padding:14px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg);">
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <span role="img" aria-label="You" style="flex:none; width:36px; height:36px; border-radius:50%; box-sizing:border-box; border:1.5px solid var(--neon-teal); box-shadow:0 0 6px color-mix(in srgb, var(--neon-teal) 60%, transparent); background:url('${esc(FY.face(me, 36))}') center/contain no-repeat;"></span>
+          <textarea id="draft" rows="2" maxlength="${MAX}" placeholder="Say it to the yard…" aria-label="New post" style="flex:1; min-width:0; resize:vertical; min-height:44px; padding:9px 11px; font:inherit; font-size:var(--fs-body); line-height:1.45; color:var(--fy-text); background:var(--fy-surface); border:1px solid var(--rule-teal); border-radius:8px; outline:none;"></textarea>
+        </div>
+        <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px;">
+          <span id="remaining" style="font-size:var(--fs-xs); color:var(--fy-text-label); font-variant-numeric:tabular-nums;">${MAX} left</span>
+          <button type="submit" id="post-btn" class="btn btn-primary" disabled style="min-height:40px; padding:0 18px;">Post it</button>
+        </div>
+      </form>
+    </section>`;
+
+  const feed = main.querySelector('#feed'), draft = main.querySelector('#draft');
+  const postBtn = main.querySelector('#post-btn'), remaining = main.querySelector('#remaining');
+
+  function draw() {
+    const ordered = [...posts].sort((a, b) =>
+      ((b.pinned_at ? 1 : 0) - (a.pinned_at ? 1 : 0)) || (new Date(b.created_at) - new Date(a.created_at)));
+    feed.innerHTML = ordered.map(row).join('')
+      || '<div style="padding:14px; font-size:var(--fs-sm); color:var(--color-neutral-400);">Nothing on the wall yet. Start it.</div>';
+  }
+  async function refresh() { await fetchAll(); draw(); }
+  await refresh();
+
+  draft.addEventListener('input', () => {
+    remaining.textContent = (MAX - draft.value.length) + ' left';
+    postBtn.disabled = !draft.value.trim();
+  });
+  main.querySelector('#composer').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const text = draft.value.trim(); if (!text) return;
+    postBtn.disabled = true;
+    try { await FY.rpc('wall_post', { p_body: text }); draft.value = ''; remaining.textContent = MAX + ' left'; }
+    catch (e) { FY.toast(e.message); }
+    postBtn.disabled = !draft.value.trim();
+    refresh();
+  });
+  feed.addEventListener('click', async ev => {
+    const like = ev.target.closest('[data-like]'), del = ev.target.closest('[data-del]'), pin = ev.target.closest('[data-pin]');
+    try {
+      if (like) await FY.rpc('wall_like', { p_post: like.dataset.like, p_on: like.getAttribute('aria-pressed') !== 'true' });
+      else if (del) { if (!confirm('Take this post off the wall?')) return; await FY.rpc('wall_delete', { p_post: del.dataset.del }); }
+      else if (pin) await FY.rpc('pin_post', { p_post: pin.dataset.pin, p_on: pin.dataset.on === '1' });
+      else return;
+    } catch (e) { FY.toast(e.message); return; }
+    refresh();
+  });
+  FY.sb.channel('wall-live')
+    .on('postgres_changes', { event: '*', schema: 'fy', table: 'post' }, refresh)
+    .on('postgres_changes', { event: '*', schema: 'fy', table: 'post_like' }, refresh)
+    .subscribe();
+})().catch(e => FY.toast(e.message));
+</script>
+</body>
+</html>
