@@ -136,8 +136,8 @@
         <div id="fy-online" style="flex:1; display:flex; flex-direction:column; gap:2px; overflow-y:auto; min-height:48px;"></div>
         ${sep}
         <div class="fy-voice-head" id="vc">${[...'Voice channel'].map(c => `<span>${c}</span>`).join('')}</div>
-        <button type="button" class="fy-voice fy-voice-live ${v === 'lounge' ? 'is-on' : ''}" data-voice="lounge"><i class="ph ph-speaker-high" style="font-size:var(--ic-sm)"></i><span style="flex:1">LIVE<small>via Discord</small></span><i class="ph ph-phone-x" style="color:var(--color-neutral-400)"></i></button>
-        <button type="button" class="fy-voice fy-voice-muted ${v === 'parked' ? 'is-on' : ''}" data-voice="parked"><i class="ph ph-speaker-slash" style="font-size:var(--ic-sm)"></i><span style="flex:1">MUTED<small>on Discord</small></span><span style="font-size:var(--fs-xs); color:var(--color-neutral-400)">0</span></button>
+        <button type="button" class="fy-voice fy-voice-live ${v === 'lounge' ? 'is-on' : ''}" data-voice="lounge"><i class="ph ph-speaker-high" style="font-size:var(--ic-sm)"></i><span style="flex:1">LIVE<small>via Discord</small></span><span id="fy-vc-live" style="font-size:var(--fs-xs); font-weight:400; letter-spacing:0; color:var(--color-neutral-400); text-shadow:none;">OFF AIR</span></button>
+        <button type="button" class="fy-voice fy-voice-muted ${v === 'parked' ? 'is-on' : ''}" data-voice="parked"><i class="ph ph-speaker-slash" style="font-size:var(--ic-sm)"></i><span style="flex:1">MUTED<small>on Discord</small></span><span id="fy-vc-muted" style="font-size:var(--fs-xs); font-weight:400; letter-spacing:0; color:var(--color-neutral-400); text-shadow:none;">0</span></button>
         <div id="vtip"></div>
         ${sep}
         <div style="display:flex; gap:8px; align-items:stretch; margin-top:8px;">
@@ -148,6 +148,7 @@
         ${(me.role === 'leader' || me.is_admin) ? `<a href="admin.html" title="Admin" aria-label="Admin" style="flex:none; display:grid; place-items:center; width:44px; border:1px solid var(--neon-teal); border-radius:8px; color:var(--neon-teal); text-decoration:none; box-sizing:border-box; box-shadow:${current === 'admin' ? 'inset 0 0 0 1.5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55)' : 'none'};"><i class="ph ph-shield-star" style="font-size:var(--ic-lg)" aria-hidden="true"></i></a>` : ''}
         </div>
         <a href="about.html" style="display:block; text-align:center; padding:8px 6px 2px; font-size:var(--fs-xs); letter-spacing:.04em; color:var(--neon-teal); text-shadow:0 0 6px rgba(95,211,207,.5); text-decoration:none;">About the yard</a>`;
+      Barn.voiceCounts(side);
       side.querySelectorAll('[data-voice]').forEach(b => b.addEventListener('click', () => {
         const k = b.dataset.voice; voice.set(k);
         side.querySelectorAll('[data-voice]').forEach(x => x.classList.toggle('is-on', x === b));
@@ -157,6 +158,31 @@
         window.open(`https://discord.com/channels/${DISCORD.guild}/${DISCORD[k]}`, '_blank', 'noopener');
       }));
       Barn.flicker(side.querySelector('#vc'));
+    },
+
+    /* Voice counts from the Discord widget JSON. Never blocks render: the buttons paint in their
+       OFF AIR / 0 state at once, the last result (sessionStorage) paints immediately on a revisit,
+       and the fetch runs after first paint and only updates the numbers when it returns. */
+    voiceCounts(side) {
+      const KEY = 'fy.widget';
+      const paint = d => {
+        if (!d) return;
+        const live = side.querySelector('#fy-vc-live'), muted = side.querySelector('#fy-vc-muted');
+        if (live) live.textContent = d.lounge > 0 ? d.lounge + ' in' : 'OFF AIR';
+        if (muted) muted.textContent = String(d.parked || 0);
+      };
+      try { paint(JSON.parse(sessionStorage.getItem(KEY))); } catch (e) { /* no cache yet */ }
+      setTimeout(async () => {
+        try {
+          const r = await fetch(`https://discord.com/api/guilds/${DISCORD.guild}/widget.json`);
+          if (!r.ok) return;                       // widget disabled or rate-limited: keep what's painted
+          const j = await r.json();
+          const inCh = id => (j.members || []).filter(m => m.channel_id === id).length;
+          const d = { lounge: inCh(DISCORD.lounge), parked: inCh(DISCORD.parked), t: Date.now() };
+          try { sessionStorage.setItem(KEY, JSON.stringify(d)); } catch (e) { /* private mode */ }
+          paint(d);
+        } catch (e) { /* offline: counts stay as painted */ }
+      }, 0);
     },
 
     /* 2.0 Room Template: hang the UNDER CONSTRUCTION sign off the main content panel.
