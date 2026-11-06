@@ -75,7 +75,7 @@ const BD = {
   const palette = [...mine.map(l => ({ id: 'url:' + l.url, name: l.name, img: l.url, sm: l.url })),
                    ...ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: FY.face(k, 150), sm: FY.face(k, 48) }))].slice(0, 8);
   while (palette.length < 8) palette.push({ id: 'empty' + palette.length, name: 'Logo ' + (palette.length + 1), img: null, sm: null, empty: true });
-  const S = { name: me.nickname, pick: me.avatar_url ? 'url:' + me.avatar_url : 'key:' + me.avatar, rev: (me.revolut_url || '').replace(/^https:\/\/revolut\.me\//, ''), showChess: false,
+  const S = { name: me.nickname, pick: me.avatar_url ? 'url:' + me.avatar_url : 'key:' + me.avatar, rev: (me.revolut_url || '').replace(/^https:\/\/revolut\.me\//, ''),
               bm: me.birth_month ? String(me.birth_month) : '', bd: '' };
   S.bd = BD.fit(me.birth_day, S.bm);
   const isRevBad = () => { const r = S.rev.trim(); return !!r && !/^[A-Za-z0-9._-]+$/.test(r); };
@@ -110,7 +110,9 @@ const BD = {
             <label><span class="t"><i class="ph ph-hand-coins"></i>Revolut pay-me link</span>
               <div class="revwrap ${revBad ? 'bad' : ''}"><span class="pre">revolut.me/</span><input id="rev" value="${esc(S.rev)}" placeholder="yourname" autocomplete="off"></div>
               <span style="color:${revBad ? 'var(--neon-red-text)' : 'var(--fy-text-label)'}">${revBad ? 'Letters, numbers, dots, dashes and underscores only.' : 'So people can pay you after poker. Settle up uses this link.'}</span></label>
-            ${S.showChess ? `<label><span class="t"><i class="ph ph-crown-simple"></i>Chess.com username</span><input class="input" id="chess" value="${esc(me.chesscom_username || '')}" placeholder="e.g. thecow_99" style="min-height:44px"><span>Your games count towards the chess league.</span></label>` : ''}
+            <div class="linked" style="opacity:.55"><i class="ph ph-game-controller"></i><div class="mid"><span>Steam ID</span><span>For Worms and other Steam lobbies in the Arcade.</span></div><span class="kicker" style="white-space:nowrap">Coming soon</span></div>
+            <div class="linked" style="opacity:.55"><i class="ph ph-spotify-logo"></i><div class="mid"><span>Spotify</span><span>Lets you queue tracks on the Jukebox.</span></div><span class="kicker" style="white-space:nowrap">Coming soon</span></div>
+            <div class="linked" style="opacity:.55"><i class="ph ph-strategy"></i><div class="mid"><span>Chess.com username</span><span>Your games count towards the chess league.</span></div><span class="kicker" style="white-space:nowrap">Coming soon</span></div>
           </div>
           <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
             <button type="submit" id="go" class="btn btn-primary" style="min-height:48px;padding:0 28px;font-size:15px" ${cant ? 'disabled' : ''}>Into the yard<i class="ph ph-arrow-right"></i></button>
@@ -140,10 +142,14 @@ const BD = {
     ev.preventDefault();
     const name = S.name.trim(); if (cantFinish()) return;
     const btn = root.querySelector('#go'); btn.disabled = true;
-    const patch = { nickname: name, revolut_url: S.rev.trim() ? `https://revolut.me/${S.rev.trim()}` : null, birth_day: +S.bd, birth_month: +S.bm, setup_at: new Date().toISOString() };
+    const patch = { nickname: name, birth_day: +S.bd, birth_month: +S.bm, setup_at: new Date().toISOString() };
     if (S.pick.startsWith('url:')) patch.avatar_url = S.pick.slice(4); else { patch.avatar = S.pick.slice(4); patch.avatar_url = null; }
     const { error } = await FY.q('member').update(patch).eq('id', me.id);
     if (error) { FY.toast(/unique|duplicate/i.test(error.message) ? 'That yard name is taken. Pick another.' : error.message); btn.disabled = false; return; }
+    // Linked accounts live in fy.member_link; set_my_links also syncs member.revolut_url.
+    try {
+      await FY.rpc('set_my_links', { p_links: S.rev.trim() ? [{ provider: 'revolut', handle: `https://revolut.me/${S.rev.trim()}`, enabled: true }] : [] });
+    } catch (e) { FY.toast(e.message); btn.disabled = false; return; }
     location.replace('dashboard.html');
   });
 })().catch(e => FY.toast(e.message));
