@@ -243,6 +243,9 @@ CHARACTER ART SPEC (baked into each PNG)
 .fy-sign-icon svg { width: 100%; overflow: visible; }
 .fy-sign-title { margin: 0; font-family: var(--font-heading); font-weight: 600; font-size: var(--fs-h3); letter-spacing: .26em; color: var(--sg-text); text-shadow: 0 0 4px var(--sg-tube), 0 0 12px var(--sg-glow), 0 0 28px rgba(var(--sg-rgb), .6); }
 .fy-sign-title .is-flick { animation: fyLetter 9s 2s infinite; }
+/* Narrow screens: the sign shrinks (zoom, so the sway transform is untouched) and tucks in from the edge. */
+.fy-compact .fy-sign { zoom: .8; }
+.fy-phone .fy-sign { zoom: .55; right: 10px; }
 
 /* Phone: tighter ledger rows on Profile */
 .fy-phone #balances div[style*="grid-template-columns:28px"] { grid-template-columns: 22px minmax(0,1.2fr) minmax(0,1fr) minmax(72px,auto) !important; gap: 6px !important; font-size: var(--fs-xs) !important; padding-top: 4px !important; padding-bottom: 4px !important; }

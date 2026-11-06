@@ -46,7 +46,7 @@ const SIGN = `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--ne
   try { next = (await Barn.rooms()).filter(r => r.grp === 'next' && r.status !== 'hidden'); } catch (e) {}
   B.main.innerHTML = `
     <div class="fy0-head" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:8px 16px;">
-      <h1 style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:clamp(28px,5vw,48px); letter-spacing:-.01em;">${esc(COPY.title)}</h1>${SIGN}
+      <h1 style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:clamp(28px,5vw,48px); letter-spacing:-.01em;">${esc(COPY.title)}</h1>
     </div>
     <div style="display:flex; flex-direction:column; gap:10px; max-width:720px;">
       <span style="font-size:var(--fs-body); color:var(--fy-text-secondary);">${esc(COPY.tag)}</span>
@@ -67,6 +67,7 @@ const SIGN = `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--ne
         <button type="submit" class="btn btn-primary" style="min-height:36px; align-self:flex-start; font-size:13px;">Send it</button>
       </form>
     </div>`;
+  Barn.hangSign(B.main, SIGN);
   B.main.querySelector('#sugg').addEventListener('submit', async ev => {
     ev.preventDefault();
     const text = B.main.querySelector('#sugg-text').value.trim();

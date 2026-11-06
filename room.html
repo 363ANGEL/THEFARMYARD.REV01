@@ -43,11 +43,11 @@ window.FY_SIGN = (() => {
       <h2 class="fy-sign-title">UNDER&nbsp;C<span class="is-flick">O</span>NSTRUCTION</h2>
     </div></div>`;
 })();
-/* Shared holding-block renderer; about.html reuses it. */
+/* Shared holding-block renderer; about.html reuses it. The sign hangs off the main panel
+   itself (Barn.hangSign), not this head, so the frame never clips it. */
 window.FY_HOLDING = (R, esc) => `
   <div class="fy0-head" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:8px 16px;">
     <h1 style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:clamp(28px,5vw,48px); letter-spacing:-.01em;">${esc(R.title)}</h1>
-    ${window.FY_SIGN}
   </div>
   <div style="display:flex; flex-direction:column; gap:10px; padding:16px 18px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); min-width:0; max-width:720px;">
     <span class="kicker">Current concept</span>
@@ -87,6 +87,7 @@ window.FY_WIRE_SUGG = (main, roomKey) => {
   Presence.join(B.me).catch(() => {});
   document.title = 'The Farmyard · ' + R.title;
   B.main.innerHTML = window.FY_HOLDING(R, FY.esc) + window.FY_SUGG_BOX;
+  Barn.hangSign(B.main, window.FY_SIGN);
   window.FY_WIRE_SUGG(B.main, window.FY_ROOMS[key] ? key : 'new');
 })().catch(e => FY.toast(e.message));
 </script>

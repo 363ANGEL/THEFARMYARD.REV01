@@ -27,7 +27,7 @@ const SIGN = `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--ne
   </div></div>`;
 const block = esc => `
   <div class="fy0-head" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:8px 16px;">
-    <h1 style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:clamp(28px,5vw,48px); letter-spacing:-.01em;">${esc(ABOUT.title)}</h1>${SIGN}
+    <h1 style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:clamp(28px,5vw,48px); letter-spacing:-.01em;">${esc(ABOUT.title)}</h1>
   </div>
   <div style="display:flex; flex-direction:column; gap:10px; padding:16px 18px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); min-width:0; max-width:720px;">
     <span class="kicker">Current concept</span>
@@ -46,12 +46,14 @@ const block = esc => `
     const B = await Barn.open('about'); if (!B) return;
     Presence.join(B.me).catch(() => {});
     B.main.innerHTML = block(esc);
+    Barn.hangSign(B.main, SIGN);
     return;
   }
-  // Public view: no sidebar, no session required.
+  // Public view: no sidebar, no session required. The sign hangs off the page column.
   document.getElementById('app').innerHTML = `
-    <main style="min-height:100vh; box-sizing:border-box; padding:24px 16px; display:flex; flex-direction:column; gap:18px; max-width:980px; margin:0 auto;">
+    <main style="min-height:100vh; box-sizing:border-box; padding:24px 16px; display:flex; flex-direction:column; gap:18px; max-width:980px; margin:0 auto; position:relative;">
       <a href="index.html" style="display:flex; align-items:center; gap:6px; color:var(--fy-text); text-decoration:none;"><img src="assets/hank-oink.png" alt="" style="width:64px; height:64px; object-fit:contain; filter:drop-shadow(0 0 10px rgba(224,21,127,.7));"><span style="font-family:var(--font-heading); font-size:20px;">The Farmyard</span></a>
+      <div style="position:relative; z-index:3; height:0;">${SIGN}</div>
       ${block(esc)}
     </main>`;
 })().catch(e => FY.toast(e.message));

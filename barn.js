@@ -150,6 +150,19 @@
       Barn.flicker(side.querySelector('#vc'));
     },
 
+    /* 2.0 Room Template: hang the UNDER CONSTRUCTION sign off the main content panel.
+       .fy-sign is absolute (right:22px, top:-6px, tilted); the zero-height wrapper spans the panel
+       edge-to-edge so those offsets measure from the teal frame, and the extra top padding keeps the
+       tilted sign fully inside the frame (whose overflow would otherwise cut it off). */
+    hangSign(main, html) {
+      main.style.position = 'relative';
+      main.style.paddingTop = '84px';
+      const w = document.createElement('div');
+      w.style.cssText = 'position:relative; z-index:3; height:0; margin:0 -22px;';
+      w.innerHTML = html;
+      main.prepend(w);
+    },
+
     /* One letter blips out now and then; the rest of the sign hums steadily. */
     flicker(target) {
       if (!target) return;
