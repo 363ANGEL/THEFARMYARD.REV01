@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · What's next?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
+<script src="fy-clucks.js"></script>
+</head>
+<body>
+<div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script><script src="presence.js"></script><script src="sidebar-subs.js"></script>
+<script>
+/* 1.4 What's Next: Room Template (room = What's next) with the five holding-room cards and the
+   suggestion box. Cards come from the fy.room registry (grp = 'next'); copy from the 1.4 design. */
+const COPY = {
+  title: "What's next?",
+  tag: 'Rooms Hank is still building. Tell him which to open first.',
+  head: 'Five rooms, all still boarded up.',
+  body: 'Each one has a holding page with the concept. Drop a suggestion in the box below and the most-asked room gets built next.',
+};
+const TAGS = {   // card taglines, from the 2.0 copy map
+  arcade: 'Cabinets, boards and lobbies',
+  movies: 'One film, one vote, Friday late',
+  jukebox: 'Queue tracks, Hank keeps the aux',
+  whisky: 'One bottle a month, tasting notes on the wall',
+  chess: 'Ladder, blitz nights, one board at a time',
+};
+const SIGN_PATHS = ['M58 22 L86 50 L77 59 L49 31 Z', 'M64 45 L20 89', 'M27.5 18.5 A14 14 0 1 1 16.5 28.5 L27 31 L29.5 21 Z', 'M38 41 L80 86'];
+const SIGN = `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--neon-teal);--sg-glow:var(--neon-teal);--sg-rgb:95,211,207;--sg-text:#c8f4f2">
+  <span class="fy-sign-wire is-l"></span><span class="fy-sign-wire is-r"></span>
+  <div class="fy-sign-plate"><span class="fy-sign-edge" aria-hidden="true"></span>
+    <span class="fy-sign-icon" aria-hidden="true"><svg viewBox="0 0 100 110" aria-hidden="true"><g transform="translate(16 18) scale(.68)">${SIGN_PATHS.map(d => `<path d="${d}" fill="#07090a" stroke="#07090a" stroke-width="15" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`).join('')}${SIGN_PATHS.map(d => `<path d="${d}" fill="none" stroke="var(--neon-amber-tube, #ffb020)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join('')}</g></svg></span>
+    <h2 class="fy-sign-title">UNDER&nbsp;C<span class="is-flick">O</span>NSTRUCTION</h2>
+  </div></div>`;
+
+(async function () {
+  const B = await Barn.open('whats-next'); if (!B) return;
+  Presence.join(B.me).catch(() => {});
+  const esc = FY.esc;
+  let next = [];
+  try { next = (await Barn.rooms()).filter(r => r.grp === 'next' && r.status !== 'hidden'); } catch (e) {}
+  B.main.innerHTML = `
+    <div class="fy0-head" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:8px 16px;">
+      <h1 style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:clamp(28px,5vw,48px); letter-spacing:-.01em;">${esc(COPY.title)}</h1>${SIGN}
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px; max-width:720px;">
+      <span style="font-size:var(--fs-body); color:var(--fy-text-secondary);">${esc(COPY.tag)}</span>
+      <div><span style="font-size:var(--fs-body); font-weight:600;">${esc(COPY.head)}</span>
+      <p style="margin:4px 0 0; max-width:64ch; font-size:var(--fs-body); line-height:1.5; color:var(--fy-text-secondary);">${esc(COPY.body)}</p></div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-top:14px;">
+      ${next.map(r => `<a href="${esc(r.path)}" style="display:flex; flex-direction:column; gap:8px; padding:14px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); text-decoration:none; color:var(--fy-text);">
+        <span style="display:flex; align-items:center; gap:10px;"><i class="${esc(r.icon)}" aria-hidden="true" style="font-size:var(--ic-lg); color:var(--neon-teal);"></i><span style="font-size:17px; font-weight:500;">${esc(r.label)}</span></span>
+        <span style="font-size:var(--fs-sm); color:var(--fy-text-secondary); text-wrap:pretty;">${esc(TAGS[r.id] || '')}</span>
+        <span class="kicker" style="margin-top:auto;">See the concept →</span></a>`).join('')}
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:center; gap:16px; max-width:720px; box-sizing:border-box; padding:22px; border:1px solid var(--neon-teal); border-radius:12px; box-shadow:var(--glow-teal); background:var(--fy-bg); margin-top:14px;">
+      <span style="align-self:flex-start; color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal), 0 0 14px rgba(95,211,207,.45);" class="lot-label">Site Suggestion Box - What should we add next?</span>
+      <form id="sugg" style="display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;">
+        <span style="align-self:flex-start; margin-bottom:-8px; font-size:13px; line-height:1.5; font-style:italic; color:var(--color-neutral-400);">Submit your comments below.</span>
+        <textarea class="input" id="sugg-text" rows="4" required maxlength="280" placeholder="Games, rooms, rules, anything..." aria-label="Your suggestion" style="width:100%; box-sizing:border-box; resize:vertical; border-color:var(--neon-teal); font-family:inherit;"></textarea>
+        <button type="submit" class="btn btn-primary" style="min-height:36px; align-self:flex-start; font-size:13px;">Send it</button>
+      </form>
+    </div>`;
+  B.main.querySelector('#sugg').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const text = B.main.querySelector('#sugg-text').value.trim();
+    if (!text) return;
+    try { await FY.rpc('suggest', { p_room: 'next', p_body: text }); }
+    catch (e) { FY.toast(e.message); return; }
+    ev.target.outerHTML = '<span style="display:flex; align-items:center; gap:8px; font-size:13px; min-height:60px; color:var(--neon-teal);"><i class="ph ph-check-circle" style="font-size:20px; text-shadow:0 0 6px var(--neon-teal);"></i>Thanks. Hank has it.</span>';
+  });
+})().catch(e => FY.toast(e.message));
+</script>
+</body>
+</html>

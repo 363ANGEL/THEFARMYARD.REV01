@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · About</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
+<script src="fy-clucks.js"></script>
+</head>
+<body>
+<div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script><script src="presence.js"></script><script src="sidebar-subs.js"></script>
+<script>
+/* 0.3 About — public (no session needed). Room Template layout with room=About.
+   COPY TBD: placeholder until Hank writes the About copy (HANDOFF: copy added during the build). */
+const ABOUT = { title: 'About', tag: 'The Farmyard, in a few lines.', head: 'About copy to come.', body: 'Hank is writing this page. Placeholder until the copy lands.' };
+const SIGN_PATHS = ['M58 22 L86 50 L77 59 L49 31 Z', 'M64 45 L20 89', 'M27.5 18.5 A14 14 0 1 1 16.5 28.5 L27 31 L29.5 21 Z', 'M38 41 L80 86'];
+const SIGN = `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--neon-teal);--sg-glow:var(--neon-teal);--sg-rgb:95,211,207;--sg-text:#c8f4f2">
+  <span class="fy-sign-wire is-l"></span><span class="fy-sign-wire is-r"></span>
+  <div class="fy-sign-plate"><span class="fy-sign-edge" aria-hidden="true"></span>
+    <span class="fy-sign-icon" aria-hidden="true"><svg viewBox="0 0 100 110" aria-hidden="true"><g transform="translate(16 18) scale(.68)">${SIGN_PATHS.map(d => `<path d="${d}" fill="#07090a" stroke="#07090a" stroke-width="15" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`).join('')}${SIGN_PATHS.map(d => `<path d="${d}" fill="none" stroke="var(--neon-amber-tube, #ffb020)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join('')}</g></svg></span>
+    <h2 class="fy-sign-title">UNDER&nbsp;C<span class="is-flick">O</span>NSTRUCTION</h2>
+  </div></div>`;
+const block = esc => `
+  <div class="fy0-head" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:8px 16px;">
+    <h1 style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:clamp(28px,5vw,48px); letter-spacing:-.01em;">${esc(ABOUT.title)}</h1>${SIGN}
+  </div>
+  <div style="display:flex; flex-direction:column; gap:10px; padding:16px 18px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); min-width:0; max-width:720px;">
+    <span class="kicker">Current concept</span>
+    <h3 style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:var(--fs-h2); line-height:1.1; color:var(--neon-pink-text); text-shadow:var(--text-glow-pink); text-wrap:balance;">${esc(ABOUT.title)}</h3>
+    <span style="font-size:var(--fs-body); color:var(--fy-text-secondary);">${esc(ABOUT.tag)}</span>
+    <div style="border-top:1px solid var(--rule-teal); padding-top:10px; display:flex; flex-direction:column; gap:4px;">
+      <span style="font-size:var(--fs-body); font-weight:600;">${esc(ABOUT.head)}</span>
+      <p style="margin:0; max-width:64ch; font-size:var(--fs-body); line-height:1.5; color:var(--fy-text-secondary);">${esc(ABOUT.body)}</p>
+    </div>
+  </div>`;
+(async function () {
+  const esc = FY.esc;
+  const session = FY.wired ? await FY.session() : null;
+  const me = session ? await FY.me().catch(() => null) : null;
+  if (me && me.setup_at) {
+    const B = await Barn.open('about'); if (!B) return;
+    Presence.join(B.me).catch(() => {});
+    B.main.innerHTML = block(esc);
+    return;
+  }
+  // Public view: no sidebar, no session required.
+  document.getElementById('app').innerHTML = `
+    <main style="min-height:100vh; box-sizing:border-box; padding:24px 16px; display:flex; flex-direction:column; gap:18px; max-width:980px; margin:0 auto;">
+      <a href="index.html" style="display:flex; align-items:center; gap:6px; color:var(--fy-text); text-decoration:none;"><img src="assets/hank-oink.png" alt="" style="width:64px; height:64px; object-fit:contain; filter:drop-shadow(0 0 10px rgba(224,21,127,.7));"><span style="font-family:var(--font-heading); font-size:20px;">The Farmyard</span></a>
+      ${block(esc)}
+    </main>`;
+})().catch(e => FY.toast(e.message));
+</script>
+</body>
+</html>

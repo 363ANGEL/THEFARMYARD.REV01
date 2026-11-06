@@ -1406,7 +1406,7 @@ insert into fy.room (id, label, path, icon, status, grp, parent_id, sort) values
   ('dashboard',       'Home',        'dashboard.html',          'ph ph-house',           'ship', 'home',    null,        10),
   ('calendar',        'Calendar',    'room.html?room=calendar', 'ph ph-calendar-blank',  'stub', 'home',    'dashboard', 11),
   ('wall',            'Yard wall',   'wall.html',               'ph ph-chats-circle',    'ship', 'home',    'dashboard', 12),
-  ('poker',           'Poker',       'room.html?room=poker',    'ph ph-club',            'stub', 'leagues', null,        20),
+  ('poker',           'Poker',       'poker.html',              'ph ph-club',            'live', 'leagues', null,        20),  -- the old-rev poker room is live and maintained; 2.1 redesign lands in slice 2
   ('football',        'Football',    'room.html?room=football', 'ph ph-soccer-ball',     'stub', 'beta',    null,        30),
   ('football-results','Results',     'room.html?room=football', 'ph ph-ranking',         'stub', 'beta',    'football',  31),
   ('football-news',   'News',        'room.html?room=football', 'ph ph-newspaper',       'stub', 'beta',    'football',  32),

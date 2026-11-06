@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Farmyard · Room</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="farmyard.css">
+<link rel="stylesheet" href="barn.css">
+<script src="fy-clucks.js"></script>
+</head>
+<body>
+<div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script><script src="app.js"></script><script src="barn.js"></script><script src="presence.js"></script><script src="sidebar-subs.js"></script>
+<script>
+/* 2.0 Room Template: shell + online strip + Coming Soon holding block. ?room=<id> picks the copy
+   (ids match the fy.room registry); anything else falls back to "New room". Copy from the 2.0 design. */
+window.FY_ROOMS = {
+  new:      { title: 'New room',    tag: 'One line on what happens in here.',                        head: "Hank's still wiring this one up.",   body: "The room is on the map but the lights aren't on yet. Check the Calendar for when it opens." },
+  poker:    { title: 'Poker',       tag: "Friday nights · Hold'em · 1 buy-in = 5 tk",                head: "The table's not set yet.",           body: "Hank's still counting the tk. First night gets announced on the Calendar." },
+  football: { title: 'Football',    tag: 'One pool per match · call the score · tk on the line',     head: "Kick-off's not till next slice.",    body: 'The fixtures feed is still being wired. Calls, pools and settle-ups land when it opens.' },
+  humidor:  { title: 'The Humidor', tag: 'Cigars, whisky and the monthly vote',                      head: 'The Humidor moves in here soon.',    body: "It's still running on the old page. The vote, results and archive will come across in one go." },
+  calendar: { title: 'Calendar',    tag: 'Poker nights, fixtures, birthdays, money events',          head: "Hank hasn't hung the Calendar yet.", body: 'Dates will show up here once the rooms start filling it.' },
+  arcade:   { title: 'Arcade',      tag: 'Cabinets, boards and lobbies',                             head: 'The cabinets are still in crates.',  body: 'Neon Snake and the high-score boards land in a later slice. Steam and Worms lobbies after that.' },
+  movies:   { title: 'Movie night', tag: 'One film, one vote, Friday late',                          head: "Projector's not bolted up yet.",     body: 'Voting and the watch-along come in a later slice. Keep your suggestions for the wall.' },
+  jukebox:  { title: 'Jukebox',     tag: 'Queue tracks, Hank keeps the aux',                         head: 'The jukebox is unplugged.',          body: 'Spotify linking and the shared queue come in a later slice.' },
+  whisky:   { title: 'Whisky club', tag: 'One bottle a month, tasting notes on the wall',            head: "The bottle's still sealed.",         body: 'Monthly dram, tasting notes and the bottle vote come in a later slice.' },
+  chess:    { title: 'Chess club',  tag: 'Ladder, blitz nights, one board at a time',                head: "The board's not set.",               body: 'Ladder, challenges and blitz nights come in a later slice. Lichess linking too.' },
+};
+/* The swinging "UNDER CONSTRUCTION" sign, static copy of the 0.0 design's sign (fy-sign classes in farmyard.css). */
+window.FY_SIGN = (() => {
+  const paths = ['M58 22 L86 50 L77 59 L49 31 Z', 'M64 45 L20 89', 'M27.5 18.5 A14 14 0 1 1 16.5 28.5 L27 31 L29.5 21 Z', 'M38 41 L80 86'];
+  const svg = `<svg viewBox="0 0 100 110" aria-hidden="true"><g transform="translate(16 18) scale(.68)">`
+    + paths.map(d => `<path d="${d}" fill="#07090a" stroke="#07090a" stroke-width="15" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`).join('')
+    + paths.map(d => `<path d="${d}" fill="none" stroke="var(--neon-amber-tube, #ffb020)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join('')
+    + `</g></svg>`;
+  return `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--neon-teal);--sg-glow:var(--neon-teal);--sg-rgb:95,211,207;--sg-text:#c8f4f2">
+    <span class="fy-sign-wire is-l"></span><span class="fy-sign-wire is-r"></span>
+    <div class="fy-sign-plate"><span class="fy-sign-edge" aria-hidden="true"></span>
+      <span class="fy-sign-icon" aria-hidden="true">${svg}</span>
+      <h2 class="fy-sign-title">UNDER&nbsp;C<span class="is-flick">O</span>NSTRUCTION</h2>
+    </div></div>`;
+})();
+/* Shared holding-block renderer; about.html reuses it. */
+window.FY_HOLDING = (R, esc) => `
+  <div class="fy0-head" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:8px 16px;">
+    <h1 style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:clamp(28px,5vw,48px); letter-spacing:-.01em;">${esc(R.title)}</h1>
+    ${window.FY_SIGN}
+  </div>
+  <div style="display:flex; flex-direction:column; gap:10px; padding:16px 18px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); min-width:0; max-width:720px;">
+    <span class="kicker">Current concept</span>
+    <h3 style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:var(--fs-h2); line-height:1.1; color:var(--neon-pink-text); text-shadow:var(--text-glow-pink); text-wrap:balance;">${esc(R.title)}</h3>
+    <span style="font-size:var(--fs-body); color:var(--fy-text-secondary);">${esc(R.tag)}</span>
+    <div style="border-top:1px solid var(--rule-teal); padding-top:10px; display:flex; flex-direction:column; gap:4px;">
+      <span style="font-size:var(--fs-body); font-weight:600;">${esc(R.head)}</span>
+      <p style="margin:0; max-width:64ch; font-size:var(--fs-body); line-height:1.5; color:var(--fy-text-secondary);">${esc(R.body)}</p>
+    </div>
+  </div>`;
+window.FY_SUGG_BOX = `
+  <div style="display:flex; flex-direction:column; align-items:center; gap:16px; max-width:720px; box-sizing:border-box; padding:22px; border:1px solid var(--neon-teal); border-radius:12px; box-shadow:var(--glow-teal); background:var(--fy-bg);">
+    <span style="align-self:flex-start; color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal), 0 0 14px rgba(95,211,207,.45);" class="lot-label">Site Suggestion Box - What should we add next?</span>
+    <form id="sugg" style="display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;">
+      <span style="align-self:flex-start; margin-bottom:-8px; font-size:13px; line-height:1.5; font-style:italic; color:var(--color-neutral-400);">Submit your comments below.</span>
+      <textarea class="input" id="sugg-text" rows="4" required maxlength="280" placeholder="Games, rooms, rules, anything..." aria-label="Your suggestion" style="width:100%; box-sizing:border-box; resize:vertical; border-color:var(--neon-teal); font-family:inherit;"></textarea>
+      <button type="submit" class="btn btn-primary" style="min-height:36px; align-self:flex-start; font-size:13px;">Send it</button>
+    </form>
+  </div>`;
+window.FY_WIRE_SUGG = (main, roomKey) => {
+  const form = main.querySelector('#sugg');
+  if (!form) return;
+  form.addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const text = main.querySelector('#sugg-text').value.trim();
+    if (!text) return;
+    try { await FY.rpc('suggest', { p_room: roomKey, p_body: text }); }
+    catch (e) { FY.toast(e.message); return; }
+    form.outerHTML = '<span style="display:flex; align-items:center; gap:8px; font-size:13px; min-height:60px; color:var(--neon-teal);"><i class="ph ph-check-circle" style="font-size:20px; text-shadow:0 0 6px var(--neon-teal);"></i>Thanks. Hank has it.</span>';
+  });
+};
+
+(async function () {
+  const key = new URLSearchParams(location.search).get('room') || 'new';
+  const R = window.FY_ROOMS[key] || window.FY_ROOMS.new;
+  const B = await Barn.open(window.FY_ROOMS[key] ? key : 'new'); if (!B) return;
+  Presence.join(B.me).catch(() => {});
+  document.title = 'The Farmyard · ' + R.title;
+  B.main.innerHTML = window.FY_HOLDING(R, FY.esc) + window.FY_SUGG_BOX;
+  window.FY_WIRE_SUGG(B.main, window.FY_ROOMS[key] ? key : 'new');
+})().catch(e => FY.toast(e.message));
+</script>
+</body>
+</html>
