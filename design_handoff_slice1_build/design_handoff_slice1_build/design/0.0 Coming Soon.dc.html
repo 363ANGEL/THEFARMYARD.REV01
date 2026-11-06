@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>The Farmyard: coming soon</title>
+<meta name="description" content="The Farmyard. The forum you make. Opening soon.">
+<link rel="stylesheet" href="_ds/farmyard-design-system-f1e07c7c-e8a7-4fa2-bcbb-a89d4d09e22d/styles.css">
+<script src="_ds/farmyard-design-system-f1e07c7c-e8a7-4fa2-bcbb-a89d4d09e22d/_ds_bundle.js"></script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<script src="sounds.js"></script>
+<link rel="stylesheet" href="farmyard.css">
+<script src="fy-clucks.js"></script>
+<style>
+.fy0-nav.c{position:fixed!important;left:0;top:0;bottom:0;width:64px;z-index:40;overflow:hidden;padding:12px 6px!important;align-items:center;transition:transform .35s ease,opacity .35s ease;flex:none!important}
+.fy0-nav.c.h{transform:translateX(-100%);opacity:0;pointer-events:none}
+.fy0-nav.c .fy0-hd,.fy0-nav.c a>span:not([role]),.fy0-nav.c a i.ph-gear-six{display:none!important}
+.fy0-nav.c img{width:48px!important;height:48px!important}
+.fy0-nav.c a{justify-content:center;padding-left:0!important;padding-right:0!important}
+.fy0-tab{display:none;position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:50;width:16px;height:44px;place-items:center;background:var(--fy-bg);border:1px solid var(--neon-teal);border-left:0;border-radius:0 8px 8px 0;color:var(--neon-teal);box-shadow:0 0 8px rgba(95,211,207,.6);cursor:pointer}
+.fy0-tab.c.h{display:grid}
+@keyframes signSway { from { transform: rotate(3.5deg); } to { transform: rotate(10deg); } }
+@container (max-width: 1100px){.fy0-head{flex-wrap:nowrap!important;margin-bottom:8px!important}.fy0-head h1{min-width:0;font-size:clamp(28px,5cqw,48px)!important}.fy0-sign{zoom:.8!important;margin-left:auto;flex:none;margin-bottom:-12px!important}}
+@container (max-width: 860px){.fy0-sign{zoom:.6!important}}
+@container (max-width: 560px){.fy0-head h1{font-size:clamp(22px,6.5cqw,30px)!important}.fy0-sign{zoom:.42!important}}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#161826"/><circle cx="50" cy="50" r="22" fill="none" stroke="#5fd3cf" stroke-width="3"/><text x="50" y="58" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#e0157f">F</text></svg></template>
+<div ref="{{ frameRef }}" style="container-type:inline-size;min-height:{{ frameMin }};display:flex;flex-wrap:wrap;background:var(--fy-bg);width:{{ frameW }};max-width:100%;margin:0 auto;box-sizing:border-box;border-left:{{ frameEdge }};border-right:{{ frameEdge }};box-shadow:{{ frameGlow }}">
+<nav aria-label="The Barn" class="fy0-nav {{ navCls }}" style="display:{{ navDisplay }};flex:0 0 232px;box-sizing:border-box;padding:12px 8px;flex-direction:column;gap:1px;border-right:1px solid var(--neon-teal);box-shadow:4px 0 10px -4px var(--neon-teal);background:var(--fy-bg)">
+<a href="1.0 BARN DASHBOARD.dc.html" style="display:flex;align-items:center;gap:6px;padding:0 2px 6px;color:var(--fy-text);text-decoration:none"><img src="assets/hank-oink.png" alt="" style="width:96px;height:96px;object-fit:contain;display:block;flex:none;filter:drop-shadow(0 0 10px color-mix(in srgb,var(--neon-pink) 70%,transparent))"><span style="font-family:var(--font-heading);font-size:20px;letter-spacing:-.01em">The Farmyard</span></a>
+<div style="margin:4px 6px 8px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent)"></div><a href="1.0 BARN DASHBOARD.dc.html" style="display:flex;gap:10px;align-items:center;padding:5px 6px;border-radius:6px;font-size:15px;color:var(--fy-text-label);text-shadow:0 0 6px currentColor;border:1px solid transparent;box-sizing:border-box;text-decoration:none;transition:box-shadow .25s ease,background .25s ease,border-color .25s ease" style-hover="border-color:var(--neon-teal);box-shadow:inset 0 0 0 .5px var(--neon-teal),0 0 10px color-mix(in srgb,var(--neon-teal) 55%,transparent);background:color-mix(in srgb,var(--neon-teal) 8%,transparent)"><i class="ph ph-house" aria-hidden="true" style="font-size:28px;line-height:1;flex:none;width:28px;height:28px;display:grid;place-items:center;color:var(--fy-text-label);text-shadow:0 0 6px currentColor"></i><span style="flex:1">Home</span></a><a href="1.1 Calendar.dc.html" style="display:flex;gap:10px;align-items:center;padding:5px 6px 5px 16px;border-radius:6px;font-size:13px;color:var(--fy-text-label);text-shadow:0 0 6px currentColor;border:1px solid transparent;box-sizing:border-box;text-decoration:none;transition:box-shadow .25s ease,background .25s ease,border-color .25s ease" style-hover="border-color:var(--neon-teal);box-shadow:inset 0 0 0 .5px var(--neon-teal),0 0 10px color-mix(in srgb,var(--neon-teal) 55%,transparent);background:color-mix(in srgb,var(--neon-teal) 8%,transparent)"><i class="ph ph-calendar-blank" aria-hidden="true" style="font-size:22px;line-height:1;flex:none;width:28px;height:28px;display:grid;place-items:center;color:var(--fy-text-label);text-shadow:0 0 6px currentColor"></i><span style="flex:1">Calendar</span></a>
+<div class="fy0-hd" style="padding:10px 6px 2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)">Leagues</div><a href="2.1 Poker Room.dc.html" style="display:flex;gap:10px;align-items:center;padding:5px 6px;border-radius:6px;font-size:15px;color:var(--fy-text-label);text-shadow:0 0 6px currentColor;border:1px solid transparent;box-sizing:border-box;text-decoration:none;transition:box-shadow .25s ease,background .25s ease,border-color .25s ease" style-hover="border-color:var(--neon-teal);box-shadow:inset 0 0 0 .5px var(--neon-teal),0 0 10px color-mix(in srgb,var(--neon-teal) 55%,transparent);background:color-mix(in srgb,var(--neon-teal) 8%,transparent)"><i class="ph ph-club" aria-hidden="true" style="font-size:28px;line-height:1;flex:none;width:28px;height:28px;display:grid;place-items:center;color:var(--fy-text-label);text-shadow:0 0 6px currentColor"></i><span style="flex:1">Poker</span></a><a href="2.2 Football - Dashboard.dc.html" style="display:flex;gap:10px;align-items:center;padding:5px 6px;border-radius:6px;font-size:15px;color:var(--fy-text-label);text-shadow:0 0 6px currentColor;border:1px solid transparent;box-sizing:border-box;text-decoration:none;transition:box-shadow .25s ease,background .25s ease,border-color .25s ease" style-hover="border-color:var(--neon-teal);box-shadow:inset 0 0 0 .5px var(--neon-teal),0 0 10px color-mix(in srgb,var(--neon-teal) 55%,transparent);background:color-mix(in srgb,var(--neon-teal) 8%,transparent)"><i class="ph ph-soccer-ball" aria-hidden="true" style="font-size:28px;line-height:1;flex:none;width:28px;height:28px;display:grid;place-items:center;color:var(--fy-text-label);text-shadow:0 0 6px currentColor"></i><span style="flex:1">Football</span></a>
+<div class="fy0-hd" style="padding:10px 6px 2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)">Beta-Testing</div><a href="4.0 Humidor.dc.html" style="display:flex;gap:10px;align-items:center;padding:5px 6px;border-radius:6px;font-size:15px;color:var(--fy-text-label);text-shadow:0 0 6px currentColor;border:1px solid transparent;box-sizing:border-box;text-decoration:none;transition:box-shadow .25s ease,background .25s ease,border-color .25s ease" style-hover="border-color:var(--neon-teal);box-shadow:inset 0 0 0 .5px var(--neon-teal),0 0 10px color-mix(in srgb,var(--neon-teal) 55%,transparent);background:color-mix(in srgb,var(--neon-teal) 8%,transparent)"><i class="ph ph-cigarette" aria-hidden="true" style="font-size:28px;line-height:1;flex:none;width:28px;height:28px;display:grid;place-items:center;color:var(--fy-text-label);text-shadow:0 0 6px currentColor"></i><span style="flex:1">The Humidor</span></a>
+<div style="flex:1"></div>
+<div style="margin:0 6px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent)"></div>
+<div class="fy0-hd" style="padding:10px 6px 8px;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal);text-shadow:0 0 6px var(--neon-teal),0 0 14px color-mix(in srgb,var(--neon-teal) 60%,transparent)">Voice channel</div>
+<a href="#voice-lounge" style="display:flex;gap:10px;align-items:center;min-height:48px;padding:8px;border-radius:8px;font-size:13px;font-weight:700;letter-spacing:.14em;border:2px solid color-mix(in srgb,var(--neon-green) 40%,transparent);box-sizing:border-box;text-decoration:none;color:color-mix(in srgb,var(--neon-green-tube) 40%,transparent);transition:box-shadow .3s ease,color .3s ease,border-color .3s ease" style-hover="color:var(--neon-green-text);text-shadow:var(--text-glow-green);box-shadow:var(--glow-green);border-color:var(--neon-green-tube)"><i class="ph ph-speaker-high" aria-hidden="true" style="font-size:13px;color:var(--neon-green-text);text-shadow:var(--text-glow-green)"></i><span style="flex:1;line-height:normal">LIVE<small style="display:block;font-size:12px;font-weight:400;letter-spacing:0">via Discord</small></span></a>
+<a href="3.0 Barn Profile.dc.html" style="display:flex;gap:10px;align-items:center;margin-top:8px;padding:6px 10px 6px 8px;border:1px solid var(--neon-teal);border-radius:8px;font-size:13px;font-weight:600;color:var(--fy-text);text-decoration:none"><span role="img" aria-label="Your character" style="width:32px;height:32px;flex:none;background:transparent url('assets/hank-oink-sm.png') center/contain no-repeat"></span><span style="flex:1">Profile</span><i class="ph ph-gear-six" aria-hidden="true" style="color:var(--color-neutral-400);font-size:20px"></i></a>
+</nav>
+<button type="button" class="fy0-tab {{ tabCls }}" onClick="{{ toggleNav }}" aria-label="Show menu" style="display:{{ tabDisplay }}"><i class="ph ph-caret-right" aria-hidden="true"></i></button>
+<main style="position: relative; flex: 1 1 520px; min-width: 0; min-height: {{ frameMin }}; box-sizing: border-box; display: flex; flex-direction: column; padding: {{ mainPad }}; background: radial-gradient(900px 600px at 80% 10%, var(--haze-pink), transparent 60%), radial-gradient(700px 500px at 0% 100%, var(--haze-teal), transparent 60%), var(--fy-bg); color: var(--color-text); font-family: var(--font-body);">
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: flex-start; gap: clamp(28px, 8cqw, 140px); max-width: 1360px; width: 100%; margin: 0 auto;">
+    <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 22px;">
+      <div class="fy0-head" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px 16px; margin-top: {{ headMt }}; margin-bottom: 0;"><h1 style="position: relative; z-index: 1; font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: {{ titleFs }}; line-height: 1.02; letter-spacing: -.02em; margin: 0; text-wrap: balance;">{{ pageTitle }}</h1><div class="fy0-sign" style="zoom: {{ signZoom }}; padding: 22px 0 0 0; margin-bottom: -60px; position: relative; z-index: 3; transform: translateY(12%);">{{ brokenSign }}</div>
+      </div>
+      <p style="font-family: var(--font-heading); font-size: calc(var(--fs-h2) * .88); font-style: italic; line-height: 1.2; margin: -28px 0 -12px; color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink), 0 0 24px rgba(224,21,127,.5); animation: flicker 6s infinite;">The forum you make...</p>
+      
+      <sc-if value="{{ hasConcept }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Current concept" style="display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; margin-top: 14px; border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal); background: var(--fy-bg); min-width: 0;">
+        <span class="kicker">Current concept</span>
+        <h3 style="margin: 0; font-family: var(--font-heading); font-weight: 500; font-size: var(--fs-h2); line-height: 1.1; color: var(--neon-pink-text); text-shadow: var(--text-glow-pink); text-wrap: balance;">{{ conceptTitle }}</h3>
+        <span style="font-size: var(--fs-body); color: var(--fy-text-secondary);">{{ conceptTag }}</span>
+        <div style="border-top: 1px solid var(--rule-teal); padding-top: 10px; display: flex; flex-direction: column; gap: 4px;"><span style="font-size: var(--fs-body); font-weight: 600;">{{ conceptHead }}</span><p style="margin: 0; max-width: 64ch; font-size: var(--fs-body); line-height: 1.5; color: var(--fy-text-secondary); text-wrap: pretty;">{{ conceptBody }}</p></div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ false }}"><div data-screen-label="Next rooms" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:14px"><sc-for list="{{ nextRooms }}" as="nr" hint-placeholder-count="5"><a href="{{ nr.href }}" style="display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg);text-decoration:none;color:var(--fy-text)" style-hover="box-shadow:0 0 10px var(--neon-teal),0 0 22px rgba(95,211,207,.45)"><span style="display:flex;align-items:center;gap:10px"><i class="{{ nr.icon }}" aria-hidden="true" style="font-size:var(--ic-lg);color:var(--neon-teal)"></i><span style="font-size:17px;font-weight:500">{{ nr.name }}</span></span><span style="font-size:var(--fs-sm);color:var(--fy-text-secondary);text-wrap:pretty">{{ nr.tag }}</span><span class="kicker" style="margin-top:auto">See the concept →</span></a></sc-for></div></sc-if>
+      <sc-if value="{{ joined }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; gap: 12px; align-items: center; max-width: 460px; padding: 12px 16px; border: 1px solid var(--neon-teal); border-radius: 8px; box-shadow: var(--glow-teal); font-size: 14px;"><i class="ph ph-check-circle" style="color: var(--neon-teal); font-size: 20px; text-shadow: 0 0 6px var(--neon-teal);"></i>You're on the list. Hank will holler when the gates open.</div>
+      </sc-if>
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px; margin-top: 44px;">
+      <div style="display: {{ buyDisplay }}; flex-direction: column; gap: 14px; margin-top: -4px; align-self: stretch; flex: 1 1 226px; min-width: 0;">
+        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 24px; padding: 22px; border: 1px solid var(--neon-teal); border-radius: 12px; box-shadow: var(--glow-teal); background: var(--fy-bg); align-self: stretch; flex: 1; box-sizing: border-box;">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%;">
+            <span style="white-space: nowrap;" class="lot-label">Buy-In &amp; Build</span>
+            <div ref="{{ sockImgRef }}" style="width: clamp(120px, 40cqw, var(--char-card)); aspect-ratio: 1;"><img src="assets/hank-oink.png" alt="Hank" style="width: 100%; height: 100%; object-fit: contain; display: block;"></div>
+            <span style="display: flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1.4; font-size: 13px; text-align: center; min-height: 60px;"><span style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--fy-text-label);">Details</span><span style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--fy-text-label); text-wrap: balance;">Buy Hank a Coffee to speed up the build!</span></span>
+            <div style="display: flex; align-items: center; gap: 8px;"><button type="button" onClick="{{ sock.dec }}" data-sfx="off" aria-label="One coffee less" style="width: 36px; height: 36px; border-radius: 9px; background: transparent; border: 2px solid var(--neon-teal); color: var(--neon-teal); font-size: 21.6px; line-height: 1; cursor: pointer; box-shadow: var(--glow-teal); text-shadow: 0 0 6px var(--neon-teal); display: grid; place-items: center; flex: none;">−</button><span style="position: relative; width: 57.6px; height: 72px; flex: none;"><svg width="57.6" height="72" viewBox="0 0 48 60" fill="none" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" style="display: block; stroke: var(--neon-pink); filter: drop-shadow(0 0 3px var(--neon-pink)) drop-shadow(0 0 8px rgba(224,21,127,.5)); overflow: visible;"><path d="M14 2.5 H34 L36.5 7 H11.5 Z"></path><rect x="9" y="7" width="30" height="5" rx="1.5"></rect><path d="M11 12 L15 57 H33 L37 12"></path><path d="M12.1 24.5 L35.9 24.5 L34.6 41.5 L13.4 41.5 Z"></path></svg><span style="position: absolute; left: 0; right: 0; top: 29.7px; height: 20.7px; display: grid; place-items: center; font-family: var(--font-heading); font-size: 15.3px; letter-spacing: .02em; color: var(--color-text); font-feature-settings: 'tnum' 1;">{{ sock.pendingPad }}</span></span><button type="button" onClick="{{ sock.inc }}" data-sfx="off" aria-label="One coffee more" style="width: 36px; height: 36px; border-radius: 9px; background: transparent; border: 2px solid var(--neon-teal); color: var(--neon-teal); font-size: 21.6px; line-height: 1; cursor: pointer; box-shadow: var(--glow-teal); text-shadow: 0 0 6px var(--neon-teal); display: grid; place-items: center; flex: none;">+</button></div>
+            <button type="button" onClick="{{ sock.open }}" disabled="{{ sock.off }}" class="btn btn-primary" style="min-height: 36px; font-size: 13px; animation: {{ sock.pulse }}; filter: {{ sock.filter }}; cursor: {{ sock.cursor }};">{{ sock.cta }}</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 14px; width: 100%; align-items: flex-start;">
+          <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 0 0; width: 100%; box-sizing: border-box; border-top: 1px solid var(--rule-teal); font-size: 13px;">
+            <span style="display: flex; align-items: center; gap: 8px; white-space: nowrap;"><svg width="24" height="30" viewBox="0 0 48 60" fill="none" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" style="display: block; stroke: var(--neon-pink); filter: drop-shadow(0 0 3px var(--neon-pink)) drop-shadow(0 0 8px rgba(224,21,127,.5)); overflow: visible;"><path d="M14 2.5 H34 L36.5 7 H11.5 Z"></path><rect x="9" y="7" width="30" height="5" rx="1.5"></rect><path d="M11 12 L15 57 H33 L37 12"></path><path d="M12.1 24.5 L35.9 24.5 L34.6 41.5 L13.4 41.5 Z"></path></svg>1 coffee = £2.50</span>
+            
+          </div>
+          <sc-if value="{{ bidOpen }}" hint-placeholder-val="{{ false }}">
+          <form onSubmit="{{ placeBid }}" style="display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box; padding: 14px 16px; border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal);">
+            <span style="font-size: 14px;">Bidding on <span style="color: var(--neon-pink); text-shadow: 0 0 6px var(--neon-pink);">{{ bidLotName }}</span>. Beat {{ bidMinLabel }} to go top.</span>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 6px; flex: 0 0 auto;"><i class="ph ph-coffee" style="font-size: 22px; color: var(--neon-pink);"></i><input class="input" type="number" min="{{ bidMin }}" step="1" required="{{ true }}" value="{{ bidAmount }}" onChange="{{ setBidAmount }}" aria-label="Bid amount in pounds" style="width: 90px; min-height: 40px; border-color: var(--neon-teal);"></div>
+              <button type="submit" class="btn btn-primary" disabled="{{ needEmail }}" style="min-height: 40px;">Place bid · {{ bidGbp }}</button>
+            </div>
+            <span style="display: {{ bidAsDisplay }}; font-size: 12px; color: var(--color-neutral-300); gap: 8px; align-items: center;">Bidding as <span style="color: var(--color-text);">{{ email }}</span><a href="#" onClick="{{ changeEmail }}" style="font-size: 12px;">change</a></span>
+            <span style="font-size: 12px; color: var(--color-neutral-200); display: {{ discordHintDisplay }}; gap: 8px; align-items: center; flex-wrap: wrap;"><i class="ph ph-arrow-up" style="color: var(--neon-teal); font-size: 16px;"></i>Pop your email in the sign-up box above to bid.<a href="#" onClick="{{ goToEmail }}" style="font-size: 12px;">Take me there</a></span>
+            <span style="font-size: 11px; color: var(--color-neutral-400);">You'll pay on Revolut next. Top bid at launch wins. All payments are donations to The Farmyard and aren't refunded if you're outbid. Your email is only used for this auction and the launch.</span>
+          </form>
+          </sc-if>
+          <sc-if value="{{ payOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box; padding: 14px 16px; border: 1px solid var(--neon-pink); border-radius: 10px; box-shadow: 0 0 6px var(--neon-pink), 0 0 14px rgba(224,21,127,.5); animation: payDrop .6s cubic-bezier(.2,.8,.2,1) both;">
+            <span style="font-size: 14px;">Bidding on <span style="color: var(--neon-pink); text-shadow: 0 0 6px var(--neon-pink);">{{ payLot }}</span>. Revolut opens in a new tab in a moment.</span>
+            <span style="font-size: 14px; line-height: 1.5;">Pay <span style="font-family: var(--font-heading); font-size: 18px; color: var(--color-text);">{{ payGbp }}</span> and put <span style="color: var(--neon-teal); text-shadow: 0 0 6px var(--neon-teal);">your email address</span> in the payment note, so we can reach you if you win. Your bid shows in the table once your payment is confirmed.</span>
+            <span style="font-size: 11px; color: var(--color-neutral-400);">Top bid at launch wins. All payments are donations to The Farmyard and aren't refunded if you're outbid.</span>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;"><a href="{{ revolutUrl }}" target="_blank" rel="noopener" onClick="{{ paid }}" class="btn btn-primary" style="min-height: 40px; text-decoration: none; display: inline-flex; align-items: center;">Reopen Revolut</a><button type="button" class="btn btn-ghost" onClick="{{ paid }}" style="min-height: 40px;">Done</button></div>
+          </div>
+          </sc-if>
+          </div>
+        </div>
+      </div>
+      <div style="display: {{ suggDisplay }}; flex-direction: column; gap: 14px; margin-top: -4px; align-self: stretch; flex: 3 1 300px; min-width: 0;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; box-sizing: border-box; flex: 1; padding: 22px; border: 1px solid var(--neon-teal); border-radius: 12px; box-shadow: var(--glow-teal); background: var(--fy-bg);">
+          <span style="align-self: flex-start; color: var(--neon-teal); text-shadow: 0 0 6px var(--neon-teal), 0 0 14px rgba(95,211,207,.45);" class="lot-label">Site Suggestion Box - What should we add next?</span>
+          <div style="display: flex; align-items: flex-start; gap: 18px; align-self: stretch;"><div style="display: {{ suggImgDisplay }}; width: calc(var(--char-card) / 2); height: calc(var(--char-card) / 2); flex: none;"><img src="assets/hank-oink.png" alt="Your character" style="width: 100%; height: 100%; object-fit: contain; display: block;"></div><span style="display: flex; flex-direction: column; gap: 8px; padding-top: 0; min-width: 0;"><span style="font-family: var(--font-heading); font-size: 17px; line-height: 1.3; color: var(--neon-pink-link); text-shadow: 0 0 8px rgba(224,21,127,.5);">Have an Idea?</span><span style="font-size: 13px; line-height: 1.5; font-style: italic; color: var(--hint-text);">Or spotted something that could work better?</span></span></div>
+          <sc-if value="{{ suggSent }}" hint-placeholder-val="{{ false }}">
+          <span style="display: flex; align-items: center; gap: 8px; font-size: 13px; text-align: center; min-height: 60px; color: var(--neon-teal);">Thanks. Hank has it.</span>
+          </sc-if>
+          <sc-if value="{{ suggOpen }}" hint-placeholder-val="{{ true }}">
+          <form onSubmit="{{ sendSugg }}" style="display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%;">
+            <span style="align-self: flex-start; margin-bottom: -8px; font-size: 13px; line-height: 1.5; font-style: italic; color: var(--color-neutral-400);">Submit your comments below.</span>
+            <textarea class="input" rows="4" required="{{ true }}" value="{{ sugg }}" onChange="{{ setSugg }}" placeholder="Games, rooms, rules, anything..." aria-label="Your suggestion" style="width: 100%; box-sizing: border-box; resize: vertical; border-color: var(--neon-teal); font-family: inherit;"></textarea>
+            <button type="submit" class="btn btn-primary" style="min-height: 36px; width: {{ sendW }}; max-width: 100%; align-self: flex-start; font-size: 13px;">Send it</button>
+          </form>
+          </sc-if>
+        </div>
+      </div>
+      </div>
+    </div>
+
+  </div>
+  <footer style="display: {{ footerDisplay }}; max-width: 1360px; width: 100%; margin: 48px auto 0; flex-wrap: wrap; gap: 16px 28px; align-items: center; font-size: 13px; color: var(--color-neutral-400);">
+    <div class="rule-teal" style="flex: 1 0 100%; margin-bottom: 8px;"></div>
+    <div style="display: flex; flex-wrap: wrap; gap: 18px; font-size: 17.3px;">
+      <span style="display: flex; gap: 6px; align-items: center;"><i class="ph ph-microphone" style="color: var(--neon-teal);"></i>Voice</span>
+      <span style="display: flex; gap: 6px; align-items: center;"><i class="ph ph-game-controller" style="color: var(--neon-teal);"></i>Arcade</span>
+      <span style="display: flex; gap: 6px; align-items: center;"><i class="ph ph-trophy" style="color: var(--neon-teal);"></i>Leaderboards</span>
+      <span style="display: flex; gap: 6px; align-items: center;"><i class="ph ph-music-notes" style="color: var(--neon-teal);"></i>Jukebox</span>
+      <span style="display: flex; gap: 6px; align-items: center;"><i class="ph ph-push-pin" style="color: var(--neon-teal);"></i>Message board</span>
+      <span style="display: flex; gap: 6px; align-items: center;"><i class="ph ph-horse" style="color: var(--neon-teal);"></i>Horseplay</span>
+    </div>
+    <div style="flex: 1;"></div>
+    <span style="display: flex; flex-direction: column; gap: 2px; text-align: right;"><span style="opacity: .67;">© 2026 Green Tower Consulting Ltd</span><span style="font-size: 11px;">Registered in England and Wales · Company no. 15084500</span></span>
+  </footer>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;embed&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Embed&quot;},&quot;section&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;room&quot;,&quot;contribute&quot;],&quot;default&quot;:&quot;room&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Embed&quot;},&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Desktop&quot;,&quot;Tablet&quot;,&quot;Phone&quot;],&quot;default&quot;:&quot;Desktop&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Preview&quot;}}">
+class Component extends DCLogic {
+  isEmbed() { const e = this.props.embed; return !!e && e !== 'false' && e !== '0'; }
+  state = { navHidden: true, compact: false, sugg: '', suggSent: false, email: '', joined: false, cups: 1, bidLot: null, bidAmount: '', bids: { sock: 0, pants: 0 }, mine: {}, pending: { sock: 0, pants: 0 } };
+  COFFEE = 2.5;
+  // Replace with your Revolut payment link, e.g. https://revolut.me/yourname
+  REVOLUT_URL = 'https://revolut.me/christ4c3d';
+  LOTS = { sock: { name: 'Lot 1: the sock', extra: '+ 3 eggs' }, pants: { name: 'Lot 2: the Y-fronts', extra: '+ half a bale' } };
+  placeBid = async (e) => {
+    e.preventDefault();
+    const lot = this.state.bidLot, email = this.state.email.trim(), amount = Math.floor(Number(this.state.bidAmount));
+    if (!lot || !email || !(amount > this.state.bids[lot])) return;
+    const code = this.pendingCode = 'FY-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+    if (this.FORM_ENDPOINT) {
+      try { await fetch(this.FORM_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ type: 'auction-bid', code: this.pendingCode, lot: this.LOTS[lot].name, email, coffees: amount, amount_gbp: amount * this.COFFEE, time: new Date().toISOString() }) }); } catch (err) {}
+    }
+    this.setState(s => ({ bids: { ...s.bids, [lot]: amount }, mine: { ...s.mine, [lot]: true }, pending: { ...s.pending, [lot]: 0 }, bidLot: null, bidAmount: '', joined: true, editEmail: false, pay: { lot, gbp: amount * this.COFFEE, code } }));
+  };
+  // Replace with your page, e.g. https://ko-fi.com/thefarmyard or https://buymeacoffee.com/thefarmyard
+  COFFEE_URL = 'https://ko-fi.com/thefarmyard';
+  CUP_PRICE = 3;
+  // Set this to your Formspree endpoint (https://formspree.io/f/xxxx) to collect emails for real.
+  FORM_ENDPOINT = '';
+  setSugg = (e) => this.setState({ sugg: e.target.value });
+  sendSugg = async (e) => {
+    e.preventDefault();
+    const text = (this.state.sugg || '').trim(); if (!text) return;
+    if (this.FORM_ENDPOINT) { try { await fetch(this.FORM_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ type: 'suggestion', text, email: this.state.email }) }); } catch (err) {} }
+    this.setState({ suggSent: true, sugg: '' });
+  };
+  submit = async (e) => {
+    e.preventDefault();
+    const email = this.state.email.trim(); if (!email) return;
+    if (this.FORM_ENDPOINT) {
+      try { await fetch(this.FORM_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ email }) }); } catch (err) {}
+    }
+    this.setState({ joined: true });
+  };
+  topEmailRef = React.createRef();
+  goToEmail() { const el = this.topEmailRef.current; if (!el) return; const y = el.getBoundingClientRect().top + window.scrollY - 120; window.scrollTo({ top: y, behavior: 'smooth' }); setTimeout(() => el.focus({ preventScroll: true }), 400); this.glowEmail(); }
+  glowEmail() {
+    const el = this.topEmailRef.current; if (!el || !el.animate) return;
+    if (this.emailGlow) this.emailGlow.cancel();
+    this.emailGlow = el.animate([
+      { boxShadow: '0 0 0 0 rgba(95,211,207,0)', borderColor: 'var(--neon-teal)' },
+      { boxShadow: '0 0 0 2px var(--neon-teal), 0 0 18px 4px rgba(95,211,207,.75), 0 0 40px 8px rgba(95,211,207,.35)', borderColor: '#bff3f1', offset: .5 },
+      { boxShadow: '0 0 0 0 rgba(95,211,207,0)', borderColor: 'var(--neon-teal)' }
+    ], { duration: 1400, iterations: 4, easing: 'ease-in-out' });
+  }
+  frameRef = React.createRef();
+  componentDidMount() { document.body.classList.add('farmyard'); this.loadBids(); const el = this.frameRef.current; if (el && window.ResizeObserver) { this.ro = new ResizeObserver(() => { const c = el.getBoundingClientRect().width < 760; if (c !== this.state.compact) this.setState({ compact: c }); }); this.ro.observe(el); } }
+  componentWillUnmount() { if (this.ro) this.ro.disconnect(); }
+  loadBids() { fetch('bids.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(b => { if (b) this.setState({ bids: { sock: Number(b.sock) || 0, pants: Number(b.pants) || 0 } }); }).catch(() => {}); }
+  emailKnown() { return !this.state.editEmail && (this.state.joined || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.state.email.trim())); }
+  imgRefs = { sock: React.createRef(), pants: React.createRef() };
+  // Synthesised chicken cluck. To use a real recording instead, set CLUCK_URL to an .mp3 in assets/.
+  get CLUCK_URL() { return (window.FY_SOUNDS && window.FY_SOUNDS.happy) || 'assets/cluck-happy.mp3'; }
+  get SAD_URL() { return (window.FY_SOUNDS && window.FY_SOUNDS.sad) || 'assets/cluck-sad.mp3'; }
+  sfx = {};
+  play(url) {
+    let a = this.sfx[url]; if (!a) { a = this.sfx[url] = new Audio(url); a.preload = 'auto'; a.volume = .7; }
+    try { a.pause(); a.currentTime = 0; } catch (e) {}
+    a.play().catch(() => {});
+  }
+  sadCluck() { this.play(this.SAD_URL); }
+  // Set to an .mp3 in assets/ to use a real rooster recording.
+  ROOSTER_URL = '';
+  rooster() {
+    if (this.ROOSTER_URL) { this.play(this.ROOSTER_URL); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    const ctx = this.audio || (this.audio = new AC()); if (ctx.state === 'suspended') ctx.resume();
+    const t = ctx.currentTime + .03, END = 2.25;
+    const master = ctx.createGain(); master.gain.value = .32; master.connect(ctx.destination);
+    // voice: two detuned saws, continuous pitch through the whole call (legato like a real crow)
+    const o1 = ctx.createOscillator(), o2 = ctx.createOscillator(); o1.type = o2.type = 'sawtooth'; o2.detune.value = 14;
+    const pitch = [[0, 600], [.13, 700], [.18, 860], [.30, 920], [.34, 990], [.52, 1010], [.55, 860], [.66, 820], [.70, 1040], [.92, 1160], [1.7, 1120], [1.95, 980], [END, 720]];
+    [o1, o2].forEach(o => { o.frequency.setValueAtTime(pitch[0][1], t); pitch.slice(1).forEach(([dt, f]) => o.frequency.linearRampToValueAtTime(f, t + dt)); });
+    // vibrato that widens on the long final note
+    const vib = ctx.createOscillator(), vibG = ctx.createGain(); vib.frequency.value = 6.5;
+    vibG.gain.setValueAtTime(4, t); vibG.gain.linearRampToValueAtTime(10, t + .9); vibG.gain.linearRampToValueAtTime(34, t + 1.9);
+    vib.connect(vibG); vibG.connect(o1.frequency); vibG.connect(o2.frequency);
+    // syllable envelope: cock - a - doo - dle - dooooo
+    const env = ctx.createGain(); env.gain.setValueAtTime(0.0001, t);
+    const syl = (a, b, v) => { env.gain.setValueAtTime(0.0001, t + a); env.gain.exponentialRampToValueAtTime(v, t + a + .02); env.gain.setValueAtTime(v * .85, t + b - .025); env.gain.exponentialRampToValueAtTime(0.0001, t + b); };
+    syl(0, .14, .75); syl(.18, .30, .65); syl(.34, .52, .8); syl(.55, .66, .6);
+    env.gain.setValueAtTime(0.0001, t + .70); env.gain.exponentialRampToValueAtTime(1, t + .82); env.gain.setValueAtTime(.95, t + 1.75); env.gain.exponentialRampToValueAtTime(0.0001, t + END);
+    // rasp: fast amplitude flutter
+    const rasp = ctx.createGain(), raspLfo = ctx.createOscillator(), raspDepth = ctx.createGain();
+    rasp.gain.value = .75; raspLfo.frequency.value = 38; raspDepth.gain.value = .25; raspLfo.connect(raspDepth); raspDepth.connect(rasp.gain);
+    // nasal formants
+    const f1 = ctx.createBiquadFilter(), f2 = ctx.createBiquadFilter(), f3 = ctx.createBiquadFilter();
+    f1.type = f2.type = f3.type = 'bandpass'; f1.frequency.value = 1300; f1.Q.value = 4; f2.frequency.value = 2700; f2.Q.value = 6; f3.frequency.value = 650; f3.Q.value = 3;
+    const g1 = ctx.createGain(), g2 = ctx.createGain(), g3 = ctx.createGain(); g1.gain.value = 1; g2.gain.value = .55; g3.gain.value = .45;
+    o1.connect(env); o2.connect(env); env.connect(rasp);
+    [[f1, g1], [f2, g2], [f3, g3]].forEach(([f, g]) => { rasp.connect(f); f.connect(g); g.connect(master); });
+    // breathy noise layer
+    const nb = ctx.createBuffer(1, ctx.sampleRate * END, ctx.sampleRate), d = nb.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * .5;
+    const noise = ctx.createBufferSource(), nf = ctx.createBiquadFilter(), ng = ctx.createGain();
+    noise.buffer = nb; nf.type = 'bandpass'; nf.frequency.value = 2200; nf.Q.value = 1.2; ng.gain.value = .12;
+    noise.connect(nf); nf.connect(ng); ng.connect(env);
+    [o1, o2, vib, raspLfo, noise].forEach(x => { x.start(t); x.stop(t + END + .05); });
+  }
+
+  cluck() {
+    if (this.CLUCK_URL) { this.play(this.CLUCK_URL); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    const ctx = this.audio || (this.audio = new AC()); if (ctx.state === 'suspended') ctx.resume();
+    const out = ctx.createGain(); out.gain.value = .35; out.connect(ctx.destination);
+    const note = (t, f0, f1, f2, dur, vol) => {
+      const o = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), bp = ctx.createBiquadFilter();
+      o.type = 'sawtooth'; o2.type = 'square';
+      bp.type = 'bandpass'; bp.Q.value = 3.5; bp.frequency.setValueAtTime(f0 * 2.2, t); bp.frequency.linearRampToValueAtTime(f1 * 2.4, t + dur * .4);
+      [o, o2].forEach((x, i) => { const m = i ? 1.01 : 1; x.frequency.setValueAtTime(f0 * m, t); x.frequency.exponentialRampToValueAtTime(f1 * m, t + dur * .35); x.frequency.exponentialRampToValueAtTime(f2 * m, t + dur); x.connect(bp); });
+      bp.connect(g); g.connect(out);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .012); g.gain.exponentialRampToValueAtTime(vol * .6, t + dur * .5); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.start(t); o2.start(t); o.stop(t + dur + .02); o2.stop(t + dur + .02);
+    };
+    const t = ctx.currentTime + .02, j = () => 1 + (Math.random() - .5) * .12;
+    // p'KWAWK! (~1s)
+    note(t, 460 * j(), 820 * j(), 1100 * j(), .1, .75);
+    note(t + .14, 720 * j(), 1380 * j(), 760 * j(), .72, 1);
+  }
+  featherBurst(k) {
+    const box = this.imgRefs[k].current; if (!box || !box.animate) return Promise.resolve();
+    const done = [];
+    const r = box.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const count = reduce ? 6 : 26;
+    for (let i = 0; i < count; i++) {
+      const f = document.createElement('i');
+      f.className = 'ph-fill ph-feather';
+      const size = 14 + Math.random() * 16;
+      Object.assign(f.style, { position: 'fixed', left: cx + 'px', top: cy + 'px', fontSize: size + 'px', color: '#f4f4f7', textShadow: '0 0 6px rgba(244,244,247,.8)', pointerEvents: 'none', zIndex: 9999, marginLeft: -size / 2 + 'px', marginTop: -size / 2 + 'px', willChange: 'transform, opacity' });
+      document.body.appendChild(f);
+      const a = Math.random() * Math.PI * 2, d = 70 + Math.random() * 150;
+      const dx = Math.cos(a) * d, dy = Math.sin(a) * d - 40;
+      const sway = (Math.random() - .5) * 80, fall = 90 + Math.random() * 120;
+      const r0 = Math.random() * 360, r1 = r0 + (Math.random() - .5) * 240, r2 = r1 + (Math.random() - .5) * 180;
+      const dur = 1400 + Math.random() * 1100;
+      const anim = f.animate([
+        { transform: `translate(0,0) rotate(${r0}deg) scale(.3)`, opacity: 1 },
+        { transform: `translate(${dx}px,${dy}px) rotate(${r1}deg) scale(1)`, opacity: 1, offset: .3 },
+        { transform: `translate(${dx + sway * .6}px,${dy + fall * .5}px) rotate(${(r1 + r2) / 2}deg) scale(.95)`, opacity: .9, offset: .65 },
+        { transform: `translate(${dx + sway}px,${dy + fall}px) rotate(${r2}deg) scale(.85)`, opacity: 0 }
+      ], { duration: dur, easing: 'cubic-bezier(.15,.7,.35,1)', fill: 'forwards' });
+      done.push(anim.finished.then(() => f.remove(), () => f.remove()));
+    }
+    return Promise.all(done);
+  }
+  signEl = null;
+  buildSign() {
+    if (this.signEl) return this.signEl;
+    const e = React.createElement;
+    const title = e('h2', { className: 'fy-sign-title', 'data-sign-title': '1' }, 'UNDER\u00a0C', e('span', { className: 'is-flick' }, 'O'), 'NSTRUCTION');
+    this.signEl = e('div', { className: 'fy-sign', 'aria-hidden': 'false', 'data-about-sign': '1', style: { '--sg-tube': 'var(--neon-teal)', '--sg-glow': 'var(--neon-teal)', '--sg-rgb': '95,211,207', '--sg-text': '#c8f4f2' } },
+      e('span', { className: 'fy-sign-wire is-l' }), e('span', { className: 'fy-sign-wire is-r' }),
+      e('div', { className: 'fy-sign-plate' }, e('span', { className: 'fy-sign-edge', 'aria-hidden': 'true' }), e('span', { className: 'fy-sign-icon', 'aria-hidden': 'true' }, e('svg', { viewBox: '0 0 100 110', 'aria-hidden': 'true' }, e('g', { transform: 'translate(16 18) scale(.68)' }, ...['M58 22 L86 50 L77 59 L49 31 Z', 'M64 45 L20 89', 'M27.5 18.5 A14 14 0 1 1 16.5 28.5 L27 31 L29.5 21 Z', 'M38 41 L80 86'].map((d, i) => e('path', { key: 'b' + i, d, fill: '#07090a', stroke: '#07090a', strokeWidth: 15, strokeLinejoin: 'round', vectorEffect: 'non-scaling-stroke' })), ...['M58 22 L86 50 L77 59 L49 31 Z', 'M64 45 L20 89', 'M27.5 18.5 A14 14 0 1 1 16.5 28.5 L27 31 L29.5 21 Z', 'M38 41 L80 86'].map((d, i) => e('path', { key: 'l' + i, d, fill: 'none', stroke: 'var(--neon-amber-tube, #ffb020)', strokeWidth: 2.6, strokeLinejoin: 'round', strokeLinecap: 'round', vectorEffect: 'non-scaling-stroke' }))))), title));
+    return this.signEl;
+  }
+  renderVals() {
+    const d = this.props.device ?? 'Desktop'; const cp = d !== 'Desktop' || this.state.compact; const w = { Desktop: '100%', Tablet: '820px', Phone: '390px' }[d] || '100%'; const on = d !== 'Desktop';
+    return {
+      sugg: this.state.sugg, suggSent: this.state.suggSent, suggOpen: !this.state.suggSent, setSugg: this.setSugg, sendSugg: this.sendSugg,
+      hasConcept: this.isEmbed() && !!this.props.conceptTitle, conceptTitle: this.props.conceptTitle, conceptTag: this.props.conceptTag, conceptHead: this.props.conceptHead, conceptBody: this.props.conceptBody,
+      suggImgDisplay: this.isEmbed() ? 'none' : 'block', buyDisplay: this.isEmbed() && this.props.section !== 'contribute' ? 'none' : 'flex', suggDisplay: this.isEmbed() && this.props.section === 'contribute' ? 'none' : 'flex',
+      titleFs: this.isEmbed() ? 'var(--fs-h1)' : 'var(--fs-hero)', signZoom: this.isEmbed() ? '.9' : '1.25',
+      pageTitle: this.isEmbed() && this.props.conceptTitle ? this.props.conceptTitle : 'The Farmyard.',
+      mainPad: this.isEmbed() ? '12px 0 16px' : 'clamp(16px, 5cqw, 72px)', headMt: this.isEmbed() ? '0' : '-24px',
+      footerDisplay: this.isEmbed() ? 'none' : 'flex', navDisplay: this.isEmbed() ? 'none' : 'flex', tabDisplay: this.isEmbed() ? 'none' : undefined, frameMin: this.isEmbed() ? '0' : '100vh',
+      frameRef: this.frameRef, navCls: cp ? 'c' + (this.state.navHidden ? ' h' : '') : '', tabCls: cp ? 'c' + (this.state.navHidden ? ' h' : '') : '', toggleNav: () => { clearTimeout(this._navT); const h = !this.state.navHidden; this.setState({ navHidden: h }); if (!h) this._navT = setTimeout(() => this.setState({ navHidden: true }), 7000); },
+      frameW: w, frameEdge: on ? '1px dashed var(--neon-teal)' : '0 solid transparent', frameGlow: on ? '0 0 30px rgba(95,211,207,.15)' : 'none',
+      brokenSign: this.buildSign(), nextRooms: this.props.nextRooms || [], hasNext: !!(this.props.nextRooms && this.props.nextRooms.length),
+      email: this.state.email, setEmail: (e) => this.setState({ email: e.target.value }),
+      submit: this.submit, joined: this.state.joined, notJoined: !this.state.joined,
+      cups: this.state.cups, cupsLabel: this.state.cups === 1 ? '1 coffee' : this.state.cups + ' coffees', total: this.state.cups * this.CUP_PRICE,
+      inc: () => this.setState(s => ({ cups: Math.min(s.cups + 1, 10) })), dec: () => this.setState(s => ({ cups: Math.max(s.cups - 1, 1) })),
+      coffeeUrl: this.COFFEE_URL,
+      ...Object.fromEntries(['sock', 'pants'].map(k => [k, { label: `${this.state.mine[k] ? 'Your bid' : 'Top bid'}: £${this.state.bids[k]}`, extra: this.LOTS[k].extra, pending: this.state.pending[k], pendingPad: String(this.state.pending[k]).padStart(2, '0'),
+        off: this.state.pending[k] <= this.state.bids[k], pulse: this.state.pending[k] <= this.state.bids[k] ? 'none' : 'btnPulse 1.6s ease-in-out infinite', filter: this.state.pending[k] <= this.state.bids[k] ? 'grayscale(1)' : 'none', cursor: this.state.pending[k] <= this.state.bids[k] ? 'not-allowed' : 'pointer', cta: 'Confirm',
+        inc: () => { this.cluck(); this.setState(s => ({ pending: { ...s.pending, [k]: s.pending[k] + 1 }, bidAmount: s.bidLot === k ? String(s.pending[k] + 1) : s.bidAmount })); },
+        dec: () => { if (this.state.pending[k] > 0) this.sadCluck(); this.setState(s => { const v = Math.max(s.pending[k] - 1, 0); return { pending: { ...s.pending, [k]: v }, bidAmount: s.bidLot === k ? String(v) : s.bidAmount }; }); },
+        open: () => { const c = this.state.pending[k]; if (c <= this.state.bids[k]) return; this.rooster(); const landed = this.featherBurst(k); this.setState(s => ({ bidLot: null, pay: { lot: k, gbp: c * this.COFFEE, cups: c }, pending: { ...s.pending, [k]: 0 } })); landed.then(() => window.open(this.REVOLUT_URL, '_blank', 'noopener')); } }])),
+      sockImgRef: this.imgRefs.sock, pantsImgRef: this.imgRefs.pants,
+      topBids: [['sock', 'Total Coffees So Far']].map(([k, lot]) => { const b = this.state.bids[k]; return { lot, cups: String(b).padStart(2, '0') + (b === 1 ? ' coffee' : ' coffees'), gbp: '£' + (b * this.COFFEE).toFixed(2) }; }),
+      bidOpen: !!this.state.bidLot, bidLotName: this.state.bidLot ? this.LOTS[this.state.bidLot].name : '',
+      bidMin: this.state.bidLot ? this.state.bids[this.state.bidLot] + 1 : 1, bidMinLabel: this.state.bidLot ? (b => `${b} ${b === 1 ? 'coffee' : 'coffees'} (£${(b * this.COFFEE).toFixed(2)})`)(this.state.bids[this.state.bidLot]) : '',
+      needEmail: !this.emailKnown(), emailFieldDisplay: this.emailKnown() ? 'none' : 'block', bidAsDisplay: this.emailKnown() ? 'flex' : 'none', discordHintDisplay: this.emailKnown() ? 'none' : 'flex',
+      changeEmail: (e) => { e.preventDefault(); this.setState({ editEmail: false, joined: false }); this.goToEmail(); },
+      topEmailRef: this.topEmailRef, goToEmail: (e) => { if (e) e.preventDefault(); this.goToEmail(); },
+      payOpen: !!this.state.pay && !this.state.bidLot, payLot: this.state.pay ? this.LOTS[this.state.pay.lot].name : '', payGbp: this.state.pay ? '£' + this.state.pay.gbp.toFixed(2) : '', payCode: this.state.pay ? this.state.pay.code : '',
+      revolutUrl: this.REVOLUT_URL, paid: () => setTimeout(() => this.setState({ pay: null }), 50),
+      bidGbp: '£' + ((Math.floor(Number(this.state.bidAmount)) || 0) * this.COFFEE).toFixed(2),
+      bidAmount: this.state.bidAmount, setBidAmount: (e) => this.setState({ bidAmount: e.target.value })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/nocturne-a28ab075-f4d3-4cef-b265-31ac322e3ab1/styles.css">
+<script src="_ds/nocturne-a28ab075-f4d3-4cef-b265-31ac322e3ab1/_ds_bundle.js"></script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<script src="image-slot.js"></script>
+<link rel="stylesheet" href="farmyard.css">
+</helmet>
+<main style="min-height: 100vh; box-sizing: border-box; padding: clamp(24px, 5vw, 72px); background: radial-gradient(900px 600px at 80% 10%, rgba(45,15,34,.85), transparent 60%), radial-gradient(700px 500px at 0% 100%, rgba(27,74,74,.45), transparent 60%), var(--color-bg); color: var(--color-text); font-family: var(--font-body);">
+  <div style="max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px;">
+
+    <header style="display: flex; flex-direction: column; gap: 10px;">
+      <span style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400);">The Farmyard · Character template</span>
+      <h1 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: clamp(36px, 5vw, 64px); line-height: 1.02; letter-spacing: -.02em; margin: 0;">Seven regulars, <span style="color: #ff3fa4; text-shadow: 0 0 10px #ff3fa4, 0 0 24px rgba(255,63,164,.5);">one ring</span>.</h1>
+      <p style="font-size: 15px; line-height: 1.6; max-width: 66ch; margin: 0; color: var(--color-neutral-200); text-wrap: pretty;">Hank and the Resident Chick set the look. Every new character is drawn to the same spec below, sits in the same black disc with the same pink neon ring, and breathes with the same glow on the page. Drop GPT output into the empty slots to check it against the two originals.</p>
+    </header>
+
+    <section style="display: flex; flex-direction: column; gap: 18px;">
+      <h2 style="font-family: var(--font-heading); font-weight: 500; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin: 0; color: var(--color-neutral-400);">01 · The ring — locked</h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 36px; align-items: center;">
+        <div style="position: relative; width: 260px; height: 260px; flex: 0 0 auto;">
+          <div style="position: absolute; inset: 6%; border-radius: 50%; background: #161826; border: 3px solid #ff3fa4; box-shadow: 0 0 6px #ff3fa4, 0 0 18px rgba(255,63,164,.7), 0 0 40px rgba(255,63,164,.35), inset 0 0 4px rgba(255,63,164,.5);"></div>
+          <span style="position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400); text-align: center; line-height: 1.5;">Disc 88%<br>of canvas</span>
+          <div style="position: absolute; top: 2%; right: 14%; width: 10%; height: 20%; border-radius: 4px; border: 1px dashed #5fd3cf; box-shadow: 0 0 6px rgba(95,211,207,.5);"></div>
+          <span style="position: absolute; top: -18px; right: 0; font-size: 10px; color: #5fd3cf;">breakout zone</span>
+        </div>
+        <dl style="display: grid; grid-template-columns: max-content 1fr; gap: 8px 22px; margin: 0; font-size: 14px; line-height: 1.5; flex: 1 1 320px; max-width: 520px;">
+          <dt style="color: var(--color-neutral-400);">Canvas</dt><dd style="margin: 0;">1024 × 1024, transparent background (PNG)</dd>
+          <dt style="color: var(--color-neutral-400);">Disc</dt><dd style="margin: 0;">Page ground <code>#161826</code> (blue-grey, not black), diameter 88% of canvas, centred, bottom edge sits at 94%</dd>
+          <dt style="color: var(--color-neutral-400);">Ring</dt><dd style="margin: 0;"><code>#ff3fa4</code>, stroke 1.2% of canvas (≈12px at 1024), crisp outer edge</dd>
+          <dt style="color: var(--color-neutral-400);">Baked glow</dt><dd style="margin: 0;">Soft pink bloom 2% outside the ring (≈20px), fading to zero. No glow inside the disc.</dd>
+          <dt style="color: var(--color-neutral-400);">Breakout</dt><dd style="margin: 0;">One prop or body part may cross the ring by up to 8% of canvas (Hank's fork, the Chick's comb). Never two.</dd>
+          <dt style="color: var(--color-neutral-400);">Page glow</dt><dd style="margin: 0;">Added by the page, not the art: <code>charBreath</code> 6s — drop-shadow 14px @.95 + 40px @.6 pink, brightness .85→1.08</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 18px;">
+      <h2 style="font-family: var(--font-heading); font-weight: 500; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin: 0; color: var(--color-neutral-400);">02 · Roster</h2>
+      <p style="margin: 0; font-size: 14px; color: var(--color-neutral-300); max-width: 66ch;">Faint ring guide is drawn over each slot — if the art's ring doesn't sit on it, regenerate. Drop a PNG onto an empty slot to test it.</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 28px 22px;">
+
+        <figure style="margin: 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+          <div style="position: relative; width: 220px; height: 220px;">
+            <img src="assets/hank-oink.png" alt="Hank" style="width: 100%; height: 100%; object-fit: contain; display: block; animation: {{ breath }};">
+            <div style="position: absolute; inset: 6%; border-radius: 50%; border: 2px solid rgba(95,211,207,.7); pointer-events: none; display: {{ guideDisplay }};"></div>
+          </div>
+          <figcaption style="display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center;"><span style="font-family: var(--font-heading); font-weight: 600; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: #ff3fa4; text-shadow: 0 0 6px rgba(255,63,164,.6);">Hank</span><span style="font-size: 12px; color: var(--color-neutral-300);">Boar · landlord · pitchfork</span><span style="font-size: 11px; color: #5fd3cf;">Locked</span></figcaption>
+        </figure>
+
+        <figure style="margin: 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+          <div style="position: relative; width: 220px; height: 220px;">
+            <img src="assets/lot-yfronts.webp" alt="Resident Chick" style="width: 100%; height: 100%; object-fit: contain; display: block; animation: {{ breath }};">
+            <div style="position: absolute; inset: 6%; border-radius: 50%; border: 2px solid rgba(95,211,207,.7); pointer-events: none; display: {{ guideDisplay }};"></div>
+          </div>
+          <figcaption style="display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center;"><span style="font-family: var(--font-heading); font-weight: 600; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: #ff3fa4; text-shadow: 0 0 6px rgba(255,63,164,.6);">Resident Chick</span><span style="font-size: 12px; color: var(--color-neutral-300);">Rooster · regular · Y-fronts</span><span style="font-size: 11px; color: #5fd3cf;">Locked</span></figcaption>
+        </figure>
+
+        <sc-for list="{{ slots }}" as="s" hint-placeholder-count="5">
+        <figure style="margin: 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+          <div style="position: relative; width: 220px; height: 220px;">
+            <image-slot id="{{ s.id }}" shape="rect" fit="contain" placeholder="Drop character PNG" style="width: 100%; height: 100%; display: block; animation: {{ breath }};"></image-slot>
+            <div style="position: absolute; inset: 6%; border-radius: 50%; border: 2px solid rgba(95,211,207,.7); pointer-events: none; display: {{ guideDisplay }};"></div>
+          </div>
+          <figcaption style="display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center;"><span style="font-family: var(--font-heading); font-weight: 600; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; color: #ff3fa4; text-shadow: 0 0 6px rgba(255,63,164,.6);">{{ s.name }}</span><span style="font-size: 12px; color: var(--color-neutral-300);">{{ s.note }}</span><span style="font-size: 11px; color: var(--color-neutral-400);">Awaiting art</span></figcaption>
+        </figure>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 18px;">
+      <h2 style="font-family: var(--font-heading); font-weight: 500; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin: 0; color: var(--color-neutral-400);">03 · Look — locked</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px;">
+        <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid #5fd3cf; border-radius: 10px; box-shadow: 0 0 6px #5fd3cf, 0 0 14px rgba(95,211,207,.45);">
+          <span style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400);">Line & shade</span>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: var(--color-neutral-200);">Heavy black ink outline, thicker on the silhouette. Flat cel shading, two tones per colour, hard shadow edges. Sticker / skate-graphic finish, slight grain.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid #5fd3cf; border-radius: 10px; box-shadow: 0 0 6px #5fd3cf, 0 0 14px rgba(95,211,207,.45);">
+          <span style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400);">Pose & attitude</span>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: var(--color-neutral-200);">Three-quarter view, bust to waist, filling the disc. Cocky, mid-grin or mid-scowl, one eyebrow up. Each character owns one prop or garment.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid #5fd3cf; border-radius: 10px; box-shadow: 0 0 6px #5fd3cf, 0 0 14px rgba(95,211,207,.45);">
+          <span style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400);">Palette</span>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <span title="Hot pink" style="width: 34px; height: 34px; border-radius: 6px; background: #ff2fa0;"></span>
+            <span title="Neon cyan" style="width: 34px; height: 34px; border-radius: 6px; background: #3fe0e0;"></span>
+            <span title="Tiger-eye orange" style="width: 34px; height: 34px; border-radius: 6px; background: #d98a12;"></span>
+            <span title="Cream" style="width: 34px; height: 34px; border-radius: 6px; background: #f1e9d2;"></span>
+            <span title="Disc · page ground #161826" style="width: 34px; height: 34px; border-radius: 6px; background: #161826; box-shadow: var(--shadow-sm);"></span>
+          </div>
+          <p style="margin: 0; font-size: 13px; line-height: 1.5; color: var(--color-neutral-300);">Pink and cyan on every character. Tiger-eye orange or cream as the body colour. Nothing else.</p>
+        </div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px;">
+      <h2 style="font-family: var(--font-heading); font-weight: 500; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin: 0; color: var(--color-neutral-400);">04 · Master prompt — paste into GPT, fill the brackets</h2>
+      <pre style="margin: 0; padding: 18px; border-radius: 10px; background: var(--color-surface); box-shadow: var(--shadow-sm); font-family: Georgia, 'Times New Roman', serif; font-size: 14px; line-height: 1.6; color: var(--color-neutral-200); white-space: pre-wrap; max-width: 80ch;">Cartoon mascot of a [ANIMAL], [ATTITUDE], three-quarter view from the waist up, holding/wearing [ONE PROP OR GARMENT]. Style: bold black ink outlines, flat cel shading with hard shadow edges, sticker / skate-graphic finish, slight print grain. Palette strictly: hot pink #ff2fa0, neon cyan #3fe0e0, tiger-eye orange #d98a12, cream #f1e9d2, and black ink for outlines only. Composition: the character sits inside a solid dark blue-grey circular disc (#161826, not black) that fills 88% of a 1024×1024 square, centred. The disc has a thin crisp neon pink (#ff3fa4) ring, about 12px thick, with a soft pink glow about 20px wide outside the ring only. Exactly one element ([PROP]) breaks past the ring by no more than 80px. Everything outside the disc and glow is transparent. No text, no extra background, no gradient fill in the disc.</pre>
+      <p style="margin: 0; font-size: 13px; color: var(--color-neutral-400); max-width: 66ch;">Reference images: attach <code>hank-oink.png</code> and <code>lot-yfronts.webp</code> with the prompt and say "match this style exactly".</p>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px;">
+      <h2 style="font-family: var(--font-heading); font-weight: 500; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin: 0; color: var(--color-neutral-400);">05 · Sizes on the page</h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 36px; align-items: flex-end;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;"><img src="assets/hank-oink.png" alt="" style="width: 240px; height: 240px; object-fit: contain; animation: {{ breath }};"><span style="font-size: 12px; color: var(--color-neutral-300);">Hero · 531px (shown at 240)</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;"><img src="assets/lot-yfronts.webp" alt="" style="width: 175px; height: 175px; object-fit: contain; animation: {{ breath }};"><span style="font-size: 12px; color: var(--color-neutral-300);">Lot / card · 175px</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;"><img src="assets/hank-oink.png" alt="" style="width: 96px; height: 96px; object-fit: contain;"><span style="font-size: 12px; color: var(--color-neutral-300);">Room host · 96px</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;"><div style="width: 75px; height: 75px; border-radius: 50%; border: 1.5px solid #5fd3cf; box-shadow: 0 0 6px rgba(95,211,207,.6); display: flex; align-items: center; justify-content: center;"><img src="assets/hank-mark-min2.png" alt="Hank face mark" style="width: 75px; height: 75px; display: block; filter: drop-shadow(0 0 4px rgba(95,211,207,.8));"></div><span style="font-size: 12px; color: var(--color-neutral-300);">List / chat · 75px · face mark</span></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;"><div style="width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid #5fd3cf; box-shadow: 0 0 6px rgba(95,211,207,.6); display: flex; align-items: center; justify-content: center;"><img src="assets/hank-mark-min2.png" alt="Hank face mark" style="width: 48px; height: 48px; display: block; filter: drop-shadow(0 0 3px rgba(95,211,207,.8));"></div><span style="font-size: 12px; color: var(--color-neutral-300);">Avatar · 48px · face mark</span></div>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: var(--color-neutral-400); max-width: 66ch;">Breathing glow only at hero and card sizes. 96px is the smallest the full-colour art goes. From 75px down each character switches to its <strong style="color: var(--color-neutral-200); font-weight: 500;">face mark</strong> — a vector line drawing of the head — inside a CSS ring (1.5px teal, 6px glow) drawn by the page — ring and line share one colour.</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px;">
+        <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid #5fd3cf; border-radius: 10px; box-shadow: 0 0 6px #5fd3cf, 0 0 14px rgba(95,211,207,.45);">
+          <span style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400);">Face mark spec</span>
+          <p style="margin: 0; font-size: 14px; line-height: 1.55; color: var(--color-neutral-200);">SVG, 256 × 256 viewBox, transparent, no ring (the page draws it). Line-trace of the head from the full art — the ink outlines only, no fill, no shading, fur and background dropped, faded to nothing at the edge of the circle. Same three-quarter angle. Hairline weight (≈1px on screen). One colour: neon teal <code>#5fd3cf</code> with a 4px teal drop-shadow glow. Nothing in pink below 96px.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px; border: 1px solid #5fd3cf; border-radius: 10px; box-shadow: 0 0 6px #5fd3cf, 0 0 14px rgba(95,211,207,.45);">
+          <span style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400);">Face mark prompt</span>
+          <pre style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 13px; line-height: 1.55; color: var(--color-neutral-200); white-space: pre-wrap;">Convert the attached character to a neon line drawing of the head only: keep just the black ink outlines as thin uniform neon teal #5fd3cf lines on a transparent background. Remove all colour fills, shading, fur texture, the circle and anything below the neck. Crop to the head, fitting a 256×256 square with 24px margin. Export as SVG or transparent PNG.</pre>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showRingGuide&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Checks&quot;},&quot;breathing&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Checks&quot;},&quot;slotNames&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Character 3, Character 4, Character 5, Character 6, Character 7&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Roster&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const names = this.props.slotNames ?? 'Character 3, Character 4, Character 5, Character 6, Character 7';
+    const slots = names.split(',').map((n, i) => ({ id: 'char-' + (i + 3), name: n.trim(), note: 'Animal · role · prop' }));
+    return {
+      slots,
+      breath: (this.props.breathing ?? true) ? 'charBreath 6s ease-in-out infinite' : 'none',
+      guideDisplay: (this.props.showRingGuide ?? true) ? 'block' : 'none',
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+/* The Farmyard — spacing (Nocturne's compact 2.8px scale), radii, character cuts, layout. */
+:root{
+--space-1:2.8px;--space-2:5.6px;--space-3:8.4px;--space-4:11.2px;--space-6:16.8px;--space-8:22.4px;
+--radius-sm:4px;--radius-md:8px;--radius-lg:14px;
+--radius-row:6px;--radius-voice:8px;--radius-module:10px;--radius-popover:12px;--radius-tube:14px;--radius-pill:19px;
+--char-hero:531px;--char-card:175px;--char-host:96px;--char-list:75px;--char-avatar:48px;
+--sidebar-width:232px;--content-pad-y:18px;--content-pad-x:22px;--grid-gap:10px;--paper-max:440px;
+}

@@ -1,0 +1,36 @@
+/* The Farmyard — colour tokens. Every lit colour has three parts: glow (shadows only), tube (2px border), lettering (text). Pink text is ALWAYS --neon-pink-text. */
+:root{
+/* neon pink — the voice */
+--neon-pink:#e0157f;--neon-pink-tube:#ff7fbf;--neon-pink-text:#ffc4e1;--neon-pink-link:#ff8ccb;--neon-pink-hover:#ffb3dc;
+/* neon teal — the furniture */
+--neon-teal:#5fd3cf;--rule-teal:rgba(95,211,207,0.35);--hint-border:#9eeae6;--hint-text:#c8f4f2;
+/* state: green = LIVE / START, red = CLOSE / OFF AIR (exit-sign, never orange), amber = seat card only */
+--neon-green:#0a9e43;--neon-green-tube:#3fe07f;--neon-green-text:#9ff5bf;
+--neon-red:#a80016;--neon-red-tube:#e8263a;--neon-red-text:#ff9aa5;
+--neon-amber:#ff9a1f;--neon-amber-tube:#ffc45c;--neon-amber-text:#ffd98a;
+/* orange ramp — 100 lightest → 900 darkest; 500 = neon-amber. Dark steps (600–900) for fills, embers, pressed states, art shadows — never text on fy-bg */
+--orange-100:#ffe9c7;--orange-200:#ffd98a;--orange-300:#ffc45c;--orange-400:#ffad38;--orange-500:#ff9a1f;--orange-600:#e07a0c;--orange-700:#b35a06;--orange-800:#7f3d05;--orange-900:#4a2306;
+/* extended neon families — glow · tube · text, same rules as pink */
+--neon-violet:#7a2cf0;--neon-violet-tube:#b48cff;--neon-violet-text:#dccbff;
+--neon-blue:#1f5fff;--neon-blue-tube:#6fa0ff;--neon-blue-text:#c4d8ff;
+--neon-yellow:#e8c800;--neon-yellow-tube:#fff06a;--neon-yellow-text:#fff7b8;
+/* ground, surface, hazes */
+--fy-bg:#161826;--fy-surface:#232532;--haze-pink:rgba(45,15,34,0.85);--haze-teal:rgba(27,74,74,0.45);
+/* text */
+--fy-text:#e9e9ed;--fy-text-body:#e4e7f5;--fy-text-secondary:#cfd3e5;--fy-text-label:#b2b6ca;
+/* character art palette — baked into the PNGs, not for UI */
+--art-pink:#ff2fa0;--art-cyan:#3fe0e0;--art-gold:#d98a12;--art-cream:#f1e9d2;--art-disc:#161826;
+/* popover glass */
+--popover-bg:rgba(11,22,23,0.92);--popover-arrow-bg:rgba(11,22,23,0.9);--popover-edge:#f2fbfb;--popover-label:#eef7f7;
+/* medals */
+--medal-gold:#ffd84a;--medal-gold-glow:#ffb800;--medal-silver:#e4ecf0;--medal-silver-glow:#c9d6dd;--medal-bronze:#d9894f;--medal-bronze-glow:#b8692f;
+/* Nocturne base aliases (read by the vendored Nocturne classes) */
+--color-bg:var(--fy-bg);--color-surface:var(--fy-surface);--color-text:var(--fy-text);
+--color-accent:var(--neon-pink);--color-accent-2:#a7a1db;--color-divider:var(--neon-teal);
+--color-neutral-100:#f3f5fe;--color-neutral-200:#e4e7f5;--color-neutral-300:#cfd3e5;--color-neutral-400:#b2b6ca;--color-neutral-500:#9397ab;--color-neutral-600:#75798c;--color-neutral-700:var(--neon-teal);--color-neutral-800:#1b4a4a;--color-neutral-900:#292b31;
+--color-accent-100:#f5f4ff;--color-accent-200:var(--neon-pink-hover);--color-accent-300:var(--neon-pink-link);--color-accent-400:#b5abfc;--color-accent-500:#968ae0;--color-accent-600:#796cbf;--color-accent-700:#5d5294;--color-accent-800:#4a1a38;--color-accent-900:#2d0f22;
+--color-accent-2-100:#f5f4ff;--color-accent-2-800:#3b3660;
+/* semantic aliases */
+--text-headline:var(--fy-text);--text-body:var(--fy-text-body);--text-secondary:var(--fy-text-secondary);--text-label:var(--fy-text-label);--text-link:var(--neon-pink-link);
+--surface-page:var(--fy-bg);--surface-card:var(--fy-surface);--border-frame:var(--neon-teal);--border-rule:var(--rule-teal);--focus-ring:var(--color-accent);
+}

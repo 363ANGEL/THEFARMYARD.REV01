@@ -1,0 +1,14 @@
+/* The Farmyard — type. Inter for everything; hierarchy by size, headings never bolder than 500. Caps + tracking for lit signage only. */
+:root{
+--font-heading:"Inter",system-ui,sans-serif;--font-body:"Inter",system-ui,sans-serif;
+--font-script:"Yellowtail",cursive;--font-typewriter:"Special Elite","Courier New",monospace;
+--font-heading-weight:500;
+/* display */
+--text-hero:56px;--text-hero-lh:1.02;--text-hero-ls:-0.02em;
+--text-page-title:28px;--text-page-title-lh:1.12;--text-page-title-ls:-0.01em;
+--text-brand:20px;--text-dialog-title:20px;--text-card-title:17px;
+/* text */
+--text-body-size:15px;--text-body-lh:1.55;--text-ui:14px;--text-small:13px;--text-meta:12px;--text-kicker:11px;--text-kicker-ls:0.08em;
+/* signage (uppercase) */
+--text-lot-label:15px;--text-lot-label-ls:0.08em;--text-neon-btn:12px;--text-neon-btn-ls:0.1em;--text-voice:13px;--text-voice-ls:0.14em;--text-league-head:10px;--text-league-head-ls:0.14em;--text-link-teal:12px;--text-link-teal-ls:0.1em;
+}

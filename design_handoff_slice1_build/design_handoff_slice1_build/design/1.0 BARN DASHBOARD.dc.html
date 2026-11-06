@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Barn Dashboard</title>
+<link rel="stylesheet" href="_ds/farmyard-design-system-f1e07c7c-e8a7-4fa2-bcbb-a89d4d09e22d/styles.css">
+<script src="_ds/farmyard-design-system-f1e07c7c-e8a7-4fa2-bcbb-a89d4d09e22d/_ds_bundle.js"></script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link rel="stylesheet" href="farmyard.css">
+<style>
+.fy-side { overflow-y: auto; scrollbar-width: none; min-height: 0; }
+.fy-shell { overflow: visible !important; }
+.fy-side > * { flex-shrink: 0; }
+/* Compact sidebar for Tablet/Phone preview */
+.fy-compact .fy-shell { grid-template-columns: 64px minmax(0,1fr) !important; min-width: 0 !important; }
+.fy-compact .fy-side { padding-left: 6px !important; padding-right: 6px !important; overflow: hidden; transition: transform .35s ease, opacity .35s ease; }
+.fy-compact .fy-side button span, .fy-compact .fy-side > div:not(:has(img)):not(:has(button)) { display: none !important; }
+.fy-compact .fy-side > div:has(img) > div { display: none !important; }
+.fy-compact .fy-side img { width: 48px !important; height: 48px !important; }
+.fy-compact .fy-side button { justify-content: center; padding: 8px 0 !important; }
+.fy-compact .fy-side [role="img"] { width: 32px !important; height: 32px !important; }
+.fy-compact.fy-hidden .fy-shell { grid-template-columns: 0px minmax(0,1fr) !important; }
+.fy-compact.fy-hidden .fy-side { transform: translateX(-100%); opacity: 0; }
+.fy-tab { position: fixed; left: 0; top: 50%; transform: translateY(-50%); z-index: 50; width: 22px; height: 64px; display: none; place-items: center; background: var(--fy-bg); border: 1px solid var(--neon-teal); border-left: 0; border-radius: 0 8px 8px 0; color: var(--neon-teal); box-shadow: 0 0 8px rgba(95,211,207,.6); cursor: pointer; }
+.fy-phone [data-football-sign], .fy-phone [data-poker-sign], .fy-phone [data-cal-sign] { display: none !important; }
+.fy-compact.fy-hidden ~ .fy-tab, .fy-compact.fy-hidden .fy-tab { display: grid; }
+/* Phone/Tablet: menu hidden until the tab is hovered; content scales down */
+#dc-root.fy-compact .fy-shell { grid-template-columns: minmax(0,1fr) !important; }
+#dc-root.fy-compact .fy-side { position: fixed !important; left: 0; top: 0; bottom: 0; width: 64px; z-index: 40; background: var(--fy-bg); transform: translateX(-100%) !important; opacity: 0 !important; pointer-events: none; }
+#dc-root.fy-compact:not(.fy-hidden) .fy-side { transform: none !important; opacity: 1 !important; pointer-events: auto; }
+#dc-root.fy-compact .fy-tab { display: grid !important; width: 16px; height: 44px; }
+#dc-root.fy-compact .fy-shell > div:not(.fy-side) button, #dc-root.fy-compact .fy-shell > div:not(.fy-side) .btn { zoom: .9; }
+#dc-root.fy-compact .fy-shell > div:not(.fy-side) img, #dc-root.fy-compact .fy-shell > div:not(.fy-side) [role="img"] { zoom: .9; max-width: 100%; }
+#dc-root.fy-phone .fy-shell > div:not(.fy-side) button, #dc-root.fy-phone .fy-shell > div:not(.fy-side) .btn { zoom: .78; }
+#dc-root.fy-phone .fy-shell > div:not(.fy-side) img, #dc-root.fy-phone .fy-shell > div:not(.fy-side) [role="img"] { zoom: .7; }
+#dc-root.fy-compact [data-me-ava], #dc-root.fy-compact [data-me-name] { display: none !important; }
+#dc-root.fy-compact .fy-side button:has([data-me-ava]) { justify-content: center; }
+</style>
+<script src="sidebar-subs.js"></script>
+<script src="fy-clucks.js"></script>
+<style>
+:root { --color-accent-300: var(--neon-pink-link); --color-accent-200: var(--neon-pink-hover); --color-accent-800: #4a1a38; --color-accent-900: #2d0f22; --color-neutral-800: #1b4a4a; --color-neutral-700: var(--neon-teal); --color-divider: var(--neon-teal); }
+body { margin: 0; background: var(--fy-bg); }
+.btn-ghost, .tag-accent, .tag-outline { border-color: var(--neon-pink) !important; color: var(--neon-pink-text); box-shadow: var(--glow-pink); text-shadow: 0 0 6px var(--neon-pink); }
+.card { border: 1px solid var(--neon-teal) !important; box-shadow: var(--glow-teal), inset 0 0 8px rgba(95,211,207,.25) !important; }
+.tag-neutral { border: 1px solid var(--neon-teal); color: var(--neon-teal); box-shadow: 0 0 5px var(--neon-teal); }
+i.ph { text-shadow: 0 0 6px currentColor; }
+.ph-chats-circle{-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20d%3D%22M232%2C96a72%2C72%2C0%2C0%2C0-132.1-39.3A72%2C72%2C0%2C0%2C0%2C25.21%2C162.05L16.42%2C192.8a16%2C16%2C0%2C0%2C0%2C19.78%2C19.78l30.75-8.79A72.14%2C72.14%2C0%2C0%2C0%2C100%2C208%2C72%2C72%2C0%2C0%2C0%2C230.79%2C162.05l8.79-30.75A16%2C16%2C0%2C0%2C0%2C232%2C96ZM32.27%2C194.86l9.17-32.09a8%2C8%2C0%2C0%2C0-.64-6.1A56%2C56%2C0%2C1%2C1%2C62.3%2C179.19a8%2C8%2C0%2C0%2C0-6.1-.64ZM223.73%2C130.77a8%2C8%2C0%2C0%2C0-.64%2C6.1l9.17%2C32.09-32.09-9.17a8%2C8%2C0%2C0%2C0-6.1.64A56.11%2C56.11%2C0%2C0%2C1%2C120%2C168%2C72%2C72%2C0%2C0%2C0%2C161.14%2C60.7a56%2C56%2C0%2C0%2C1%2C62.59%2C70.07Z%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20d%3D%22M232%2C96a72%2C72%2C0%2C0%2C0-132.1-39.3A72%2C72%2C0%2C0%2C0%2C25.21%2C162.05L16.42%2C192.8a16%2C16%2C0%2C0%2C0%2C19.78%2C19.78l30.75-8.79A72.14%2C72.14%2C0%2C0%2C0%2C100%2C208%2C72%2C72%2C0%2C0%2C0%2C230.79%2C162.05l8.79-30.75A16%2C16%2C0%2C0%2C0%2C232%2C96ZM32.27%2C194.86l9.17-32.09a8%2C8%2C0%2C0%2C0-.64-6.1A56%2C56%2C0%2C1%2C1%2C62.3%2C179.19a8%2C8%2C0%2C0%2C0-6.1-.64ZM223.73%2C130.77a8%2C8%2C0%2C0%2C0-.64%2C6.1l9.17%2C32.09-32.09-9.17a8%2C8%2C0%2C0%2C0-6.1.64A56.11%2C56.11%2C0%2C0%2C1%2C120%2C168%2C72%2C72%2C0%2C0%2C0%2C161.14%2C60.7a56%2C56%2C0%2C0%2C1%2C62.59%2C70.07Z%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat}.ph-game-controller{-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20d%3D%22M176%2C112H152a8%2C8%2C0%2C0%2C1%2C0-16h24a8%2C8%2C0%2C0%2C1%2C0%2C16ZM104%2C96H96V88a8%2C8%2C0%2C0%2C0-16%2C0v8H72a8%2C8%2C0%2C0%2C0%2C0%2C16h8v8a8%2C8%2C0%2C0%2C0%2C16%2C0v-8h8a8%2C8%2C0%2C0%2C0%2C0-16ZM241.48%2C200.65a36%2C36%2C0%2C0%2C1-54.94%2C4.81c-.12-.12-.24-.24-.35-.37L146.48%2C160h-37L69.81%2C205.09l-.35.37A36.08%2C36.08%2C0%2C0%2C1%2C44%2C216%2C36%2C36%2C0%2C0%2C1%2C8.56%2C173.75a.68.68%2C0%2C0%2C1%2C0-.14L24.93%2C89.52A59.88%2C59.88%2C0%2C0%2C1%2C83.89%2C40H172a60.08%2C60.08%2C0%2C0%2C1%2C59%2C49.25c0%2C.06%2C0%2C.12%2C0%2C.18l16.37%2C84.17a.68.68%2C0%2C0%2C1%2C0%2C.14A35.74%2C35.74%2C0%2C0%2C1%2C241.48%2C200.65ZM172%2C144a44%2C44%2C0%2C0%2C0%2C0-88H83.89a43.9%2C43.9%2C0%2C0%2C0-43.21%2C36.37L24.3%2C176.59A20%2C20%2C0%2C0%2C0%2C58%2C194.3l41.92-47.59a8%2C8%2C0%2C0%2C1%2C6-2.71Zm59.7%2C32.59-8.74-45A60%2C60%2C0%2C0%2C1%2C172%2C160h-4.2L198%2C194.31a20.09%2C20.09%2C0%2C0%2C0%2C17.46%2C5.39%2C20%2C20%2C0%2C0%2C0%2C16.23-23.11Z%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20d%3D%22M176%2C112H152a8%2C8%2C0%2C0%2C1%2C0-16h24a8%2C8%2C0%2C0%2C1%2C0%2C16ZM104%2C96H96V88a8%2C8%2C0%2C0%2C0-16%2C0v8H72a8%2C8%2C0%2C0%2C0%2C0%2C16h8v8a8%2C8%2C0%2C0%2C0%2C16%2C0v-8h8a8%2C8%2C0%2C0%2C0%2C0-16ZM241.48%2C200.65a36%2C36%2C0%2C0%2C1-54.94%2C4.81c-.12-.12-.24-.24-.35-.37L146.48%2C160h-37L69.81%2C205.09l-.35.37A36.08%2C36.08%2C0%2C0%2C1%2C44%2C216%2C36%2C36%2C0%2C0%2C1%2C8.56%2C173.75a.68.68%2C0%2C0%2C1%2C0-.14L24.93%2C89.52A59.88%2C59.88%2C0%2C0%2C1%2C83.89%2C40H172a60.08%2C60.08%2C0%2C0%2C1%2C59%2C49.25c0%2C.06%2C0%2C.12%2C0%2C.18l16.37%2C84.17a.68.68%2C0%2C0%2C1%2C0%2C.14A35.74%2C35.74%2C0%2C0%2C1%2C241.48%2C200.65ZM172%2C144a44%2C44%2C0%2C0%2C0%2C0-88H83.89a43.9%2C43.9%2C0%2C0%2C0-43.21%2C36.37L24.3%2C176.59A20%2C20%2C0%2C0%2C0%2C58%2C194.3l41.92-47.59a8%2C8%2C0%2C0%2C1%2C6-2.71Zm59.7%2C32.59-8.74-45A60%2C60%2C0%2C0%2C1%2C172%2C160h-4.2L198%2C194.31a20.09%2C20.09%2C0%2C0%2C0%2C17.46%2C5.39%2C20%2C20%2C0%2C0%2C0%2C16.23-23.11Z%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat}.ph-film-slate{-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20d%3D%22M216%2C104H102.09L210%2C75.51a8%2C8%2C0%2C0%2C0%2C5.68-9.84l-8.16-30a15.93%2C15.93%2C0%2C0%2C0-19.42-11.13L35.81%2C64.74a15.75%2C15.75%2C0%2C0%2C0-9.7%2C7.4%2C15.51%2C15.51%2C0%2C0%2C0-1.55%2C12L32%2C111.56c0%2C.14%2C0%2C.29%2C0%2C.44v88a16%2C16%2C0%2C0%2C0%2C16%2C16H208a16%2C16%2C0%2C0%2C0%2C16-16V112A8%2C8%2C0%2C0%2C0%2C216%2C104ZM192.16%2C40l6%2C22.07-22.62%2C6L147.42%2C51.83Zm-66.69%2C17.6%2C28.12%2C16.24-36.94%2C9.75L88.53%2C67.37Zm-79.4%2C44.62-6-22.08%2C26.5-7L94.69%2C89.4ZM208%2C200H48V120H208v80Z%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20d%3D%22M216%2C104H102.09L210%2C75.51a8%2C8%2C0%2C0%2C0%2C5.68-9.84l-8.16-30a15.93%2C15.93%2C0%2C0%2C0-19.42-11.13L35.81%2C64.74a15.75%2C15.75%2C0%2C0%2C0-9.7%2C7.4%2C15.51%2C15.51%2C0%2C0%2C0-1.55%2C12L32%2C111.56c0%2C.14%2C0%2C.29%2C0%2C.44v88a16%2C16%2C0%2C0%2C0%2C16%2C16H208a16%2C16%2C0%2C0%2C0%2C16-16V112A8%2C8%2C0%2C0%2C0%2C216%2C104ZM192.16%2C40l6%2C22.07-22.62%2C6L147.42%2C51.83Zm-66.69%2C17.6%2C28.12%2C16.24-36.94%2C9.75L88.53%2C67.37Zm-79.4%2C44.62-6-22.08%2C26.5-7L94.69%2C89.4ZM208%2C200H48V120H208v80Z%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat}.ph-music-notes{-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20d%3D%22M212.92%2C17.69a8%2C8%2C0%2C0%2C0-6.86-1.45l-128%2C32A8%2C8%2C0%2C0%2C0%2C72%2C56V166.08A36%2C36%2C0%2C1%2C0%2C88%2C196V62.25l112-28v99.83A36%2C36%2C0%2C1%2C0%2C216%2C164V24A8%2C8%2C0%2C0%2C0%2C212.92%2C17.69ZM52%2C216a20%2C20%2C0%2C1%2C1%2C20-20A20%2C20%2C0%2C0%2C1%2C52%2C216Zm128-32a20%2C20%2C0%2C1%2C1%2C20-20A20%2C20%2C0%2C0%2C1%2C180%2C184Z%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20d%3D%22M212.92%2C17.69a8%2C8%2C0%2C0%2C0-6.86-1.45l-128%2C32A8%2C8%2C0%2C0%2C0%2C72%2C56V166.08A36%2C36%2C0%2C1%2C0%2C88%2C196V62.25l112-28v99.83A36%2C36%2C0%2C1%2C0%2C216%2C164V24A8%2C8%2C0%2C0%2C0%2C212.92%2C17.69ZM52%2C216a20%2C20%2C0%2C1%2C1%2C20-20A20%2C20%2C0%2C0%2C1%2C52%2C216Zm128-32a20%2C20%2C0%2C1%2C1%2C20-20A20%2C20%2C0%2C0%2C1%2C180%2C184Z%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat}.ph-coffee{-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20d%3D%22M80%2C56V24a8%2C8%2C0%2C0%2C1%2C16%2C0V56a8%2C8%2C0%2C0%2C1-16%2C0Zm40%2C8a8%2C8%2C0%2C0%2C0%2C8-8V24a8%2C8%2C0%2C0%2C0-16%2C0V56A8%2C8%2C0%2C0%2C0%2C120%2C64Zm32%2C0a8%2C8%2C0%2C0%2C0%2C8-8V24a8%2C8%2C0%2C0%2C0-16%2C0V56A8%2C8%2C0%2C0%2C0%2C152%2C64Zm96%2C56v8a40%2C40%2C0%2C0%2C1-37.51%2C39.91%2C96.59%2C96.59%2C0%2C0%2C1-27%2C40.09H208a8%2C8%2C0%2C0%2C1%2C0%2C16H32a8%2C8%2C0%2C0%2C1%2C0-16H56.54A96.3%2C96.3%2C0%2C0%2C1%2C24%2C136V88a8%2C8%2C0%2C0%2C1%2C8-8H208A40%2C40%2C0%2C0%2C1%2C248%2C120ZM200%2C96H40v40a80.27%2C80.27%2C0%2C0%2C0%2C45.12%2C72h69.76A80.27%2C80.27%2C0%2C0%2C0%2C200%2C136Zm32%2C24a24%2C24%2C0%2C0%2C0-16-22.62V136a95.78%2C95.78%2C0%2C0%2C1-1.2%2C15A24%2C24%2C0%2C0%2C0%2C232%2C128Z%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20d%3D%22M80%2C56V24a8%2C8%2C0%2C0%2C1%2C16%2C0V56a8%2C8%2C0%2C0%2C1-16%2C0Zm40%2C8a8%2C8%2C0%2C0%2C0%2C8-8V24a8%2C8%2C0%2C0%2C0-16%2C0V56A8%2C8%2C0%2C0%2C0%2C120%2C64Zm32%2C0a8%2C8%2C0%2C0%2C0%2C8-8V24a8%2C8%2C0%2C0%2C0-16%2C0V56A8%2C8%2C0%2C0%2C0%2C152%2C64Zm96%2C56v8a40%2C40%2C0%2C0%2C1-37.51%2C39.91%2C96.59%2C96.59%2C0%2C0%2C1-27%2C40.09H208a8%2C8%2C0%2C0%2C1%2C0%2C16H32a8%2C8%2C0%2C0%2C1%2C0-16H56.54A96.3%2C96.3%2C0%2C0%2C1%2C24%2C136V88a8%2C8%2C0%2C0%2C1%2C8-8H208A40%2C40%2C0%2C0%2C1%2C248%2C120ZM200%2C96H40v40a80.27%2C80.27%2C0%2C0%2C0%2C45.12%2C72h69.76A80.27%2C80.27%2C0%2C0%2C0%2C200%2C136Zm32%2C24a24%2C24%2C0%2C0%2C0-16-22.62V136a95.78%2C95.78%2C0%2C0%2C1-1.2%2C15A24%2C24%2C0%2C0%2C0%2C232%2C128Z%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat}</style>
+</helmet>
+<sc-if value="{{ loggedOut }}" hint-placeholder-val="{{ true }}">
+<main style="min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: clamp(24px, 5vw, 72px); background: radial-gradient(900px 600px at 80% 10%, var(--haze-pink), transparent 60%), radial-gradient(700px 500px at 0% 100%, var(--haze-teal), transparent 60%), var(--fy-bg); color: var(--color-text); font-family: var(--font-body);">
+  <img src="assets/hank-oink.png" alt="Hank" style="width: min(60vw, 260px); height: auto; display: block; animation: charBreath 6s ease-in-out infinite;">
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
+    <h1 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: var(--fs-hero); line-height: 1.02; letter-spacing: -.02em; margin: 0;">The Farmyard.</h1>
+    <p style="font-size: var(--fs-body); line-height: 1.5; margin: 0; color: var(--color-neutral-300); max-width: 40ch; text-wrap: balance;">Members only. Hank checks the door.</p>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 12px; width: min(100%, 360px); padding: 22px; border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal);">
+    <button type="button" onClick="{{ login }}" class="btn btn-primary" style="min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; white-space: nowrap;"><i class="ph ph-discord-logo" style="font-size: var(--ic-lg);"></i>Sign in with Discord</button>
+    <span style="font-size: var(--fs-xs); line-height: 1.5; color: var(--color-neutral-400); text-align: center;">Discord is just the key. No passwords. Who you are in the yard is up to you.</span>
+    <div class="rule-teal" style="margin: 4px 0;"></div>
+    <span style="font-size: var(--fs-xs); color: var(--color-neutral-400); text-align: center;">Not on the list yet? <a href="https://the-farmyard.com">Join the waitlist</a></span>
+  </div>
+</main>
+</sc-if>
+<sc-if value="{{ onboarding }}" hint-placeholder-val="{{ false }}">
+<main style="min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: clamp(24px, 5vw, 72px); background: radial-gradient(900px 600px at 80% 10%, var(--haze-pink), transparent 60%), radial-gradient(700px 500px at 0% 100%, var(--haze-teal), transparent 60%), var(--fy-bg); color: var(--color-text); font-family: var(--font-body);">
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;">
+    <span class="kicker">Door's open</span>
+    <h1 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: var(--fs-h1); line-height: 1.05; letter-spacing: -.02em; margin: 0; text-wrap: balance;">What does Hank call you?</h1>
+  </div>
+  <form onSubmit="{{ finishOnboard }}" style="display: flex; flex-direction: column; gap: 18px; width: min(100%, 520px); padding: 22px; border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal);">
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: var(--fs-xs); color: var(--color-neutral-400);">Yard name<input class="input" value="{{ draftName }}" onChange="{{ setDraftName }}" placeholder="e.g. Russ" required="{{ true }}" maxlength="16" style="min-height: 44px; font-size: var(--fs-body); border-color: var(--neon-teal);"></label>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <span style="font-size: var(--fs-xs); color: var(--color-neutral-400);">Your character</span>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px;">
+        <sc-for list="{{ characters }}" as="c" hint-placeholder-count="7"><button type="button" onClick="{{ c.pick }}" aria-label="{{ c.name }}" style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 4px; background: transparent; border: 1px solid {{ c.border }}; border-radius: 10px; box-shadow: {{ c.shadow }}; cursor: pointer; color: var(--color-text); font-family: inherit;"><div style="width: 64px; height: 64px; border-radius: 50%; border: 1.5px solid var(--neon-teal); box-shadow: 0 0 6px rgba(95,211,207,.6); display: grid; place-items: center; overflow: hidden;"><div style="width: 100%; height: 100%; background: {{ c.bgImg }} center / contain no-repeat; display: grid; place-items: center;"><i class="ph ph-question" style="color: var(--color-neutral-400); font-size: var(--ic-lg); display: {{ c.qDisplay }};"></i></div></div><span style="font-size: var(--fs-xs); white-space: nowrap;">{{ c.name }}</span></button></sc-for>
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;"><button type="submit" class="btn btn-primary" style="min-height: 44px; white-space: nowrap;">Into the yard</button><span style="font-size: var(--fs-xs); color: var(--color-neutral-400);">Up to 16 characters. Change any of this later in Profile.</span></div>
+  </form>
+</main>
+</sc-if>
+<sc-if value="{{ loggedIn }}" hint-placeholder-val="{{ false }}">
+<div style="width: 100%; min-height: 100vh; box-sizing: border-box; padding: 16px; overflow-x: auto;">
+  <div class="fy-shell" style="min-height: calc(100vh - 32px); display: grid; grid-template-columns: 232px minmax(0,1fr); align-items: start; min-width: 860px; background: radial-gradient(900px 500px at 85% -10%, color-mix(in srgb, var(--color-accent-900) 70%, transparent), transparent 60%), var(--color-bg); border: 1px solid var(--neon-teal); box-shadow: 0 0 6px var(--neon-teal), 0 0 14px color-mix(in srgb, var(--neon-teal) 45%, transparent), inset 0 0 18px color-mix(in srgb, var(--neon-teal) 20%, transparent); border-radius: 12px; overflow: hidden;">
+    <div class="fy-side" style="position: sticky; top: 16px; height: calc(100vh - 32px); box-sizing: border-box; border-right: 1px solid var(--neon-teal); box-shadow: 4px 0 10px -4px var(--neon-teal); padding: 12px 8px; display: flex; flex-direction: column; gap: 1px;">
+      <div style="display: flex; align-items: center; gap: 6px; padding: 0 2px 6px;"><img src="assets/hank-oink.png" alt="Farmyard" style="width: 96px; height: 96px; object-fit: contain; display: block; flex: none; filter: drop-shadow(0 0 10px rgba(224,21,127,.7));"><div style="font-family: var(--font-heading); font-size: var(--fs-h3); letter-spacing: -.01em;">The Farmyard</div></div>
+      <sc-for list="{{ homeNav }}" as="r" hint-placeholder-count="2"><sc-if value="{{ r.on }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ r.go }}" class="fy-nav-item" aria-current="page"><i class="{{ r.icon }}"></i><span style="flex: 1;">{{ r.name }}</span><span class="count">{{ r.n }}</span></button></sc-if><sc-if value="{{ r.off }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ r.go }}" class="fy-nav-item"><i class="{{ r.icon }}"></i><span style="flex: 1;">{{ r.name }}</span><span class="count">{{ r.n }}</span></button></sc-if></sc-for><a href="1.1%20Calendar.dc.html" data-sub="1" data-open="{{ homeOpen }}" class="nav-sub" aria-current="{{ calCur }}"><i class="ph ph-calendar-blank" aria-hidden="true"></i><span style="flex: 1;">Calendar</span></a><a href="1.2%20Yard%20Wall.dc.html" data-sub="1" data-open="{{ homeOpen }}" class="nav-sub"><i class="ph ph-chats-circle" aria-hidden="true"></i><span style="flex: 1;">Yard wall</span></a>
+      <div style="padding: 10px 6px 2px; font-size: var(--fs-xs); letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400);">Leagues</div>
+      <sc-for list="{{ mediaNav }}" as="r" hint-placeholder-count="2"><sc-if value="{{ r.on }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ r.go }}" class="fy-nav-item" aria-current="page"><i class="{{ r.icon }}"></i><span style="flex: 1;">{{ r.name }}</span><span class="count">{{ r.n }}</span></button></sc-if><sc-if value="{{ r.off }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ r.go }}" class="fy-nav-item"><i class="{{ r.icon }}"></i><span style="flex: 1;">{{ r.name }}</span><span class="count">{{ r.n }}</span></button></sc-if></sc-for>
+            <div style="padding: 10px 6px 2px; font-size: var(--fs-xs); letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400);">Beta-Testing</div>
+      <sc-for list="{{ betaNav }}" as="r" hint-placeholder-count="1"><sc-if value="{{ r.on }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ r.go }}" class="fy-nav-item" aria-current="page"><i class="{{ r.icon }}"></i><span style="flex: 1;">{{ r.name }}</span><span class="count">{{ r.n }}</span></button></sc-if><sc-if value="{{ r.off }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ r.go }}" class="fy-nav-item"><i class="{{ r.icon }}"></i><span style="flex: 1;">{{ r.name }}</span><span class="count">{{ r.n }}</span></button></sc-if></sc-for><a href="2.2.1%20Football%20-%20Results.dc.html" class="nav-sub"><i class="ph ph-ranking" aria-hidden="true"></i><span style="flex: 1;">Results</span></a><a href="2.2.2%20Football%20-%20News.dc.html" class="nav-sub"><i class="ph ph-newspaper" aria-hidden="true"></i><span style="flex: 1;">News</span></a>
+      <sc-for list="{{ treatNav }}" as="r" hint-placeholder-count="2"><sc-if value="{{ r.on }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ r.go }}" class="fy-nav-item" aria-current="page"><i class="{{ r.icon }}"></i><span style="flex: 1;">{{ r.name }}</span><span class="count">{{ r.n }}</span></button></sc-if><sc-if value="{{ r.off }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ r.go }}" class="fy-nav-item"><i class="{{ r.icon }}"></i><span style="flex: 1;">{{ r.name }}</span><span class="count">{{ r.n }}</span></button></sc-if></sc-for><a href="4.1%20Vote.dc.html" class="nav-sub"><i class="ph ph-check-square" aria-hidden="true"></i><span style="flex: 1;">Vote</span></a><a href="4.2%20Results.dc.html" class="nav-sub"><i class="ph ph-ranking" aria-hidden="true"></i><span style="flex: 1;">Results</span></a><a href="4.3%20Archive.dc.html" class="nav-sub"><i class="ph ph-archive" aria-hidden="true"></i><span style="flex: 1;">Archive</span></a><a href="4.4%20Admin.dc.html" class="nav-sub"><i class="ph ph-gear-six" aria-hidden="true"></i><span style="flex: 1;">Admin</span></a>
+      <a href="1.4%20Whats%20Next.dc.html" class="fy-nav-item" style="text-decoration:none"><i class="ph ph-thought-bubble" aria-hidden="true"></i><span style="flex: 1;">What's Next?</span></a>
+      <div style="margin: 8px 6px 0; border-top: 1px solid color-mix(in srgb, var(--neon-teal) 35%, transparent);"></div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 10px 6px 4px; font-size: var(--fs-xs); letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-400);"><span>In the yard</span><span style="color: var(--neon-teal); text-shadow: 0 0 6px var(--neon-teal);">{{ nOnline }}</span></div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+        <sc-for list="{{ sideOnline }}" as="m" hint-placeholder-count="4"><a href="{{ m.prof }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 6px; min-width: 0;" style-hover="background: color-mix(in srgb, var(--neon-teal) 8%, transparent);">
+          <span style="position: relative; flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid {{ m.col }}; box-shadow: 0 0 6px color-mix(in srgb, {{ m.col }} 60%, transparent); display: grid; place-items: center; overflow: visible; background: color-mix(in srgb, {{ m.col }} 14%, transparent); font-family: var(--font-heading); font-weight: 700; font-size: var(--fs-sm); color: {{ m.col }};"><span style="position: absolute; inset: 0; border-radius: 50%; overflow: hidden; background: {{ m.bgImg }} center / cover no-repeat;"></span><span style="position: relative; display: {{ m.iniDisplay }};">{{ m.ini }}</span><span style="position: absolute; right: -2px; bottom: -2px; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--fy-bg); background: {{ m.dot }};"></span></span>
+          <span style="display: flex; flex-direction: column; min-width: 0; flex: 1; gap: 1px;"><span style="font-size: var(--fs-sm); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ m.name }}</span><span style="display: flex; gap: 6px; font-size: var(--fs-xs); color: var(--color-neutral-400); font-variant-numeric: tabular-nums; white-space: nowrap;"><span style="color: {{ m.col }};">{{ m.label }}</span></span></span>
+          <sc-if value="{{ m.voice }}" hint-placeholder-val="{{ false }}"><span title="In voice" style="flex: none; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; color: var(--neon-pink-text); text-shadow: var(--text-glow-pink);">LIVE</span></sc-if>
+        </a></sc-for>
+      </div>
+      <div style="margin: 8px 6px 0; border-top: 1px solid color-mix(in srgb, var(--neon-teal) 35%, transparent);"></div>
+      <div style="padding: 10px 6px 2px; font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--neon-teal); text-shadow: 0 0 6px var(--neon-teal), 0 0 14px rgba(95,211,207,.6); animation: neonBuzz 3.5s steps(1, end) infinite;">Voice channel</div>
+      <sc-for list="{{ voiceNav }}" as="r" hint-placeholder-count="2"><sc-if value="{{ r.isLive }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ r.go }}" style="display: flex; gap: 10px; align-items: center; line-height: normal; padding: {{ r.pad }}; margin-top: {{ r.mt }}; border-radius: {{ r.rad }}; font-size: {{ r.fs }}; font-weight: {{ r.fw }}; letter-spacing: {{ r.ls }}; color: {{ r.vColor }}; text-shadow: {{ r.vTextGlow }}; background: transparent; box-shadow: {{ r.vShadow }}; border: {{ r.bw }} solid {{ r.vBorder }}; box-sizing: border-box; width: 100%; text-align: left; cursor: pointer; font-family: inherit; transition: box-shadow .3s ease, text-shadow .3s ease, color .3s ease, border-color .3s ease;" style-hover="color: var(--neon-green-text) !important; text-shadow: var(--text-glow-green) !important; box-shadow: var(--glow-green) !important; border-color: var(--neon-green-tube) !important;"><i class="{{ r.icon }}" style="font-size: var(--ic-sm); color: {{ r.chColor }}; text-shadow: {{ r.chGlow }};"></i><span style="flex: 1;">{{ r.label }}<sc-if value="{{ r.sub }}" hint-placeholder-val="{{ false }}"><span style="display: block; font-size: var(--fs-xs); font-weight: 400; letter-spacing: 0; text-shadow: none;">{{ r.sub }}</span></sc-if></span><sc-if value="{{ r.showN }}" hint-placeholder-val="{{ true }}"><span style="font-size: var(--fs-xs); color: var(--color-neutral-400);">{{ r.n }}</span></sc-if><sc-if value="{{ r.phone }}" hint-placeholder-val="{{ false }}"><i class="ph ph-phone-x" style="color: var(--color-neutral-400);"></i></sc-if></button></sc-if><sc-if value="{{ r.isMuted }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ r.go }}" style="display: flex; gap: 10px; align-items: center; line-height: normal; padding: {{ r.pad }}; margin-top: {{ r.mt }}; border-radius: {{ r.rad }}; font-size: {{ r.fs }}; font-weight: {{ r.fw }}; letter-spacing: {{ r.ls }}; color: {{ r.vColor }}; text-shadow: {{ r.vTextGlow }}; background: transparent; box-shadow: {{ r.vShadow }}; border: {{ r.bw }} solid {{ r.vBorder }}; box-sizing: border-box; width: 100%; text-align: left; cursor: pointer; font-family: inherit; transition: box-shadow .3s ease, text-shadow .3s ease, color .3s ease, border-color .3s ease;" style-hover="color: var(--neon-red-text) !important; text-shadow: var(--text-glow-red) !important; box-shadow: var(--glow-red) !important; border-color: var(--neon-red-tube) !important;"><i class="{{ r.icon }}" style="font-size: var(--ic-sm); color: {{ r.chColor }}; text-shadow: {{ r.chGlow }};"></i><span style="flex: 1;">{{ r.label }}<sc-if value="{{ r.sub }}" hint-placeholder-val="{{ false }}"><span style="display: block; font-size: var(--fs-xs); font-weight: 400; letter-spacing: 0; text-shadow: none;">{{ r.sub }}</span></sc-if></span><sc-if value="{{ r.showN }}" hint-placeholder-val="{{ true }}"><span style="font-size: var(--fs-xs); color: var(--color-neutral-400);">{{ r.n }}</span></sc-if><sc-if value="{{ r.phone }}" hint-placeholder-val="{{ false }}"><i class="ph ph-phone-x" style="color: var(--color-neutral-400);"></i></sc-if></button></sc-if>
+<sc-if value="{{ r.tip }}" hint-placeholder-val="{{ false }}"><div style="margin: 6px 6px 0; padding: 8px 10px; border: 1px solid #9eeae6; border-radius: 6px; box-shadow: 0 0 4px var(--neon-teal), 0 0 10px rgba(95,211,207,.4); font-size: var(--fs-xs); line-height: 1.4; color: #c8f4f2; text-shadow: 0 0 4px rgba(95,211,207,.5); animation: payDrop .25s ease-out;">Click <strong>Join Voice</strong> in Discord to confirm.</div></sc-if></sc-for>
+      <div style="margin: 10px 6px 0; border-top: 1px solid color-mix(in srgb, var(--neon-teal) 35%, transparent);"></div>
+      <button type="button" onClick="{{ goProfile }}" style="display: flex; gap: 10px; align-items: center; padding: 6px 10px 6px 8px; margin-top: 8px; border-radius: 8px; font-size: var(--fs-sm); font-weight: 600; color: var(--color-text); background: {{ profileBg }}; box-shadow: {{ profileShadow }}; border: 1px solid var(--neon-teal); box-sizing: border-box; width: 100%; text-align: left; cursor: pointer; font-family: inherit; transition: box-shadow .25s ease, background .25s ease;" style-hover="box-shadow: inset 0 0 0 1.5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55); background: color-mix(in srgb, var(--neon-teal) 8%, transparent);"><div data-me-ava="1" style="width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--neon-teal); box-shadow: 0 0 6px rgba(95,211,207,.6); overflow: hidden; flex: none;"><div role="img" aria-label="Your character" style="width: 100%; height: 100%; background: {{ meFullImg }} center / contain no-repeat;"></div></div><span data-me-name="1" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ meName }}</span><i class="ph ph-gear" style="color: var(--color-neutral-400); font-size: var(--ic-lg);"></i></button>
+    </div>
+    <div style="padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0; min-height: calc(100vh - 34px); box-sizing: border-box;">
+      <sc-if value="{{ isYard }}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;"><div style="display: flex; flex-direction: column; gap: 4px; padding: 4px 2px 8px;"><h2 class="t-title-b">Dashboard</h2><span class="t-tagline">What's on in the yard tonight.</span></div><div style="flex: 1;"></div>
+        <span class="tag tag-neutral" style="white-space: nowrap;">12 inside</span>
+      </div>
+      <div style="flex: none; display: flex; flex-direction: column; border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal); background: var(--fy-bg); overflow: hidden;">
+        <button type="button" onClick="{{ togglePins }}" aria-expanded="{{ pinsOpen }}" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 0; background: transparent; cursor: pointer; font: inherit; color: inherit; text-align: left; width: 100%;" style-hover="background: color-mix(in srgb, var(--neon-teal) 8%, transparent);"><i class="ph ph-chats-circle" style="color: var(--neon-teal); text-shadow: 0 0 6px var(--neon-teal);"></i><span class="kicker" style="color: var(--neon-pink-text); text-shadow: var(--text-glow-pink);">Pinned by Hank</span><span style="font-size: var(--fs-xs); color: var(--color-neutral-400);">{{ pinCount }}</span><span style="flex: 1;"></span><span aria-hidden="true" style="display: inline-block; color: var(--neon-teal); font-size: 16px; line-height: 1; transform: rotate({{ pinsRot }}); transition: transform .25s ease;">›</span></button>
+        <sc-if value="{{ pinsOpen }}" hint-placeholder-val="{{ false }}"><sc-for list="{{ pinnedPosts }}" as="p" hint-placeholder-count="3"><div style="display: flex; gap: 8px; align-items: baseline; padding: 6px 12px; border-top: {{ p.bt }}; min-width: 0; font-size: var(--fs-sm); line-height: 1.4;">
+          <a href="{{ p.prof }}" aria-label="Open {{ p.name }}" style="display:contents"><span style="flex: none; width: 22px; height: 22px; align-self: center; border-radius: 50%; display: grid; place-items: center; box-sizing: border-box; border: 1px solid var(--neon-teal); background: {{ p.bg }} center / contain no-repeat; font-size: 10px; font-weight: 700; color: var(--neon-teal);">{{ p.ini }}</span></a>
+          <span style="flex: none; font-weight: 600;">{{ p.name }}</span>
+          <span style="flex: 1; min-width: 0; color: var(--color-neutral-300); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.text }}</span>
+          <span style="flex: none; font-size: var(--fs-xs); color: var(--color-neutral-400);">{{ p.when }}</span>
+        </div></sc-for></sc-if>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--rule-teal);"><span class="kicker">Latest on the wall</span><span style="flex: 1;"></span><a href="1.2%20Yard%20Wall.dc.html" style="font-size: var(--fs-xs); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #5fd3cf; text-decoration: none; text-shadow: 0 0 5px rgba(95,211,207,.5);" style-hover="color: #c8f4f2;">Open the wall →</a></div>
+        <sc-for list="{{ latestPosts }}" as="p" hint-placeholder-count="3"><div style="display: flex; gap: 8px; align-items: baseline; padding: 6px 12px; border-top: {{ p.bt }}; min-width: 0; font-size: var(--fs-sm); line-height: 1.4;">
+          <a href="{{ p.prof }}" aria-label="Open {{ p.name }}" style="display:contents"><span style="flex: none; width: 22px; height: 22px; align-self: center; border-radius: 50%; display: grid; place-items: center; box-sizing: border-box; border: 1px solid var(--neon-teal); background: {{ p.bg }} center / contain no-repeat; font-size: 10px; font-weight: 700; color: var(--neon-teal);">{{ p.ini }}</span></a>
+          <span style="flex: none; font-weight: 600;">{{ p.name }}</span>
+          <span style="flex: 1; min-width: 0; color: var(--color-neutral-300); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.text }}</span>
+          <span style="flex: none; font-size: var(--fs-xs); color: var(--color-neutral-400);">{{ p.when }}</span>
+        </div></sc-for>
+      </div>
+      <div data-screen-label="IOUs" style="flex: none; display: flex; flex-direction: column; border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal); background: var(--fy-bg); overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; flex-wrap: wrap;"><i class="ph ph-handshake" style="color: var(--neon-teal); text-shadow: 0 0 6px var(--neon-teal);"></i><span class="kicker">IOUs</span><span style="font-size: var(--fs-xs); color: var(--color-neutral-400);">tk not yet transferred to you</span><span style="flex: 1;"></span><a href="3.0%20Barn%20Profile.dc.html#settle" style="font-size: var(--fs-xs); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #5fd3cf; text-decoration: none; text-shadow: 0 0 5px rgba(95,211,207,.5);" style-hover="color: #c8f4f2;">Settle up →</a></div>
+        <sc-for list="{{ iouRows }}" as="w" hint-placeholder-count="3"><div style="display: flex; align-items: center; gap: 10px; padding: 6px 12px; border-top: 1px solid var(--rule-teal); font-size: var(--fs-sm); min-width: 0;">
+          <a href="{{ w.prof }}" aria-label="Open {{ w.who }}" style="display:contents"><span style="flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; box-sizing: border-box; border: 1.5px solid var(--neon-teal); box-shadow: 0 0 6px rgba(95,211,207,.6); background: {{ w.bg }} center / cover no-repeat; font-family: var(--font-heading); font-size: var(--fs-xs); font-weight: 700; color: var(--neon-teal);">{{ w.ini }}</span></a>
+          <span style="flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ w.who }}</span>
+          <span style="font-variant-numeric: tabular-nums; font-weight: 700; color: var(--neon-red-text); text-shadow: 0 0 6px var(--neon-red-text); white-space: nowrap;">{{ w.amt }}</span>
+        </div></sc-for>
+        <sc-if value="{{ iouEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding: 10px 12px; border-top: 1px solid var(--rule-teal); font-size: var(--fs-sm); color: var(--color-neutral-400);">All square. Nobody owes you.</div></sc-if>
+      </div>
+      <div style="flex: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
+        <sc-for list="{{ roomModules }}" as="r" hint-placeholder-count="4"><button type="button" onClick="{{ r.go }}" class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; text-align: left; cursor: pointer; font: inherit; color: inherit; min-width: 0;" style-hover="box-shadow: var(--glow-teal), 0 0 18px color-mix(in srgb, var(--neon-teal) 55%, transparent);">
+          <div style="position: relative; aspect-ratio: 16 / 7; background: color-mix(in srgb, var(--neon-teal) 6%, transparent); border-bottom: 1px solid var(--rule-teal);">
+            <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="{{ r.slotId }}" placeholder="{{ r.placeholder }}" hint-size="100%,100%" style="position: absolute; inset: 0; width: 100%; height: 100%;"></x-import>
+            <span style="position: absolute; left: 12px; bottom: -18px; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--fy-surface); border: 2px solid var(--neon-teal); box-shadow: var(--glow-teal);"><i class="{{ r.icon }}" style="font-size: var(--ic-lg); color: var(--neon-teal); text-shadow: 0 0 6px var(--neon-teal);"></i></span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px; padding: 24px 12px 12px;">
+            <span style="font-family: var(--font-heading); font-weight: 500; font-size: var(--fs-h3); color: var(--neon-pink-text); text-shadow: 0 0 6px rgba(224,21,127,.6);">{{ r.name }}</span>
+            <span style="font-size: var(--fs-sm); color: var(--color-neutral-300);">{{ r.note }}</span>
+          </div>
+        </button></sc-for>
+      </div>
+      </sc-if>
+      <sc-if value="{{ isFloor }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: var(--fs-h2); margin: 0; letter-spacing: -.01em;">Arcade</h2>
+        <span class="tag tag-accent" style="white-space: nowrap;">7 playing now</span><div style="flex: 1;"></div>
+        <button type="button" class="btn btn-ghost" style="white-space: nowrap;">Add a game</button><button type="button" class="btn btn-primary" style="white-space: nowrap;">Open a table</button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
+        <sc-for list="{{ games }}" as="g" hint-placeholder-count="6"><div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 6px;"><div style="display: flex; justify-content: space-between; gap: 8px; align-items: center;"><span class="tag tag-neutral" style="white-space: nowrap;">{{ g.src }}</span><span style="font-size: var(--fs-xs); color: var(--color-neutral-400); white-space: nowrap;">{{ g.n }}</span></div><div style="font-family: var(--font-heading); font-size: var(--fs-h3); margin-top: 10px;">{{ g.name }}</div><div style="font-size: var(--fs-sm); color: var(--color-neutral-300);">{{ g.note }}</div></div></sc-for>
+      </div>
+      <div style="margin-top: auto; display: flex; gap: 16px; align-items: center; padding: 10px 14px; border: 1px solid var(--neon-teal); box-shadow: 0 0 6px var(--neon-teal), 0 0 14px color-mix(in srgb, var(--neon-teal) 45%, transparent); border-radius: 8px; font-size: var(--fs-body);"><i class="ph ph-plugs-connected" style="color: var(--color-accent); font-size: var(--ic-lg);"></i><span style="flex: 1;">Voice by Discord. Games from Steam, itch and the browser. You bring the boys.</span><a href="#">Change providers</a></div>
+      </sc-if>
+      <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: var(--fs-h2); margin: 0; letter-spacing: -.01em;">Profile</h2><div style="flex: 1;"></div>
+        <button type="button" onClick="{{ logout }}" class="btn btn-ghost" style="white-space: nowrap;">Leave the yard</button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; align-items: start;">
+        <div style="display: flex; flex-direction: column; gap: 14px; padding: 16px; border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal);">
+          <span class="kicker">Who you are in the yard</span>
+          <div style="display: flex; gap: 16px; align-items: center;"><div role="img" aria-label="Your character" style="width: var(--char-host); height: var(--char-host); background: {{ meBgImg }} center / contain no-repeat; flex: none;"></div><label style="display: flex; flex-direction: column; gap: 6px; font-size: var(--fs-xs); color: var(--color-neutral-400); flex: 1; min-width: 0;">Yard name<input class="input" value="{{ meName }}" onChange="{{ setName }}" maxlength="16" style="min-height: 40px; border-color: var(--neon-teal);"></label></div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-size: var(--fs-xs); color: var(--color-neutral-400);">Character</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px;">
+              <sc-for list="{{ characters }}" as="c" hint-placeholder-count="7"><button type="button" onClick="{{ c.pick }}" aria-label="{{ c.name }}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 2px; background: transparent; border: 1px solid {{ c.border }}; border-radius: 8px; box-shadow: {{ c.shadow }}; cursor: pointer; color: var(--color-text); font-family: inherit;"><div style="width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid var(--neon-teal); box-shadow: 0 0 6px rgba(95,211,207,.6); display: grid; place-items: center; overflow: hidden;"><div style="width: 100%; height: 100%; background: {{ c.bgImg }} center / contain no-repeat; display: grid; place-items: center;"><i class="ph ph-question" style="color: var(--color-neutral-400); font-size: var(--ic-md); display: {{ c.qDisplay }};"></i></div></div><span style="font-size: var(--fs-xs); white-space: nowrap;">{{ c.name }}</span></button></sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal);">
+          <span class="kicker">Linked accounts</span>
+          <p style="margin: 0; font-size: var(--fs-sm); line-height: 1.5; color: var(--color-neutral-300);">Each link opens a room. Nothing's shared with the yard except what the room needs.</p>
+          <sc-for list="{{ links }}" as="l" hint-placeholder-count="5"><div style="display: flex; gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--rule-teal);"><i class="{{ l.icon }}" style="font-size: var(--ic-lg); color: {{ l.iconColor }}; flex: none;"></i><div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px;"><span style="font-size: var(--fs-body);">{{ l.name }}</span><span style="font-size: var(--fs-xs); color: var(--color-neutral-400);">{{ l.unlocks }}</span></div><button type="button" onClick="{{ l.toggle }}" class="{{ l.btnClass }}" style="min-height: 32px; font-size: var(--fs-xs); white-space: nowrap;">{{ l.btnLabel }}</button></div></sc-for>
+        </div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ isPoker }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: var(--fs-h2); margin: 0; letter-spacing: -.01em;">Poker</h2>
+        <span class="tag tag-accent" style="white-space: nowrap;">{{ pokerSeated }} seated</span><div style="flex: 1;"></div>
+        <button type="button" class="btn btn-ghost" style="white-space: nowrap;">House rules</button><button type="button" onClick="{{ takeSeat }}" class="btn btn-primary" style="white-space: nowrap;">{{ seatCta }}</button>
+      </div>
+      <div style="position: relative; width: calc(100% - 112px); max-width: 760px; aspect-ratio: 2 / 1; margin: 36px auto 44px;">
+        <div style="position: absolute; inset: 0; border-radius: 999px; border: 2px solid var(--neon-teal); box-shadow: 0 0 8px var(--neon-teal), 0 0 24px rgba(95,211,207,.4), inset 0 0 30px rgba(95,211,207,.18); background: radial-gradient(closest-side, rgba(27,74,74,.45), transparent);"></div>
+        <div style="position: absolute; inset: 9%; border-radius: 999px; border: 1px solid var(--rule-teal);"></div>
+        <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 10px;">
+          <div style="display: flex; gap: 6px;"><sc-for list="{{ board }}" as="b" hint-placeholder-count="5"><div style="width: 38px; height: 54px; border-radius: 5px; border: 1.5px solid {{ b.border }}; box-shadow: {{ b.glow }}; display: grid; place-items: center; font-family: var(--font-heading); font-size: var(--fs-body); color: {{ b.color }};">{{ b.label }}</div></sc-for></div>
+          <span style="font-size: var(--fs-xs); color: var(--color-neutral-400); white-space: nowrap;">Pot <span style="font-family: var(--font-heading); font-size: var(--fs-body); color: var(--neon-pink-text); text-shadow: 0 0 6px var(--neon-pink);">{{ pot }}</span></span>
+        </div>
+        <sc-for list="{{ seats }}" as="s" hint-placeholder-count="8"><div style="position: absolute; left: {{ s.x }}; top: {{ s.y }}; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 3px; width: 84px;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-xs); background: {{ s.bg }}; border: 1.5px solid {{ s.border }}; box-shadow: {{ s.glow }}; color: var(--color-text);">{{ s.i }}</div>
+          <span style="font-size: var(--fs-xs); max-width: 84px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ s.name }}</span>
+          <span style="font-size: var(--fs-xs); color: var(--color-neutral-400); white-space: nowrap;">{{ s.stack }}</span>
+        </div></sc-for>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+        <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 4px;"><span class="kicker">Game</span><span style="font-size: var(--fs-body);">Texas Hold'em</span></div>
+        <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 4px;"><span class="kicker">Blinds</span><span style="font-size: var(--fs-body);">5 / 10 tk</span></div>
+        <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 4px;"><span class="kicker">Buy-in</span><span style="font-size: var(--fs-body);">1,000 tk · free</span></div>
+        <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 4px;"><span class="kicker">Next game</span><span style="font-size: var(--fs-body);">Fri 9pm · Lounge voice</span></div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ isOther }}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+        <h2 style="font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: var(--fs-h2); margin: 0; letter-spacing: -.01em;">{{ roomName }}</h2>
+      </div>
+      <div style="flex: 1; display: grid; place-items: center; border: 1px dashed var(--neon-teal); border-radius: 12px; color: var(--color-neutral-400); font-size: var(--fs-body); min-height: 240px;">{{ roomName }} — not built yet</div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Auto&quot;,&quot;options&quot;:[&quot;Auto&quot;,&quot;Desktop&quot;,&quot;Tablet&quot;,&quot;Phone&quot;],&quot;tsType&quot;:&quot;'Desktop' | 'Tablet' | 'Phone'&quot;,&quot;section&quot;:&quot;Preview&quot;}}">
+class Component extends DCLogic {
+  state = { voiceTip: false, voice: (() => { try { return sessionStorage.getItem('fy.voice'); } catch (e) { return null; } })(), room: 'yard', user: null, step: 'in', name: 'Jo', character: 'hank', links: { discord: true } };
+  CHARACTERS = [
+    { id: 'hank', name: 'Hank', img: 'assets/hank-oink.png', face: 'assets/hank-oink.png' },
+    { id: 'chick', name: 'The Chick', img: 'assets/lot-yfronts.webp' },
+    { id: 'c3', name: 'Character 3' }, { id: 'c4', name: 'Character 4' }, { id: 'c5', name: 'Character 5' }, { id: 'c6', name: 'Character 6' }, { id: 'c7', name: 'Character 7' }
+  ];
+  YARD = [{ name: 'Hank', st: 'voice' }, { name: 'The Chick', st: 'voice' }, { name: 'Dougie', st: 'on' }, { name: 'Mabel', st: 'on' }, { name: 'Ned', st: 'off' }, { name: 'Pearl', st: 'off' }];
+  yardMembers() {
+    const L = { voice: 'In voice chat', on: 'Online', off: 'Away' };
+    return [...this.YARD].sort((a, b) => ['voice', 'on', 'off'].indexOf(a.st) - ['voice', 'on', 'off'].indexOf(b.st)).map(m => {
+      const col = m.st === 'voice' ? 'var(--neon-pink-text)' : m.st === 'on' ? '#5fd3cf' : 'var(--color-neutral-400)';
+      return { name: m.name, ini: m.name.replace(/^The /, '')[0], voice: m.st === 'voice', label: L[m.st], col,
+        dot: m.st === 'voice' ? 'var(--neon-pink)' : m.st === 'on' ? 'var(--neon-teal)' : 'var(--color-neutral-600, #55606a)',
+        border: m.st === 'voice' ? 'var(--neon-pink)' : m.st === 'on' ? 'rgba(95,211,207,.55)' : 'rgba(178,182,202,.25)',
+        glow: m.st === 'voice' ? '0 0 6px var(--neon-pink)' : 'none', op: m.st === 'off' ? .6 : 1 };
+    });
+  }
+  LINKS = [
+    { id: 'discord', name: 'Discord', icon: 'ph ph-discord-logo', unlocks: 'Your key · Lounge voice', locked: true },
+    { id: 'spotify', name: 'Spotify', icon: 'ph ph-spotify-logo', unlocks: 'Queue tracks on the Jukebox' },
+    { id: 'steam', name: 'Steam', icon: 'ph ph-steam-logo', unlocks: 'Arcade lobbies · show what you\'re playing' },
+    { id: 'itch', name: 'itch.io', icon: 'ph ph-game-controller', unlocks: 'High-score sync for browser games' },
+    { id: 'revolut', name: 'Revolut', icon: 'ph ph-hand-coins', unlocks: 'Auction bids and tips' }
+  ];
+  MEMBERS = [
+    { i: 'HK', name: 'Hank', doing: 'Hosting trivia', on: true },
+    { i: 'DM', name: 'Dmitri', doing: 'Barn Brawl', on: true },
+    { i: 'JO', name: 'Jo', doing: 'In Lounge', on: true },
+    { i: 'TL', name: 'Tali', doing: 'Tractor Derby', on: true },
+    { i: 'BK', name: 'Beck', doing: 'In Lounge', on: true },
+    { i: 'RS', name: 'Russ', doing: 'Jukebox', on: true },
+    { i: 'AN', name: 'Ana', doing: 'Last seen 2h ago', on: false },
+    { i: 'MX', name: 'Maximilian T.', doing: 'Last seen yesterday', on: false },
+    { i: 'PQ', name: 'Priya', doing: 'Last seen Mon', on: false }
+  ];
+  SEAT_POS = [['50%','-4%'],['85%','6%'],['104%','50%'],['85%','94%'],['50%','104%'],['15%','94%'],['-4%','50%'],['15%','6%']];
+  SEATED = { 0: { i: 'HK', name: 'Hank', stack: '1,420' }, 1: { i: 'DM', name: 'Dmitri', stack: '860' }, 3: { i: 'TL', name: 'Tali', stack: '1,100' }, 6: { i: 'BK', name: 'Beck', stack: '620' } };
+  pokerVals() {
+    const sat = this.state.seated;
+    const seats = this.SEAT_POS.map(([x, y], n) => {
+      let p = this.SEATED[n];
+      if (!p && sat && n === 4) p = { i: (this.state.name || 'Y').slice(0, 2).toUpperCase(), name: this.state.name || 'You', stack: '1,000', me: true };
+      return p ? { x, y, ...p, bg: 'var(--color-accent-800)', border: p.me ? 'var(--neon-pink)' : 'var(--neon-teal)', glow: p.me ? 'var(--glow-pink)' : '0 0 6px rgba(95,211,207,.6)' }
+        : { x, y, i: '+', name: 'Open seat', stack: '', bg: 'transparent', border: 'var(--rule-teal)', glow: 'none' };
+    });
+    const board = ['A♠', 'K♥', '7♣', '', ''].map(l => ({ label: l, border: l ? 'var(--neon-pink)' : 'var(--rule-teal)', glow: l ? '0 0 6px rgba(224,21,127,.6)' : 'none', color: /♥|♦/.test(l) ? 'var(--neon-pink)' : 'var(--color-text)' }));
+    return { seats, board, pot: '340', pokerSeated: Object.keys(this.SEATED).length + (sat ? 1 : 0), seatCta: sat ? 'Leave table' : 'Take a seat', takeSeat: () => this.setState(s => ({ seated: !s.seated })) };
+  }
+  online() { const me = this.state.step === 'in' ? [{ i: (this.state.name || 'Y').slice(0, 2).toUpperCase(), name: this.state.name || 'You', doing: 'Dashboard', on: true }] : []; return [...me, ...this.MEMBERS.filter(m => m.on)]; }
+  offline() { return this.MEMBERS.filter(m => !m.on); }
+  characters() {
+    return this.CHARACTERS.map(c => { const on = this.state.character === c.id; return { ...c, bgImg: c.img ? `url("${c.img}")` : 'none', qDisplay: c.img ? 'none' : 'block', pick: () => this.setState({ character: c.id }),
+      border: on ? 'var(--neon-pink)' : 'transparent', shadow: on ? 'var(--glow-pink)' : 'none' }; });
+  }
+  links() {
+    return this.LINKS.map(l => { const on = !!this.state.links[l.id]; return { ...l, iconColor: on ? 'var(--neon-teal)' : 'var(--color-neutral-400)',
+      btnClass: on ? 'btn btn-ghost' : 'btn btn-primary', btnLabel: l.locked ? 'Connected' : on ? 'Unlink' : 'Connect',
+      toggle: () => { if (l.locked) return; this.setState(s => ({ links: { ...s.links, [l.id]: !s.links[l.id] } })); } }; });
+  }
+  PAGES = {"yard":"1.0 BARN DASHBOARD.dc.html","poker":"2.1 Poker Room.dc.html","six":"2.2 Football - Dashboard.dc.html","cal":"1.1 Calendar.dc.html","wall":"1.2 Yard Wall.dc.html","floor":"2.0 Room Template.dc.html?room=Arcade","movies":"2.0 Room Template.dc.html?room=Movie night","jukebox":"2.0 Room Template.dc.html?room=Jukebox","whiskey":"2.0 Room Template.dc.html?room=Whisky club","chess":"2.0 Room Template.dc.html?room=Chess club","treat":"4.0 Humidor.dc.html","profile":"3.0 Barn Profile.dc.html"};
+  DISCORD = { guild: '1490100899920740483', lounge: '1527009971999608902', parked: '1490100901464248321' };
+  goRoom(k) { if (k === 'lounge' || k === 'parked') { try { sessionStorage.setItem('fy.voice', k); } catch (e) {} this.setState({ voice: k, voiceTip: true }); clearTimeout(this.tipT); this.tipT = setTimeout(() => this.setState({ voiceTip: false }), 6000); const d = this.DISCORD; if (!/^YOUR_|_ID$/.test(d.guild + d[k])) window.open(`https://discord.com/channels/${d.guild}/${d[k]}`, '_blank', 'noopener'); return; } const p = this.PAGES[k]; if (p && p !== this.PAGES[this.state.room]) location.href = encodeURI(p); else this.setState({ room: k }); }
+  componentDidMount() { this._rz = () => { this._devW = undefined; this.applyDevice(); this.applySidebar(); }; window.addEventListener('resize', this._rz); this.applyDevice(); this.applySidebar(); document.body.classList.add('farmyard'); }
+  ROOMS = {
+    yard: { name: 'Home', icon: 'ph ph-house', n: '' },
+    lounge: { name: 'LIVE CHANNEL', icon: 'ph ph-speaker-high', n: 5, note: 'Voice via Discord' },
+    parked: { name: 'MUTED CHANNEL', icon: 'ph ph-speaker-slash', n: 0, note: 'Idle voice' },
+    floor: { name: 'Arcade', icon: 'ph ph-game-controller', n: 7, note: '6 cabinets · 7 playing' },
+    scores: { name: 'High scores', icon: 'ph ph-trophy', n: '', note: 'Dmitri leads' },
+    movies: { name: 'Movie night', icon: 'ph ph-film-slate', n: '', note: 'Fri 9pm' },
+    jukebox: { name: 'Jukebox', icon: 'ph ph-music-notes', n: 1, note: 'Queue is 12 deep' },
+    whiskey: { name: 'Whisky club', icon: 'ph ph-brandy', n: '', note: 'Bottle of the month' },
+    chess: { name: 'Chess club', icon: 'ph ph-strategy', n: '', note: 'Ladder open' },
+    poker: { name: 'Poker', icon: 'ph ph-club', n: 4, note: 'Hold\'em · 4 of 8 seats' },
+    six: { name: 'Football', icon: 'ph ph-soccer-ball', n: '', note: 'Fixtures & tables' },
+    cal: { name: 'Calendar', icon: 'ph ph-calendar-blank', n: '', note: 'Game nights & dates' },
+    wall: { name: 'Yard wall', icon: 'ph ph-chats-circle', n: '', note: 'Posts · Hank\'s pins' },
+    treat: { name: 'The Humidor', icon: 'ph ph-cigarette', n: '', note: 'Vote · results · archive' }
+  };
+  WALL = [
+    { id: 1, name: 'Hank', img: 'assets/hank-oink-sm.png', when: 'Mon', pinned: true, text: 'Poker Friday 9pm. Buy-ins are 5 tk, tk are not food. Record the winner on the docket or the points go nowhere.' },
+    { id: 2, name: 'Tali', when: '2h ago', text: 'Who had the Montecristo last round? Trying to work out if it was the cigar or the whisky that did me in.' },
+    { id: 3, name: 'Dmitri', when: '5h ago', text: 'Arsenal pool is open. Calling 2–1. Fight me.' },
+    { id: 4, name: 'Beck', when: 'Yesterday', text: 'Movie night vote: Heat or The Thing. No third options this time.' },
+    { id: 5, name: 'Hank', img: 'assets/hank-oink-sm.png', when: 'Sun', pinned: true, text: 'Humidor vote closes Thursday. Vote or smoke what you\'re given.' }
+  ];
+  profHref(n) { const me = this.state.name || 'Jo'; return (n === me || n === 'You') ? '3.0%20Barn%20Profile.dc.html' : '3.0%20Barn%20Profile.dc.html?user=' + encodeURIComponent(n); }
+  wallPosts() {
+    let posts = this.WALL; try { const s = JSON.parse(localStorage.getItem('fy.wall') || 'null'); if (s && s.posts && s.posts.length) posts = s.posts; } catch (e) {}
+    const fmt = (list) => list.slice(0, 3).map((p, i) => ({ ...p, prof: this.profHref(p.name), bt: i ? '1px solid var(--rule-teal)' : '1px solid var(--rule-teal)', ini: p.img ? '' : p.name.slice(0, 2).toUpperCase(), bg: p.img ? `url("${p.img}")` : 'none' }));
+    const pinned = posts.filter(p => p.pinned), latest = posts.filter(p => !p.pinned);
+    return { pinned: fmt(pinned), latest: fmt(latest), pinCount: pinned.length };
+  }
+  nav(keys) {
+    return keys.map(k => { const r = this.ROOMS[k], on = (k === 'lounge' || k === 'parked') ? this.state.voice === k : this.state.room === k; return { ...r, on, off: !on, go: () => this.goRoom(k),
+      bg: on ? 'color-mix(in srgb, var(--neon-pink) 14%, transparent)' : 'transparent',
+      shadow: on ? 'inset 0 0 0 1px var(--neon-pink), 0 0 6px var(--neon-pink), 0 0 14px color-mix(in srgb, var(--neon-pink) 55%, transparent)' : 'none',
+      vColor: on ? 'var(--neon-pink-text)' : 'var(--color-neutral-400)', vTextGlow: on ? 'var(--text-glow-pink)' : '0 0 6px currentColor', vShadow: on ? 'var(--glow-pink)' : 'none', vBorder: on ? 'var(--neon-pink-tube)' : 'transparent',
+      iconColor: on ? 'var(--color-accent)' : 'var(--color-neutral-400)' }; });
+  }
+  componentDidUpdate() { this.applyDevice(); this.applySidebar(); }
+  devMode() { const p = this.props.device; if (p && p !== 'Auto') return p; const w = window.innerWidth; return w < 700 ? 'Phone' : w < 1000 ? 'Tablet' : 'Desktop'; }
+  applySidebar() {
+    const dev = this.devMode(), compact = dev !== 'Desktop', host = document.getElementById('dc-root') || document.body;
+    host.classList.toggle('fy-compact', compact); host.classList.toggle('fy-phone', dev === 'Phone');
+    clearTimeout(this._hideT);
+    if (!compact) { host.classList.remove('fy-hidden'); if (this._tab) { this._tab.remove(); this._tab = null; } return; }
+    if (!this._tab) { const b = document.createElement('button'); b.type = 'button'; b.className = 'fy-tab'; b.setAttribute('aria-label', 'Show menu'); b.textContent = '›'; b.style.fontSize = '22px'; b.style.lineHeight = '1'; host.classList.add('fy-hidden'); b.onclick = () => { if (host.classList.toggle('fy-hidden')) clearTimeout(this._hideT); else this.armHide(); }; host.appendChild(b); this._tab = b;
+      host.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('.fy-side')) this.armHide(); }); }
+    this.armHide();
+  }
+  armHide() { const host = document.getElementById('dc-root') || document.body; clearTimeout(this._hideT); this._hideT = setTimeout(() => { host.classList.add('fy-hidden'); }, 7000); }
+  applyDevice() {
+    const d = this.devMode(), auto = !this.props.device || this.props.device === 'Auto', w = auto ? 0 : d === 'Phone' ? 393 : d === 'Tablet' ? 820 : 0, host = document.getElementById('dc-root') || document.body;
+    if (this._devW === w) return; this._devW = w;
+    if (w) { Object.assign(host.style, { width: w + 'px', maxWidth: '100%', margin: '0 auto', minHeight: '100vh', boxShadow: '0 0 0 1px var(--neon-teal), 0 0 24px rgba(95,211,207,.35)', overflowX: 'hidden' }); document.body.style.background = '#05070a'; }
+    else { ['width', 'maxWidth', 'margin', 'minHeight', 'boxShadow', 'overflowX'].forEach(k => host.style[k] = ''); document.body.style.background = ''; }
+  }
+  renderVals() {
+    const room = this.state.room;
+    const pokerTop = [['Tali', 4, 7], ['Dmitri', 3, 6], ['Jo', 3, 8], ['Ray', 2, 6], ['Pinky', 1, 5]].map(([name, won, buyins], i) => ({ pos: i + 1, name, won, buyins, first: i === 0, second: i === 1, third: i === 2 }));
+    const footTop = [['Hank', 5, 115], ['Tali', 3, 112], ['Dmitri', 2, 104], ['Beck', 1, 96], ['Ray', 1, 93]].map(([name, won, tokens], i) => ({ pos: i + 1, name, won, tokens, first: i === 0, second: i === 1, third: i === 2 }));
+    return {
+      pokerTop, footTop,
+      homeNav: this.nav(['yard']), calCur: this.state.room === 'cal' ? 'page' : undefined, homeOpen: this.state.room === 'yard' || this.state.room === 'cal', voiceNav: this.nav(['lounge', 'parked']).map((v, i) => ({ ...v, isLive: i === 0, isMuted: i === 1, tip: !!this.state.voiceTip && this.state.voice === ['lounge', 'parked'][i], pad: '5px 6px', mt: '0px', rad: '6px', fs: '14px', fw: 400, ls: '0', bw: '1px', label: v.name, sub: '', showN: true, phone: false, ...(i === 1 ? { label: 'MUTED', sub: 'on Discord', pad: '8px', mt: '6px', rad: '8px', fs: '13px', fw: 700, ls: '.14em', bw: '2px', ...(this.state.voice === 'parked' ? { vColor: 'var(--neon-red-text)', vTextGlow: 'var(--text-glow-red)', vShadow: 'var(--glow-red)', vBorder: 'var(--neon-red-tube)' } : { vColor: 'rgba(232,38,58,.4)', vTextGlow: 'none', vShadow: 'none', vBorder: 'rgba(168,0,22,.4)' }) } : {}), ...(i === 0 ? { label: 'LIVE', sub: 'via Discord', showN: false, phone: true, pad: '8px', mt: '4px', rad: '8px', fs: '13px', fw: 700, ls: '.14em', bw: '2px', ...(this.state.voice === 'lounge' ? { vColor: 'var(--neon-green-text)', vTextGlow: 'var(--text-glow-green)', vShadow: 'var(--glow-green)', vBorder: 'var(--neon-green-tube)' } : { vColor: 'rgba(63,224,127,.4)', vTextGlow: 'none', vShadow: 'none', vBorder: 'rgba(10,158,67,.4)' }) } : {}), chColor: i === 0 ? 'var(--neon-green-text)' : 'var(--neon-red-text)', chGlow: i === 0 ? 'var(--text-glow-green)' : 'var(--text-glow-red)' })), mediaNav: this.nav(['poker']), betaNav: this.nav(['six']), roomsNav: this.nav(['floor', 'movies', 'jukebox', 'whiskey', 'chess']), treatNav: this.nav(['treat']),
+      loggedOut: this.state.step === 'out', onboarding: this.state.step === 'onboard', loggedIn: this.state.step === 'in',
+      login: () => this.setState({ step: 'onboard' }), logout: () => { try { sessionStorage.removeItem('fy.voice'); } catch (e) {} location.href = '0.1%20Invite%20Door.dc.html'; },
+      finishOnboard: (e) => { e.preventDefault(); if (!this.state.name.trim()) return; this.setState({ step: 'in' }); },
+      draftName: this.state.name, setDraftName: (e) => this.setState({ name: e.target.value }), setName: (e) => this.setState({ name: e.target.value }),
+      characters: this.characters(), links: this.links(),
+      meName: this.state.name || 'You', meFullImg: `url("${(this.CHARACTERS.find(c => c.id === this.state.character) || {}).img || 'assets/hank-oink.png'}")`, meBgImg: `url("${(c => c.face || c.img || 'assets/hank-oink.png')(this.CHARACTERS.find(c => c.id === this.state.character) || {})}")`,
+      isProfile: room === 'profile', goProfile: () => this.goRoom('profile'),
+      profileBg: room === 'profile' ? 'color-mix(in srgb, var(--neon-pink) 14%, transparent)' : 'color-mix(in srgb, var(--neon-teal) 8%, transparent)',
+      profileShadow: room === 'profile' ? 'inset 0 0 0 1px var(--neon-pink), 0 0 6px var(--neon-pink)' : '0 0 4px rgba(95,211,207,.4)',
+      isYard: room === 'yard', isFloor: room === 'floor', isPoker: room === 'poker', ...this.pokerVals(),
+      isOther: !['yard', 'floor', 'profile', 'poker'].includes(room), roomName: (this.ROOMS[room] || {}).name || '',
+      sideOnline: this.yardMembers().map(m => { const c = this.CHARACTERS.find(x => x.name === m.name); const img = c && (c.face || c.img); return { ...m, prof: this.profHref(m.name) + (m.st && this.profHref(m.name).includes('?') ? '&st=' + m.st : ''), bgImg: img ? `url("${img}")` : 'none', iniDisplay: img ? 'none' : 'block' }; }),
+      yardMembers: this.yardMembers(), nOnline: this.YARD.filter(m => m.st !== 'off').length, nVoice: this.YARD.filter(m => m.st === 'voice').length,
+      ...(w => ({ pinnedPosts: w.pinned, latestPosts: w.latest, pinCount: w.pinCount }))(this.wallPosts()), pinsOpen: !!this.state.pinsOpen, pinsRot: this.state.pinsOpen ? '90deg' : '0deg', togglePins: () => this.setState(s => ({ pinsOpen: !s.pinsOpen })),
+      ...(() => {
+        const OWED = [['Dmitri', 2], ['Hank', 3], ['Tali', 1]];
+        const rows = OWED.map(([who, v]) => { const c = this.CHARACTERS.find(x => x.name === who); const img = c && (c.face || c.img); return { who, prof: this.profHref(who), ini: img ? '' : who.slice(0, 2).toUpperCase(), bg: img ? `url("${img}")` : 'color-mix(in srgb, var(--neon-teal) 14%, transparent)', amt: v + ' tk' }; });
+        return { iouRows: rows, iouEmpty: !rows.length };
+      })(),
+      roomModules: ['poker', 'six', 'treat', 'cal', 'wall'].map(k => ({ ...this.ROOMS[k], slotId: 'room-header-' + k, placeholder: 'Header image', go: () => this.goRoom(k) })),
+      tonight: ['poker'].map(k => ({ ...this.ROOMS[k], n: this.ROOMS[k].n ? this.ROOMS[k].n + ' in' : '', go: () => this.goRoom(k) })),
+      games: [
+        { name: 'Tractor Derby', src: 'Browser', n: '4 playing', note: 'Drop-in races, no install' },
+        { name: 'Barn Brawl', src: 'Steam', n: '3 playing', note: 'Lobby up, join from here' },
+        { name: 'Pixel Pigs', src: 'itch', n: 'Open', note: 'Co-op platformer' },
+        { name: 'Hay Hockey', src: 'Browser', n: '2 playing', note: 'Quick matches' },
+        { name: 'Coop Defense', src: 'Steam', n: 'Open', note: 'Four-player wave survival' },
+        { name: 'Trivia Night', src: 'Built-in', n: 'Fri 8pm', note: 'Hosted by Hank' }
+      ],
+      voiceTip: this.state.voiceTip, voiceText: this.state.voice === 'lounge' ? 'LIVE' : 'OFF AIR', voiceIcon: this.state.voice === 'lounge' ? 'ph ph-microphone' : 'ph ph-microphone-slash',
+      voiceColor: this.state.voice === 'lounge' ? '#3fe07f' : '#e8263a', voiceGlow: this.state.voice === 'lounge' ? '0 0 6px #3fe07f, 0 0 14px rgba(10,158,67,.6)' : '0 0 6px #e8263a, 0 0 14px rgba(168,0,22,.6)',
+      online: this.online(), offline: this.offline(), onlineCount: this.online().length, offlineCount: this.offline().length
+    };
+  }
+}
+</script>
+</body>
+</html>

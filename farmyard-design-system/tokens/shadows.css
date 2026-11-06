@@ -1,0 +1,24 @@
+/* The Farmyard — elevation is glow, not drop shadow. Levels: 0 unlit · 1 hint · 2 lit line (glow-*) · 3 tube (tube-*) · 4 hover / hero. */
+:root{
+--glow-pink:0 0 3px #e0157f,0 0 8px rgba(224,21,127,0.55),0 0 16px rgba(224,21,127,0.2),inset 0 0 4px rgba(224,21,127,0.4);
+--glow-green:0 0 4px #0a9e43,0 0 12px #0a9e43,0 0 26px rgba(10,158,67,0.45),inset 0 0 6px rgba(10,158,67,0.6);
+--glow-red:0 0 4px #a80016,0 0 12px #a80016,0 0 26px rgba(168,0,22,0.45),inset 0 0 6px rgba(168,0,22,0.6);
+--glow-teal:0 0 6px #5fd3cf,0 0 14px rgba(95,211,207,0.45);
+--tube-pink:0 0 3px #e0157f,0 0 8px rgba(224,21,127,0.6),0 0 18px rgba(224,21,127,0.25),inset 0 0 3px rgba(224,21,127,0.5),inset 0 0 8px rgba(224,21,127,0.18);
+--tube-teal:0 0 4px #5fd3cf,0 0 10px #5fd3cf,0 0 24px rgba(95,211,207,0.42),0 0 52px rgba(95,211,207,0.18),inset 0 0 4px #5fd3cf,inset 0 0 14px rgba(95,211,207,0.26);
+--text-glow-pink:0 0 4px #e0157f,0 0 10px rgba(224,21,127,0.6);
+--text-glow-green:0 0 6px #0a9e43,0 0 12px #0a9e43;
+--text-glow-red:0 0 6px #a80016,0 0 12px #a80016;
+/* character ring — one width, one glow at every size (level 2). Art goes in without a baked ring. */
+--ring-pink-width:2px;--ring-pink-glow:0 0 3px #e0157f,0 0 8px rgba(224,21,127,0.55),0 0 16px rgba(224,21,127,0.2),inset 0 0 4px rgba(224,21,127,0.4);
+--hint-glow:0 0 4px #5fd3cf,0 0 10px rgba(95,211,207,0.4);
+--hint-text-glow:0 0 4px rgba(95,211,207,0.5);
+--popover-glow:0 0 4px rgba(95,211,207,0.6),0 0 12px rgba(95,211,207,0.25),inset 0 0 18px rgba(95,211,207,0.08),0 12px 30px rgba(0,0,0,0.5);
+--shadow-sm:0 0 0 1px #3f424d;--shadow-md:0 0 0 1px #595d6c,0 6px 18px rgba(0,0,0,0.55);--shadow-lg:0 0 0 1px #9397ab,0 16px 40px rgba(0,0,0,0.65);
+/* paper card composites */
+--paper-ground:radial-gradient(ellipse 60% 40% at 82% 78%,rgba(120,96,60,.16),transparent 70%),radial-gradient(ellipse 30% 22% at 12% 20%,rgba(0,0,0,.22),transparent 70%),linear-gradient(176deg,#23263a 0%,#1c1e2e 55%,#191a28 100%);/* @kind other */
+--paper-edge:polygon(0 1.5%,6% 0,18% .8%,31% 0,47% 1%,60% .2%,74% 1.2%,88% 0,100% 1.4%,99.4% 14%,100% 29%,99.2% 44%,100% 58%,99.5% 72%,100% 86%,96% 100%,91% 97.6%,84% 100%,76% 97.8%,69% 99.6%,61% 97.2%,53% 99.8%,45% 97.6%,37% 99.5%,29% 97%,21% 99.6%,13% 97.4%,6% 99.4%,0 97.8%,.6% 82%,0 64%,.7% 47%,0 30%,.5% 14%);/* @kind other */
+--paper-shadow:drop-shadow(0 12px 14px rgba(0,0,0,.55));
+/* motion */
+--ease-arrive:ease-out;/* @kind other */--ease-breath:ease-in-out;/* @kind other */--ease-buzz:steps(1,end);/* @kind other */--dur-arrive:.25s;/* @kind other */--dur-pop:.5s;/* @kind other */--dur-breath:6s;/* @kind other */
+}
