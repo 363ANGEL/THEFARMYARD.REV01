@@ -131,10 +131,7 @@
         </header><div class="hm-body" id="hm-body"></div>`;
       head = B.main.querySelector('.hm-head');
       const main = B.main.querySelector('#hm-body');
-      if (tab === 'admin' && !leader) {
-        main.innerHTML = '<div class="box-teal"><span class="kicker">Leader only</span><p style="margin:0">Only Hank can run the Humidor admin.</p></div>';
-        return { me, main, leader: false };
-      }
+      if (tab === 'admin' && !leader) { location.replace('dashboard.html'); return null; }   // admin page: leaders only
       let data, members;
       try {
         let q = FY.q('v_members_public').select('id,nickname,avatar,avatar_url').order('nickname');

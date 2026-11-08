@@ -5,12 +5,8 @@
   const B = await Barn.open('admin'); if (!B) return;
   const { me, main } = B, esc = FY.esc;
   Presence.join(me).catch(() => {});
-  if (me.role !== 'leader') {
-    main.innerHTML = `<div class="acard"><span class="kicker">Leader only</span>
-      <p style="margin:0">This is Hank's office. Nothing for you in here.</p>
-      <a href="dashboard.html" style="color:var(--neon-pink-link)">Back to the Dashboard</a></div>`;
-    return;
-  }
+  // Leader only: the server's fy.is_leader() decides, members go to the Dashboard.
+  if (me.role !== 'leader' || !(await FY.rpc('is_leader').then(Boolean).catch(() => false))) { location.replace('dashboard.html'); return; }
 
   const A = { tab: location.hash.replace('#', '') || 'members', members: [] };
   const TABS = [['members', 'Members'], ['humidor', 'Humidor'], ['poker', 'Poker'], ['league', 'League'], ['tokens', 'Tokens & IOUs'], ['site', 'Site']];
