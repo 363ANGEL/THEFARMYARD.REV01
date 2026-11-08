@@ -137,7 +137,7 @@
   const tableVisible = () => !!S.cur;
   function renderTable() {
     const col = $('tablecol'), c = S.cur;
-    if (!tableVisible()) { col.hidden = true; col.innerHTML = ''; S.shell = ''; renderRow(); return; }
+    if (!tableVisible()) { clearTimeout(S.popT); S.popFor = ''; col.hidden = true; col.innerHTML = ''; S.shell = ''; renderRow(); return; }
     col.hidden = false;
     if (S.shell !== c.id) {
       S.shell = c.id;
@@ -207,6 +207,15 @@
     const held = {}; (c.holds || []).forEach(h => { if (h.member_id !== me.id) held[h.seat_no - 1] = h; });
     const open = c.status === 'open', can = open && !mySeat() && S.seat.phase === 'idle';
     if (S.sel != null && (taken[S.sel] || held[S.sel]) && S.seat.phase === 'idle') { S.sel = null; S.seat.name = ''; }   // someone beat me to it
+    // Design 2.1: the TAKE THE SEAT card appears 1.5 s after the table opens, never before, and only for a member who isn't seated.
+    if (open && !mySeat() && S.popFor !== c.id) {
+      S.popFor = c.id; clearTimeout(S.popT);
+      S.popT = setTimeout(() => {
+        const t = S.cur; if (!t || t.id !== S.popFor || t.status !== 'open' || mySeat() || S.sel != null || S.seat.phase !== 'idle') return;
+        const used = new Set([...t.seats.map(x => x.seat_no - 1), ...(t.holds || []).filter(h => h.member_id !== me.id).map(h => h.seat_no - 1)]);
+        const n = SEAT_XY.findIndex((_, i) => !used.has(i)); if (n >= 0) pickSeat(n);
+      }, 1500);
+    }
     const dash = (n, lit) => `<span class="dash"><svg aria-hidden="true" viewBox="0 0 57 57"><circle class="base" cx="28.5" cy="28.5" r="27"></circle><circle class="chase" cx="28.5" cy="28.5" r="27"></circle></svg>${n + 1}</span>`;
     $('seatsl').innerHTML = SEAT_XY.map(([x, y], n) => {
       const pos = `left:${x}%;top:${y}%`, p = taken[n], h = held[n];
