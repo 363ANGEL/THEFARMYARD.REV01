@@ -81,7 +81,7 @@
       Barn.responsive();
       root.innerHTML = `
         <div style="width:100%; min-height:100vh; box-sizing:border-box; padding:16px; overflow-x:auto;">
-          <div class="fy-frame" style="min-height:calc(100vh - 32px); display:grid; grid-template-columns:232px minmax(0,1fr); align-items:start;">
+          <div class="fy-frame" style="min-height:calc(100vh - 32px); display:grid; grid-template-columns:232px minmax(0,1fr); align-items:start; min-width:860px;">
             <nav class="fy-side fy-sidebar" id="side" aria-label="The Barn" style="position:sticky; top:16px; height:calc(100vh - 32px); box-sizing:border-box; overflow-y:auto;"></nav>
             <div class="main" id="main" style="padding:18px 22px; display:flex; flex-direction:column; gap:14px; min-width:0; min-height:calc(100vh - 34px); box-sizing:border-box;"></div>
           </div>
@@ -136,9 +136,9 @@
         <div style="display:flex; align-items:baseline; justify-content:space-between; padding:10px 6px 4px; font-size:var(--fs-xs); letter-spacing:.08em; text-transform:uppercase; color:var(--color-neutral-400);"><span>In the yard</span><span id="fy-online-n" style="color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal);"></span></div>
         <div id="fy-online" style="flex:1; display:flex; flex-direction:column; gap:2px; overflow-y:auto; min-height:48px;"></div>
         ${sep}
-        <div class="fy-voice-head" id="vc">${[...'Voice channel'].map(c => `<span>${c}</span>`).join('')}</div>
-        <button type="button" class="fy-voice fy-voice-live ${v === 'lounge' ? 'is-on' : ''}" data-voice="lounge"><i class="ph ph-speaker-high" style="font-size:var(--ic-sm)"></i><span style="flex:1">LIVE<small>via Discord</small></span><span id="fy-vc-live" style="font-size:var(--fs-xs); font-weight:400; letter-spacing:0; color:var(--color-neutral-400); text-shadow:none;">OFF AIR</span></button>
-        <button type="button" class="fy-voice fy-voice-muted ${v === 'parked' ? 'is-on' : ''}" data-voice="parked"><i class="ph ph-speaker-slash" style="font-size:var(--ic-sm)"></i><span style="flex:1">MUTED<small>on Discord</small></span><span id="fy-vc-muted" style="font-size:var(--fs-xs); font-weight:400; letter-spacing:0; color:var(--color-neutral-400); text-shadow:none;">0</span></button>
+        <div class="fy-voice-head" id="vc">Voice channel</div>
+        <button type="button" class="fy-voice fy-voice-live ${v === 'lounge' ? 'is-on' : ''}" data-voice="lounge"><i class="ph ph-speaker-high" style="font-size:var(--ic-sm)"></i><span style="flex:1">LIVE CHANNEL<small>Voice via Discord</small></span><span id="fy-vc-live" style="font-size:var(--fs-xs); font-weight:400; letter-spacing:0; color:var(--color-neutral-400); text-shadow:none;">OFF AIR</span></button>
+        <button type="button" class="fy-voice fy-voice-muted ${v === 'parked' ? 'is-on' : ''}" data-voice="parked"><i class="ph ph-speaker-slash" style="font-size:var(--ic-sm)"></i><span style="flex:1">MUTED CHANNEL<small>Idle voice</small></span><span id="fy-vc-muted" style="font-size:var(--fs-xs); font-weight:400; letter-spacing:0; color:var(--color-neutral-400); text-shadow:none;">0</span></button>
         <div id="vtip"></div>
         ${sep}
         <div id="fy-footer-row" style="display:flex; gap:8px; align-items:stretch; margin-top:8px;">
@@ -166,7 +166,6 @@
         if (window.Presence && Presence.setVoice) Presence.setVoice(true);
         window.open(`https://discord.com/channels/${DISCORD.guild}/${DISCORD[k]}`, '_blank', 'noopener');
       }));
-      Barn.flicker(side.querySelector('#vc'));
     },
 
     /* Voice counts from the Discord widget JSON. Never blocks render: the buttons paint in their
