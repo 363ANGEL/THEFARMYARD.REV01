@@ -83,12 +83,6 @@
     else if (live && !canManage) note = tip(c.status === 'open' ? `${nick(c.started_by)} has opened the table. Take a seat.` : `${nick(c.started_by)} has started a game. Waiting for the table to open.`);
     // TAKE THE SEAT card after START (2.1 design): PokerNow opens when the clock hits zero, or sooner on the click.
     const goBusy = S.go.phase !== 'idle';
-    const goCard = goBusy ? `
-      <div class="pk-pop ${S.go.phase === 'done' ? 'done' : ''}" style="position:static;margin:12px auto 2px;animation:none" role="dialog" aria-label="Take the seat">
-        <div class="clock"><span class="face"><span class="dot"></span><i style="width:2.5px;height:15px;margin-left:-1.25px;background:#f2fbfb;animation:handSpin 16s linear infinite"></i><i style="width:1.5px;height:21px;margin-left:-.75px;background:#9eeae6;box-shadow:0 0 4px var(--neon-teal);animation:handSpin 1.6s linear infinite"></i></span><span class="count" id="gocount">${S.go.count}</span></div>
-        <button type="button" id="goseat" class="pk-btn green take">TAKE THE SEAT</button>
-        <div class="note">Your yard name has been copied to your clipboard.<span style="display:block;height:.8em"></span><span style="display:block;white-space:nowrap;font-size:12px">SET UP THE TABLE ON POKERNOW.</span>${S.go.blocked ? `<a class="pk-btn green sm" style="margin-top:8px" href="${START_URL}" target="_blank" rel="noopener">OPEN POKERNOW</a>` : ''}</div>
-      </div>` : '';
     $('steps').innerHTML = SIGN +
       '<span class="pk-kicker pk-tealtext" style="align-self:flex-start;white-space:nowrap">Game checklist</span>' +
       `<div class="pk-step ${live ? '' : 'flash'}"><span class="n">1</span>
@@ -97,7 +91,8 @@
           <button type="button" id="start" class="pk-btn green ${live || goBusy ? 'off' : ''}" ${live || goBusy ? 'aria-disabled="true"' : ''}>START</button>
           ${live ? '<button type="button" id="close" class="pk-btn red">CLOSE</button>' : ''}
           ${note}
-        </span></div>` + goCard;
+        </span></div>`;
+    if ($('seatpop')) renderPop();                 // the START card lives on the table, not in this box
   }
   $('steps').addEventListener('click', async ev => {
     const t = ev.target.closest('a,button'); if (!t) return;
@@ -117,10 +112,6 @@
         if (S.go.blocked) { S.go.phase = 'done'; renderSteps(true); setTimeout(() => { if (S.go.phase === 'done') { S.go.phase = 'idle'; renderSteps(true); } }, 30000); }
         else { S.go.phase = 'idle'; renderSteps(true); }
       }, 1000);
-    } else if (t.id === 'goseat') {                // clicking the card opens PokerNow early
-      if (S.go.phase !== 'count') return;
-      clearInterval(S.go.t); S.go.phase = 'idle';
-      openPokerNow(START_URL); renderSteps(true);
     } else if (t.id === 'close') {
       if (!S.cur) return;
       if (S.cur.seats.length && !filed() && !isLeader) {   // rule 6: anyone sat → the docket must be filed first
@@ -238,6 +229,18 @@
   // Take-seat card: name is copied on the click itself, the PokerNow link opens after a 10 second clock.
   function renderPop() {
     const pop = $('seatpop'); if (!pop) return;
+    if (S.go.phase !== 'idle' && S.cur) {          // START card: anchored to the first seat on the felt, as in design 2.1
+      const gsig = ['go', S.go.phase, S.go.blocked].join('|');
+      if (pop.dataset.sig === gsig && pop.innerHTML) return;
+      pop.dataset.sig = gsig;
+      const [gx, gy] = SEAT_XY[0], gAbove = gy > 40, gShift = gx <= 12 ? 15 : gx <= 20 ? 25 : gx >= 88 ? 85 : gx >= 80 ? 75 : 50;
+      pop.innerHTML = `<div class="pk-pop${S.go.phase === 'done' ? ' done' : ''}" style="left:${gx}%;transform:translateX(-${gShift}%);top:${gAbove ? 'auto' : (gy + 9) + '%'};bottom:${gAbove ? (100 - gy + 9) + '%' : 'auto'}" role="dialog" aria-label="Take the seat">
+        <div class="clock"><span class="face"><span class="dot"></span><i style="width:2.5px;height:15px;margin-left:-1.25px;background:#f2fbfb;animation:handSpin 16s linear infinite"></i><i style="width:1.5px;height:21px;margin-left:-.75px;background:#9eeae6;box-shadow:0 0 4px var(--neon-teal);animation:handSpin 1.6s linear infinite"></i></span><span class="count" id="gocount">${S.go.count}</span></div>
+        <button type="button" id="goseat" class="pk-btn green take">TAKE THE SEAT</button>
+        <div class="note">Your yard name has been copied to your clipboard.<span style="display:block;height:.8em"></span><span style="display:block;white-space:nowrap;font-size:12px">SET UP THE TABLE ON POKERNOW.</span>${S.go.blocked ? `<a class="pk-btn green sm" style="margin-top:8px" href="${START_URL}" target="_blank" rel="noopener">OPEN POKERNOW</a>` : ''}</div>
+        <span class="arrow" style="left:${gShift}%;top:${gAbove ? 'auto' : '-9px'};bottom:${gAbove ? '-9px' : 'auto'};transform:translateX(-50%) rotate(${gAbove ? 45 : 225}deg)"></span></div>`;
+      return;
+    }
     if (S.sel == null || !S.cur || S.cur.status !== 'open') { pop.innerHTML = ''; pop.dataset.sig = ''; return; }
     // Rebuild only when something it shows has changed, so a Realtime refresh never steals focus from the name box.
     const sig = [S.sel, S.seat.phase, S.seat.blocked, S.seat.url, S.cur.pokernow_url].join('|');
@@ -258,6 +261,11 @@
   }
   document.addEventListener('input', ev => { if (ev.target.id === 'tname') S.seat.name = ev.target.value; });
   document.addEventListener('click', ev => { if (ev.target.closest && ev.target.closest('#take')) takeSeat(); });
+  document.addEventListener('click', ev => {     // clicking the START card opens PokerNow early
+    if (!(ev.target.closest && ev.target.closest('#goseat')) || S.go.phase !== 'count') return;
+    clearInterval(S.go.t); S.go.phase = 'idle';
+    openPokerNow(START_URL); renderSteps(true);
+  });
   function takeSeat() {
     if (S.seat.phase !== 'idle' || S.sel == null || !S.cur) return;
     const name = (S.seat.name || '').trim() || me.nickname, seatNo = S.sel + 1, table = S.cur.id;
