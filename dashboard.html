@@ -105,6 +105,27 @@
     </div>
     <div style="flex:none; display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:10px;">${modules}</div>`;
 
+  // Needs you: leaders only (never in member preview). Unclaimed invites and payments awaiting Received.
+  if (B.leader) {
+    const unclaimed = ((await FY.q('member').select('id,nickname,user_id').is('user_id', null)).data || []).map(m => m.nickname);
+    const awaiting = (Array.isArray(iousRes) ? iousRes : []).filter(i => i.state === 'marked_paid');
+    const nm = id => (dir[id] || {}).nickname || '?';
+    const line = (label, items) => `<div style="display:flex; gap:8px; align-items:baseline; padding:6px 12px; border-top:1px solid var(--rule-teal); font-size:var(--fs-sm); line-height:1.4;">
+      <span style="flex:none; font-weight:600;">${label}</span>
+      <span style="flex:1; min-width:0; color:var(--color-neutral-300);">${items.map(esc).join(', ')}</span></div>`;
+    const card = document.createElement('div');
+    card.id = 'needs-you';
+    card.style.cssText = 'flex:none; display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;';
+    card.innerHTML = `<div style="display:flex; align-items:center; gap:8px; padding:8px 12px; flex-wrap:wrap;">
+        <i class="ph ph-user-circle-gear" style="color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal);"></i><span class="kicker" style="color:var(--neon-pink-text); text-shadow:var(--text-glow-pink);">Needs you</span>
+        <span style="font-size:var(--fs-xs); color:var(--color-neutral-400);">${unclaimed.length + awaiting.length}</span><span style="flex:1;"></span>
+        <a href="admin.html" style="font-size:var(--fs-xs); font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#5fd3cf; text-decoration:none; text-shadow:0 0 5px rgba(95,211,207,.5);">Open Admin →</a></div>
+      ${unclaimed.length ? line(`Unclaimed invites · ${unclaimed.length}`, unclaimed) : ''}
+      ${awaiting.length ? line(`Awaiting Received · ${awaiting.length}`, awaiting.map(i => nm(i.payer_id) + ' → ' + nm(i.payee_id))) : ''}
+      ${unclaimed.length || awaiting.length ? '' : '<div style="padding:10px 12px; border-top:1px solid var(--rule-teal); font-size:var(--fs-sm); color:var(--color-neutral-400);">Nothing waiting on you.</div>'}`;
+    main.querySelector('#wall-box').before(card);
+  }
+
   const wallBoxEl = main.querySelector('#wall-box');
   let posts = postsRes.data || [];
   const drawWall = () => {
