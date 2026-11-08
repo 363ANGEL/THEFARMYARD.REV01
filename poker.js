@@ -92,7 +92,6 @@
           ${live ? '<button type="button" id="close" class="pk-btn red">CLOSE</button>' : ''}
           ${note}
         </span></div>`;
-    if ($('seatpop')) renderPop();                 // the START card lives on the table, not in this box
   }
   $('steps').addEventListener('click', async ev => {
     const t = ev.target.closest('a,button'); if (!t) return;
@@ -128,7 +127,7 @@
   const tableVisible = () => !!S.cur;
   function renderTable() {
     const col = $('tablecol'), c = S.cur;
-    if (!tableVisible()) { clearTimeout(S.popT); S.popFor = ''; col.hidden = true; col.innerHTML = ''; S.shell = ''; renderRow(); return; }
+    if (!tableVisible()) { col.hidden = true; col.innerHTML = ''; S.shell = ''; renderRow(); return; }
     col.hidden = false;
     if (S.shell !== c.id) {
       S.shell = c.id;
@@ -198,15 +197,6 @@
     const held = {}; (c.holds || []).forEach(h => { if (h.member_id !== me.id) held[h.seat_no - 1] = h; });
     const open = c.status === 'open', can = open && !mySeat() && S.seat.phase === 'idle';
     if (S.sel != null && (taken[S.sel] || held[S.sel]) && S.seat.phase === 'idle') { S.sel = null; S.seat.name = ''; }   // someone beat me to it
-    // Design 2.1: the TAKE THE SEAT card appears 1.5 s after the table opens, never before, and only for a member who isn't seated.
-    if (open && !mySeat() && S.popFor !== c.id) {
-      S.popFor = c.id; clearTimeout(S.popT);
-      S.popT = setTimeout(() => {
-        const t = S.cur; if (!t || t.id !== S.popFor || t.status !== 'open' || mySeat() || S.sel != null || S.seat.phase !== 'idle') return;
-        const used = new Set([...t.seats.map(x => x.seat_no - 1), ...(t.holds || []).filter(h => h.member_id !== me.id).map(h => h.seat_no - 1)]);
-        const n = SEAT_XY.findIndex((_, i) => !used.has(i)); if (n >= 0) pickSeat(n);
-      }, 1500);
-    }
     const dash = (n, lit) => `<span class="dash"><svg aria-hidden="true" viewBox="0 0 57 57"><circle class="base" cx="28.5" cy="28.5" r="27"></circle><circle class="chase" cx="28.5" cy="28.5" r="27"></circle></svg>${n + 1}</span>`;
     $('seatsl').innerHTML = SEAT_XY.map(([x, y], n) => {
       const pos = `left:${x}%;top:${y}%`, p = taken[n], h = held[n];
@@ -229,18 +219,6 @@
   // Take-seat card: name is copied on the click itself, the PokerNow link opens after a 10 second clock.
   function renderPop() {
     const pop = $('seatpop'); if (!pop) return;
-    if (S.go.phase !== 'idle' && S.cur) {          // START card: anchored to the first seat on the felt, as in design 2.1
-      const gsig = ['go', S.go.phase, S.go.blocked].join('|');
-      if (pop.dataset.sig === gsig && pop.innerHTML) return;
-      pop.dataset.sig = gsig;
-      const [gx, gy] = SEAT_XY[0], gAbove = gy > 40, gShift = gx <= 12 ? 15 : gx <= 20 ? 25 : gx >= 88 ? 85 : gx >= 80 ? 75 : 50;
-      pop.innerHTML = `<div class="pk-pop${S.go.phase === 'done' ? ' done' : ''}" style="left:${gx}%;transform:translateX(-${gShift}%);top:${gAbove ? 'auto' : (gy + 9) + '%'};bottom:${gAbove ? (100 - gy + 9) + '%' : 'auto'}" role="dialog" aria-label="Take the seat">
-        <div class="clock"><span class="face"><span class="dot"></span><i style="width:2.5px;height:15px;margin-left:-1.25px;background:#f2fbfb;animation:handSpin 16s linear infinite"></i><i style="width:1.5px;height:21px;margin-left:-.75px;background:#9eeae6;box-shadow:0 0 4px var(--neon-teal);animation:handSpin 1.6s linear infinite"></i></span><span class="count" id="gocount">${S.go.count}</span></div>
-        <button type="button" id="goseat" class="pk-btn green take">TAKE THE SEAT</button>
-        <div class="note">Your yard name has been copied to your clipboard.<span style="display:block;height:.8em"></span><span style="display:block;white-space:nowrap;font-size:12px">SET UP THE TABLE ON POKERNOW.</span>${S.go.blocked ? `<a class="pk-btn green sm" style="margin-top:8px" href="${START_URL}" target="_blank" rel="noopener">OPEN POKERNOW</a>` : ''}</div>
-        <span class="arrow" style="left:${gShift}%;top:${gAbove ? 'auto' : '-9px'};bottom:${gAbove ? '-9px' : 'auto'};transform:translateX(-50%) rotate(${gAbove ? 45 : 225}deg)"></span></div>`;
-      return;
-    }
     if (S.sel == null || !S.cur || S.cur.status !== 'open') { pop.innerHTML = ''; pop.dataset.sig = ''; return; }
     // Rebuild only when something it shows has changed, so a Realtime refresh never steals focus from the name box.
     const sig = [S.sel, S.seat.phase, S.seat.blocked, S.seat.url, S.cur.pokernow_url].join('|');
@@ -261,11 +239,6 @@
   }
   document.addEventListener('input', ev => { if (ev.target.id === 'tname') S.seat.name = ev.target.value; });
   document.addEventListener('click', ev => { if (ev.target.closest && ev.target.closest('#take')) takeSeat(); });
-  document.addEventListener('click', ev => {     // clicking the START card opens PokerNow early
-    if (!(ev.target.closest && ev.target.closest('#goseat')) || S.go.phase !== 'count') return;
-    clearInterval(S.go.t); S.go.phase = 'idle';
-    openPokerNow(START_URL); renderSteps(true);
-  });
   function takeSeat() {
     if (S.seat.phase !== 'idle' || S.sel == null || !S.cur) return;
     const name = (S.seat.name || '').trim() || me.nickname, seatNo = S.sel + 1, table = S.cur.id;
