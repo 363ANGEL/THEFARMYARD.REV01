@@ -53,6 +53,31 @@
       if (row && row.visibility) return row.visibility;
       return id === 'dashboard' || id === 'poker' ? 'members' : 'admin';
     },
+    /* View as, top-right of every page's header, leaders only (never rendered for members).
+       Member preview swaps it for a dashed banner carrying Back to admin. Pages overwrite #main,
+       so the bar re-seats itself at the top whenever they do. */
+    viewBar(main, preview) {
+      const bar = document.createElement('div');
+      bar.id = 'fy-viewbar';
+      bar.style.cssText = 'flex:none; display:flex; align-items:center; justify-content:flex-end; gap:10px; margin:-6px 0 -4px;';
+      if (preview) {
+        bar.innerHTML = `<div style="flex:1; display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:6px 12px; border:1px dashed var(--neon-teal); border-radius:8px; color:var(--neon-teal); text-shadow:0 0 6px rgba(95,211,207,.5);">
+          <i class="ph ph-user-circle-gear" style="font-size:var(--ic-md)" aria-hidden="true"></i>
+          <span style="flex:1; font-size:var(--fs-sm); letter-spacing:.04em;">Previewing as a member</span>
+          <button type="button" id="fy-back" class="btn btn-teal" style="min-height:32px; font-size:var(--fs-xs);">Back to admin</button></div>`;
+        bar.querySelector('#fy-back').addEventListener('click', () => Barn.setPreview(false));
+      } else {
+        bar.innerHTML = `<label style="display:flex; align-items:center; gap:8px; color:var(--neon-teal);">
+          <i class="ph ph-user-circle-gear" style="font-size:var(--ic-md)" aria-hidden="true"></i>
+          <span class="kicker">View as</span>
+          <select id="fy-viewas" class="input" aria-label="View as" style="width:auto; min-height:32px; padding:2px 8px; font-size:var(--fs-sm);"><option value="admin" selected>Admin</option><option value="member">Member</option></select></label>`;
+        bar.querySelector('#fy-viewas').addEventListener('change', e => { if (e.target.value === 'member') Barn.setPreview(true); });
+      }
+      const seat = () => { if (!main.contains(bar)) main.prepend(bar); };
+      seat();
+      new MutationObserver(seat).observe(main, { childList: true });
+    },
+
     /* View as: a UI-only preview for leaders. It never touches the real role or any RPC. */
     previewing() { try { return sessionStorage.getItem('fy.viewAs') === 'member'; } catch (e) { return false; } },
     setPreview(on) {
@@ -121,6 +146,7 @@
           </div>
         </div>`;
       Barn.sidebar(document.getElementById('side'), page, meView, rooms, { leader });
+      if (realLeader) Barn.viewBar(document.getElementById('main'), preview);
       return { me: meView, realMe: me, leader, preview, session, main: document.getElementById('main'), root };
     },
 
