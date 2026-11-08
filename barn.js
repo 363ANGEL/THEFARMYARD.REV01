@@ -35,7 +35,29 @@
       if (Barn._rooms) return Barn._rooms;
       const { data, error } = await FY.q('room').select('*').order('sort');
       if (error) throw error;
-      return (Barn._rooms = data || []);
+      const rows = data || [];
+      // About the yard and Admin are Home sub-items; synthesised until rooms-visibility.sql adds the rows.
+      [{ id: 'about', label: 'About the yard', path: 'about.html', icon: 'ph ph-question', sort: 13 },
+       { id: 'admin', label: 'Admin', path: 'admin.html', icon: 'ph ph-gear-six', sort: 14 }].forEach(x => {
+        if (!rows.some(r => r.id === x.id)) rows.push({ ...x, status: 'ship', grp: 'home', parent_id: 'dashboard' });
+      });
+      rows.sort((a, b) => (a.sort || 0) - (b.sort || 0));
+      return (Barn._rooms = rows);
+    },
+
+    /* Launch scope: members see only Home and Poker. The registry's visibility column ('admin' |
+       'members') decides; until rooms-visibility.sql has run, only those two ids are 'members'.
+       Profile and set-up are never gated. */
+    vis(id, row) {
+      if (id === 'profile' || id === 'setup') return 'members';
+      if (row && row.visibility) return row.visibility;
+      return id === 'dashboard' || id === 'poker' ? 'members' : 'admin';
+    },
+    /* View as: a UI-only preview for leaders. It never touches the real role or any RPC. */
+    previewing() { try { return sessionStorage.getItem('fy.viewAs') === 'member'; } catch (e) { return false; } },
+    setPreview(on) {
+      try { on ? sessionStorage.setItem('fy.viewAs', 'member') : sessionStorage.removeItem('fy.viewAs'); } catch (e) { /* private mode */ }
+      location.reload();
     },
 
     /* Logged-out door (1.0 / 2.0 / 3.0 designs, loggedOut state). */
@@ -78,6 +100,18 @@
       if (!me) { Barn.noProfile(root); return null; }
       if (!me.setup_at && page !== 'setup') { location.replace('setup.html'); return null; }
       if (opts.bare) return { me, session, root };
+      let rooms = [];
+      try { rooms = await Barn.rooms(); } catch (e) { /* sidebar renders without registry rows */ }
+      // me.role can be missing on a stale fy.me(); the server's own check settles it.
+      const realLeader = me.role === 'leader' || !!me.is_admin || (!me.role && await FY.rpc('is_leader').then(Boolean).catch(() => false));
+      const preview = realLeader && Barn.previewing();
+      const leader = realLeader && !preview;
+      if (!leader && Barn.vis(page, rooms.find(r => r.id === page)) !== 'members') {
+        // Admin-only page: members go to the Dashboard (a leader's own member preview too).
+        const ok = !preview && await FY.rpc('is_leader').then(Boolean).catch(() => false);
+        if (!ok) { location.replace('dashboard.html'); return null; }
+      }
+      const meView = preview ? { ...me, role: 'member', is_admin: false } : me;   // page UI keys off role
       Barn.responsive();
       root.innerHTML = `
         <div style="width:100%; min-height:100vh; box-sizing:border-box; padding:16px; overflow-x:auto;">
@@ -86,10 +120,8 @@
             <div class="main" id="main" style="padding:18px 22px; display:flex; flex-direction:column; gap:14px; min-width:0; min-height:calc(100vh - 34px); box-sizing:border-box;"></div>
           </div>
         </div>`;
-      let rooms = [];
-      try { rooms = await Barn.rooms(); } catch (e) { /* sidebar renders without registry rows */ }
-      Barn.sidebar(document.getElementById('side'), page, me, rooms);
-      return { me, session, main: document.getElementById('main'), root };
+      Barn.sidebar(document.getElementById('side'), page, meView, rooms, { leader });
+      return { me: meView, realMe: me, leader, preview, session, main: document.getElementById('main'), root };
     },
 
     /* A stub row always lands on the Room Template with its room name, never a 404, whatever
@@ -100,38 +132,38 @@
     },
 
     /* One registry row as a nav row. Parents are .fy-nav-item, children .nav-sub. */
-    _navRow(r, current, openParent) {
+    _navRow(r, current, openParent, tag) {
       const sub = !!r.parent_id;
       const on = current === r.id;
       const cls = sub ? 'nav-sub' : 'fy-nav-item';
       const open = sub && openParent === r.parent_id ? ' data-open="true"' : '';
       return `<a class="${cls}" href="${esc(Barn.stubPath(r))}" ${on ? 'aria-current="page"' : ''}${open} style="text-decoration:none">
-        <i class="${esc(r.icon)}" aria-hidden="true"></i><span style="flex:1">${esc(r.label)}</span></a>`;
+        <i class="${esc(r.icon)}" aria-hidden="true"></i><span style="flex:1">${esc(r.label)}</span>${tag && sub && Barn.vis(r.id, r) !== 'members' ? '<span style="font-size:var(--fs-xs); letter-spacing:.08em; text-transform:uppercase; color:var(--neon-pink-text); text-shadow:none; opacity:.8;">admin</span>' : ''}</a>`;
     },
 
-    sidebar(side, page, me, rooms) {
+    sidebar(side, page, me, rooms, opts) {
       rooms = rooms || [];
+      const leader = !!(opts && opts.leader);
+      const shown = r => r.status !== 'hidden' && r.status !== 'later' && r.id !== 'humidor-admin' && (leader || Barn.vis(r.id, r) === 'members');
       // The page id marks the current row; a current child also lights its parent's group open.
       const byId = Object.fromEntries(rooms.map(r => [r.id, r]));
       const current = byId[page] ? page : ({ yard: 'dashboard' }[page] || page);
       const openParent = byId[current] ? (byId[current].parent_id || current) : null;
       const group = (grp) => {
-        const parents = rooms.filter(r => r.grp === grp && !r.parent_id && r.status !== 'hidden' && r.status !== 'later');
-        return parents.map(p => Barn._navRow(p, current, openParent)
-          + rooms.filter(c => c.parent_id === p.id && c.status !== 'hidden' && c.status !== 'later')
-                 .map(c => Barn._navRow(c, current, openParent)).join('')).join('');
+        const parents = rooms.filter(r => r.grp === grp && !r.parent_id && shown(r));
+        return parents.map(p => Barn._navRow(p, current, openParent, leader)
+          + rooms.filter(c => c.parent_id === p.id && shown(c))
+                 .map(c => Barn._navRow(c, current, openParent, leader)).join('')).join('');
       };
       const sep = '<div style="margin:8px 6px 0; border-top:1px solid color-mix(in srgb, var(--neon-teal) 35%, transparent);"></div>';
       const v = voice.get();
-      const shield = `<a id="fy-admin-btn" href="/admin.html" title="Admin" aria-label="Admin" style="flex:none; display:grid; place-items:center; width:44px; border:1px solid var(--neon-teal); border-radius:8px; color:var(--neon-teal); text-decoration:none; box-sizing:border-box; box-shadow:${current === 'admin' ? 'inset 0 0 0 1.5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55)' : 'none'};"><i class="ph ph-shield-star" style="font-size:var(--ic-lg)" aria-hidden="true"></i></a>`;
       side.innerHTML = `
         <a class="fy-brand" href="dashboard.html" style="text-decoration:none; color:inherit;"><img src="assets/hank-oink.png" alt="Farmyard"><span>The Farmyard</span></a>
         ${group('home')}
         <div class="fy-nav-group">Leagues</div>
         ${group('leagues')}
-        <div class="fy-nav-group">Beta-Testing</div>
-        ${group('beta')}
-        <a class="fy-nav-item" href="whats-next.html" ${current === 'whats-next' ? 'aria-current="page"' : ''} style="text-decoration:none"><i class="ph ph-thought-bubble" aria-hidden="true"></i><span style="flex:1">What's Next?</span></a>
+        ${leader ? `<div class="fy-nav-group">Beta-testing · not visible to users yet</div>${group('beta')}` : ''}
+        ${leader ? `<a class="fy-nav-item" href="whats-next.html" ${current === 'whats-next' ? 'aria-current="page"' : ''} style="text-decoration:none"><i class="ph ph-thought-bubble" aria-hidden="true"></i><span style="flex:1">What's Next?</span></a>` : ''}
         ${sep}
         <div style="display:flex; align-items:baseline; justify-content:space-between; padding:10px 6px 4px; font-size:var(--fs-xs); letter-spacing:.08em; text-transform:uppercase; color:var(--color-neutral-400);"><span>In the yard</span><span id="fy-online-n" style="color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal);"></span></div>
         <div id="fy-online" style="flex:1; display:flex; flex-direction:column; gap:2px; overflow-y:auto; min-height:48px;"></div>
@@ -146,17 +178,7 @@
           ${Barn.faceDot(me)}
           <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(me.nickname)}</span>
           <i class="ph ph-gear" style="color:var(--color-neutral-400); font-size:var(--ic-lg)"></i></a>
-        ${(me.role === 'leader' || me.is_admin) ? shield : ''}
-        </div>
-        <a href="about.html" style="display:block; text-align:center; padding:8px 6px 2px; font-size:var(--fs-xs); letter-spacing:.04em; color:var(--neon-teal); text-shadow:0 0 6px rgba(95,211,207,.5); text-decoration:none;">About the yard</a>`;
-      // Leaders always get the shield: if me.role was missing (a stale fy.me() on the live
-      // database), the server's own is_leader() check puts it in after render.
-      if (!side.querySelector('#fy-admin-btn')) {
-        FY.rpc('is_leader').then(ok => {
-          const row = side.querySelector('#fy-footer-row');
-          if (ok && row && !side.querySelector('#fy-admin-btn')) row.insertAdjacentHTML('beforeend', shield);
-        }).catch(() => { /* not signed in or rpc missing: no shield */ });
-      }
+        </div>`;
       Barn.voiceCounts(side);
       side.querySelectorAll('[data-voice]').forEach(b => b.addEventListener('click', () => {
         const k = b.dataset.voice; voice.set(k);
