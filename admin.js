@@ -69,9 +69,9 @@
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">A claim link works once and expires after 14 days. Send it on Discord.</span>
       <div id="linkbox" hidden style="display:flex;gap:8px"><input class="input" id="linkout" readonly style="flex:1;min-height:40px"><button class="rowbtn" id="copylink">Copy</button></div></div>
       <div class="acard"><span class="t-module">Icon palette</span>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Eight pre-made logos per member (New User Set-up and Profile pick from these). Upload art to Storage, paste the public URLs.</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Upload an image: it takes the lowest free number (1 to 15). Click a picture to set it as the selected member's icon; the cross removes it for everyone.</span>
       <div style="display:flex;gap:8px;align-items:center"><label for="lg-m">Member</label><select class="input" id="lg-m" style="min-height:40px">${opts(A._logoMember)}</select></div>
-      <form id="lg-f" style="display:flex;flex-direction:column;gap:8px"></form></div>`;
+      <div id="ip" style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;max-width:100%"></div></div>`;
     pane.addEventListener('click', ev => {
       const tr = ev.target.closest('tr[data-open]');
       if (tr && !ev.target.closest('button,input,select')) location.href = 'profile.html?view=admin&user=' + encodeURIComponent(tr.dataset.open);
@@ -134,22 +134,72 @@
         pane.querySelector('#copylink').onclick = () => navigator.clipboard.writeText(url).then(() => FY.toast('Copied.'), () => pane.querySelector('#linkout').select());
       } catch (e) { FY.toast(e.message); }
     }));
-    const drawLogos = async () => {
+    // Icon palette: one Upload box beside 15 numbered slots. Slots are global; a click sets the selected member's icon.
+    const ICON_BUCKET = 'icons';
+    let palette = [];
+    const drawIcons = async () => {
       const sel = A._logoMember || (A.members[0] && A.members[0].id); A._logoMember = sel;
-      const rows = sel ? ((await FY.q('member_logo').select('slot,name,url').eq('member_id', sel).order('slot')).data || []) : [];
-      const bySlot = {}; rows.forEach(r => bySlot[r.slot] = r);
-      pane.querySelector('#lg-f').innerHTML = [1, 2, 3, 4, 5, 6, 7, 8].map(n => `<div style="display:flex;gap:8px;align-items:center"><span style="width:1.5em;color:var(--fy-text-label)">${n}</span><input class="input" data-ln="${n}" placeholder="Name" maxlength="24" value="${esc(bySlot[n]?.name || '')}" style="width:9em;min-height:38px"><input class="input" data-lu="${n}" type="url" placeholder="https://…/logo.png" value="${esc(bySlot[n]?.url || '')}" style="flex:1;min-height:38px">${bySlot[n] ? `<img src="${esc(bySlot[n].url)}" alt="" width="32" height="32" style="border-radius:50%;object-fit:contain">` : ''}</div>`).join('')
-        + '<div><button class="btn btn-primary" style="min-height:40px">Save logos</button></div>';
+      try { palette = (await FY.q('icon_palette').select('slot,url').order('slot')).data || []; } catch (e) { palette = []; }
+      const bySlot = {}; palette.forEach(r => bySlot[r.slot] = r);
+      const cur = (A.members.find(m => m.id === sel) || {}).avatar_url;
+      const full = palette.length >= 15;
+      const slot = n => {
+        const r = bySlot[n];
+        if (!r) return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="width:64px;height:64px;border-radius:50%;border:2px dashed rgba(95,211,207,.35);display:grid;place-items:center;color:var(--fy-text-label);font-size:var(--fs-sm)">${n}</span></div>`;
+        const on = cur && cur === r.url;
+        return `<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <button type="button" data-ipick="${n}" aria-label="Set icon ${n}" aria-pressed="${on ? 'true' : 'false'}" style="width:64px;height:64px;border-radius:50%;padding:0;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/cover no-repeat"></button>
+          <button type="button" data-irm="${n}" aria-label="Remove icon ${n}" style="position:absolute;top:-4px;right:-4px;width:22px;height:22px;border-radius:50%;padding:0;cursor:pointer;border:1px solid var(--neon-pink-tube);background:#0a1a1a;color:var(--neon-pink-text);font-size:12px;line-height:1">&#10005;</button>
+          <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${n}</span></div>`;
+      };
+      pane.querySelector('#ip').innerHTML = `<label style="flex:none;width:120px;min-height:120px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:10px;border:2px dashed var(--neon-teal);border-radius:12px;color:var(--fy-text);font-size:var(--fs-sm);cursor:${full ? 'not-allowed' : 'pointer'};opacity:${full ? '.45' : '1'}">
+          <span>Upload image</span><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${full ? 'Palette full' : 'PNG or JPG'}</span>
+          <input type="file" id="ip-file" accept="image/*" ${full ? 'disabled' : ''} style="display:none"></label>
+        <div style="flex:1 1 320px;min-width:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:14px 10px">${Array.from({ length: 15 }, (_, k) => slot(k + 1)).join('')}</div>`;
     };
-    await drawLogos();
+    await drawIcons();
     pane.querySelector('#lg-m').value = A._logoMember;
-    pane.querySelector('#lg-m').addEventListener('change', ev => { A._logoMember = ev.target.value; drawLogos(); });
-    pane.querySelector('#lg-f').addEventListener('submit', async ev => {
-      ev.preventDefault();
-      const logos = [1, 2, 3, 4, 5, 6, 7, 8].map(n => ({ slot: n, name: pane.querySelector(`[data-ln="${n}"]`).value.trim(), url: pane.querySelector(`[data-lu="${n}"]`).value.trim() })).filter(l => l.url);
-      if (logos.some(l => !l.name)) return FY.toast('Every logo with a URL needs a name.');
-      try { await FY.rpc('set_member_logos', { p_member: A._logoMember, p_logos: logos }); FY.toast('Logos saved.'); drawLogos(); }
-      catch (e) { FY.toast(e.message); }
+    pane.querySelector('#lg-m').addEventListener('change', ev => { A._logoMember = ev.target.value; drawIcons(); });
+    // Square-crop to 256px PNG, upload to icons/slot-N.png, then record it (the RPC is leader-only and checks the URL).
+    const squarePng = file => new Promise((res, rej) => {
+      const url = URL.createObjectURL(file), img = new Image();
+      img.onload = () => { const S = 256, m = Math.min(img.width, img.height), c = document.createElement('canvas'); c.width = S; c.height = S;
+        c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S); URL.revokeObjectURL(url); c.toBlob(b => b ? res(b) : rej(new Error('Could not read that image.')), 'image/png'); };
+      img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('That file is not an image.')); }; img.src = url;
+    });
+    pane.querySelector('#ip').addEventListener('change', async ev => {
+      if (ev.target.id !== 'ip-file') return;
+      const f = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (!f) return;
+      let n = null;
+      try {
+        n = await FY.rpc('admin_icon_next');
+        const blob = await squarePng(f);
+        const { error } = await FY.sb.storage.from(ICON_BUCKET).upload(`slot-${n}.png`, blob, { contentType: 'image/png', upsert: true, cacheControl: '3600' });
+        if (error) throw new Error(error.message);
+        const url = FY.sb.storage.from(ICON_BUCKET).getPublicUrl(`slot-${n}.png`).data.publicUrl + '?v=' + Date.now();
+        await FY.rpc('admin_icon_add', { p_slot: n, p_url: url });
+        FY.toast(`Added as icon ${n}.`);
+      } catch (e) { FY.toast(e.message); }
+      drawIcons();
+    });
+    pane.querySelector('#ip').addEventListener('click', async ev => {
+      const pick = ev.target.closest('[data-ipick]'), rm = ev.target.closest('[data-irm]');
+      try {
+        if (pick) {
+          const m = A.members.find(x => x.id === A._logoMember); if (!m) return;
+          await FY.rpc('admin_icon_set', { p_member: m.id, p_slot: Number(pick.dataset.ipick) });
+          const r = palette.find(p => p.slot === Number(pick.dataset.ipick)); if (r) m.avatar_url = r.url;
+          FY.toast('Icon set.'); drawIcons();
+        } else if (rm) {
+          const n = Number(rm.dataset.irm);
+          if (!window.confirm(`Remove icon ${n}? Members using it go back to their stock animal.`)) return;
+          const r = palette.find(p => p.slot === n);
+          await FY.rpc('admin_icon_remove', { p_slot: n });
+          A.members.forEach(m => { if (r && m.avatar_url === r.url) m.avatar_url = null; });
+          const { error } = await FY.sb.storage.from(ICON_BUCKET).remove([`slot-${n}.png`]);
+          FY.toast(error ? 'Removed, but the file could not be deleted: ' + error.message : 'Removed.'); drawIcons();
+        }
+      } catch (e) { FY.toast(e.message); }
     });
   }
 

@@ -48,7 +48,7 @@
 <script>
 /* 0.2 New User Set-up. Shown once, right after the invite is claimed (and to anyone whose set-up is not done).
    Yard name is pre-filled with the name RAY gave the member; the logo palette is what RAY uploaded for them
-   (fy.member_logo), topped up with the stock animals; Revolut is optional. Chess.com stays hidden until the
+   (fy.icon_palette, one global palette; stock animals only until the first upload); Revolut is optional. Chess.com stays hidden until the
    chess league is built. Birthday (day and month, no year) is required. Finishing stamps member.setup_at. */
 /* Birthday field, ported from the 0.2 design. Days are capped by the month (February = 29). A day past the
    newly picked month's last day is dropped, so the Day select goes back to "Day" and Finish stays off. */
@@ -70,14 +70,14 @@ const BD = {
   const B = await Barn.open('setup', { bare: true }); if (!B) return;
   const { me, session, root } = B, esc = FY.esc;
   const ANIMALS = [['hen', 'Hen'], ['cock', 'Cock'], ['pig', 'Pig'], ['sheep', 'Sheep'], ['goat', 'Goat'], ['cow', 'Cow']];
-  const mine = (await FY.q('member_logo').select('slot,name,url').eq('member_id', me.id).order('slot')).data || [];
-  // img = the 150px card art; sm = the 48px picker face (Hank shows his face mark at that size).
-  const palette = [...mine.map(l => ({ id: 'url:' + l.url, name: l.name, img: l.url, sm: l.url })),
-                   ...ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: FY.face(k, 150), sm: FY.face(k, 48) }))].slice(0, 8);
-  while (palette.length < 8) palette.push({ id: 'empty' + palette.length, name: 'Logo ' + (palette.length + 1), img: null, sm: null, empty: true });
-  const S = { name: me.nickname, pick: me.avatar_url ? 'url:' + me.avatar_url : 'key:' + me.avatar, rev: (me.revolut_url || '').replace(/^https:\/\/revolut\.me\//, ''),
+  const mine = await FY.q('icon_palette').select('slot,url').order('slot').then(r => r.data || [], () => []);
+  // Only slots with a picture are listed; until the first upload the stock animals stand in so a pick still exists.
+  const palette = mine.length ? mine.map(l => ({ id: 'slot:' + l.slot, name: 'Icon ' + l.slot, img: l.url, sm: l.url, url: l.url }))
+                             : ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: FY.face(k, 150), sm: FY.face(k, 48) }));
+  const S = { name: me.nickname, pick: (mine.find(l => l.url === me.avatar_url) ? 'slot:' + mine.find(l => l.url === me.avatar_url).slot : null) || (me.avatar_url ? 'url:' + me.avatar_url : 'key:' + me.avatar), rev: (me.revolut_url || '').replace(/^https:\/\/revolut\.me\//, ''),
               bm: me.birth_month ? String(me.birth_month) : '', bd: '' };
   S.bd = BD.fit(me.birth_day, S.bm);
+  if (!palette.some(p => p.id === S.pick)) S.pick = palette[0].id;   // the big card shows the first listed icon, so that is the pick
   const isRevBad = () => { const r = S.rev.trim(); return !!r && !/^[A-Za-z0-9._-]+$/.test(r); };
   const cantFinish = () => !S.name.trim() || isRevBad() || !BD.ok(S.bd, S.bm);
 
@@ -100,8 +100,8 @@ const BD = {
             <label><span class="t"><i class="ph ph-cake" style="color:var(--neon-pink-text);font-size:18px"></i>Birthday <span style="font-size:11px;color:var(--neon-pink-text)">Required</span></span>
               <span style="display:flex;gap:8px"><select id="bdDay" class="input" required aria-label="Day" style="min-height:46px;font-size:15px;border-color:${bdB};flex:0 0 92px">${BD.dayOpts(S.bd, S.bm)}</select><select id="bdMonth" class="input" required aria-label="Month" style="min-height:46px;font-size:15px;border-color:${bdB};flex:1">${BD.monthOpts(S.bm)}</select></span>
               <span id="bdHint" style="color:${BD.hintColor(bdOk)}">${BD.hint(bdOk)}</span></label>
-            <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;color:var(--fy-text-label)">Pre-Made Logos to select from</span>
-              <div class="logos">${palette.map(p => `<button type="button" class="logo ${p.id === S.pick ? 'on' : ''}" data-pick="${esc(p.id)}" aria-label="${esc(p.name)}" ${p.empty ? 'disabled' : ''}><span class="face" style="background-image:${p.sm ? `url('${esc(p.sm)}')` : 'none'}">${p.sm ? '' : '<i class="ph ph-question"></i>'}</span><span>${esc(p.name)}</span></button>`).join('')}</div></div>
+            <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;color:var(--fy-text-label)">Pick your icon</span>
+              <div class="logos">${palette.map(p => `<button type="button" class="logo ${p.id === S.pick ? 'on' : ''}" data-pick="${esc(p.id)}" aria-label="${esc(p.name)}"><span class="face" style="background-image:url('${esc(p.sm)}')"></span></button>`).join('')}</div></div>
           </div>
           <div class="neon-tube-teal tube" style="gap:14px">
             <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><span class="kicker">Linked accounts</span><span style="font-size:12px;color:var(--fy-text-label)">Optional. Add later in Profile.</span></div>
@@ -143,7 +143,8 @@ const BD = {
     const name = S.name.trim(); if (cantFinish()) return;
     const btn = root.querySelector('#go'); btn.disabled = true;
     const patch = { nickname: name, birth_day: +S.bd, birth_month: +S.bm, setup_at: new Date().toISOString() };
-    if (S.pick.startsWith('url:')) patch.avatar_url = S.pick.slice(4); else { patch.avatar = S.pick.slice(4); patch.avatar_url = null; }
+    if (S.pick.startsWith('key:')) { patch.avatar = S.pick.slice(4); patch.avatar_url = null; }
+    if (S.pick.startsWith('slot:')) { try { await FY.rpc('set_my_icon', { p_slot: Number(S.pick.slice(5)) }); } catch (e) { FY.toast(e.message); btn.disabled = false; return; } }
     const { error } = await FY.q('member').update(patch).eq('id', me.id);
     if (error) { FY.toast(/unique|duplicate/i.test(error.message) ? 'That yard name is taken. Pick another.' : error.message); btn.disabled = false; return; }
     // Linked accounts live in fy.member_link; set_my_links also syncs member.revolut_url.

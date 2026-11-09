@@ -88,7 +88,7 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
     const all = await FY.rpc('my_ious').catch(() => []);
     D.ious = (all || []).filter(i => i.payer_id === subject.id || i.payee_id === subject.id);
     D.links = (await FY.q('member_link').select('provider,handle,enabled').eq('member_id', subject.id)).data || [];
-    D.logos = (await FY.q('member_logo').select('slot,name,url').eq('member_id', subject.id).order('slot')).data || [];
+    D.logos = await FY.q('icon_palette').select('slot,url').order('slot').then(r => r.data || [], () => []);
   }
   const LIVE = ['open', 'marked_paid', 'disputed'];
   const tkOf = i => i.amount * (i.event_id && events[i.event_id]?.type_key === 'poker' ? 5 : 1);
@@ -207,13 +207,14 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
     </div>`;
 
   const ANIMALS = [['hen', 'Hen'], ['cock', 'Cock'], ['pig', 'Pig'], ['sheep', 'Sheep'], ['goat', 'Goat'], ['cow', 'Cow']];
-  const palette = [...D.logos.map(l => ({ id: 'url:' + l.url, name: l.name, img: l.url })),
-                   ...ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: FY.face(k, 48) }))];
-  const curPick = subject.avatar_url ? 'url:' + subject.avatar_url : 'key:' + subject.avatar;
+  // Only slots with a picture are listed. Until the first picture is uploaded, the stock animals stand in so a pick still exists.
+  const palette = D.logos.length ? D.logos.map(l => ({ id: 'slot:' + l.slot, name: 'Icon ' + l.slot, img: l.url, url: l.url }))
+                                 : ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: FY.face(k, 48) }));
+  const curPick = (D.logos.find(l => l.url === subject.avatar_url) ? 'slot:' + D.logos.find(l => l.url === subject.avatar_url).slot : null) || (subject.avatar_url ? 'url:' + subject.avatar_url : 'key:' + subject.avatar);
   const iconHtml = () => `<span class="t-module">${own ? 'Your icon' : 'Icon'}</span>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px">
-      ${palette.map(p => `<button type="button" class="iconbtn ${p.id === curPick ? 'on' : ''}" data-pick="${esc(p.id)}" aria-label="${esc(p.name)}"><span class="face" style="background-image:url('${esc(p.img)}')"></span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${esc(p.name)}</span></button>`).join('')}
-    </div>${admin ? '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Upload new art in Admin → Member logos, then pick it here.</span>' : ''}`;
+      ${palette.map(p => `<button type="button" class="iconbtn ${p.id === curPick ? 'on' : ''}" data-pick="${esc(p.id)}" aria-label="${esc(p.name)}"><span class="face" style="background-image:url('${esc(p.img)}')"></span></button>`).join('')}
+    </div>${admin ? '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Upload pictures in Admin → Members → Icon palette, then pick one here.</span>' : ''}`;
 
   const poolsHtml = () => `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><span class="t-module">My football pools</span>
       <a href="room.html?room=football" style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--neon-teal);text-decoration:none">Open Football</a></div>
@@ -295,13 +296,11 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
       const b = ev.target.closest('[data-pick]'); if (!b) return;
       const pick = b.dataset.pick;
       try {
-        if (admin) await FY.rpc('admin_set_member', pick.startsWith('url:')
-          ? { p_member: subject.id, p_field: 'avatar_url', p_value: pick.slice(4) }
-          : { p_member: subject.id, p_field: 'avatar', p_value: pick.slice(4) });
-        else {
-          const patch = pick.startsWith('url:') ? { avatar_url: pick.slice(4) } : { avatar: pick.slice(4), avatar_url: null };
-          const { error } = await FY.q('member').update(patch).eq('id', subject.id); if (error) throw error;
-        }
+        if (pick.startsWith('slot:')) {
+          const n = Number(pick.slice(5));
+          if (admin) await FY.rpc('admin_icon_set', { p_member: subject.id, p_slot: n }); else await FY.rpc('set_my_icon', { p_slot: n });
+        } else if (admin) await FY.rpc('admin_set_member', { p_member: subject.id, p_field: 'avatar', p_value: pick.slice(4) });
+        else { const { error } = await FY.q('member').update({ avatar: pick.slice(4), avatar_url: null }).eq('id', subject.id); if (error) throw error; }
         FY.toast('Icon saved.'); location.reload();
       } catch (e) { FY.toast(e.message); }
     });
