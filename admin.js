@@ -37,6 +37,10 @@
   const invStatus = m => m.user_id
     ? (m.setup_at ? 'Claimed' : 'Claimed · set-up pending')
     : `<span style="color:var(--fy-text-label)">Invited · ${m.invite_email ? 'matches on email' : m.discord_username ? 'matches on Discord username' : 'no contact — cannot sign in'}</span>`;
+  // Role is a plain text column; Member and Leader are the two the page offers, any other stored role still shows.
+  const roleLabel = r => r ? r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g, ' ') : 'Member';
+  const roleTag = r => `<span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:999px;border:1px solid ${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'};color:${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'}">${esc(roleLabel(r))}</span>`;
+  const roleOpts = cur => [...new Set(['member', 'leader', cur || 'member'])].map(r => `<option value="${esc(r)}" ${r === (cur || 'member') ? 'selected' : ''}>${esc(roleLabel(r))}</option>`).join('');
   async function tabMembers() {
     await loadMembers();
     const contactCell = m => m.user_id
@@ -47,17 +51,19 @@
           <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="width:8em;min-height:34px;font-size:12px"></span>`;
     pane.innerHTML = `<div class="acard"><span class="t-module">Members</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Click a row to open their profile in admin view. Invite contacts save as you leave each box; keep an email or a Discord username on every invited row — it is how Hank matches their sign-in.</span>
-      <table><thead><tr><th>Member</th><th>Status</th><th>Invite contact</th><th>Claim link</th></tr></thead><tbody>
-      ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}"><td style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)}${m.role === 'leader' ? ' <span style="color:var(--fy-text-label)">(leader)</span>' : ''}</td>
+      <table><thead><tr><th>Member</th><th>Role</th><th>Status</th><th>Invite contact</th><th>Claim link</th></tr></thead><tbody>
+      ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}"><td style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)} ${roleTag(m.role)}</td>
+        <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:12px;width:auto">${roleOpts(m.role)}</select></td>
         <td data-st="${m.id}">${invStatus(m)}</td>
         <td>${contactCell(m)}</td>
         <td style="white-space:nowrap">${m.user_id ? '' : `<button class="rowbtn" data-link="${m.id}">New link</button>${m.role === 'leader' ? '' : ` <button class="rowbtn warn" data-del="${m.id}">Delete</button>`}`}</td></tr>`).join('')}
       </tbody></table>
-      <form id="newmember" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input class="input" id="nm-nick" placeholder="Nickname" required maxlength="24" style="min-height:40px">
-        <select class="input" id="nm-av" style="min-height:40px">${['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].map(a => `<option>${a}</option>`).join('')}</select>
-        <input class="input" id="nm-email" type="email" placeholder="Invite email" maxlength="254" style="min-height:40px">
-        <input class="input" id="nm-disc" placeholder="Discord username" maxlength="40" style="min-height:40px">
-        <input class="input" id="nm-mob" type="tel" placeholder="Mobile (contact only)" maxlength="20" style="min-height:40px">
+      <form id="newmember" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;max-width:100%"><input class="input" id="nm-nick" placeholder="Nickname" required maxlength="24" style="min-height:40px;flex:1 1 140px;min-width:0;max-width:100%;box-sizing:border-box">
+        <select class="input" id="nm-av" style="min-height:40px;flex:1 1 110px;min-width:0;max-width:100%;box-sizing:border-box">${['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].map(a => `<option>${a}</option>`).join('')}</select>
+        <select class="input" id="nm-role" aria-label="Role" style="min-height:40px;flex:1 1 110px;min-width:0;max-width:100%;box-sizing:border-box">${roleOpts('member')}</select>
+        <input class="input" id="nm-email" type="email" placeholder="Invite email" maxlength="254" style="min-height:40px;flex:1 1 180px;min-width:0;max-width:100%;box-sizing:border-box">
+        <input class="input" id="nm-disc" placeholder="Discord username" maxlength="40" style="min-height:40px;flex:1 1 150px;min-width:0;max-width:100%;box-sizing:border-box">
+        <input class="input" id="nm-mob" type="tel" placeholder="Mobile (contact only)" maxlength="20" style="min-height:40px;flex:1 1 150px;min-width:0;max-width:100%;box-sizing:border-box">
         <button class="btn btn-primary" style="min-height:40px">Add member</button></form>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Invite-only: email and Discord username are each optional, but one is needed — Hank matches their Discord sign-in against it at the door. Mobile is contact only, never used for login.</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">A claim link works once and expires after 14 days. Send it on Discord.</span>
@@ -68,7 +74,7 @@
       <form id="lg-f" style="display:flex;flex-direction:column;gap:8px"></form></div>`;
     pane.addEventListener('click', ev => {
       const tr = ev.target.closest('tr[data-open]');
-      if (tr && !ev.target.closest('button,input')) location.href = 'profile.html?view=admin&user=' + encodeURIComponent(tr.dataset.open);
+      if (tr && !ev.target.closest('button,input,select')) location.href = 'profile.html?view=admin&user=' + encodeURIComponent(tr.dataset.open);
     });
     // Invite contacts save on blur (focusout bubbles; wired once, the pane node survives redraws).
     if (!pane.dataset.invWired) {
@@ -99,10 +105,18 @@
         await FY.rpc('create_member', {
           p_nickname: pane.querySelector('#nm-nick').value.trim(), p_avatar: pane.querySelector('#nm-av').value,
           p_invite_email: email || null, p_discord_username: disc || null, p_mobile: pane.querySelector('#nm-mob').value.trim() || null,
+          p_role: pane.querySelector('#nm-role').value,
         });
         FY.toast('Added.'); draw();
       } catch (e) { FY.toast(e.message); }
     });
+    // Role saves the moment it changes; the server (fy.admin_set_member) checks fy.is_leader() and keeps the last leader.
+    pane.querySelectorAll('select[data-role]').forEach(sel => sel.addEventListener('change', async () => {
+      const m = A.members.find(x => x.id === sel.dataset.role); if (!m) return;
+      sel.disabled = true;
+      try { await FY.rpc('admin_set_member', { p_member: m.id, p_field: 'role', p_value: sel.value }); m.role = sel.value; FY.toast('Saved.'); draw(); }
+      catch (e) { FY.toast(e.message); sel.value = m.role; sel.disabled = false; }
+    }));
     // Delete an unclaimed row (never a claimed member or a leader; the RPC also refuses
     // anyone with poker / token / league history and says to keep the row).
     pane.querySelectorAll('button[data-del]').forEach(b => b.addEventListener('click', async () => {
