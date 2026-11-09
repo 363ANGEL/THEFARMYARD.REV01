@@ -21,14 +21,21 @@
     picks: {}, winner: null, stamp: false,         // docket (buy-ins per member id)
     draft: '', pasteHint: false, nickCopied: false, closeTip: false, seatTip: '',
     sel: null, seat: { phase: 'idle', name: '', count: 10, p: null, url: null, blocked: false },
-    go: { phase: 'idle', count: 10, t: null, blocked: false },   // START card: PokerNow opens only after the 10 s clock
     shell: '', vidOrder: null, vidPlay: false
   };
   ((await FY.q('v_members_public').select('id,nickname,avatar,avatar_url')).data || []).forEach(m => S.names[m.id] = m);
 
   // ---- helpers ----------------------------------------------------------------
-  // Seat flow: any member once the table is open; the host (who pressed START) already while it waits for the link.
-  const seatFlow = () => !!S.cur && (S.cur.status === 'open' || (S.cur.status !== 'closed' && S.cur.started_by === me.id));
+  // 2.1 seating: START A TABLE seats the initiator in seat 1; the TAKE THE SEAT card shows until they have taken it on
+  // PokerNow, then the link box appears. Everyone else JOINs (lowest free seat) once the link is saved.
+  const isHost = () => !!S.cur && S.cur.started_by === me.id;
+  const takenKey = () => 'fy.pk.taken.' + (S.cur ? S.cur.id : '');
+  const takenFlag = () => { try { return sessionStorage.getItem(takenKey()) === '1'; } catch (e) { return false; } };
+  const setTaken = () => { try { sessionStorage.setItem(takenKey(), '1'); } catch (e) { /* private mode */ } };
+  const popOn = () => { const c = S.cur; return !!c && c.status !== 'open' && c.status !== 'closed' && isHost() && !!mySeat() && (!takenFlag() || S.seat.phase !== 'idle'); };
+  const selIdx = () => ((S.cur && mySeat()) ? mySeat().seat_no : 1) - 1;
+  const winFeatures = () => 'popup,left=' + Math.round(screen.availWidth / 2) + ',top=0,width=' + Math.round(screen.availWidth / 2) + ',height=' + screen.availHeight;
+  const LINK_RE = /^https:\/\/(www\.)?pokernow\.(com|club)\/games\/[A-Za-z0-9_-]+([\/?#].*)?$/;
   const mine = () => !!S.cur && (S.cur.started_by === me.id || isLeader);
   const mySeat = () => S.cur && S.cur.seats.find(s => s.member_id === me.id);
   const filed = () => !!(S.cur && S.cur.event_id);
@@ -74,46 +81,24 @@
     <h2>POKER R<span>O</span>OM</h2></div></div>`;
   let stepsSig = '';
   function renderSteps(force) {
-    const c = S.cur, live = !!c, canManage = mine();
-    const sig = JSON.stringify([c && c.id, c && c.status, c && c.started_by, c && c.seats.length, filed(), canManage, S.nickCopied, S.closeTip, S.go.phase, S.go.blocked, force && Math.random()]);
+    const c = S.cur, live = !!c, host = isHost();
+    const sig = JSON.stringify([c && c.id, c && c.status, host, filed(), S.closeTip, force && Math.random()]);
     if (sig === stepsSig) return; stepsSig = sig;
+    $('steps').style.display = live && !host ? 'none' : '';   // checklist and CLOSE: initiator only once a table has started
     $('steps').classList.toggle('live', live);
-    let sub = '';
-    if (canManage && S.nickCopied) sub = `Your yard name "${esc(me.nickname)}" is copied. Paste it into PokerNow's Nickname box.`;
-    let note = '';
-    if (S.closeTip) note = tip('Complete the <strong>Table Docket</strong> card and press <strong>FILE DOCKET</strong> before closing the game.');
-    else if (live && !canManage) note = tip(c.status === 'open' ? `${nick(c.started_by)} has opened the table. Take a seat.` : `${nick(c.started_by)} has started a game. Waiting for the table to open.`);
-    // TAKE THE SEAT card after START (2.1 design): PokerNow opens when the clock hits zero, or sooner on the click.
-    const goBusy = S.go.phase !== 'idle';
+    const note = S.closeTip ? tip('Complete the <strong>Table Docket</strong> card and press <strong>FILE DOCKET</strong> before closing the game.') : '';
     $('steps').innerHTML = SIGN +
       '<span class="pk-kicker pk-tealtext" style="align-self:flex-start;white-space:nowrap">Game checklist</span>' +
-      `<div class="pk-step ${live ? '' : 'flash'}"><span class="n">1</span>
-        <span class="txt"><span class="t">Start a New Table &amp; Take a Seat!</span>${sub ? `<span class="sub">${sub}</span>` : ''}</span>
+      `<div class="pk-step"><span class="n">1</span>
+        <span class="txt"><span class="t">Start a New Table &amp; Take a Seat!</span></span>
         <span class="btns">
-          <button type="button" id="start" class="pk-btn green ${live || goBusy ? 'off' : ''}" ${live || goBusy ? 'aria-disabled="true"' : ''}>START</button>
-          ${live ? '<button type="button" id="close" class="pk-btn red">CLOSE</button>' : ''}
+          ${live && host ? '<button type="button" id="close" class="pk-btn red">CLOSE</button>' : ''}
           ${note}
         </span></div>`;
   }
   $('steps').addEventListener('click', async ev => {
     const t = ev.target.closest('a,button'); if (!t) return;
-    if (t.id === 'start') {                        // nothing opens before the countdown (2.1 design)
-      if (S.cur || S.go.phase !== 'idle') return;
-      copyText(me.nickname); S.nickCopied = true;
-      S.go = { phase: 'count', count: 10, t: null, blocked: false };
-      try { await FY.rpc('poker_start'); } catch (e) { FY.toast(e.message); }
-      await refresh(true); renderSteps(true);
-      S.go.t = setInterval(() => {
-        S.go.count = Math.max(0, S.go.count - 1);
-        const el = $('gocount'); if (el) el.textContent = S.go.count;
-        if (S.go.count > 0) return;
-        clearInterval(S.go.t);
-        // The timer is not a user gesture, so the pop-up can be blocked: the card then offers the link.
-        S.go.blocked = !openPokerNow(START_URL);
-        if (S.go.blocked) { S.go.phase = 'done'; renderSteps(true); setTimeout(() => { if (S.go.phase === 'done') { S.go.phase = 'idle'; renderSteps(true); } }, 30000); }
-        else { S.go.phase = 'idle'; renderSteps(true); }
-      }, 1000);
-    } else if (t.id === 'close') {
+    if (t.id === 'close') {
       if (!S.cur) return;
       if (S.cur.seats.length && !filed() && !isLeader) {   // rule 6: anyone sat → the docket must be filed first
         S.closeTip = true; renderSteps(); clearTimeout(S.closeTipT); S.closeTipT = setTimeout(() => { S.closeTip = false; renderSteps(); }, 5000); return;
@@ -126,157 +111,139 @@
   });
 
   // ---- table ------------------------------------------------------------------
-  const tableVisible = () => !!S.cur;
+  const tableVisible = () => true;                 // the felt is always there: START A TABLE sits in its centre until a table starts
   function renderTable() {
-    const col = $('tablecol'), c = S.cur;
-    if (!tableVisible()) { col.hidden = true; col.innerHTML = ''; S.shell = ''; renderRow(); return; }
+    const col = $('tablecol'), c = S.cur, key = c ? c.id : 'none';
     col.hidden = false;
-    if (S.shell !== c.id) {
-      S.shell = c.id;
+    if (S.shell !== key) {
+      S.shell = key;
       col.innerHTML = `<div class="pk-table"><span class="pk-kicker pk-tealtext">Tonight's table</span>
         <div class="pk-felt" id="felt"><div class="rail"></div><div class="cloth"></div><div class="inner"></div>
-          <div class="buyin">1000 Buy-In</div><div id="mid"></div><div id="seatsl"></div><div id="seattip"></div><div id="seatpop"></div></div></div>`;
-      $('seatsl').addEventListener('click', ev => {
-        const b = ev.target.closest('[data-n],[data-tip]'); if (!b) return;
-        if (b.dataset.tip) { showSeatTip(b.dataset.tip); return; }
-        pickSeat(Number(b.dataset.n));
-      });
+          <div class="buyin">1000 Buy-In</div><div id="mid"></div><div id="seatsl"></div><div id="seatpop"></div></div></div>`;
+      midSig = '';
     }
     renderMid(); renderSeats(); renderRow();
   }
   let midSig = '';
   function renderMid() {
-    const c = S.cur, canManage = mine();
-    if (!c || !$('mid')) return;                   // the paste hint's timer can fire after the table has closed
-    const sig = JSON.stringify([c.id, c.status, canManage, S.pasteHint, !!S.draft.trim()]);
+    const c = S.cur; if (!$('mid')) return;
+    const seated = !!mySeat(), host = isHost(), taken = takenFlag();
+    const sig = JSON.stringify([c && c.id, c && c.status, host, seated, taken, S.seat.phase, S.joining, S.starting]);
     if (sig === midSig && $('mid').innerHTML) return; midSig = sig;
-    // A redraw replaces the link box. Put focus and caret back, or a Ctrl+V pressed after the paste hint fades lands nowhere.
-    // Without scrolling: the starter may have scrolled down the page while the hint was up.
+    // A redraw replaces the link box. Put focus and caret back so a paste or typing is never lost.
     const had = document.activeElement && document.activeElement.id === 'link' ? document.activeElement : null;
     const caret = had ? [had.selectionStart, had.selectionEnd] : null;
-    if (c.status === 'open') {
-      $('mid').innerHTML = `<div class="mid"><a class="pk-mini" href="${esc(c.pokernow_url)}" target="_blank" rel="noopener">GO TO TABLE</a></div>`;
-    } else if (canManage) {                        // only the initiator (or leader) sees the link box
-      const has = !!S.draft.trim();
-      $('mid').innerHTML = `<div class="mid">
-        <input id="link" type="url" value="${esc(S.draft)}" placeholder="PASTE TABLE LINK" aria-label="PokerNow table link" autocomplete="off">
-        ${has ? '<button type="button" id="enter" class="pk-mini">OPEN TABLE</button>' : '<button type="button" id="paste" class="pk-mini">PASTE</button>'}
-        ${S.pasteHint ? '<span class="hint">Clipboard blocked. Press Ctrl+V (⌘V on Mac) in the box above.</span>' : ''}</div>`;
-    } else {
-      $('mid').innerHTML = '<div class="wait">WAITING FOR TABLE TO OPEN</div>';
-    }
+    let html = '';
+    if (!c) html = `<button type="button" id="startbtn" class="pk-btn green" ${S.starting ? 'disabled' : ''}>START A TABLE</button>`;
+    else if (c.status === 'open') html = seated
+      ? `<a class="pk-mini" href="${esc(c.pokernow_url)}" target="_blank" rel="noopener">GO TO TABLE</a>`
+      : `<button type="button" id="join" class="pk-btn green" ${S.joining ? 'disabled' : ''}>JOIN TABLE</button>`;
+    else if (host) html = taken ? `<input id="link" type="url" value="${esc(S.draft)}" placeholder="PASTE TABLE LINK" aria-label="PokerNow table link" autocomplete="off">` : '';
+    else html = `<button type="button" class="pk-btn green off" disabled aria-disabled="true">JOIN</button>`;
+    $('mid').innerHTML = html ? `<div class="mid">${html}</div>` : '';
     const box = had && $('link');
     if (box) { box.focus({ preventScroll: true }); try { box.setSelectionRange(caret[0], caret[1]); } catch (e) { /* caret not available */ } }
   }
   $('tablecol').addEventListener('click', async ev => {
-    const t = ev.target.closest('button'); if (!t) return;
-    if (t.id === 'paste') {
-      let txt = ''; try { txt = (await navigator.clipboard.readText()) || ''; } catch (e) { /* blocked */ }
-      if (txt.trim()) { S.draft = txt.trim(); renderMid(); return; }
-      S.pasteHint = true; renderMid(); const i = $('link'); if (i) { i.focus(); i.select(); }
-      clearTimeout(S.pasteHintT); S.pasteHintT = setTimeout(() => { S.pasteHint = false; renderMid(); }, 3500);   // a second PASTE restarts the 3.5 s
-    } else if (t.id === 'enter') enterLink();
+    const t = ev.target.closest('button'); if (!t || t.disabled) return;
+    if (t.id === 'startbtn') {
+      if (S.cur || S.starting) return;
+      S.starting = true; renderMid();
+      try {
+        const id = await FY.rpc('poker_start');
+        await FY.rpc('poker_take_seat', { p_table: id, p_seat: 1, p_table_name: String(me.nickname).slice(0, 24) });
+      } catch (e) { FY.toast(e.message); }
+      S.starting = false; midSig = ''; await refresh(true);
+    } else if (t.id === 'join') {
+      const c = S.cur; if (!c || c.status !== 'open' || mySeat() || S.joining) return;
+      S.joining = true; renderMid();
+      // PokerNow opens at once, inside the click, in the right-half window: no copy step, no countdown.
+      let w = null;
+      try { w = window.open(c.pokernow_url, 'pokernow', winFeatures()); } catch (e) { w = null; }
+      if (!w) { try { w = window.open(c.pokernow_url, '_blank'); } catch (e) { w = null; } }
+      if (w) { try { w.opener = null; } catch (e) { /* cross-origin */ } } else FY.toast('Allow popups for the-farmyard.com to open PokerNow beside the yard.');
+      try { await FY.rpc('poker_join', { p_table: c.id }); } catch (e) { FY.toast(e.message); }
+      S.joining = false; midSig = ''; await refresh(true);
+    }
   });
+  // A valid pasted PokerNow game URL saves the link at once: no PASTE or OPEN buttons.
   $('tablecol').addEventListener('input', ev => {
     if (ev.target.id !== 'link') return;
-    const had = !!S.draft.trim(); S.draft = ev.target.value;
-    if (had !== !!S.draft.trim()) renderMid();     // PASTE <-> OPEN TABLE; renderMid keeps focus and caret
+    S.draft = ev.target.value; const v = S.draft.trim();
+    if (LINK_RE.test(v)) saveLink(v);
   });
-  $('tablecol').addEventListener('keydown', ev => { if (ev.target.id === 'link' && ev.key === 'Enter') { ev.preventDefault(); enterLink(); } });
-  async function enterLink() {
-    const url = (S.draft || '').trim(); if (!url || !S.cur) return;
-    try { await FY.rpc('poker_set_link', { p_table: S.cur.id, p_url: url }); FY.toast('Table Open'); S.draft = '';
-      const ps = S.pendSeat; S.pendSeat = null;
-      if (ps && ps.table === S.cur.id) await FY.rpc('poker_take_seat', { p_table: ps.table, p_seat: ps.seatNo, p_table_name: ps.name }).catch(e => FY.toast(e.message)); }
+  async function saveLink(url) {
+    if (S.linkBusy || !S.cur) return; S.linkBusy = true;
+    try { await FY.rpc('poker_set_link', { p_table: S.cur.id, p_url: url }); FY.toast('Table Open'); S.draft = ''; }
     catch (e) { FY.toast(e.message); }
-    await refresh(true);
-  }
-  function showSeatTip(text) {
-    S.seatTip = text; const el = $('seattip'); if (el) el.innerHTML = `<div class="seattip" role="alert">${esc(text)}</div>`;
-    clearTimeout(S.seatTipT); S.seatTipT = setTimeout(() => { S.seatTip = ''; const e2 = $('seattip'); if (e2) e2.innerHTML = ''; }, 3000);
+    S.linkBusy = false; midSig = ''; await refresh(true);
   }
   function renderSeats() {
-    const c = S.cur; if (!c || !$('seatsl')) return;
-    const taken = {}; c.seats.forEach(s => taken[s.seat_no - 1] = s);
-    const held = {}; (c.holds || []).forEach(h => { if (h.member_id !== me.id) held[h.seat_no - 1] = h; });
-    const open = c.status === 'open', can = seatFlow() && !mySeat() && S.seat.phase === 'idle';
-    if (S.sel != null && (taken[S.sel] || held[S.sel]) && S.seat.phase === 'idle') { S.sel = null; S.seat.name = ''; }   // someone beat me to it
-    const dash = (n, lit) => `<span class="dash"><svg aria-hidden="true" viewBox="0 0 57 57"><circle class="base" cx="28.5" cy="28.5" r="27"></circle><circle class="chase" cx="28.5" cy="28.5" r="27"></circle></svg>${n + 1}</span>`;
-    $('seatsl').innerHTML = SEAT_XY.map(([x, y], n) => {
-      const pos = `left:${x}%;top:${y}%`, p = taken[n], h = held[n];
-      if (p) return `<div class="pk-seat taken locked ${p.member_id === me.id ? 'me' : ''}" style="${pos}" ${p.member_id === me.id ? '' : `data-tip="${esc(p.nickname)} is sitting here. Pick another one."`}><span class="col"><span class="face" role="img" aria-label="${esc(p.nickname)}" style="background-image:url('${esc(FY.face(p, 57))}')"></span><span class="who">${esc(p.table_name)}</span></span></div>`;
-      if (h) return `<div class="pk-seat held locked" style="${pos}" data-tip="${esc(h.nickname)} is taking this seat. Pick another one."><span class="col">${dash(n)}<span class="sit">HELD · ${esc(h.nickname)}</span></span></div>`;
-      if (can) return `<button type="button" class="pk-seat pick ${S.sel === n ? 'lit' : ''}" style="${pos}" data-n="${n}" aria-label="Take seat ${n + 1}"><span class="col">${dash(n)}<span class="sit">SIT</span></span></button>`;
-      const why = !open ? (mine() ? 'Paste the PokerNow table link above to open the table.' : `Waiting for the table to open. ${S.names[c.started_by]?.nickname || 'The initiator'} needs to post the table link first.`) : '';
-      return `<div class="pk-seat ${why ? 'locked' : ''} ${S.sel === n ? 'lit' : ''}" style="${pos}" ${why ? `data-tip="${esc(why)}"` : ''}><span class="col">${dash(n)}<span class="sit">SIT</span></span></div>`;
+    const c = S.cur, el = $('seatsl'); if (!el) return;
+    const taken = {}; ((c && c.seats) || []).forEach(s => taken[s.seat_no - 1] = s);
+    const dash = n => `<span class="dash"><svg aria-hidden="true" viewBox="0 0 57 57"><circle class="base" cx="28.5" cy="28.5" r="27"></circle><circle class="chase" cx="28.5" cy="28.5" r="27"></circle></svg>${n + 1}</span>`;
+    el.innerHTML = SEAT_XY.map(([x, y], n) => {
+      const pos = `left:${x}%;top:${y}%`, p = taken[n];
+      if (p) return `<div class="pk-seat taken ${p.member_id === me.id ? 'me' : ''}" style="${pos}"><span class="col"><span class="face" role="img" aria-label="${esc(p.nickname)}" style="background-image:url('${esc(FY.face(p, 57))}')"></span><span class="who">${esc(p.table_name)}</span></span></div>`;
+      return `<div class="pk-seat" style="${pos}"><span class="col">${dash(n)}</span></div>`;
     }).join('');
     renderPop();
   }
-  function pickSeat(n) {
-    if (S.seat.phase !== 'idle' || mySeat() || !S.cur) return;
-    S.sel = n; renderSeats();
-    if (S.cur.status !== 'open') return;           // host before the link: nothing to hold yet
-    FY.rpc('poker_hold_seat', { p_table: S.cur.id, p_seat: n + 1 }).catch(e => { S.sel = null; FY.toast(e.message); refresh(true); });
-  }
-  // A hold lasts 45 seconds; renew it while the card is open so the seat stays HELD on every other screen.
-  setInterval(() => { if (S.sel != null && S.seat.phase === 'idle' && S.cur && S.cur.status === 'open' && !mySeat()) FY.rpc('poker_hold_seat', { p_table: S.cur.id, p_seat: S.sel + 1 }).catch(() => {}); }, 30000);
 
   // Take-seat card: name is copied on the click itself, the PokerNow link opens after a 10 second clock.
   function renderPop() {
     const pop = $('seatpop'); if (!pop) return;
-    if (S.sel == null || !seatFlow()) { pop.innerHTML = ''; pop.dataset.sig = ''; return; }
+    if (!popOn()) { pop.innerHTML = ''; pop.dataset.sig = ''; return; }
     // Rebuild only when something it shows has changed, so a Realtime refresh never steals focus from the name box.
-    const sig = [S.sel, S.seat.phase, S.seat.blocked, S.seat.hint, S.seat.url, S.cur.pokernow_url].join('|');
+    const sig = [selIdx(), S.seat.phase, S.seat.blocked, S.seat.hint, S.seat.url, S.cur.pokernow_url].join('|');
     if (pop.dataset.sig === sig && pop.innerHTML) return;
     pop.dataset.sig = sig;
     const again = !!pop.innerHTML;                 // card already up (new phase or another seat): no second entrance, as in the design
-    const [x, y] = SEAT_XY[S.sel], above = y > 40, shift = x <= 12 ? 15 : x <= 20 ? 25 : x >= 88 ? 85 : x >= 80 ? 75 : 50;
+    const [x, y] = SEAT_XY[selIdx()], above = y > 40, shift = x <= 12 ? 15 : x <= 20 ? 25 : x >= 88 ? 85 : x >= 80 ? 75 : 50;
     const busy = S.seat.phase !== 'idle';
     const lock = 'font-size:21px';
     const body = busy
       ? `<div class="clock"><span class="face"><span class="dot"></span><i style="width:2.5px;height:15px;margin-left:-1.25px;background:#f2fbfb;animation:handSpin 16s linear infinite"></i><i style="width:1.5px;height:21px;margin-left:-.75px;background:#9eeae6;box-shadow:0 0 4px var(--neon-teal);animation:handSpin 1.6s linear infinite"></i></span><span class="count" id="count">${S.seat.count}</span></div>`
       : `<label>FARMYARD NAME<div class="field locked"><i class="ph-light ph-lock-simple" style="${lock};color:var(--neon-red-tube);text-shadow:var(--text-glow-red)"></i><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(me.nickname)}</span></div></label>
          <label>TABLE NAME<div class="field edit"><i class="ph-light ph-lock-simple-open" style="${lock};color:var(--neon-green-tube);text-shadow:var(--text-glow-green)"></i><input id="tname" value="${esc(S.seat.name)}" maxlength="16" placeholder="${esc(me.nickname)}" autocomplete="off"></div><span class="hint">Try an Alt Tag On? (Just for the table)</span></label>`;
-    const note = busy ? `<div class="note">Your table name has been copied to your clipboard.<span style="display:block;height:.8em"></span><span style="display:block;white-space:nowrap;font-size:12px">TAKE <b>SEAT ${S.sel + 1}</b> ON POKERNOW.</span>${S.seat.hint ? '<span style="display:block;margin-top:8px;font-size:12px">Allow popups for the-farmyard.com to open PokerNow beside the yard.</span>' : ''}${S.seat.blocked && S.seat.url ? `<a class="pk-btn green sm" style="margin-top:8px" href="${esc(S.seat.url)}" target="_blank" rel="noopener">OPEN POKERNOW</a>` : ''}</div>` : '';
-    pop.innerHTML = `<div class="pk-pop${again ? ' again' : ''}${S.seat.phase === 'done' ? ' done' : ''}" style="left:${x}%;transform:translateX(-${shift}%);top:${above ? 'auto' : (y + 9) + '%'};bottom:${above ? (100 - y + 9) + '%' : 'auto'}" role="dialog" aria-label="Take seat ${S.sel + 1}">
+    const note = busy ? `<div class="note">Your table name has been copied to your clipboard.<span style="display:block;height:.8em"></span><span style="display:block;white-space:nowrap;font-size:12px">TAKE <b>SEAT ${selIdx() + 1}</b> ON POKERNOW.</span>${S.seat.hint ? '<span style="display:block;margin-top:8px;font-size:12px">Allow popups for the-farmyard.com to open PokerNow beside the yard.</span>' : ''}${S.seat.blocked && S.seat.url ? `<a class="pk-btn green sm" style="margin-top:8px" href="${esc(S.seat.url)}" target="_blank" rel="noopener">OPEN POKERNOW</a>` : ''}</div>` : '';
+    pop.innerHTML = `<div class="pk-pop${again ? ' again' : ''}${S.seat.phase === 'done' ? ' done' : ''}" style="left:${x}%;transform:translateX(-${shift}%);top:${above ? 'auto' : (y + 9) + '%'};bottom:${above ? (100 - y + 9) + '%' : 'auto'}" role="dialog" aria-label="Take seat ${selIdx() + 1}">
       ${body}<button type="button" id="take" class="pk-btn green take ${busy ? 'off' : ''}">TAKE THE SEAT</button>${note}
       <span class="arrow" style="left:${shift}%;top:${above ? 'auto' : '-9px'};bottom:${above ? '-9px' : 'auto'};transform:translateX(-50%) rotate(${above ? 45 : 225}deg)"></span></div>`;
   }
   document.addEventListener('input', ev => { if (ev.target.id === 'tname') S.seat.name = ev.target.value; });
   document.addEventListener('click', ev => { if (ev.target.closest && ev.target.closest('#take')) takeSeat(); });
   function takeSeat() {
-    if (S.seat.phase !== 'idle' || S.sel == null || !S.cur) return;
-    const name = (S.seat.name || '').trim() || me.nickname, seatNo = S.sel + 1, table = S.cur.id;
+    if (S.seat.phase !== 'idle' || !popOn()) return;
+    const name = (S.seat.name || '').trim() || me.nickname, seatNo = selIdx() + 1, table = S.cur.id;
     copyText(name);                                // inside the click: browsers only allow it here
     // Open the PokerNow window now, inside the click (allowed); it is pointed at the game when the clock hits zero.
     let w = null;
-    try { w = window.open('about:blank', 'pokernow', 'popup,left=' + Math.round(screen.availWidth / 2) + ',top=0,width=' + Math.round(screen.availWidth / 2) + ',height=' + screen.availHeight); } catch (e) { w = null; }
+    try { w = window.open('about:blank', 'pokernow', winFeatures()); } catch (e) { w = null; }
     if (w) { try { w.opener = null; } catch (e) { /* cross-origin */ } }
     S.seat.win = w; S.seat.hint = !w;
-    S.seat.phase = 'count'; S.seat.count = 10; S.seat.blocked = false; S.seat.url = S.cur.pokernow_url || START_URL;
-    const pending = S.cur.status !== 'open';       // host before the link: the seat is claimed once the link is pasted
-    if (pending) S.pendSeat = { table, seatNo, name };
-    const p = pending ? Promise.resolve(null) : FY.rpc('poker_take_seat', { p_table: table, p_seat: seatNo, p_table_name: name });
+    S.seat.phase = 'count'; S.seat.count = 10; S.seat.blocked = false; S.seat.url = START_URL;
+    const p = FY.rpc('poker_take_seat', { p_table: table, p_seat: seatNo, p_table_name: name });   // renames the initiator's seat
     S.seat.p = p;
-    p.then(url => { S.seat.url = url || S.seat.url; refresh(true); }).catch(e => {
-      clearInterval(S.seat.tick); try { S.seat.win && S.seat.win.close(); } catch (x) { /* gone */ } S.seat.win = null; S.seat.hint = false; S.seat.phase = 'idle'; S.seat.p = null; S.sel = null; FY.toast(e.message); refresh(true);
+    p.catch(e => {
+      clearInterval(S.seat.tick); try { S.seat.win && S.seat.win.close(); } catch (x) { /* gone */ } S.seat.win = null; S.seat.hint = false; S.seat.phase = 'idle'; S.seat.p = null; FY.toast(e.message); renderPop();
     });
-    renderPop(); renderSeats();
+    renderPop();
     S.seat.tick = setInterval(async () => {
       S.seat.count = Math.max(0, S.seat.count - 1);
       const el = $('count'); if (el) el.textContent = S.seat.count;
       if (S.seat.count > 0) return;
       clearInterval(S.seat.tick);
-      let url = null; try { url = await S.seat.p; } catch (e) { return; }
-      S.seat.url = url || S.seat.url;
+      try { await S.seat.p; } catch (e) { return; }
       if (S.cur && S.cur.pokernow_url) S.seat.url = S.cur.pokernow_url;
       if (S.seat.win && !S.seat.win.closed) { try { S.seat.win.location.href = S.seat.url; S.seat.blocked = false; } catch (e) { S.seat.blocked = !openPokerNow(S.seat.url); } }
-      else S.seat.blocked = !(S.seat.url && openPokerNow(S.seat.url));   // popups were blocked: new tab at zero
+      else S.seat.blocked = !openPokerNow(S.seat.url);   // popups were blocked: new tab at zero
+      setTaken(); midSig = '';
       if (S.seat.blocked) { S.seat.phase = 'done'; renderPop(); setTimeout(() => { if (S.seat.phase === 'done') endSeatFlow(); }, 30000); return; }
       endSeatFlow();
     }, 1000);
   }
-  function endSeatFlow() { S.seat.phase = 'idle'; S.seat.p = null; S.seat.win = null; S.seat.hint = false; S.sel = null; S.seat.name = ''; refresh(true); }
+  function endSeatFlow() { S.seat.phase = 'idle'; S.seat.p = null; S.seat.win = null; S.seat.hint = false; S.seat.name = ''; midSig = ''; renderPop(); renderMid(); refresh(true); }
 
   // ---- docket -----------------------------------------------------------------
   // Shows whenever a game is open (the initiator sees it from START). Only the initiator or the leader can file.
