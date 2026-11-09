@@ -64,6 +64,19 @@
     });
   }
 
+  // Invite round trip: if Discord sent the new login to any other page (for example the Site URL, because the claim URL
+  // was not on the redirect allow-list), carry the saved invite token on to claim.html, which binds it.
+  if (sb && !/claim\.html$/.test(location.pathname)) {
+    let t = null; try { t = localStorage.getItem('fy_claim_token') || sessionStorage.getItem('fy_claim_token'); } catch (e) {}
+    if (t && /^[0-9a-f]{32}$/.test(t)) {
+      sb.auth.getSession().then(async ({ data }) => {
+        if (!data.session) return;
+        const r = await sb.rpc('me');
+        if (!r.error && !(r.data && r.data.id)) location.replace('claim.html?claim=' + t);
+      }).catch(() => {});
+    }
+  }
+
   // Shared header: sign-in state. Pages include <header id="fy-header"></header>.
   document.addEventListener('DOMContentLoaded', async () => {
     const h = document.getElementById('fy-header');
