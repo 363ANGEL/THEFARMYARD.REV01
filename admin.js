@@ -36,7 +36,7 @@
   // Invite status: which contact the sign-in gate will match this row on.
   const invStatus = m => m.user_id
     ? (m.setup_at ? 'Claimed' : 'Claimed · set-up pending')
-    : `<span style="color:var(--fy-text-label)">Invited · ${m.invite_email ? 'matches on email' : m.discord_username ? 'matches on Discord username' : 'no contact — cannot sign in'}</span>`;
+    : `<span style="color:var(--fy-text-label)">Invited · ${m.invite_email ? 'matches on email' : m.discord_username ? 'matches on Discord username' : 'invite link'}</span>`;
   // Role is a plain text column; Member and Leader are the two the page offers, any other stored role still shows.
   const roleLabel = r => r ? r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g, ' ') : 'Member';
   const roleTag = r => `<span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:999px;border:1px solid ${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'};color:${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'}">${esc(roleLabel(r))}</span>`;
@@ -50,13 +50,13 @@
           <input class="input" data-inv="discord_username" data-m="${m.id}" placeholder="Discord username" maxlength="40" value="${esc(m.discord_username || '')}" style="width:10em;min-height:34px;font-size:12px">
           <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="width:8em;min-height:34px;font-size:12px"></span>`;
     pane.innerHTML = `<div class="acard"><span class="t-module">Members</span>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Click a row to open their profile in admin view. Invite contacts save as you leave each box; keep an email or a Discord username on every invited row — it is how Hank matches their sign-in.</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Click a row to open their profile in admin view. Invite contacts save as you leave each box; email is optional: use Copy invite link and send it on Discord.</span>
       <table><thead><tr><th>Member</th><th>Role</th><th>Status</th><th>Invite contact</th><th>Claim link</th></tr></thead><tbody>
       ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}"><td style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)} ${roleTag(m.role)}</td>
         <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:12px;width:auto">${roleOpts(m.role)}</select></td>
         <td data-st="${m.id}">${invStatus(m)}</td>
         <td>${contactCell(m)}</td>
-        <td style="white-space:nowrap">${m.user_id ? '' : `<button class="rowbtn" data-link="${m.id}">New link</button>${m.role === 'leader' ? '' : ` <button class="rowbtn warn" data-del="${m.id}">Delete</button>`}`}</td></tr>`).join('')}
+        <td style="white-space:nowrap">${m.user_id ? '' : `<button class="rowbtn" data-link="${m.id}">Copy invite link</button> <button class="rowbtn" data-link="${m.id}" data-new="1">New link</button>${m.role === 'leader' ? '' : ` <button class="rowbtn warn" data-del="${m.id}">Delete</button>`}`}</td></tr>`).join('')}
       </tbody></table>
       <form id="newmember" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;max-width:100%"><input class="input" id="nm-nick" placeholder="Nickname" required maxlength="24" style="min-height:40px;flex:1 1 140px;min-width:0;max-width:100%;box-sizing:border-box">
         <select class="input" id="nm-av" style="min-height:40px;flex:1 1 110px;min-width:0;max-width:100%;box-sizing:border-box">${['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].map(a => `<option>${a}</option>`).join('')}</select>
@@ -65,8 +65,8 @@
         <input class="input" id="nm-disc" placeholder="Discord username" maxlength="40" style="min-height:40px;flex:1 1 150px;min-width:0;max-width:100%;box-sizing:border-box">
         <input class="input" id="nm-mob" type="tel" placeholder="Mobile (contact only)" maxlength="20" style="min-height:40px;flex:1 1 150px;min-width:0;max-width:100%;box-sizing:border-box">
         <button class="btn btn-primary" style="min-height:40px">Add member</button></form>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Invite-only: email and Discord username are each optional, but one is needed — Hank matches their Discord sign-in against it at the door. Mobile is contact only, never used for login.</span>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">A claim link works once and expires after 14 days. Send it on Discord.</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Email and Discord username are optional. Copy the invite link from the member's row and send it on Discord. Mobile is contact only, never used for login.</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An invite link works once and expires after 7 days. Copy invite link reuses an unused one; New link voids it and makes a fresh one.</span>
       <div id="linkbox" hidden style="display:flex;gap:8px"><input class="input" id="linkout" readonly style="flex:1;min-height:40px"><button class="rowbtn" id="copylink">Copy</button></div></div>
       <div class="acard"><span class="t-module">Icon palette</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Upload an image: it takes the lowest free number (1 to 15). Click a picture to set it as the selected member's icon; the cross removes it for everyone.</span>
@@ -86,9 +86,6 @@
         let v = box.value.trim(); if (f !== 'mobile') v = v.toLowerCase();
         box.value = v;
         if ((m[f] || '') === v) return;
-        if (f !== 'mobile' && !v && !(f === 'invite_email' ? m.discord_username : m.invite_email)) {
-          FY.toast('Keep an email or a Discord username — it is how they sign in.'); box.value = m[f] || ''; return;
-        }
         try {
           await FY.rpc('admin_set_member', { p_member: m.id, p_field: f, p_value: v });
           m[f] = v || null;
@@ -100,7 +97,6 @@
     pane.querySelector('#newmember').addEventListener('submit', async ev => {
       ev.preventDefault();
       const email = pane.querySelector('#nm-email').value.trim(), disc = pane.querySelector('#nm-disc').value.trim();
-      if (!email && !disc) { FY.toast('Give an invite email or a Discord username (at least one).'); return; }
       try {
         await FY.rpc('create_member', {
           p_nickname: pane.querySelector('#nm-nick').value.trim(), p_avatar: pane.querySelector('#nm-av').value,
@@ -128,10 +124,11 @@
     }));
     pane.querySelectorAll('button[data-link]').forEach(b => b.addEventListener('click', async () => {
       try {
-        const tok = await FY.rpc('issue_claim_link', { p_member_id: b.dataset.link });
-        const url = `${location.origin}/claim.html?t=${tok}`;
-        pane.querySelector('#linkbox').hidden = false; pane.querySelector('#linkout').value = url;
-        pane.querySelector('#copylink').onclick = () => navigator.clipboard.writeText(url).then(() => FY.toast('Copied.'), () => pane.querySelector('#linkout').select());
+        const tok = await FY.rpc('issue_claim_link', { p_member_id: b.dataset.link, p_new: !!b.dataset.new });
+        const url = `${location.origin}/claim.html?claim=${tok}`;
+        const lab = b.textContent;
+        try { await navigator.clipboard.writeText(url); b.textContent = 'Link copied'; setTimeout(() => { b.textContent = lab; }, 2000); }
+        catch (e) { pane.querySelector('#linkbox').hidden = false; pane.querySelector('#linkout').value = url; pane.querySelector('#linkout').select(); }
       } catch (e) { FY.toast(e.message); }
     }));
     // Icon palette: one Upload box beside 15 numbered slots. Slots are global; a click sets the selected member's icon.
