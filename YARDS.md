@@ -8,9 +8,15 @@ set-up), which do not touch `yard_id`.
 **Nothing is scoped by yard yet.** Existing policies and RPCs are unchanged. Before a second yard has any members, every item below
 needs `yard_id = fy.my_yard()` (or the stated equivalent). Until then they all behave as one yard.
 
-Tables with `yard_id`: `league`, `member`, `member_logo`, `member_link`, `claim_link`, `claim`, `event_type`, `event`, `score_entry`,
+`yard.sql` only alters base tables (`pg_class.relkind` `r` or `p`); anything that is a view is skipped with a notice. The one
+view in the list is `fy.humidor_pay` (a view over the round's `iou` rows since `humidor.sql`): it gets its yard from `fy.iou.yard_id`,
+and `yard.sql` re-creates it with `yard_id` appended as its last column. Add `fy.humidor_pay` to the views that need a
+`yard_id = fy.my_yard()` filter (section 2). Re-running `humidor.sql` after `yard.sql` would drop that column again; re-run `yard.sql`
+afterwards (it is idempotent).
+
+Base tables with `yard_id`: `league`, `member`, `member_logo`, `member_link`, `claim_link`, `claim`, `event_type`, `event`, `score_entry`,
 `settlement`, `iou`, `group_event`, `admin_edit`, `poker_table`, `poker_seat`, `poker_hold`, `poker_news`, `poker_video`,
-`humidor_round`, `humidor_option`, `humidor_pref`, `humidor_ballot`, `humidor_pay`, `room`, `post`, `post_like`, `suggestion`, `pool`,
+`humidor_round`, `humidor_option`, `humidor_pref`, `humidor_ballot`, `icon_palette`, `room`, `post`, `post_like`, `suggestion`, `pool`,
 `pool_call`.
 
 ## 1. Helpers (change first, the rest build on them)
@@ -41,7 +47,7 @@ Insert/update policies (also add to `with check`): `member_update_self`, `humido
 `humidor_pref_ins`, `humidor_pref_upd`.
 
 Views to rebuild with a `yard_id = fy.my_yard()` filter (they read across members and events): `v_members_public`, `v_standings`,
-`v_overall`, `v_badges`, `v_live_iou`, `v_netting`.
+`v_overall`, `v_badges`, `v_live_iou`, `v_netting`, `humidor_pay`.
 
 Column grants: `yard_id` is not in the `fy.member` column grant, so the page cannot read or change it. Keep it that way.
 
