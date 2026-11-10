@@ -225,7 +225,7 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
       <option value="">None</option>
       ${D.chars.map(c => { const by = D.holders[c.id], mine = c.id === subject.character_id, gone = by && !mine;
         return `<option value="${c.id}" ${mine ? 'selected' : ''} ${gone ? 'disabled style="color:#777"' : ''}>${esc(c.name)}${gone ? ' (taken)' : ''}</option>`; }).join('')}
-    </select><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">One animal each. A greyed animal belongs to someone else; ask a leader to free it.</span>`;
+    </select><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">One animal each. A greyed animal belongs to someone else; ask an admin to free it.</span>`;
 
   const poolsHtml = () => `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><span class="t-module">My football pools</span>
       <a href="room.html?room=football" style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--neon-teal);text-decoration:none">Open Football</a></div>

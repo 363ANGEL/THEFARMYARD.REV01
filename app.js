@@ -16,8 +16,13 @@
     async session() { const { data } = await sb.auth.getSession(); return data.session; },
     async me() {
       if (!(await FY.session())) return null;
-      const { data, error } = await sb.rpc('me');
+      let { data, error } = await sb.rpc('me');
       if (error) throw error;
+      if (!(data && data.id)) {   // not linked yet: bind a row that matches their Discord id or email (fy.link_me), then look again
+        await sb.rpc('link_me').catch(() => {});
+        ({ data, error } = await sb.rpc('me'));
+        if (error) throw error;
+      }
       return data && data.id ? data : null;
     },
     signIn(redirectTo) {
@@ -47,7 +52,7 @@
     },
     async requireLeader() {
       let ok = false; try { ok = wired && await FY.rpc('is_leader'); } catch (e) { ok = false; }
-      if (!ok) { document.body.innerHTML = '<main class="wrap"><h1>Leader only</h1><p>Sign in as RAY to use this page.</p><p><a href="tables.html">Back to the tables</a></p></main>'; throw new Error('not leader'); }
+      if (!ok) { document.body.innerHTML = '<main class="wrap"><h1>Admin only</h1><p>Sign in as RAY to use this page.</p><p><a href="tables.html">Back to the tables</a></p></main>'; throw new Error('not leader'); }
     },
     esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
   };
@@ -71,8 +76,8 @@
     if (t && /^[0-9a-f]{32}$/.test(t)) {
       sb.auth.getSession().then(async ({ data }) => {
         if (!data.session) return;
-        const r = await sb.rpc('me');
-        if (!r.error && !(r.data && r.data.id)) location.replace('claim.html?claim=' + t);
+        const m = await FY.me().catch(() => undefined);
+        if (m === null) location.replace('claim.html?claim=' + t);
       }).catch(() => {});
     }
   }

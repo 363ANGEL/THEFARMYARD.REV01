@@ -37,12 +37,20 @@
   const invStatus = m => m.user_id
     ? (m.setup_at ? 'Claimed' : 'Claimed · set-up pending')
     : `<span style="color:var(--fy-text-label)">Invited · ${m.invite_email ? 'matches on email' : m.discord_username ? 'matches on Discord username' : 'invite link'}</span>`;
-  // Role is a plain text column; Member and Leader are the two the page offers, any other stored role still shows.
-  const roleLabel = r => r ? r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g, ' ') : 'Member';
+  // Role is a plain text column; Member and Admin (stored as 'leader') are the two the page offers, any other stored role still shows.
+  const roleLabel = r => r === 'leader' ? 'Admin' : r ? r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g, ' ') : 'Member';
   const roleTag = r => `<span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:999px;border:1px solid ${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'};color:${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'}">${esc(roleLabel(r))}</span>`;
   const roleOpts = cur => [...new Set(['member', 'leader', cur || 'member'])].map(r => `<option value="${esc(r)}" ${r === (cur || 'member') ? 'selected' : ''}>${esc(roleLabel(r))}</option>`).join('');
   async function tabMembers() {
     await loadMembers();
+    // Animals (characters.sql): the Add member dropdown uses the same list, taken ones greyed. Falls back to the stock list if absent.
+    const cr0 = await FY.q('character').select('id,name,img').order('name');
+    const chars0 = cr0.error ? null : (cr0.data || []);
+    const held0 = {};
+    if (chars0) ((await FY.q('member').select('nickname,character_id').not('character_id', 'is', null)).data || []).forEach(m => { held0[m.character_id] = m.nickname; });
+    const animalSel = chars0
+      ? `<select class="input" id="nm-char" aria-label="Animal" style="min-height:40px;flex:1 1 130px;min-width:0;max-width:100%;box-sizing:border-box"><option value="">No animal yet</option>${chars0.map(c => `<option value="${c.id}" ${held0[c.id] ? 'disabled style="color:#777"' : ''}>${esc(c.name)}${held0[c.id] ? ' (taken)' : ''}</option>`).join('')}</select>`
+      : `<select class="input" id="nm-av" style="min-height:40px;flex:1 1 110px;min-width:0;max-width:100%;box-sizing:border-box">${['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].map(a => `<option>${a}</option>`).join('')}</select>`;
     const contactCell = m => m.user_id
       ? `<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${esc(m.invite_email || m.discord_username || '')}</span>`
       : `<span style="display:flex;gap:6px;flex-wrap:wrap">
@@ -50,7 +58,7 @@
           <input class="input" data-inv="discord_username" data-m="${m.id}" placeholder="Discord username" maxlength="40" value="${esc(m.discord_username || '')}" style="width:10em;min-height:34px;font-size:12px">
           <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="width:8em;min-height:34px;font-size:12px"></span>`;
     pane.innerHTML = `<div class="acard"><span class="t-module">Members</span>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Click a row to open their profile in admin view. Invite contacts save as you leave each box; email is optional: use Copy invite link and send it on Discord.</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Click a row to open their profile in admin view. Invite contacts save as you leave each box; email is optional: use Copy invite link and send it on WhatsApp or Messenger.</span>
       <table><thead><tr><th>Member</th><th>Role</th><th>Status</th><th>Invite contact</th><th>Claim link</th></tr></thead><tbody>
       ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}"><td style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)} ${roleTag(m.role)}</td>
         <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:12px;width:auto">${roleOpts(m.role)}</select></td>
@@ -59,13 +67,13 @@
         <td style="white-space:nowrap">${m.user_id ? '' : `<button class="rowbtn" data-link="${m.id}">Copy invite link</button> <button class="rowbtn" data-link="${m.id}" data-new="1">New link</button>${m.role === 'leader' ? '' : ` <button class="rowbtn warn" data-del="${m.id}">Delete</button>`}`}</td></tr>`).join('')}
       </tbody></table>
       <form id="newmember" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;max-width:100%"><input class="input" id="nm-nick" placeholder="Nickname" required maxlength="24" style="min-height:40px;flex:1 1 140px;min-width:0;max-width:100%;box-sizing:border-box">
-        <select class="input" id="nm-av" style="min-height:40px;flex:1 1 110px;min-width:0;max-width:100%;box-sizing:border-box">${['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].map(a => `<option>${a}</option>`).join('')}</select>
-        <select class="input" id="nm-role" aria-label="Role" style="min-height:40px;flex:1 1 110px;min-width:0;max-width:100%;box-sizing:border-box">${roleOpts('member')}</select>
+        ${animalSel}
+        <select class="input" id="nm-role" aria-label="Role" autocomplete="off" style="min-height:40px;flex:1 1 110px;min-width:0;max-width:100%;box-sizing:border-box">${roleOpts('member')}</select>
         <input class="input" id="nm-email" type="email" placeholder="Invite email" maxlength="254" style="min-height:40px;flex:1 1 180px;min-width:0;max-width:100%;box-sizing:border-box">
         <input class="input" id="nm-disc" placeholder="Discord username" maxlength="40" style="min-height:40px;flex:1 1 150px;min-width:0;max-width:100%;box-sizing:border-box">
         <input class="input" id="nm-mob" type="tel" placeholder="Mobile (contact only)" maxlength="20" style="min-height:40px;flex:1 1 150px;min-width:0;max-width:100%;box-sizing:border-box">
         <button class="btn btn-primary" style="min-height:40px">Add member</button></form>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Email and Discord username are optional. Copy the invite link from the member's row and send it on Discord. Mobile is contact only, never used for login.</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Email and Discord username are optional. Copy the invite link from the member's row and send it on WhatsApp or Messenger. Mobile is contact only, never used for login.</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An invite link works once and expires after 7 days. Copy invite link reuses an unused one; New link voids it and makes a fresh one.</span>
       <div id="linkbox" hidden style="display:flex;gap:8px"><input class="input" id="linkout" readonly style="flex:1;min-height:40px"><button class="rowbtn" id="copylink">Copy</button></div></div>
       <div class="acard"><span class="t-module">Icon palette</span>
@@ -101,12 +109,19 @@
     pane.querySelector('#newmember').addEventListener('submit', async ev => {
       ev.preventDefault();
       const email = pane.querySelector('#nm-email').value.trim(), disc = pane.querySelector('#nm-disc').value.trim();
+      const charSel = pane.querySelector('#nm-char');
+      const avatarKey = () => {
+        if (!charSel) return pane.querySelector('#nm-av').value;
+        const c = (chars0 || []).find(x => String(x.id) === charSel.value), k = c && c.img && (c.img.match(/avatars\/([a-z]+)\.svg$/) || [])[1];
+        return k || 'hen';
+      };
       try {
-        await FY.rpc('create_member', {
-          p_nickname: pane.querySelector('#nm-nick').value.trim(), p_avatar: pane.querySelector('#nm-av').value,
+        const newId = await FY.rpc('create_member', {
+          p_nickname: pane.querySelector('#nm-nick').value.trim(), p_avatar: avatarKey(),
           p_invite_email: email || null, p_discord_username: disc || null, p_mobile: pane.querySelector('#nm-mob').value.trim() || null,
           p_role: pane.querySelector('#nm-role').value,
         });
+        if (charSel && charSel.value) await FY.rpc('admin_character_assign', { p_member: newId, p_id: Number(charSel.value) });
         FY.toast('Added.'); draw();
       } catch (e) { FY.toast(e.message); }
     });
