@@ -1,7 +1,5 @@
--- yard.sql — multi-yard, Stage 1 (schema). NOT run, NOT committed. Run once in the Supabase SQL editor; idempotent.
--- Run roles.sql FIRST (this file redefines fy.create_member with the p_role argument roles.sql introduced).
--- Adds only: fy.yards, a yard_id column + index on every per-group table, fy.my_yard(), and yard-aware Add member / claim-link
--- RPCs. Nothing is renamed or dropped. Every existing row ends up in yard 1 (The Farmyard) through the column default.
+-- yard.sql — multi-yard, Stage 1 (schema). Run once in the Supabase SQL editor; idempotent.
+-- Adds only: fy.yards, a yard_id column + index on every per-group table, fy.my_yard(). Nothing is renamed or dropped. Every existing row ends up in yard 1 (The Farmyard) through the column default.
 -- Note: fy.league (uuid, one row 'farmyard') already exists and is untouched; fy.yards is the new int-keyed tenant table.
 
 -- 1. The yards table.
@@ -74,41 +72,5 @@ language sql stable security definer set search_path = fy, public as $$
 $$;
 grant execute on function fy.my_yard() to authenticated;
 
--- 4. Add member: the new row takes the creator's yard (and keeps the p_role argument from roles.sql).
-drop function if exists fy.create_member(text, text, text, text, text);
-create or replace function fy.create_member(p_nickname text, p_avatar text,
-                                            p_invite_email text default null,
-                                            p_discord_username text default null,
-                                            p_mobile text default null,
-                                            p_role text default 'member') returns uuid
-language plpgsql security definer set search_path = fy, public as $$
-declare v_id uuid; v_role text := lower(btrim(coalesce(nullif(p_role, ''), 'member')));
-begin
-  perform fy._require_leader();
-  if v_role !~ '^[a-z][a-z_]{1,23}$' then raise exception 'that is not a valid role'; end if;
-  if nullif(btrim(coalesce(p_invite_email, '')), '') is null
-     and nullif(btrim(coalesce(p_discord_username, '')), '') is null then
-    raise exception 'give an invite email or a Discord username (at least one)' using errcode = '23514';
-  end if;
-  insert into fy.member (league_id, yard_id, nickname, avatar, invite_email, discord_username, mobile, role)
-  values (fy._league(), fy.my_yard(), btrim(p_nickname), coalesce(p_avatar,'hen'), p_invite_email, p_discord_username, p_mobile, v_role)
-  returning id into v_id;
-  return v_id;
-end $$;
-grant execute on function fy.create_member(text, text, text, text, text, text) to authenticated;
-
--- 5. Invite (claim link): only for a member of the leader's own yard, and the link carries that yard.
-create or replace function fy.issue_claim_link(p_member_id uuid, p_days int default 14) returns text
-language plpgsql security definer set search_path = fy, public as $$
-declare v_token text;
-begin
-  perform fy._require_leader();
-  -- A new link burns any older unused one for the same member.
-  update fy.claim_link set used_at = now() where member_id = p_member_id and used_at is null and yard_id = fy.my_yard();
-  insert into fy.claim_link (member_id, league_id, yard_id, expires_at)
-  select id, league_id, yard_id, now() + make_interval(days => p_days) from fy.member
-   where id = p_member_id and yard_id = fy.my_yard()
-  returning token into v_token;
-  if v_token is null then raise exception 'unknown member' using errcode = 'P0002'; end if;
-  return v_token;
-end $$;
+-- 4/5. fy.create_member and fy.issue_claim_link are NOT redefined here any more: their current versions (yard-aware, optional email,
+--      7-day reusable links) live in invite-link.sql. Re-running this file must not overwrite them.
