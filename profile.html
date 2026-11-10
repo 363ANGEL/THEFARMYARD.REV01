@@ -83,12 +83,16 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
   const events = {}; ((await FY.q('event').select('id,type_key,played_at,note,voided_at').order('played_at', { ascending: false }).limit(200)).data || []).forEach(e => events[e.id] = e);
   const scores = (await FY.q('score_entry').select('event_id,member_id,points,reason,created_at').eq('member_id', subject.id).order('created_at', { ascending: false }).limit(60)).data || [];
 
-  const D = { ious: [], links: [], logos: [] };
+  const D = { ious: [], links: [], logos: [], chars: [], holders: {} };
   if (notPublic) {
     const all = await FY.rpc('my_ious').catch(() => []);
     D.ious = (all || []).filter(i => i.payer_id === subject.id || i.payee_id === subject.id);
     D.links = (await FY.q('member_link').select('provider,handle,enabled').eq('member_id', subject.id)).data || [];
     D.logos = await FY.q('icon_palette').select('slot,url').order('slot').then(r => r.data || [], () => []);
+    if (own) {   // Characters: tolerate the table not existing yet (characters.sql not run)
+      D.chars = await FY.q('character').select('id,name,img').order('name').then(r => r.data || [], () => []);
+      ((await FY.q('member').select('nickname,character_id').not('character_id', 'is', null).then(r => r.data || [], () => [])) || []).forEach(m => { D.holders[m.character_id] = m.nickname; });
+    }
   }
   const LIVE = ['open', 'marked_paid', 'disputed'];
   const tkOf = i => i.amount * (i.event_id && events[i.event_id]?.type_key === 'poker' ? 5 : 1);
@@ -216,6 +220,13 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
       ${palette.map(p => `<button type="button" class="iconbtn ${p.id === curPick ? 'on' : ''}" data-pick="${esc(p.id)}" aria-label="${esc(p.name)}"><span class="face" style="background-image:url('${esc(p.img)}')"></span></button>`).join('')}
     </div>${admin ? '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Upload pictures in Admin → Members → Icon palette, then pick one here.</span>' : ''}`;
 
+  const charHtml = () => `<span class="t-module">Your animal</span>
+    <select class="input" id="char-sel" aria-label="Your animal" style="min-height:44px;max-width:320px">
+      <option value="">None</option>
+      ${D.chars.map(c => { const by = D.holders[c.id], mine = c.id === subject.character_id, gone = by && !mine;
+        return `<option value="${c.id}" ${mine ? 'selected' : ''} ${gone ? 'disabled style="color:#777"' : ''}>${esc(c.name)}${gone ? ' (taken)' : ''}</option>`; }).join('')}
+    </select><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">One animal each. A greyed animal belongs to someone else; ask a leader to free it.</span>`;
+
   const poolsHtml = () => `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><span class="t-module">My football pools</span>
       <a href="room.html?room=football" style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--neon-teal);text-decoration:none">Open Football</a></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;align-items:start">
@@ -255,6 +266,7 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
       <div class="stat"><span class="kicker">Pending due</span><span class="v" style="color:${due ? '#ffb020' : 'inherit'}">${due} tk</span></div>
     </div>
     ${notPublic ? `<div class="pcard" id="icon">${iconHtml()}</div>` : ''}
+    ${own && D.chars.length ? `<div class="pcard" id="char">${charHtml()}</div>` : ''}
     ${notPublic ? `<div class="pcard" id="ledger">${ledgerHtml()}</div>` : ''}
     ${notPublic ? `<div class="pcard" id="pools">${poolsHtml()}</div>` : ''}
     <div class="pcard" id="acts">${actsHtml()}</div>
@@ -303,6 +315,12 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
         else { const { error } = await FY.q('member').update({ avatar: pick.slice(4), avatar_url: null }).eq('id', subject.id); if (error) throw error; }
         FY.toast('Icon saved.'); location.reload();
       } catch (e) { FY.toast(e.message); }
+    });
+    const cs = main.querySelector('#char-sel');
+    if (cs) cs.addEventListener('change', async () => {
+      cs.disabled = true;
+      try { await FY.rpc('set_my_character', { p_id: cs.value ? Number(cs.value) : null }); FY.toast('Animal saved.'); location.reload(); }
+      catch (e) { FY.toast(e.message); location.reload(); }
     });
     // Ledger: Received? / Paid / Pay (copies the amount) / admin ±
     main.querySelector('#ledger').addEventListener('click', async ev => {

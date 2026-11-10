@@ -71,7 +71,11 @@
       <div class="acard"><span class="t-module">Icon palette</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Upload an image: it takes the lowest free number (1 to 15). Click a picture to set it as the selected member's icon; the cross removes it for everyone.</span>
       <div style="display:flex;gap:8px;align-items:center"><label for="lg-m">Member</label><select class="input" id="lg-m" style="min-height:40px">${opts(A._logoMember)}</select></div>
-      <div id="ip" style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;max-width:100%"></div></div>`;
+      <div id="ip" style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;max-width:100%"></div></div>
+      <div class="acard" id="chars"><span class="t-module">Characters</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">One farmyard animal per member. Members pick theirs on their profile. Rename, free a taken animal, or remove one; names are unique.</span>
+      <div id="charlist" style="display:flex;flex-direction:column;gap:8px"></div>
+      <form id="charadd" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input class="input" id="char-new" placeholder="New animal" maxlength="24" required style="min-height:40px;flex:1 1 160px;min-width:0"><button class="btn btn-primary" style="min-height:40px">Add animal</button></form></div>`;
     pane.addEventListener('click', ev => {
       const tr = ev.target.closest('tr[data-open]');
       if (tr && !ev.target.closest('button,input,select')) location.href = 'profile.html?view=admin&user=' + encodeURIComponent(tr.dataset.open);
@@ -155,6 +159,36 @@
         <div style="flex:1 1 320px;min-width:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:14px 10px">${Array.from({ length: 15 }, (_, k) => slot(k + 1)).join('')}</div>`;
     };
     await drawIcons();
+    // Characters: list, rename, free, remove, add. The server (fy.admin_character_*) is leader-only and keeps names unique per yard.
+    const drawChars = async () => {
+      const box = pane.querySelector('#charlist');
+      const cr = await FY.q('character').select('id,name,img').order('name');
+      if (cr.error) { box.innerHTML = '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Characters are not set up yet (characters.sql has not been run).</span>'; pane.querySelector('#charadd').hidden = true; return; }
+      const chars = cr.data || [], holders = {};
+      ((await FY.q('member').select('nickname,character_id').not('character_id', 'is', null)).data || []).forEach(m => { holders[m.character_id] = m.nickname; });
+      box.innerHTML = chars.length ? chars.map(c => `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap" data-c="${c.id}">
+          <span style="width:32px;height:32px;border-radius:50%;border:1px solid var(--neon-teal);background:#0a1a1a ${c.img ? `url('${esc(c.img)}')` : ''} center/contain no-repeat;flex:none"></span>
+          <input class="input" data-cname="${c.id}" value="${esc(c.name)}" maxlength="24" aria-label="Animal name" style="min-height:34px;font-size:12px;flex:1 1 120px;min-width:0">
+          <button class="rowbtn" data-crename="${c.id}">Rename</button>
+          <span style="font-size:var(--fs-xs);color:var(--fy-text-label);flex:1 1 90px">${holders[c.id] ? 'Taken by ' + esc(holders[c.id]) : 'Free'}</span>
+          ${holders[c.id] ? `<button class="rowbtn" data-cfree="${c.id}">Free</button>` : ''}
+          <button class="rowbtn warn" data-cdel="${c.id}">Remove</button></div>`).join('') : '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">No animals yet.</span>';
+      const byId = id => chars.find(c => String(c.id) === String(id));
+      const run = async (fn, ok) => { try { await fn(); FY.toast(ok); drawChars(); } catch (e) { FY.toast(e.message); } };
+      box.querySelectorAll('[data-crename]').forEach(b => b.onclick = () => run(() => FY.rpc('admin_character_rename', { p_id: Number(b.dataset.crename), p_name: box.querySelector(`[data-cname="${b.dataset.crename}"]`).value.trim() }), 'Renamed.'));
+      box.querySelectorAll('[data-cfree]').forEach(b => b.onclick = () => run(() => FY.rpc('admin_character_free', { p_id: Number(b.dataset.cfree) }), 'Freed.'));
+      box.querySelectorAll('[data-cdel]').forEach(b => b.onclick = () => {
+        const c = byId(b.dataset.cdel);
+        if (!window.confirm(`Remove ${c.name}?${holders[c.id] ? ' ' + holders[c.id] + ' will have no animal.' : ''}`)) return;
+        run(() => FY.rpc('admin_character_remove', { p_id: c.id }), 'Removed.');
+      });
+    };
+    pane.querySelector('#charadd').addEventListener('submit', ev => {
+      ev.preventDefault();
+      const inp = pane.querySelector('#char-new'), name = inp.value.trim(); if (!name) return;
+      FY.rpc('admin_character_add', { p_name: name }).then(() => { inp.value = ''; FY.toast('Added.'); drawChars(); }, e => FY.toast(e.message));
+    });
+    await drawChars();
     pane.querySelector('#lg-m').value = A._logoMember;
     pane.querySelector('#lg-m').addEventListener('change', ev => { A._logoMember = ev.target.value; drawIcons(); });
     // Square-crop to 256px PNG, upload to icons/slot-N.png, then record it (the RPC is leader-only and checks the URL).
