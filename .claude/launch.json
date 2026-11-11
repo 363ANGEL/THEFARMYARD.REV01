@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "farmyard",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8000",
+        "--directory",
+        "C:\\Users\\PinkyC\\THEFARMYARD.REV01"
+      ],
+      "port": 8000
+    }
+  ]
+}
