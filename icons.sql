@@ -1,4 +1,4 @@
--- icons.sql — run once in the Supabase SQL editor. Idempotent.
+-- icons.sql — SUPERSEDED by icons-per-member.sql (per-member palette). Already applied; do NOT re-run it, it would restore the shared functions.
 -- Icon palette, simplified: ONE global palette of up to 15 pictures (replaces the per-member logo lists in the page).
 -- Storage bucket 'icons' (public read), file icons/slot-N.png; fy.icon_palette has one row per filled slot;
 -- fy.member.icon_slot is the slot a member picked (the page keeps reading member.avatar_url, which the RPCs set to the slot's URL).

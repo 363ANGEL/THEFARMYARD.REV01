@@ -88,7 +88,7 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
     const all = await FY.rpc('my_ious').catch(() => []);
     D.ious = (all || []).filter(i => i.payer_id === subject.id || i.payee_id === subject.id);
     D.links = (await FY.q('member_link').select('provider,handle,enabled').eq('member_id', subject.id)).data || [];
-    D.logos = await FY.q('icon_palette').select('slot,url').order('slot').then(r => r.data || [], () => []);
+    D.logos = await FY.q('icon_palette').select('slot,url').eq('member_id', subject.id).order('slot').then(r => r.data || [], () => []);
     if (own) {   // Characters: tolerate the table not existing yet (characters.sql not run)
       D.chars = await FY.q('character').select('id,name,img').order('name').then(r => r.data || [], () => []);
       ((await FY.q('member').select('nickname,character_id').not('character_id', 'is', null).then(r => r.data || [], () => [])) || []).forEach(m => { D.holders[m.character_id] = m.nickname; });
@@ -218,7 +218,7 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
   const iconHtml = () => `<span class="t-module">${own ? 'Your icon' : 'Icon'}</span>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px">
       ${palette.map(p => `<button type="button" class="iconbtn ${p.id === curPick ? 'on' : ''}" data-pick="${esc(p.id)}" aria-label="${esc(p.name)}"><span class="face" style="background-image:url('${esc(p.img)}')"></span></button>`).join('')}
-    </div>${admin ? '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Upload pictures in Admin → Members → Icon palette, then pick one here.</span>' : ''}`;
+    </div>${admin ? '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An admin uploads your pictures in Admin → Members → Icon palette; pick one here.</span>' : ''}`;
 
   const charHtml = () => `<span class="t-module">Your animal</span>
     <select class="input" id="char-sel" aria-label="Your animal" style="min-height:44px;max-width:320px">

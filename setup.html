@@ -70,7 +70,7 @@ const BD = {
   const B = await Barn.open('setup', { bare: true }); if (!B) return;
   const { me, session, root } = B, esc = FY.esc;
   const ANIMALS = [['hen', 'Hen'], ['cock', 'Cock'], ['pig', 'Pig'], ['sheep', 'Sheep'], ['goat', 'Goat'], ['cow', 'Cow']];
-  const mine = await FY.q('icon_palette').select('slot,url').order('slot').then(r => r.data || [], () => []);
+  const mine = await FY.q('icon_palette').select('slot,url').eq('member_id', me.id).order('slot').then(r => r.data || [], () => []);
   // Only slots with a picture are listed; until the first upload the stock animals stand in so a pick still exists.
   const palette = mine.length ? mine.map(l => ({ id: 'slot:' + l.slot, name: 'Icon ' + l.slot, img: l.url, sm: l.url, url: l.url }))
                              : ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: FY.face(k, 150), sm: FY.face(k, 48) }));

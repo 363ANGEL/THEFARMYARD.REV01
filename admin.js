@@ -77,7 +77,7 @@
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An invite link works once and expires after 7 days. Copy invite link reuses an unused one; New link voids it and makes a fresh one.</span>
       <div id="linkbox" hidden style="display:flex;gap:8px"><input class="input" id="linkout" readonly style="flex:1;min-height:40px"><button class="rowbtn" id="copylink">Copy</button></div></div>
       <div class="acard"><span class="t-module">Icon palette</span>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Upload an image: it takes the lowest free number (1 to 15). Click a picture to set it as the selected member's icon; the cross removes it for everyone.</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Each member has their own 15 slots: pick a member, then upload an image (it takes their lowest free number). Click a picture to set it as their icon; the cross removes it.</span>
       <div style="display:flex;gap:8px;align-items:center"><label for="lg-m">Member</label><select class="input" id="lg-m" style="min-height:40px">${opts(A._logoMember)}</select></div>
       <div id="ip" style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;max-width:100%"></div></div>
       <div class="acard" id="chars"><span class="t-module">Characters</span>
@@ -155,7 +155,7 @@
     let palette = [];
     const drawIcons = async () => {
       const sel = A._logoMember || (A.members[0] && A.members[0].id); A._logoMember = sel;
-      try { palette = (await FY.q('icon_palette').select('slot,url').order('slot')).data || []; } catch (e) { palette = []; }
+      try { palette = (await FY.q('icon_palette').select('slot,url').eq('member_id', sel).order('slot')).data || []; } catch (e) { palette = []; }
       const bySlot = {}; palette.forEach(r => bySlot[r.slot] = r);
       const cur = (A.members.find(m => m.id === sel) || {}).avatar_url;
       const full = palette.length >= 15;
@@ -206,7 +206,7 @@
     await drawChars();
     pane.querySelector('#lg-m').value = A._logoMember;
     pane.querySelector('#lg-m').addEventListener('change', ev => { A._logoMember = ev.target.value; drawIcons(); });
-    // Square-crop to 256px PNG, upload to icons/slot-N.png, then record it (the RPC is leader-only and checks the URL).
+    // Square-crop to 256px PNG, upload to icons/<member>/slot-N.png, then record it (the RPC is leader-only and checks the URL).
     const squarePng = file => new Promise((res, rej) => {
       const url = URL.createObjectURL(file), img = new Image();
       img.onload = () => { const S = 256, m = Math.min(img.width, img.height), c = document.createElement('canvas'); c.width = S; c.height = S;
@@ -218,12 +218,14 @@
       const f = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (!f) return;
       let n = null;
       try {
-        n = await FY.rpc('admin_icon_next');
+        if (!A._logoMember) throw new Error('Pick a member first.');
+        const who = A._logoMember;
+        n = await FY.rpc('admin_icon_next', { p_member: who });
         const blob = await squarePng(f);
-        const { error } = await FY.sb.storage.from(ICON_BUCKET).upload(`slot-${n}.png`, blob, { contentType: 'image/png', upsert: true, cacheControl: '3600' });
+        const { error } = await FY.sb.storage.from(ICON_BUCKET).upload(`${who}/slot-${n}.png`, blob, { contentType: 'image/png', upsert: true, cacheControl: '3600' });
         if (error) throw new Error(error.message);
-        const url = FY.sb.storage.from(ICON_BUCKET).getPublicUrl(`slot-${n}.png`).data.publicUrl + '?v=' + Date.now();
-        await FY.rpc('admin_icon_add', { p_slot: n, p_url: url });
+        const url = FY.sb.storage.from(ICON_BUCKET).getPublicUrl(`${who}/slot-${n}.png`).data.publicUrl + '?v=' + Date.now();
+        await FY.rpc('admin_icon_add', { p_member: who, p_slot: n, p_url: url });
         FY.toast(`Added as icon ${n}.`);
       } catch (e) { FY.toast(e.message); }
       drawIcons();
@@ -238,11 +240,12 @@
           FY.toast('Icon set.'); drawIcons();
         } else if (rm) {
           const n = Number(rm.dataset.irm);
-          if (!window.confirm(`Remove icon ${n}? Members using it go back to their stock animal.`)) return;
+          const who = A._logoMember, wm = A.members.find(x => x.id === who);
+          if (!window.confirm(`Remove icon ${n}${wm ? ' for ' + wm.nickname : ''}? If it is their icon they go back to their stock animal.`)) return;
           const r = palette.find(p => p.slot === n);
-          await FY.rpc('admin_icon_remove', { p_slot: n });
-          A.members.forEach(m => { if (r && m.avatar_url === r.url) m.avatar_url = null; });
-          const { error } = await FY.sb.storage.from(ICON_BUCKET).remove([`slot-${n}.png`]);
+          await FY.rpc('admin_icon_remove', { p_member: who, p_slot: n });
+          if (wm && r && wm.avatar_url === r.url) wm.avatar_url = null;
+          const { error } = await FY.sb.storage.from(ICON_BUCKET).remove([`${who}/slot-${n}.png`]);
           FY.toast(error ? 'Removed, but the file could not be deleted: ' + error.message : 'Removed.'); drawIcons();
         }
       } catch (e) { FY.toast(e.message); }
