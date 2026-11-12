@@ -100,7 +100,9 @@
         <td style="white-space:normal">${lastLoginCell(m)}</td>
         <td data-st="${m.id}">${statusCell(m)}</td>
         <td style="white-space:nowrap"><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${m.invite_email ? esc(m.invite_email) : '—'}</span></td></tr>`).join('')}
-      </tbody></table></div>
+      </tbody></table></div></div>
+      <div class="acard" id="mdetail" hidden></div>
+      <div class="acard"><span class="t-module">Add a member</span>
       <form id="newmember" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;max-width:100%"><input class="input" id="nm-nick" placeholder="Nickname" required maxlength="24" style="min-height:40px;flex:1 1 140px;min-width:0;max-width:100%;box-sizing:border-box">
         ${animalSel}
         <select class="input" id="nm-role" aria-label="Role" autocomplete="off" style="min-height:40px;flex:1 1 110px;min-width:0;max-width:100%;box-sizing:border-box">${roleOpts('member')}</select>
@@ -111,11 +113,10 @@
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Email and Discord username are optional. Copy the invite link from the member's row and send it on WhatsApp or Messenger. Mobile is contact only, never used for login.</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An invite link works once and expires after 7 days. Copy invite link reuses an unused one; New link voids it and makes a fresh one.</span>
       <div id="linkbox" hidden style="display:flex;gap:8px"><input class="input" id="linkout" readonly style="flex:1;min-height:40px"><button class="rowbtn" id="copylink">Copy</button></div></div>
-      <div class="acard" id="mdetail" hidden></div>
       <div class="acard"><span class="t-module">Icon palette</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Each animal has its own 15 slots: pick a character, then upload an image (it takes that animal's lowest free number). Click a picture to set it as the icon of whoever holds the animal; the cross removes it.</span>
       <div style="display:flex;gap:8px;align-items:center"><label for="lg-c">Character</label><select class="input" id="lg-c" style="min-height:40px">${(chars0 || []).map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>
-      <div id="ip" style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;max-width:100%"></div></div>
+      <div id="ip" style="display:flex;flex-direction:column;gap:14px;max-width:100%"></div></div>
       <div class="acard" id="chars"><span class="t-module">Characters</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">One farmyard animal per member. Members pick theirs on their profile. Rename, free a taken animal, or remove one; names are unique.</span>
       <div id="charlist" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -273,10 +274,12 @@
           <button type="button" data-irm="${n}" aria-label="Remove icon ${n}" style="position:absolute;top:-4px;right:-4px;width:22px;height:22px;border-radius:50%;padding:0;cursor:pointer;border:1px solid var(--neon-pink-tube);background:#0a1a1a;color:var(--neon-pink-text);font-size:12px;line-height:1">&#10005;</button>
           <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${n}</span></div>`;
       };
-      pane.querySelector('#ip').innerHTML = `<label style="flex:none;width:120px;min-height:120px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:10px;border:2px dashed var(--neon-teal);border-radius:12px;color:var(--fy-text);font-size:var(--fs-sm);cursor:${full ? 'not-allowed' : 'pointer'};opacity:${full ? '.45' : '1'}">
+      // The 15 slots fill the module, five to a line; Upload sits under them (RAY, 12 Nov).
+      pane.querySelector('#ip').innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px clamp(10px,1.6vw,20px);width:100%">${Array.from({ length: 15 }, (_, k) => slot(k + 1)).join('')}</div>
+        <label style="align-self:flex-start;min-width:160px;min-height:56px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;padding:10px 16px;border:2px dashed var(--neon-teal);border-radius:12px;color:var(--fy-text);font-size:var(--fs-sm);cursor:${full ? 'not-allowed' : 'pointer'};opacity:${full ? '.45' : '1'}">
           <span>Upload image</span><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${full ? 'Palette full' : 'PNG or JPG'}</span>
-          <input type="file" id="ip-file" accept="image/*" ${full ? 'disabled' : ''} style="display:none"></label>
-        <div style="flex:1 1 320px;min-width:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:14px 10px">${Array.from({ length: 15 }, (_, k) => slot(k + 1)).join('')}</div>`;
+          <input type="file" id="ip-file" accept="image/*" ${full ? 'disabled' : ''} style="display:none"></label>`;
     };
     await drawIcons();
     // Characters: list, rename, free, remove, add. The server (fy.admin_character_*) is leader-only and keeps names unique per yard.
