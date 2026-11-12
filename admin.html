@@ -21,6 +21,11 @@
 .acard th.wrap{white-space:normal}
 .tscroll{overflow-x:auto;max-width:100%}
 /* Card titles on this page are a label, not a headline (RAY, 12 Nov). */
+/* Characters read as a table: one grid, every row the same columns. */
+.charrow{display:grid;grid-template-columns:minmax(0,1fr) 6em 10em 5em 6em;gap:8px;align-items:center}
+.charrow .rowbtn,.charrow .btn{width:100%}
+#charadd .btn{grid-column:2/-1}
+@media (max-width:700px){.charrow{grid-template-columns:minmax(0,1fr) 6em}.charrow>span{grid-column:1/-1}#charadd .btn{grid-column:2}}
 .acard .t-module{font-size:var(--fs-sm);letter-spacing:.14em;text-shadow:0 0 6px rgba(95,211,207,.45)}
 .acard td select.input{width:100%;min-width:0;max-width:100%}
 .acard td .claimbtns{display:flex;flex-direction:column;align-items:flex-start;gap:4px}

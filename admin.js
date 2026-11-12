@@ -88,6 +88,7 @@
           <input class="input" data-inv="invite_email" data-m="${m.id}" type="email" placeholder="Invite email" maxlength="254" value="${esc(m.invite_email || '')}" style="flex:1 1 7em;width:7em;min-width:0;min-height:32px;font-size:12px">
           <input class="input" data-inv="discord_username" data-m="${m.id}" placeholder="Discord username" maxlength="40" value="${esc(m.discord_username || '')}" style="flex:1 1 6em;width:6em;min-width:0;min-height:32px;font-size:12px">
           <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="flex:1 1 5em;width:5em;min-width:0;min-height:32px;font-size:12px"></span>`;
+    const live = (Presence && Presence.map) ? Presence.map() : {};   // paint the current state, don't wait for the next sync
     pane.innerHTML = `<div class="acard"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <span class="t-module">Members</span>
         <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${A.members.length} in the yard · click a row to open their profile</span></div>
@@ -95,7 +96,7 @@
       <div class="tscroll"><table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th class="wrap">Last login</th><th>Status</th><th>Email</th></tr></thead><tbody>
       ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}" data-mid="${m.id}"><td style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)}</td>
         <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:12px;width:auto">${roleOpts(m.role)}</select></td>
-        <td data-online="${m.id}">${onlineCell(null)}</td>
+        <td data-online="${m.id}">${onlineCell(live[m.id])}</td>
         <td>${charCell(m)}</td>
         <td style="white-space:normal">${lastLoginCell(m)}</td>
         <td data-st="${m.id}">${statusCell(m)}</td>
@@ -121,7 +122,7 @@
       <div class="acard" id="chars"><span class="t-module">Characters</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">One farmyard animal per member. Members pick theirs on their profile. Rename, free a taken animal, or remove one; names are unique.</span>
       <div id="charlist" style="display:flex;flex-direction:column;gap:8px"></div>
-      <form id="charadd" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input class="input" id="char-new" placeholder="New animal" maxlength="24" required style="min-height:40px;flex:1 1 160px;min-width:0"><button class="btn btn-primary" style="min-height:40px">Add animal</button></form></div>`;
+      <form id="charadd" class="charrow"><input class="input" id="char-new" placeholder="New animal" maxlength="24" required style="min-height:34px;font-size:12px;min-width:0;width:100%"><button class="btn btn-primary" style="min-height:34px;padding:0 12px;font-size:var(--fs-xs);white-space:nowrap">Add animal</button><span></span><span></span><span></span></form></div>`;
     // A row opens that member's details below the table (RAY, 12 Nov): the full profile page
     // is still a click away, but the admin stays on this page.
     pane.addEventListener('click', ev => {
@@ -295,11 +296,12 @@
       if (cr.error) { box.innerHTML = '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Characters are not set up yet (characters.sql has not been run).</span>'; pane.querySelector('#charadd').hidden = true; return; }
       const chars = cr.data || [], holders = {};
       ((await FY.q('member').select('nickname,character_id').not('character_id', 'is', null)).data || []).forEach(m => { holders[m.character_id] = m.nickname; });
-      box.innerHTML = chars.length ? chars.map(c => `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap" data-c="${c.id}">
-          <input class="input" data-cname="${c.id}" value="${esc(c.name)}" maxlength="24" aria-label="Animal name" style="min-height:34px;font-size:12px;flex:1 1 120px;min-width:0">
+      // One grid for every row, so the columns line up down the list.
+      box.innerHTML = chars.length ? chars.map(c => `<div class="charrow" data-c="${c.id}">
+          <input class="input" data-cname="${c.id}" value="${esc(c.name)}" maxlength="24" aria-label="Animal name" style="min-height:34px;font-size:12px;min-width:0;width:100%">
           <button class="rowbtn" data-crename="${c.id}">Rename</button>
-          <span style="font-size:var(--fs-xs);color:var(--fy-text-label);flex:1 1 90px">${holders[c.id] ? 'Taken by ' + esc(holders[c.id]) : 'Free'}</span>
-          ${holders[c.id] ? `<button class="rowbtn" data-cfree="${c.id}">Free</button>` : ''}
+          <span style="font-size:var(--fs-xs);color:var(--fy-text-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${holders[c.id] ? 'Taken by ' + esc(holders[c.id]) : 'Free'}</span>
+          ${holders[c.id] ? `<button class="rowbtn" data-cfree="${c.id}">Free</button>` : '<span></span>'}
           <button class="rowbtn warn" data-cdel="${c.id}">Remove</button></div>`).join('') : '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">No animals yet.</span>';
       const byId = id => chars.find(c => String(c.id) === String(id));
       const run = async (fn, ok) => { try { await fn(); FY.toast(ok); drawChars(); } catch (e) { FY.toast(e.message); } };
@@ -444,6 +446,7 @@
     await loadMembers();
     const pools = (await FY.q('pool').select('*').order('kickoff', { ascending: false }).limit(25)).data || [];
     const calls = (await FY.q('pool_call').select('*')).data || [];
+    const live = (Presence && Presence.map) ? Presence.map() : {};   // paint the current state, don't wait for the next sync
     pane.innerHTML = `<div class="acard"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <span class="t-module">Football pools</span><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Result and payouts save as you type away from the field. The football UI lands in slice 3.</span></div>
       ${pools.map(p => `<div data-pool="${p.id}" style="display:flex;flex-direction:column;gap:8px;padding:10px 0;border-top:1px solid rgba(95,211,207,.22)">
