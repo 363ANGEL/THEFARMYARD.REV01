@@ -48,7 +48,7 @@
 <script>
 /* 0.2 New User Set-up. Shown once, right after the invite is claimed (and to anyone whose set-up is not done).
    Yard name is pre-filled with the name RAY gave the member; the logo palette is what RAY uploaded for them
-   (fy.icon_palette, one global palette; stock animals only until the first upload); Revolut is optional. Chess.com stays hidden until the
+   (fy.icon_palette, the 15 slots of the animal they hold; stock animals stand in until an admin uploads some); Revolut is optional. Chess.com stays hidden until the
    chess league is built. Birthday (day and month, no year) is required. Finishing stamps member.setup_at. */
 /* Birthday field, ported from the 0.2 design. Days are capped by the month (February = 29). A day past the
    newly picked month's last day is dropped, so the Day select goes back to "Day" and Finish stays off. */
@@ -70,7 +70,10 @@ const BD = {
   const B = await Barn.open('setup', { bare: true }); if (!B) return;
   const { me, session, root } = B, esc = FY.esc;
   const ANIMALS = [['hen', 'Hen'], ['cock', 'Cock'], ['pig', 'Pig'], ['sheep', 'Sheep'], ['goat', 'Goat'], ['cow', 'Cow']];
-  const mine = await FY.q('icon_palette').select('slot,url').eq('member_id', me.id).order('slot').then(r => r.data || [], () => []);
+  // The 15 slots belong to the animal this member holds (icons-per-character.sql). No animal yet, no slots.
+  const mine = me.character_id
+    ? await FY.q('icon_palette').select('slot,url').eq('character_id', me.character_id).order('slot').then(r => r.data || [], () => [])
+    : [];
   // Only slots with a picture are listed; until the first upload the stock animals stand in so a pick still exists.
   const palette = mine.length ? mine.map(l => ({ id: 'slot:' + l.slot, name: 'Icon ' + l.slot, img: l.url, sm: l.url, url: l.url }))
                              : ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: FY.face(k, 150), sm: FY.face(k, 48) }));

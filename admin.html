@@ -15,8 +15,10 @@
 .atab[aria-selected="true"]{border-color:var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink);text-shadow:var(--text-glow-pink)}
 .acard{display:flex;flex-direction:column;gap:10px;padding:16px 14px;border:1px solid rgba(95,211,207,.55);border-radius:10px;box-shadow:0 0 4px rgba(95,211,207,.4);background:var(--fy-bg);min-width:0}
 .acard table{border-collapse:collapse;width:100%;font-size:var(--fs-sm)}
-.acard th{text-align:left;font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fy-text-label);padding:4px 8px 6px 0}
-.acard td{padding:7px 8px 7px 0;border-top:1px solid rgba(95,211,207,.22);vertical-align:middle}
+.acard th{text-align:left;font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fy-text-label);padding:6px 6px}
+.acard td{padding:6px 6px;border-top:1px solid rgba(95,211,207,.22);vertical-align:middle}
+.acard th:first-child,.acard td:first-child{padding-left:0}
+.acard th:last-child,.acard td:last-child{padding-right:0}
 .acard .num{width:4.5em}
 .rowbtn{min-height:30px;padding:0 10px;background:transparent;border:1.5px solid var(--neon-teal);border-radius:6px;color:#c8f4f2;font:inherit;font-size:var(--fs-xs);cursor:pointer;white-space:nowrap}
 .rowbtn.warn{border-color:var(--neon-red-tube);color:var(--neon-red-text)}

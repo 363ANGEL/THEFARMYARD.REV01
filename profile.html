@@ -29,9 +29,11 @@
 .paybtn[aria-disabled="true"]{border-color:rgba(168,0,22,.38);color:rgba(232,38,58,.4);pointer-events:none}
 .leaguerow{display:grid;grid-template-columns:28px minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:center;padding:8px 0;border-top:1px solid rgba(255,255,255,.12);font-size:var(--fs-sm)}
 .acthead,.actrow{display:grid;grid-template-columns:24px 92px minmax(0,1fr) 120px;gap:10px;align-items:center}
-.iconbtn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 2px;background:transparent;border:1.5px solid transparent;border-radius:8px;cursor:pointer;color:var(--fy-text);font-family:inherit;font-size:11px}
-.iconbtn .face{width:48px;height:48px;border:1.5px solid var(--neon-teal);border-radius:50%;background-size:92%;background-position:center;background-repeat:no-repeat}
-.iconbtn.on{border-color:var(--neon-pink-tube);box-shadow:var(--glow-pink)}
+.icongrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;max-width:420px}
+.iconslot{aspect-ratio:1/1;width:100%;padding:0;border-radius:50%;box-sizing:border-box;background:#0a1a1a center/cover no-repeat;border:2px solid rgba(95,211,207,.45)}
+button.iconslot{cursor:pointer}
+.iconslot.on{border-color:var(--neon-green-tube);box-shadow:var(--glow-green)}
+.iconslot.empty{display:grid;place-items:center;border:2px dashed rgba(95,211,207,.35);color:var(--fy-text-label);font-size:var(--fs-sm)}
 </style>
 </head>
 <body>
@@ -46,7 +48,7 @@
    Admin (?view=admin&user=Name, leader only): everything in Own for that member, plus −/+ tk
    corrections on the ledger (fy.admin_* RPCs, logged) and the admin banner.
    Units: iou.amount is buy-ins on poker events (×5 tk) and plain tk on corrections/claims. */
-const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,birth_month,created_at,setup_at,chesscom_username,user_id,league_id';
+const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,birth_month,created_at,setup_at,chesscom_username,user_id,league_id,character_id,icon_slot';
 (async function () {
   const params = new URLSearchParams(location.search);
   const B = await Barn.open('profile'); if (!B) return;
@@ -88,7 +90,10 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
     const all = await FY.rpc('my_ious').catch(() => []);
     D.ious = (all || []).filter(i => i.payer_id === subject.id || i.payee_id === subject.id);
     D.links = (await FY.q('member_link').select('provider,handle,enabled').eq('member_id', subject.id)).data || [];
-    D.logos = await FY.q('icon_palette').select('slot,url').eq('member_id', subject.id).order('slot').then(r => r.data || [], () => []);
+    // The 15 slots belong to the animal the member holds (icons-per-character.sql).
+    D.logos = subject.character_id
+      ? await FY.q('icon_palette').select('slot,url').eq('character_id', subject.character_id).order('slot').then(r => r.data || [], () => [])
+      : [];
     if (own) {   // Characters: tolerate the table not existing yet (characters.sql not run)
       D.chars = await FY.q('character').select('id,name,img').order('name').then(r => r.data || [], () => []);
       ((await FY.q('member').select('nickname,character_id').not('character_id', 'is', null).then(r => r.data || [], () => [])) || []).forEach(m => { D.holders[m.character_id] = m.nickname; });
@@ -210,15 +215,23 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
         <button type="button" id="ed-save" class="btn btn-primary" style="align-self:flex-start;min-height:36px;padding:0 16px;white-space:nowrap">Done</button></div>` : ''}
     </div>`;
 
-  const ANIMALS = [['hen', 'Hen'], ['cock', 'Cock'], ['pig', 'Pig'], ['sheep', 'Sheep'], ['goat', 'Goat'], ['cow', 'Cow']];
-  // Only slots with a picture are listed. Until the first picture is uploaded, the stock animals stand in so a pick still exists.
-  const palette = D.logos.length ? D.logos.map(l => ({ id: 'slot:' + l.slot, name: 'Icon ' + l.slot, img: l.url, url: l.url }))
-                                 : ANIMALS.map(([k, n]) => ({ id: 'key:' + k, name: n, img: FY.face(k, 48) }));
-  const curPick = (D.logos.find(l => l.url === subject.avatar_url) ? 'slot:' + D.logos.find(l => l.url === subject.avatar_url).slot : null) || (subject.avatar_url ? 'url:' + subject.avatar_url : 'key:' + subject.avatar);
+  // All 15 slots of the animal this member holds, as a 5 × 3 grid. A filled slot shows its picture
+  // and can be picked; an empty one is a dim numbered teal ring. Never animals, never letters.
+  const bySlot = {}; D.logos.forEach(l => bySlot[l.slot] = l);
+  const curSlot = subject.icon_slot && bySlot[subject.icon_slot] ? subject.icon_slot
+    : (D.logos.find(l => l.url === subject.avatar_url) || {}).slot || null;
   const iconHtml = () => `<span class="t-module">${own ? 'Your icon' : 'Icon'}</span>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px">
-      ${palette.map(p => `<button type="button" class="iconbtn ${p.id === curPick ? 'on' : ''}" data-pick="${esc(p.id)}" aria-label="${esc(p.name)}"><span class="face" style="background-image:url('${esc(p.img)}')"></span></button>`).join('')}
-    </div>${admin ? '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An admin uploads your pictures in Admin → Members → Icon palette; pick one here.</span>' : ''}`;
+    <div class="icongrid">
+      ${Array.from({ length: 15 }, (_, k) => {
+        const n = k + 1, r = bySlot[n];
+        if (!r) return `<span class="iconslot empty" aria-hidden="true">${n}</span>`;
+        return `<button type="button" class="iconslot ${n === curSlot ? 'on' : ''}" data-pick="slot:${n}" aria-label="Icon ${n}" aria-pressed="${n === curSlot ? 'true' : 'false'}" style="background-image:url('${esc(r.url)}')"></button>`;
+      }).join('')}
+    </div>
+    <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${subject.character_id
+      ? (D.logos.length ? 'These belong to your animal. An admin uploads them in Admin → Icon palette; pick one here.'
+                        : 'No pictures in this animal&rsquo;s set yet. An admin uploads them in Admin → Icon palette.')
+      : 'No animal yet, so no icons. An admin gives you one in Admin → Members.'}</span>`;
 
   const charHtml = () => `<span class="t-module">Your animal</span>
     <select class="input" id="char-sel" aria-label="Your animal" style="min-height:44px;max-width:320px">
@@ -258,6 +271,7 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
       <div style="display:flex;flex-direction:column;gap:4px;padding:4px 2px 8px"><h2 class="t-title-b">Profile</h2><span class="t-tagline">${own ? 'Who you are in the yard.' : esc(subject.nickname) + ' · as the yard sees them.'}</span></div><div style="flex:1"></div>
     </div>
     <div class="pcard" id="hdr">${headerHtml()}</div>
+    ${notPublic ? `<div class="pcard" id="icon">${iconHtml()}</div>` : ''}
     <div class="statgrid">
       <div class="stat"><span class="kicker">Poker league position</span><span class="v"><i class="ph ph-club" aria-hidden="true"></i>${esc(pokerPos)}</span></div>
       <div class="stat"><span class="kicker">Football league</span><span class="v"><i class="ph ph-soccer-ball" aria-hidden="true"></i>—</span></div>
@@ -265,7 +279,6 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
       <div class="stat"><span class="kicker">Current debt</span><span class="v" style="color:${debt ? 'var(--neon-red-text)' : 'inherit'}">${debt} tk</span></div>
       <div class="stat"><span class="kicker">Pending due</span><span class="v" style="color:${due ? '#ffb020' : 'inherit'}">${due} tk</span></div>
     </div>
-    ${notPublic ? `<div class="pcard" id="icon">${iconHtml()}</div>` : ''}
     ${own && D.chars.length ? `<div class="pcard" id="char">${charHtml()}</div>` : ''}
     ${notPublic ? `<div class="pcard" id="ledger">${ledgerHtml()}</div>` : ''}
     ${notPublic ? `<div class="pcard" id="pools">${poolsHtml()}</div>` : ''}
@@ -306,13 +319,10 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
     });
     main.querySelector('#icon').addEventListener('click', async ev => {
       const b = ev.target.closest('[data-pick]'); if (!b) return;
-      const pick = b.dataset.pick;
+      const n = Number(b.dataset.pick.slice(5));
       try {
-        if (pick.startsWith('slot:')) {
-          const n = Number(pick.slice(5));
-          if (admin) await FY.rpc('admin_icon_set', { p_member: subject.id, p_slot: n }); else await FY.rpc('set_my_icon', { p_slot: n });
-        } else if (admin) await FY.rpc('admin_set_member', { p_member: subject.id, p_field: 'avatar', p_value: pick.slice(4) });
-        else { const { error } = await FY.q('member').update({ avatar: pick.slice(4), avatar_url: null }).eq('id', subject.id); if (error) throw error; }
+        if (admin) await FY.rpc('admin_icon_set', { p_member: subject.id, p_slot: n });
+        else await FY.rpc('set_my_icon', { p_slot: n });
         FY.toast('Icon saved.'); location.reload();
       } catch (e) { FY.toast(e.message); }
     });

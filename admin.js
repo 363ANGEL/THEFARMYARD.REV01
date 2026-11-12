@@ -10,7 +10,7 @@
 
   const A = { tab: location.hash.replace('#', '') || 'members', members: [] };
   const TABS = [['members', 'Members'], ['humidor', 'Humidor'], ['poker', 'Poker'], ['league', 'League'], ['tokens', 'Tokens & IOUs'], ['site', 'Site']];
-  const loadMembers = async () => { A.members = (await FY.q('member').select('id,nickname,avatar,avatar_url,user_id,role,setup_at,invite_email,discord_username,mobile').order('nickname')).data || []; };
+  const loadMembers = async () => { A.members = (await FY.q('member').select('id,nickname,avatar,avatar_url,user_id,role,setup_at,invite_email,discord_username,mobile,character_id,icon_slot').order('nickname')).data || []; };
   const nick = id => A.members.find(m => m.id === id)?.nickname || '?';
   const opts = sel => A.members.map(m => `<option value="${m.id}" ${m.id === sel ? 'selected' : ''}>${esc(m.nickname)}</option>`).join('');
   const twoTap = (b, label, fn) => {
@@ -47,22 +47,33 @@
     const cr0 = await FY.q('character').select('id,name,img').order('name');
     const chars0 = cr0.error ? null : (cr0.data || []);
     const held0 = {};
-    if (chars0) ((await FY.q('member').select('nickname,character_id').not('character_id', 'is', null)).data || []).forEach(m => { held0[m.character_id] = m.nickname; });
+    if (chars0) A.members.forEach(m => { if (m.character_id) held0[m.character_id] = m.nickname; });
+    // Per-row Character dropdown: every animal is listed; one held by someone else is shown with the holder and disabled.
+    const charCell = m => !chars0
+      ? '<span style="color:var(--fy-text-label)">—</span>'
+      : `<select class="input" data-char="${m.id}" aria-label="Character for ${esc(m.nickname)}" style="min-height:32px;font-size:12px;width:auto;max-width:12em">
+          <option value="">None</option>
+          ${chars0.map(c => { const by = held0[c.id], mine = c.id === m.character_id, gone = by && !mine;
+            return `<option value="${c.id}" ${mine ? 'selected' : ''} ${gone ? 'disabled' : ''}>${esc(c.name)}${gone ? ' · ' + esc(by) : ''}</option>`; }).join('')}
+        </select>`;
     const animalSel = chars0
       ? `<select class="input" id="nm-char" aria-label="Animal" style="min-height:40px;flex:1 1 130px;min-width:0;max-width:100%;box-sizing:border-box"><option value="">No animal yet</option>${chars0.map(c => `<option value="${c.id}" ${held0[c.id] ? 'disabled style="color:#777"' : ''}>${esc(c.name)}${held0[c.id] ? ' (taken)' : ''}</option>`).join('')}</select>`
       : `<select class="input" id="nm-av" style="min-height:40px;flex:1 1 110px;min-width:0;max-width:100%;box-sizing:border-box">${['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].map(a => `<option>${a}</option>`).join('')}</select>`;
     const contactCell = m => m.user_id
       ? `<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${esc(m.invite_email || m.discord_username || '')}</span>`
       : `<span style="display:flex;gap:6px;flex-wrap:wrap">
-          <input class="input" data-inv="invite_email" data-m="${m.id}" type="email" placeholder="Invite email" maxlength="254" value="${esc(m.invite_email || '')}" style="width:12em;min-height:34px;font-size:12px">
-          <input class="input" data-inv="discord_username" data-m="${m.id}" placeholder="Discord username" maxlength="40" value="${esc(m.discord_username || '')}" style="width:10em;min-height:34px;font-size:12px">
-          <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="width:8em;min-height:34px;font-size:12px"></span>`;
-    pane.innerHTML = `<div class="acard"><span class="t-module">Members</span>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Click a row to open their profile in admin view. Invite contacts save as you leave each box; email is optional: use Copy invite link and send it on WhatsApp or Messenger.</span>
-      <table><thead><tr><th>Member</th><th>Role</th><th>Status</th><th>Invite contact</th><th>Claim link</th></tr></thead><tbody>
+          <input class="input" data-inv="invite_email" data-m="${m.id}" type="email" placeholder="Invite email" maxlength="254" value="${esc(m.invite_email || '')}" style="width:9em;min-width:0;min-height:32px;font-size:12px">
+          <input class="input" data-inv="discord_username" data-m="${m.id}" placeholder="Discord username" maxlength="40" value="${esc(m.discord_username || '')}" style="width:8em;min-width:0;min-height:32px;font-size:12px">
+          <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="width:7em;min-width:0;min-height:32px;font-size:12px"></span>`;
+    pane.innerHTML = `<div class="acard"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <span class="t-module">Members</span>
+        <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${A.members.length} in the yard · click a row to open their profile</span></div>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Invite contacts save as you leave each box; email is optional: use Copy invite link and send it on WhatsApp or Messenger.</span>
+      <table><thead><tr><th>Member</th><th>Role</th><th>Status</th><th>Character</th><th>Invite contact</th><th>Claim link</th></tr></thead><tbody>
       ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}"><td style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)} ${roleTag(m.role)}</td>
         <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:12px;width:auto">${roleOpts(m.role)}</select></td>
         <td data-st="${m.id}">${invStatus(m)}</td>
+        <td>${charCell(m)}</td>
         <td>${contactCell(m)}</td>
         <td style="white-space:nowrap">${m.user_id ? '' : `<button class="rowbtn" data-link="${m.id}">Copy invite link</button> <button class="rowbtn" data-link="${m.id}" data-new="1">New link</button>${m.role === 'leader' ? '' : ` <button class="rowbtn warn" data-del="${m.id}">Delete</button>`}`}</td></tr>`).join('')}
       </tbody></table>
@@ -77,8 +88,8 @@
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An invite link works once and expires after 7 days. Copy invite link reuses an unused one; New link voids it and makes a fresh one.</span>
       <div id="linkbox" hidden style="display:flex;gap:8px"><input class="input" id="linkout" readonly style="flex:1;min-height:40px"><button class="rowbtn" id="copylink">Copy</button></div></div>
       <div class="acard"><span class="t-module">Icon palette</span>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Each member has their own 15 slots: pick a member, then upload an image (it takes their lowest free number). Click a picture to set it as their icon; the cross removes it.</span>
-      <div style="display:flex;gap:8px;align-items:center"><label for="lg-m">Member</label><select class="input" id="lg-m" style="min-height:40px">${opts(A._logoMember)}</select></div>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Each animal has its own 15 slots: pick a character, then upload an image (it takes that animal's lowest free number). Click a picture to set it as the icon of whoever holds the animal; the cross removes it.</span>
+      <div style="display:flex;gap:8px;align-items:center"><label for="lg-c">Character</label><select class="input" id="lg-c" style="min-height:40px">${(chars0 || []).map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>
       <div id="ip" style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;max-width:100%"></div></div>
       <div class="acard" id="chars"><span class="t-module">Characters</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">One farmyard animal per member. Members pick theirs on their profile. Rename, free a taken animal, or remove one; names are unique.</span>
@@ -132,6 +143,13 @@
       try { await FY.rpc('admin_set_member', { p_member: m.id, p_field: 'role', p_value: sel.value }); m.role = sel.value; FY.toast('Saved.'); draw(); }
       catch (e) { FY.toast(e.message); sel.value = m.role; sel.disabled = false; }
     }));
+    // Character saves the moment it changes; the server frees the old animal and clears the member's icon pick.
+    pane.querySelectorAll('select[data-char]').forEach(sel => sel.addEventListener('change', async () => {
+      const m = A.members.find(x => x.id === sel.dataset.char); if (!m) return;
+      sel.disabled = true;
+      try { await FY.rpc('admin_character_assign', { p_member: m.id, p_id: sel.value ? Number(sel.value) : null }); m.character_id = sel.value ? Number(sel.value) : null; FY.toast('Saved.'); draw(); }
+      catch (e) { FY.toast(e.message); sel.value = m.character_id || ''; sel.disabled = false; }
+    }));
     // Delete an unclaimed row (never a claimed member or a leader; the RPC also refuses
     // anyone with poker / token / league history and says to keep the row).
     pane.querySelectorAll('button[data-del]').forEach(b => b.addEventListener('click', async () => {
@@ -150,14 +168,18 @@
         catch (e) { pane.querySelector('#linkbox').hidden = false; pane.querySelector('#linkout').value = url; pane.querySelector('#linkout').select(); }
       } catch (e) { FY.toast(e.message); }
     }));
-    // Icon palette: one Upload box beside 15 numbered slots. Slots are global; a click sets the selected member's icon.
+    // Icon palette: one Upload box beside 15 numbered slots. The slots belong to the ANIMAL;
+    // a click sets the icon of whoever holds it (icons-per-character.sql).
     const ICON_BUCKET = 'icons';
     let palette = [];
+    const holderOf = id => A.members.find(m => m.character_id === id) || null;
     const drawIcons = async () => {
-      const sel = A._logoMember || (A.members[0] && A.members[0].id); A._logoMember = sel;
-      try { palette = (await FY.q('icon_palette').select('slot,url').eq('member_id', sel).order('slot')).data || []; } catch (e) { palette = []; }
+      if (!chars0 || !chars0.length) { pane.querySelector('#ip').innerHTML = '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Add an animal below first — the icon slots belong to the animal.</span>'; return; }
+      let sel = Number(A._logoChar); if (!chars0.some(c => c.id === sel)) sel = chars0[0].id;
+      A._logoChar = sel;
+      try { palette = (await FY.q('icon_palette').select('slot,url').eq('character_id', sel).order('slot')).data || []; } catch (e) { palette = []; }
       const bySlot = {}; palette.forEach(r => bySlot[r.slot] = r);
-      const cur = (A.members.find(m => m.id === sel) || {}).avatar_url;
+      const cur = (holderOf(sel) || {}).avatar_url;
       const full = palette.length >= 15;
       const slot = n => {
         const r = bySlot[n];
@@ -204,8 +226,8 @@
       FY.rpc('admin_character_add', { p_name: name }).then(() => { inp.value = ''; FY.toast('Added.'); drawChars(); }, e => FY.toast(e.message));
     });
     await drawChars();
-    pane.querySelector('#lg-m').value = A._logoMember;
-    pane.querySelector('#lg-m').addEventListener('change', ev => { A._logoMember = ev.target.value; drawIcons(); });
+    const lgc = pane.querySelector('#lg-c');
+    if (lgc) { lgc.value = A._logoChar || ''; lgc.addEventListener('change', ev => { A._logoChar = Number(ev.target.value); drawIcons(); }); }
     // Square-crop to 256px PNG, upload to icons/<member>/slot-N.png, then record it (the RPC is leader-only and checks the URL).
     const squarePng = file => new Promise((res, rej) => {
       const url = URL.createObjectURL(file), img = new Image();
@@ -218,14 +240,14 @@
       const f = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (!f) return;
       let n = null;
       try {
-        if (!A._logoMember) throw new Error('Pick a member first.');
-        const who = A._logoMember;
-        n = await FY.rpc('admin_icon_next', { p_member: who });
+        if (!A._logoChar) throw new Error('Pick a character first.');
+        const who = A._logoChar;
+        n = await FY.rpc('admin_icon_next', { p_character: who });
         const blob = await squarePng(f);
         const { error } = await FY.sb.storage.from(ICON_BUCKET).upload(`${who}/slot-${n}.png`, blob, { contentType: 'image/png', upsert: true, cacheControl: '3600' });
         if (error) throw new Error(error.message);
         const url = FY.sb.storage.from(ICON_BUCKET).getPublicUrl(`${who}/slot-${n}.png`).data.publicUrl + '?v=' + Date.now();
-        await FY.rpc('admin_icon_add', { p_member: who, p_slot: n, p_url: url });
+        await FY.rpc('admin_icon_add', { p_character: who, p_slot: n, p_url: url });
         FY.toast(`Added as icon ${n}.`);
       } catch (e) { FY.toast(e.message); }
       drawIcons();
@@ -234,16 +256,17 @@
       const pick = ev.target.closest('[data-ipick]'), rm = ev.target.closest('[data-irm]');
       try {
         if (pick) {
-          const m = A.members.find(x => x.id === A._logoMember); if (!m) return;
+          const m = holderOf(A._logoChar);
+          if (!m) return FY.toast('No one holds this animal yet. Give it to a member in the Members table first.');
           await FY.rpc('admin_icon_set', { p_member: m.id, p_slot: Number(pick.dataset.ipick) });
           const r = palette.find(p => p.slot === Number(pick.dataset.ipick)); if (r) m.avatar_url = r.url;
-          FY.toast('Icon set.'); drawIcons();
+          FY.toast(`Icon set for ${m.nickname}.`); drawIcons();
         } else if (rm) {
           const n = Number(rm.dataset.irm);
-          const who = A._logoMember, wm = A.members.find(x => x.id === who);
-          if (!window.confirm(`Remove icon ${n}${wm ? ' for ' + wm.nickname : ''}? If it is their icon they go back to their stock animal.`)) return;
+          const who = A._logoChar, wm = holderOf(who);
+          if (!window.confirm(`Remove icon ${n}?${wm ? ' If it is ' + wm.nickname + "'s icon they go back to the stock animal." : ''}`)) return;
           const r = palette.find(p => p.slot === n);
-          await FY.rpc('admin_icon_remove', { p_member: who, p_slot: n });
+          await FY.rpc('admin_icon_remove', { p_character: who, p_slot: n });
           if (wm && r && wm.avatar_url === r.url) wm.avatar_url = null;
           const { error } = await FY.sb.storage.from(ICON_BUCKET).remove([`${who}/slot-${n}.png`]);
           FY.toast(error ? 'Removed, but the file could not be deleted: ' + error.message : 'Removed.'); drawIcons();
