@@ -66,6 +66,9 @@
     sb.auth.onAuthStateChange((ev, session) => {
       if (session) hadSession = true;
       else if (ev === 'SIGNED_OUT' && hadSession) location.reload();
+      // A real Discord sign-in stamps fy.member.last_login (Admin shows it). supabase-js sends
+      // INITIAL_SESSION when it restores a saved session, so a page load never counts as a login.
+      if (session && ev === 'SIGNED_IN') sb.rpc('touch_login').catch(() => {});
     });
   }
 

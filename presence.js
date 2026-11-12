@@ -7,7 +7,7 @@
   const ORDER = { voice: 0, online: 1, away: 2 };
 
   const Presence = {
-    _me: null, _chan: null, _members: null, _inVoice: false,
+    _me: null, _chan: null, _members: null, _inVoice: false, _subs: [],
 
     async _directory() {
       if (Presence._members) return Presence._members;
@@ -22,13 +22,34 @@
       await Presence._directory();
       const chan = FY.sb.channel('yard', { config: { presence: { key: me.id } } });
       Presence._chan = chan;
-      chan.on('presence', { event: 'sync' }, () => Presence.render());
+      chan.on('presence', { event: 'sync' }, () => { Presence.render(); Presence._fire(); });
       await new Promise(res => chan.subscribe(s => { if (s === 'SUBSCRIBED') res(); }));
       await Presence._track();
       document.addEventListener('visibilitychange', () => Presence._track());
       window.addEventListener('beforeunload', () => { try { chan.untrack(); } catch (e) {} });
       Presence.render();
+      Presence._fire();
     },
+
+    /* Other pages (Admin Members) read presence without owning the strip. */
+    map() {
+      const state = Presence._chan ? Presence._chan.presenceState() : {};
+      const out = {};
+      for (const key of Object.keys(state)) {
+        const metas = state[key], p = metas[metas.length - 1] || {};
+        if (!p.member_id) continue;
+        out[p.member_id] = p.in_voice ? 'voice' : (p.status === 'away' ? 'away' : 'online');
+      }
+      return out;
+    },
+
+    /* fn(map) runs on every presence sync, and once now if the channel is already up. */
+    onSync(fn) {
+      Presence._subs.push(fn);
+      if (Presence._chan) { try { fn(Presence.map()); } catch (e) {} }
+    },
+
+    _fire() { Presence._subs.forEach(f => { try { f(Presence.map()); } catch (e) {} }); },
 
     _track() {
       if (!Presence._chan) return;

@@ -10,7 +10,7 @@
 
   const A = { tab: location.hash.replace('#', '') || 'members', members: [] };
   const TABS = [['members', 'Members'], ['humidor', 'Humidor'], ['poker', 'Poker'], ['league', 'League'], ['tokens', 'Tokens & IOUs'], ['site', 'Site']];
-  const loadMembers = async () => { A.members = (await FY.q('member').select('id,nickname,avatar,avatar_url,user_id,role,setup_at,invite_email,discord_username,mobile,character_id,icon_slot').order('nickname')).data || []; };
+  const loadMembers = async () => { A.members = (await FY.q('member').select('id,nickname,avatar,avatar_url,user_id,role,setup_at,invite_email,discord_username,mobile,character_id,icon_slot,last_login').order('nickname')).data || []; };
   const nick = id => A.members.find(m => m.id === id)?.nickname || '?';
   const opts = sel => A.members.map(m => `<option value="${m.id}" ${m.id === sel ? 'selected' : ''}>${esc(m.nickname)}</option>`).join('');
   const twoTap = (b, label, fn) => {
@@ -32,6 +32,14 @@
     draw();
   });
 
+  // Online comes from the live presence channel (presence.js); Last login is fy.member.last_login,
+  // stamped by fy.touch_login() when Discord signs someone in.
+  const ONLINE = { voice: ['In voice', 'var(--neon-pink-text)', 'var(--neon-pink)'], online: ['Online', '#5fd3cf', 'var(--neon-teal)'], away: ['Away', 'var(--color-neutral-400)', '#55606a'] };
+  const onlineCell = st => { const [label, col, dot] = ONLINE[st] || ['Offline', 'var(--fy-text-label)', '#55606a'];
+    return `<span style="display:inline-flex;align-items:center;gap:6px;color:${col};white-space:nowrap"><span style="width:9px;height:9px;border-radius:50%;flex:none;background:${dot}"></span>${label}</span>`; };
+  // One subscription for the life of the page: every redraw's cells are found fresh in the DOM.
+  Presence.onSync(map => { document.querySelectorAll('td[data-online]').forEach(td => { td.innerHTML = onlineCell(map[td.dataset.online]); }); });
+
   // ---- Members ----
   // Invite status: which contact the sign-in gate will match this row on.
   const invStatus = m => m.user_id
@@ -48,6 +56,9 @@
     const chars0 = cr0.error ? null : (cr0.data || []);
     const held0 = {};
     if (chars0) A.members.forEach(m => { if (m.character_id) held0[m.character_id] = m.nickname; });
+    const lastLoginCell = m => { if (!m.last_login) return '<span style="color:var(--fy-text-label)">Never</span>';
+      const d = new Date(m.last_login);
+      return `<span style="font-variant-numeric:tabular-nums">${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} <span style="color:var(--fy-text-label)">${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span></span>`; };
     // Per-row Character dropdown: every animal is listed; one held by someone else is shown with the holder and disabled.
     const charCell = m => !chars0
       ? '<span style="color:var(--fy-text-label)">—</span>'
@@ -69,11 +80,13 @@
         <span class="t-module">Members</span>
         <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${A.members.length} in the yard · click a row to open their profile</span></div>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Invite contacts save as you leave each box; email is optional: use Copy invite link and send it on WhatsApp or Messenger.</span>
-      <table><thead><tr><th>Member</th><th>Role</th><th>Status</th><th>Character</th><th>Invite contact</th><th>Claim link</th></tr></thead><tbody>
+      <table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th>Last login</th><th>Status</th><th>Invite contact</th><th>Claim link</th></tr></thead><tbody>
       ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}"><td style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)} ${roleTag(m.role)}</td>
         <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:12px;width:auto">${roleOpts(m.role)}</select></td>
-        <td data-st="${m.id}">${invStatus(m)}</td>
+        <td data-online="${m.id}">${onlineCell(null)}</td>
         <td>${charCell(m)}</td>
+        <td style="white-space:normal">${lastLoginCell(m)}</td>
+        <td data-st="${m.id}">${invStatus(m)}</td>
         <td>${contactCell(m)}</td>
         <td style="white-space:nowrap">${m.user_id ? '' : `<button class="rowbtn" data-link="${m.id}">Copy invite link</button> <button class="rowbtn" data-link="${m.id}" data-new="1">New link</button>${m.role === 'leader' ? '' : ` <button class="rowbtn warn" data-del="${m.id}">Delete</button>`}`}</td></tr>`).join('')}
       </tbody></table>
