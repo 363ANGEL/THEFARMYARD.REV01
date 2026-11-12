@@ -56,14 +56,15 @@
     /* View as, top-right of every page's header, leaders only (never rendered for members).
        Member preview swaps it for a dashed banner carrying Back to admin. Pages overwrite #main,
        so the bar re-seats itself at the top whenever they do. */
-    viewBar(main, preview) {
+    viewBar(main, preview, whoName) {
       const bar = document.createElement('div');
       bar.id = 'fy-viewbar';
       bar.style.cssText = 'flex:none; display:flex; align-items:center; justify-content:flex-end; gap:10px; margin:-6px 0 -4px;';
       if (preview) {
+        const who = (whoName ? ' as ' + FY.esc(whoName) : ' as a member');
         bar.innerHTML = `<div style="flex:1; display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:6px 12px; border:1px dashed var(--neon-teal); border-radius:8px; color:var(--neon-teal); text-shadow:0 0 6px rgba(95,211,207,.5);">
           <i class="ph ph-user-circle-gear" style="font-size:var(--ic-md)" aria-hidden="true"></i>
-          <span style="flex:1; font-size:var(--fs-sm); letter-spacing:.04em;">Previewing as a member</span>
+          <span style="flex:1; font-size:var(--fs-sm); letter-spacing:.04em;">Previewing${who} · nothing here saves</span>
           <button type="button" id="fy-back" class="btn btn-teal" style="min-height:32px; font-size:var(--fs-xs);">Back to admin</button></div>`;
         bar.querySelector('#fy-back').addEventListener('click', () => Barn.setPreview(false));
       } else {
@@ -71,17 +72,35 @@
           <i class="ph ph-user-circle-gear" style="font-size:var(--ic-md)" aria-hidden="true"></i>
           <span class="kicker">View as</span>
           <select id="fy-viewas" class="input" aria-label="View as" style="width:auto; min-height:32px; padding:2px 8px; font-size:var(--fs-sm);"><option value="admin" selected>Admin</option><option value="member">Member</option></select></label>`;
-        bar.querySelector('#fy-viewas').addEventListener('change', e => { if (e.target.value === 'member') Barn.setPreview(true); });
+        const sel = bar.querySelector('#fy-viewas');
+        // Every member is an option, claimed or not: that is how a leader tests pages
+        // for someone who has never signed in.
+        FY.q('member').select('id,nickname').order('nickname').then(({ data }) => {
+          (data || []).forEach(m => { const o = document.createElement('option'); o.value = 'member:' + m.id; o.textContent = m.nickname; sel.appendChild(o); });
+        }).catch(() => {});
+        sel.addEventListener('change', e => {
+          const v = e.target.value;
+          if (v === 'member') Barn.setPreview(true);
+          else if (v.startsWith('member:')) Barn.setPreview(v.slice(7));
+        });
       }
       const seat = () => { if (!main.contains(bar)) main.prepend(bar); };
       seat();
       new MutationObserver(seat).observe(main, { childList: true });
     },
 
-    /* View as: a UI-only preview for leaders. It never touches the real role or any RPC. */
-    previewing() { try { return sessionStorage.getItem('fy.viewAs') === 'member'; } catch (e) { return false; } },
+    /* View as: a UI-only preview for leaders. It never touches the real role or any RPC.
+       'member' previews a generic member; 'member:<uuid>' previews that member's own pages,
+       so a leader can walk the site as someone who has never signed in (RAY, 12 Nov).
+       Nothing saves while it is on: FY.rpc refuses writes (app.js). */
+    _viewAs() { try { return sessionStorage.getItem('fy.viewAs') || ''; } catch (e) { return ''; } },
+    previewing() { return /^member(:|$)/.test(Barn._viewAs()); },
+    previewMemberId() { const v = Barn._viewAs(); return v.startsWith('member:') ? v.slice(7) : null; },
     setPreview(on) {
-      try { on ? sessionStorage.setItem('fy.viewAs', 'member') : sessionStorage.removeItem('fy.viewAs'); } catch (e) { /* private mode */ }
+      try {
+        if (!on) sessionStorage.removeItem('fy.viewAs');
+        else sessionStorage.setItem('fy.viewAs', on === true ? 'member' : 'member:' + on);
+      } catch (e) { /* private mode */ }
       location.reload();
     },
 
@@ -136,7 +155,17 @@
         const ok = !preview && await FY.rpc('is_leader').then(Boolean).catch(() => false);
         if (!ok) { location.replace('dashboard.html'); return null; }
       }
-      const meView = preview ? { ...me, role: 'member', is_admin: false } : me;   // page UI keys off role
+      // page UI keys off role; previewing a named member stands their whole row in for yours
+      let meView = preview ? { ...me, role: 'member', is_admin: false } : me;
+      let previewName = null;
+      if (preview) {
+        const pid = Barn.previewMemberId();
+        if (pid) {
+          const { data } = await FY.q('member').select('*').eq('id', pid).limit(1);
+          if (data && data[0]) { meView = { ...data[0], role: 'member', is_admin: false }; previewName = data[0].nickname; }
+          else { Barn.setPreview(false); return null; }   // that member has gone: drop back to admin
+        }
+      }
       Barn.responsive();
       root.innerHTML = `
         <div style="width:100%; min-height:100vh; box-sizing:border-box; padding:16px; overflow-x:auto;">
@@ -146,7 +175,7 @@
           </div>
         </div>`;
       Barn.sidebar(document.getElementById('side'), page, meView, rooms, { leader });
-      if (realLeader) Barn.viewBar(document.getElementById('main'), preview);
+      if (realLeader) Barn.viewBar(document.getElementById('main'), preview, previewName);
       return { me: meView, realMe: me, leader, preview, session, main: document.getElementById('main'), root };
     },
 

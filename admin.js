@@ -202,7 +202,8 @@
           <span style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 180px">
             <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="t-module">${esc(m.nickname)}</span>${roleTag(m.role)}</span>
             <span style="font-size:var(--fs-sm);font-style:italic;color:${m.tagline ? 'var(--neon-pink-text)' : 'var(--fy-text-label)'}">${esc(m.tagline || 'No tagline yet.')}</span></span>
-          <span style="display:flex;gap:8px"><a class="rowbtn" href="profile.html?view=admin&user=${encodeURIComponent(m.nickname)}" style="display:inline-flex;align-items:center;text-decoration:none">Open full profile</a>
+          <span style="display:flex;gap:8px;flex-wrap:wrap"><button class="rowbtn" id="md-viewas">View the yard as them</button>
+          <a class="rowbtn" href="profile.html?view=admin&user=${encodeURIComponent(m.nickname)}" style="display:inline-flex;align-items:center;text-decoration:none">Open full profile</a>
           <button class="rowbtn" id="md-close">Close</button></span></div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px 14px">
           ${fact('Online', onlineCell(st))}
@@ -225,9 +226,11 @@
           ${Array.from({ length: 15 }, (_, k) => { const n = k + 1, r = bySlot[n];
             if (!r) return `<span style="aspect-ratio:1/1;border-radius:50%;border:2px dashed rgba(95,211,207,.35);display:grid;place-items:center;color:var(--fy-text-label);font-size:var(--fs-xs)">${n}</span>`;
             const on = m.icon_slot === n || m.avatar_url === r.url;
-            return `<button type="button" data-mdpick="${n}" aria-label="Set icon ${n} for ${esc(m.nickname)}" aria-pressed="${on}" style="aspect-ratio:1/1;padding:0;border-radius:50%;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/cover no-repeat"></button>`; }).join('')}
+            return `<button type="button" data-mdpick="${n}" aria-label="Set icon ${n} for ${esc(m.nickname)}" aria-pressed="${on}" style="aspect-ratio:1/1;padding:0;border-radius:50%;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/cover no-repeat;background-origin:border-box"></button>`; }).join('')}
         </div>`;
       box.querySelector('#md-close').onclick = () => { box.hidden = true; box.dataset.mid = ''; };
+      // Walk the site as this member, claimed or not. Read-only: writes are refused while it is on.
+      box.querySelector('#md-viewas').onclick = () => Barn.setPreview(m.id);
       // Invite link and delete live here now, so they are wired here.
       box.querySelectorAll('button[data-link]').forEach(b => b.onclick = async () => {
         try {
@@ -277,7 +280,7 @@
         if (!r) return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="width:64px;height:64px;border-radius:50%;border:2px dashed rgba(95,211,207,.35);display:grid;place-items:center;color:var(--fy-text-label);font-size:var(--fs-sm)">${n}</span></div>`;
         const on = cur && cur === r.url;
         return `<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:4px">
-          <button type="button" data-ipick="${n}" aria-label="Set icon ${n}" aria-pressed="${on ? 'true' : 'false'}" style="width:64px;height:64px;border-radius:50%;padding:0;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/cover no-repeat"></button>
+          <button type="button" data-ipick="${n}" aria-label="Set icon ${n}" aria-pressed="${on ? 'true' : 'false'}" style="width:64px;height:64px;border-radius:50%;padding:0;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/cover no-repeat;background-origin:border-box"></button>
           <button type="button" data-irm="${n}" aria-label="Remove icon ${n}" style="position:absolute;top:-4px;right:-4px;width:22px;height:22px;border-radius:50%;padding:0;cursor:pointer;border:1px solid var(--neon-pink-tube);background:#0a1a1a;color:var(--neon-pink-text);font-size:12px;line-height:1">&#10005;</button>
           <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${n}</span></div>`;
       };

@@ -29,12 +29,25 @@
       return sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: redirectTo || window.location.origin + '/dashboard.html' } });
     },
     async signOut() { try { sessionStorage.removeItem('fy.voice'); } catch (e) {} await sb.auth.signOut(); location.reload(); },
+    /* While a leader is previewing a named member, nothing may be written: the session is still
+       theirs, so a save would land on their own row, not the member's. Reads pass through. */
+    _writeRpc: /^(set_|admin_|record_|issue_|decide_|settle_|create_|delete_|link_|touch_)/,
+    previewingMember() { return !!(window.Barn && Barn.previewMemberId && Barn.previewMemberId()); },
     async rpc(name, args) {
+      if (FY._writeRpc.test(name) && FY.previewingMember()) {
+        FY.toast('Previewing another member — nothing saves. Go back to admin first.');
+        throw new Error('previewing: ' + name + ' not run');
+      }
       const { data, error } = await sb.rpc(name, args || {});
       if (error) throw new Error(error.message || String(error));
       return data;
     },
-    q(table) { return sb.from(table); },
+    q(table) {
+      const t = sb.from(table);
+      if (!FY.previewingMember()) return t;
+      const stop = () => { FY.toast('Previewing another member — nothing saves. Go back to admin first.'); return Promise.reject(new Error('previewing: write blocked')); };
+      return new Proxy(t, { get: (o, k) => (k === 'update' || k === 'insert' || k === 'upsert' || k === 'delete') ? stop : Reflect.get(o, k).bind(o) });
+    },
     // A member's face: their chosen logo (avatar_url) or the full-colour stock animal (avatar key), at every size.
     // Takes a member row or a key; px kept for callers but no longer changes the art (face marks retired, FARMYARD-STYLE.md 28 Oct).
     face(m, px) {
