@@ -10,9 +10,15 @@
 
   const A = { tab: location.hash.replace('#', '') || 'members', members: [] };
   const TABS = [['members', 'Members'], ['humidor', 'Humidor'], ['poker', 'Poker'], ['league', 'League'], ['tokens', 'Tokens & IOUs'], ['site', 'Site']];
-  const loadMembers = async () => { A.members = (await FY.q('member').select('id,nickname,avatar,avatar_url,user_id,role,setup_at,invite_email,discord_username,mobile,character_id,icon_slot,last_login').order('nickname')).data || []; };
+  const loadMembers = async () => { A.members = (await FY.q('member').select('id,nickname,avatar,avatar_url,user_id,role,setup_at,invite_email,discord_username,mobile,character_id,icon_slot,last_login,tagline,birth_day,birth_month,revolut_url,created_at,claimed').order('nickname')).data || []; };
   const nick = id => A.members.find(m => m.id === id)?.nickname || '?';
   const opts = sel => A.members.map(m => `<option value="${m.id}" ${m.id === sel ? 'selected' : ''}>${esc(m.nickname)}</option>`).join('');
+  // Same guard for a button too small to carry "Tap again": it glows and the toast says what is armed.
+  const twoTapQuiet = (b, msg, fn) => {
+    if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.style.boxShadow = 'var(--glow-pink)'; FY.toast(msg);
+      setTimeout(() => { b.dataset.armed = ''; b.style.boxShadow = ''; }, 5000); return; }
+    b.disabled = true; fn().catch(e => { FY.toast(e.message); b.disabled = false; });
+  };
   const twoTap = (b, label, fn) => {
     if (b.dataset.armed !== '1') { b.dataset.armed = '1'; const t = b.textContent; b.textContent = 'Tap again'; setTimeout(() => { b.dataset.armed = ''; b.textContent = t; }, 5000); return; }
     b.disabled = true; fn().catch(e => { FY.toast(e.message); b.disabled = false; });
@@ -34,14 +40,18 @@
 
   // Online comes from the live presence channel (presence.js); Last login is fy.member.last_login,
   // stamped by fy.touch_login() when Discord signs someone in.
-  const ONLINE = { voice: ['In voice', 'var(--neon-pink-text)', 'var(--neon-pink)'], online: ['Online', '#5fd3cf', 'var(--neon-teal)'], away: ['Away', 'var(--color-neutral-400)', '#55606a'] };
-  const onlineCell = st => { const [label, col, dot] = ONLINE[st] || ['Offline', 'var(--fy-text-label)', '#55606a'];
-    return `<span style="display:inline-flex;align-items:center;gap:6px;color:${col};white-space:nowrap"><span style="width:9px;height:9px;border-radius:50%;flex:none;background:${dot}"></span>${label}</span>`; };
+  // A dot, nothing else (RAY, 12 Nov): green when they are in the yard, red when they are not.
+  const ONLINE = { voice: 'In voice', online: 'Online', away: 'Away' };
+  const onlineCell = st => { const here = !!ONLINE[st], label = ONLINE[st] || 'Offline';
+    const col = here ? 'var(--neon-green-tube, #3ddc97)' : 'var(--neon-red-tube, #e8263a)';
+    return `<span title="${label}" aria-label="${label}" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${col};box-shadow:0 0 6px ${col}"></span>`; };
   // One subscription for the life of the page: every redraw's cells are found fresh in the DOM.
   Presence.onSync(map => { document.querySelectorAll('td[data-online]').forEach(td => { td.innerHTML = onlineCell(map[td.dataset.online]); }); });
 
   // ---- Members ----
   // Invite status: which contact the sign-in gate will match this row on.
+  // The table says only Claimed or Unclaimed (RAY, 12 Nov); the detail panel carries the rest.
+  const statusCell = m => m.user_id ? 'Claimed' : '<span style="color:var(--fy-text-label)">Unclaimed</span>';
   const invStatus = m => m.user_id
     ? (m.setup_at ? 'Claimed' : 'Claimed · set-up pending')
     : `<span style="color:var(--fy-text-label)">Invited · ${m.invite_email ? 'matches on email' : m.discord_username ? 'matches on Discord username' : 'invite link'}</span>`;
@@ -56,9 +66,11 @@
     const chars0 = cr0.error ? null : (cr0.data || []);
     const held0 = {};
     if (chars0) A.members.forEach(m => { if (m.character_id) held0[m.character_id] = m.nickname; });
+    // dd.mm.yy, with the time dimmed after it (RAY, 12 Nov).
     const lastLoginCell = m => { if (!m.last_login) return '<span style="color:var(--fy-text-label)">Never</span>';
-      const d = new Date(m.last_login);
-      return `<span style="font-variant-numeric:tabular-nums">${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} <span style="color:var(--fy-text-label)">${d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span></span>`; };
+      const d = new Date(m.last_login), p2 = n => String(n).padStart(2, '0');
+      const date = `${p2(d.getDate())}.${p2(d.getMonth() + 1)}.${p2(d.getFullYear() % 100)}`;
+      return `<span style="font-variant-numeric:tabular-nums;white-space:nowrap">${date} <span style="color:var(--fy-text-label)">${p2(d.getHours())}:${p2(d.getMinutes())}</span></span>`; };
     // Per-row Character dropdown: every animal is listed; one held by someone else is shown with the holder and disabled.
     const charCell = m => !chars0
       ? '<span style="color:var(--fy-text-label)">—</span>'
@@ -79,16 +91,15 @@
     pane.innerHTML = `<div class="acard"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <span class="t-module">Members</span>
         <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${A.members.length} in the yard · click a row to open their profile</span></div>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Invite contacts save as you leave each box; email is optional: use Copy invite link and send it on WhatsApp or Messenger.</span>
-      <div class="tscroll"><table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th class="wrap">Last login</th><th>Status</th><th>Invite contact</th><th>Claim link</th></tr></thead><tbody>
-      ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}"><td style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)} ${roleTag(m.role)}</td>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Click a row to open that member below: their details, their icons, and their invite link.</span>
+      <div class="tscroll"><table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th class="wrap">Last login</th><th>Status</th><th>Email</th></tr></thead><tbody>
+      ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}" data-mid="${m.id}"><td style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)}</td>
         <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:12px;width:auto">${roleOpts(m.role)}</select></td>
         <td data-online="${m.id}">${onlineCell(null)}</td>
         <td>${charCell(m)}</td>
         <td style="white-space:normal">${lastLoginCell(m)}</td>
-        <td data-st="${m.id}">${invStatus(m)}</td>
-        <td>${contactCell(m)}</td>
-        <td>${m.user_id ? '' : `<span class="claimbtns"><button class="rowbtn" data-link="${m.id}">Copy invite link</button><button class="rowbtn" data-link="${m.id}" data-new="1">New link</button>${m.role === 'leader' ? '' : `<button class="rowbtn warn" data-del="${m.id}">Delete</button>`}</span>`}</td></tr>`).join('')}
+        <td data-st="${m.id}">${statusCell(m)}</td>
+        <td style="white-space:nowrap"><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${m.invite_email ? esc(m.invite_email) : '—'}</span></td></tr>`).join('')}
       </tbody></table></div>
       <form id="newmember" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;max-width:100%"><input class="input" id="nm-nick" placeholder="Nickname" required maxlength="24" style="min-height:40px;flex:1 1 140px;min-width:0;max-width:100%;box-sizing:border-box">
         ${animalSel}
@@ -100,6 +111,7 @@
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Email and Discord username are optional. Copy the invite link from the member's row and send it on WhatsApp or Messenger. Mobile is contact only, never used for login.</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An invite link works once and expires after 7 days. Copy invite link reuses an unused one; New link voids it and makes a fresh one.</span>
       <div id="linkbox" hidden style="display:flex;gap:8px"><input class="input" id="linkout" readonly style="flex:1;min-height:40px"><button class="rowbtn" id="copylink">Copy</button></div></div>
+      <div class="acard" id="mdetail" hidden></div>
       <div class="acard"><span class="t-module">Icon palette</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Each animal has its own 15 slots: pick a character, then upload an image (it takes that animal's lowest free number). Click a picture to set it as the icon of whoever holds the animal; the cross removes it.</span>
       <div style="display:flex;gap:8px;align-items:center"><label for="lg-c">Character</label><select class="input" id="lg-c" style="min-height:40px">${(chars0 || []).map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>
@@ -108,9 +120,11 @@
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">One farmyard animal per member. Members pick theirs on their profile. Rename, free a taken animal, or remove one; names are unique.</span>
       <div id="charlist" style="display:flex;flex-direction:column;gap:8px"></div>
       <form id="charadd" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input class="input" id="char-new" placeholder="New animal" maxlength="24" required style="min-height:40px;flex:1 1 160px;min-width:0"><button class="btn btn-primary" style="min-height:40px">Add animal</button></form></div>`;
+    // A row opens that member's details below the table (RAY, 12 Nov): the full profile page
+    // is still a click away, but the admin stays on this page.
     pane.addEventListener('click', ev => {
-      const tr = ev.target.closest('tr[data-open]');
-      if (tr && !ev.target.closest('button,input,select')) location.href = 'profile.html?view=admin&user=' + encodeURIComponent(tr.dataset.open);
+      const tr = ev.target.closest('tr[data-mid]');
+      if (tr && !ev.target.closest('button,input,select')) showDetail(tr.dataset.mid);
     });
     // Invite contacts save on blur (focusout bubbles; wired once, the pane node survives redraws).
     if (!pane.dataset.invWired) {
@@ -125,7 +139,7 @@
         try {
           await FY.rpc('admin_set_member', { p_member: m.id, p_field: f, p_value: v });
           m[f] = v || null;
-          const st = pane.querySelector(`[data-st="${m.id}"]`); if (st) st.innerHTML = invStatus(m);
+          const st = pane.querySelector(`[data-st="${m.id}"]`); if (st) st.innerHTML = statusCell(m);
           FY.toast('Saved.');
         } catch (e) { FY.toast(e.message); box.value = m[f] || ''; }
       });
@@ -163,24 +177,80 @@
       try { await FY.rpc('admin_character_assign', { p_member: m.id, p_id: sel.value ? Number(sel.value) : null }); m.character_id = sel.value ? Number(sel.value) : null; FY.toast('Saved.'); draw(); }
       catch (e) { FY.toast(e.message); sel.value = m.character_id || ''; sel.disabled = false; }
     }));
-    // Delete an unclaimed row (never a claimed member or a leader; the RPC also refuses
-    // anyone with poker / token / league history and says to keep the row).
-    pane.querySelectorAll('button[data-del]').forEach(b => b.addEventListener('click', async () => {
-      const m = A.members.find(x => x.id === b.dataset.del); if (!m) return;
-      if (!window.confirm(`Remove ${m.nickname}? Their invite and claim link stop working.`)) return;
-      b.disabled = true;
-      try { await FY.rpc('admin_delete_member', { p_member: m.id }); FY.toast(`${m.nickname} removed.`); draw(); }
-      catch (e) { FY.toast(e.message); b.disabled = false; }
-    }));
-    pane.querySelectorAll('button[data-link]').forEach(b => b.addEventListener('click', async () => {
-      try {
-        const tok = await FY.rpc('issue_claim_link', { p_member_id: b.dataset.link, p_new: !!b.dataset.new });
-        const url = `${location.origin}/claim.html?claim=${tok}`;
-        const lab = b.textContent;
-        try { await navigator.clipboard.writeText(url); b.textContent = 'Link copied'; setTimeout(() => { b.textContent = lab; }, 2000); }
-        catch (e) { pane.querySelector('#linkbox').hidden = false; pane.querySelector('#linkout').value = url; pane.querySelector('#linkout').select(); }
-      } catch (e) { FY.toast(e.message); }
-    }));
+    // ---- Member details, in place under the table ----
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const fact = (k, v) => `<div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span class="kicker" style="font-size:var(--fs-xs);color:var(--fy-text-label)">${k}</span><span style="font-size:var(--fs-sm);overflow-wrap:anywhere">${v}</span></div>`;
+    const dash = '<span style="color:var(--fy-text-label)">—</span>';
+    async function showDetail(id) {
+      const box = pane.querySelector('#mdetail'); if (!box) return;
+      const m = A.members.find(x => x.id === id); if (!m) return;
+      if (box.dataset.mid === id && !box.hidden) { box.hidden = true; box.dataset.mid = ''; return; }   // same row again closes it
+      box.hidden = false; box.dataset.mid = id;
+      box.innerHTML = '<p class="muted">Loading…</p>';
+      const charName = (chars0 || []).find(c => c.id === m.character_id);
+      const slots = m.character_id
+        ? await FY.q('icon_palette').select('slot,url').eq('character_id', m.character_id).order('slot').then(r => r.data || [], () => [])
+        : [];
+      const bySlot = {}; slots.forEach(r => bySlot[r.slot] = r);
+      const st = Presence.map ? Presence.map()[m.id] : null;
+      box.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span style="width:56px;height:56px;flex:none;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 56))}') center/contain no-repeat"></span>
+          <span style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 180px">
+            <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="t-module">${esc(m.nickname)}</span>${roleTag(m.role)}</span>
+            <span style="font-size:var(--fs-sm);font-style:italic;color:${m.tagline ? 'var(--neon-pink-text)' : 'var(--fy-text-label)'}">${esc(m.tagline || 'No tagline yet.')}</span></span>
+          <span style="display:flex;gap:8px"><a class="rowbtn" href="profile.html?view=admin&user=${encodeURIComponent(m.nickname)}" style="display:inline-flex;align-items:center;text-decoration:none">Open full profile</a>
+          <button class="rowbtn" id="md-close">Close</button></span></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px 14px">
+          ${fact('Online', onlineCell(st))}
+          ${fact('Character', charName ? esc(charName.name) : dash)}
+          ${fact('Last login', lastLoginCell(m))}
+          ${fact('Status', invStatus(m))}
+          ${fact('Birthday', m.birth_day && m.birth_month ? m.birth_day + ' ' + MONTHS[m.birth_month - 1] : dash)}
+          ${fact('Joined', m.created_at ? new Date(m.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : dash)}
+          ${fact('Email', m.invite_email ? esc(m.invite_email) : dash)}
+          ${fact('Discord', m.discord_username ? esc(m.discord_username) : dash)}
+          ${fact('Mobile', m.mobile ? esc(m.mobile) : dash)}
+          ${fact('Revolut', m.revolut_url ? esc(m.revolut_url) : dash)}
+        </div>
+        ${m.user_id ? '' : `<div style="display:flex;flex-direction:column;gap:8px;padding-top:4px;border-top:1px solid rgba(95,211,207,.22)">
+          <span class="kicker" style="font-size:var(--fs-xs);color:var(--fy-text-label)">Invite · contacts save as you leave each box, and the link works once and expires after 7 days</span>
+          ${contactCell(m)}
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><button class="rowbtn" data-link="${m.id}">Copy invite link</button><button class="rowbtn" data-link="${m.id}" data-new="1">New link</button>${m.role === 'leader' ? '' : `<button class="rowbtn warn" data-del="${m.id}">Delete member</button>`}</span></div>`}
+        <span class="kicker" style="font-size:var(--fs-xs);color:var(--fy-text-label)">Icon ${charName ? '· ' + esc(charName.name) + "'s 15 slots · click one to make it theirs" : '· no animal yet, so no slots'}</span>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(10px,1.6vw,20px);width:100%">
+          ${Array.from({ length: 15 }, (_, k) => { const n = k + 1, r = bySlot[n];
+            if (!r) return `<span style="aspect-ratio:1/1;border-radius:50%;border:2px dashed rgba(95,211,207,.35);display:grid;place-items:center;color:var(--fy-text-label);font-size:var(--fs-xs)">${n}</span>`;
+            const on = m.icon_slot === n || m.avatar_url === r.url;
+            return `<button type="button" data-mdpick="${n}" aria-label="Set icon ${n} for ${esc(m.nickname)}" aria-pressed="${on}" style="aspect-ratio:1/1;padding:0;border-radius:50%;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/cover no-repeat"></button>`; }).join('')}
+        </div>`;
+      box.querySelector('#md-close').onclick = () => { box.hidden = true; box.dataset.mid = ''; };
+      // Invite link and delete live here now, so they are wired here.
+      box.querySelectorAll('button[data-link]').forEach(b => b.onclick = async () => {
+        try {
+          const tok = await FY.rpc('issue_claim_link', { p_member_id: b.dataset.link, p_new: !!b.dataset.new });
+          const url = `${location.origin}/claim.html?claim=${tok}`;
+          const lab = b.textContent;
+          try { await navigator.clipboard.writeText(url); b.textContent = 'Link copied'; setTimeout(() => { b.textContent = lab; }, 2000); }
+          catch (e) { const lb = pane.querySelector('#linkbox'); lb.hidden = false; pane.querySelector('#linkout').value = url; pane.querySelector('#linkout').select(); }
+        } catch (e) { FY.toast(e.message); }
+      });
+      // Never a claimed member or a leader; the RPC also refuses anyone with poker, token or
+      // league history. Two taps, because a browser may suppress confirm().
+      box.querySelectorAll('button[data-del]').forEach(b => b.onclick = () => twoTap(b, 'Delete member', async () => {
+        await FY.rpc('admin_delete_member', { p_member: m.id });
+        FY.toast(`${m.nickname} removed. Their invite and claim link stop working.`);
+        box.hidden = true; box.dataset.mid = ''; draw();
+      }));
+      box.querySelectorAll('[data-mdpick]').forEach(b => b.onclick = async () => {
+        try { await FY.rpc('admin_icon_set', { p_member: m.id, p_slot: Number(b.dataset.mdpick) });
+          const r = bySlot[Number(b.dataset.mdpick)]; m.icon_slot = Number(b.dataset.mdpick); if (r) m.avatar_url = r.url;
+          FY.toast('Icon set.'); showDetail(id); showDetail(id); }
+        catch (e) { FY.toast(e.message); }
+      });
+      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
     // Icon palette: one Upload box beside 15 numbered slots. The slots belong to the ANIMAL;
     // a click sets the icon of whoever holds it (icons-per-character.sql).
     const ICON_BUCKET = 'icons';
@@ -229,8 +299,10 @@
       box.querySelectorAll('[data-cfree]').forEach(b => b.onclick = () => run(() => FY.rpc('admin_character_free', { p_id: Number(b.dataset.cfree) }), 'Freed.'));
       box.querySelectorAll('[data-cdel]').forEach(b => b.onclick = () => {
         const c = byId(b.dataset.cdel);
-        if (!window.confirm(`Remove ${c.name}?${holders[c.id] ? ' ' + holders[c.id] + ' will have no animal.' : ''}`)) return;
-        run(() => FY.rpc('admin_character_remove', { p_id: c.id }), 'Removed.');
+        twoTap(b, 'Remove', async () => {
+          await FY.rpc('admin_character_remove', { p_id: c.id });
+          FY.toast(`${c.name} removed.${holders[c.id] ? ' ' + holders[c.id] + ' now has no animal.' : ''}`); drawChars();
+        });
       });
     };
     pane.querySelector('#charadd').addEventListener('submit', ev => {
@@ -277,12 +349,13 @@
         } else if (rm) {
           const n = Number(rm.dataset.irm);
           const who = A._logoChar, wm = holderOf(who);
-          if (!window.confirm(`Remove icon ${n}?${wm ? ' If it is ' + wm.nickname + "'s icon they go back to the stock animal." : ''}`)) return;
-          const r = palette.find(p => p.slot === n);
-          await FY.rpc('admin_icon_remove', { p_character: who, p_slot: n });
-          if (wm && r && wm.avatar_url === r.url) wm.avatar_url = null;
-          const { error } = await FY.sb.storage.from(ICON_BUCKET).remove([`${who}/slot-${n}.png`]);
-          FY.toast(error ? 'Removed, but the file could not be deleted: ' + error.message : 'Removed.'); drawIcons();
+          twoTapQuiet(rm, `Tap the cross again to remove icon ${n}.${wm ? ' ' + wm.nickname + ' goes back to the stock animal.' : ''}`, async () => {
+            const r = palette.find(p => p.slot === n);
+            await FY.rpc('admin_icon_remove', { p_character: who, p_slot: n });
+            if (wm && r && wm.avatar_url === r.url) wm.avatar_url = null;
+            const { error } = await FY.sb.storage.from(ICON_BUCKET).remove([`${who}/slot-${n}.png`]);
+            FY.toast(error ? 'Removed, but the file could not be deleted: ' + error.message : 'Removed.'); drawIcons();
+          });
         }
       } catch (e) { FY.toast(e.message); }
     });
