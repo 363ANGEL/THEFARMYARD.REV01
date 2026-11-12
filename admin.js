@@ -115,7 +115,8 @@
       <div id="linkbox" hidden style="display:flex;gap:8px"><input class="input" id="linkout" readonly style="flex:1;min-height:40px"><button class="rowbtn" id="copylink">Copy</button></div></div>
       <div class="acard"><span class="t-module">Icon palette</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Each animal has its own 15 slots: pick a character, then upload an image (it takes that animal's lowest free number). Click a picture to set it as the icon of whoever holds the animal; the cross removes it.</span>
-      <div style="display:flex;gap:8px;align-items:center"><label for="lg-c">Character</label><select class="input" id="lg-c" style="min-height:40px">${(chars0 || []).map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label for="lg-c">Character</label><select class="input" id="lg-c" style="min-height:40px">${(chars0 || []).map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+        <span id="lg-holder" style="font-size:var(--fs-xs);color:var(--fy-text-label)"></span></div>
       <div id="ip" style="display:flex;flex-direction:column;gap:14px;max-width:100%"></div></div>
       <div class="acard" id="chars"><span class="t-module">Characters</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">One farmyard animal per member. Members pick theirs on their profile. Rename, free a taken animal, or remove one; names are unique.</span>
@@ -263,7 +264,12 @@
       A._logoChar = sel;
       try { palette = (await FY.q('icon_palette').select('slot,url').eq('character_id', sel).order('slot')).data || []; } catch (e) { palette = []; }
       const bySlot = {}; palette.forEach(r => bySlot[r.slot] = r);
-      const cur = (holderOf(sel) || {}).avatar_url;
+      const holder = holderOf(sel);
+      const hEl = pane.querySelector('#lg-holder');
+      if (hEl) hEl.innerHTML = holder
+        ? `Held by <strong style="color:var(--neon-teal)">${esc(holder.nickname)}</strong> · clicking a picture makes it theirs`
+        : 'Nobody holds this animal, so a picture cannot be anyone&rsquo;s icon yet. Give it to a member in the Members table.';
+      const cur = (holder || {}).avatar_url;
       const full = palette.length >= 15;
       const slot = n => {
         const r = bySlot[n];
@@ -277,8 +283,8 @@
       // The 15 slots fill the module, five to a line; Upload sits under them (RAY, 12 Nov).
       pane.querySelector('#ip').innerHTML = `
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px clamp(10px,1.6vw,20px);width:100%">${Array.from({ length: 15 }, (_, k) => slot(k + 1)).join('')}</div>
-        <label style="align-self:flex-start;min-width:160px;min-height:56px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;padding:10px 16px;border:2px dashed var(--neon-teal);border-radius:12px;color:var(--fy-text);font-size:var(--fs-sm);cursor:${full ? 'not-allowed' : 'pointer'};opacity:${full ? '.45' : '1'}">
-          <span>Upload image</span><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${full ? 'Palette full' : 'PNG or JPG'}</span>
+        <label style="align-self:center;min-height:34px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;padding:0 14px;border:1.5px dashed var(--neon-teal);border-radius:8px;color:var(--fy-text);font-size:var(--fs-xs);white-space:nowrap;cursor:${full ? 'not-allowed' : 'pointer'};opacity:${full ? '.45' : '1'}">
+          <span>Upload image</span><span style="color:var(--fy-text-label)">${full ? 'Palette full' : 'PNG or JPG'}</span>
           <input type="file" id="ip-file" accept="image/*" ${full ? 'disabled' : ''} style="display:none"></label>`;
     };
     await drawIcons();
@@ -290,7 +296,6 @@
       const chars = cr.data || [], holders = {};
       ((await FY.q('member').select('nickname,character_id').not('character_id', 'is', null)).data || []).forEach(m => { holders[m.character_id] = m.nickname; });
       box.innerHTML = chars.length ? chars.map(c => `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap" data-c="${c.id}">
-          <span style="width:32px;height:32px;border-radius:50%;border:1px solid var(--neon-teal);background:#0a1a1a ${c.img ? `url('${esc(c.img)}')` : ''} center/contain no-repeat;flex:none"></span>
           <input class="input" data-cname="${c.id}" value="${esc(c.name)}" maxlength="24" aria-label="Animal name" style="min-height:34px;font-size:12px;flex:1 1 120px;min-width:0">
           <button class="rowbtn" data-crename="${c.id}">Rename</button>
           <span style="font-size:var(--fs-xs);color:var(--fy-text-label);flex:1 1 90px">${holders[c.id] ? 'Taken by ' + esc(holders[c.id]) : 'Free'}</span>
