@@ -66,10 +66,16 @@
     sb.auth.onAuthStateChange((ev, session) => {
       if (session) hadSession = true;
       else if (ev === 'SIGNED_OUT' && hadSession) location.reload();
-      // A real Discord sign-in stamps fy.member.last_login (Admin shows it). supabase-js sends
-      // INITIAL_SESSION when it restores a saved session, so a page load never counts as a login.
-      if (session && ev === 'SIGNED_IN') sb.rpc('touch_login').catch(() => {});
+      if (session) stampLogin();
     });
+    // last_login (Admin shows it): stamped once per browser session, not per page load.
+    // SIGNED_IN on its own is unreliable - the OAuth redirect is often handled before this
+    // listener attaches - so any authenticated load stamps if this browser session has not.
+    function stampLogin() {
+      try { if (sessionStorage.getItem('fy_login_stamped')) return; sessionStorage.setItem('fy_login_stamped', '1'); } catch (e) {}
+      sb.rpc('touch_login').catch(() => {});
+    }
+    sb.auth.getSession().then(({ data }) => { if (data.session) stampLogin(); });
   }
 
   // Invite round trip: if Discord sent the new login to any other page (for example the Site URL, because the claim URL

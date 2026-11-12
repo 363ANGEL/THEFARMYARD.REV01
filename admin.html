@@ -14,7 +14,15 @@
 .atab{min-height:36px;padding:0 14px;border:1px solid var(--rule-teal);border-radius:19px;background:transparent;color:var(--fy-text-label);font:inherit;font-size:13px;cursor:pointer}
 .atab[aria-selected="true"]{border-color:var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink);text-shadow:var(--text-glow-pink)}
 .acard{display:flex;flex-direction:column;gap:10px;padding:16px 14px;border:1px solid rgba(95,211,207,.55);border-radius:10px;box-shadow:0 0 4px rgba(95,211,207,.4);background:var(--fy-bg);min-width:0}
-.acard table{border-collapse:collapse;width:100%;font-size:var(--fs-sm)}
+.acard table{border-collapse:collapse;width:100%;max-width:100%;table-layout:auto;font-size:var(--fs-sm)}
+/* Members: cells give way at spaces, never mid-word; Last login may take two lines.
+   Below the width the table needs, the wrapper scrolls rather than mangling the text. */
+.acard th{white-space:nowrap}
+.acard th.wrap{white-space:normal}
+.tscroll{overflow-x:auto;max-width:100%}
+.acard td select.input{width:100%;min-width:0;max-width:100%}
+.acard td .claimbtns{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.acard td .claimbtns .rowbtn{width:100%;text-align:center}
 .acard th{text-align:left;font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fy-text-label);padding:6px 6px}
 .acard td{padding:6px 6px;border-top:1px solid rgba(95,211,207,.22);vertical-align:middle}
 .acard th:first-child,.acard td:first-child{padding-left:0}

@@ -73,23 +73,23 @@
     const contactCell = m => m.user_id
       ? `<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${esc(m.invite_email || m.discord_username || '')}</span>`
       : `<span style="display:flex;gap:6px;flex-wrap:wrap">
-          <input class="input" data-inv="invite_email" data-m="${m.id}" type="email" placeholder="Invite email" maxlength="254" value="${esc(m.invite_email || '')}" style="width:9em;min-width:0;min-height:32px;font-size:12px">
-          <input class="input" data-inv="discord_username" data-m="${m.id}" placeholder="Discord username" maxlength="40" value="${esc(m.discord_username || '')}" style="width:8em;min-width:0;min-height:32px;font-size:12px">
-          <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="width:7em;min-width:0;min-height:32px;font-size:12px"></span>`;
+          <input class="input" data-inv="invite_email" data-m="${m.id}" type="email" placeholder="Invite email" maxlength="254" value="${esc(m.invite_email || '')}" style="flex:1 1 7em;width:7em;min-width:0;min-height:32px;font-size:12px">
+          <input class="input" data-inv="discord_username" data-m="${m.id}" placeholder="Discord username" maxlength="40" value="${esc(m.discord_username || '')}" style="flex:1 1 6em;width:6em;min-width:0;min-height:32px;font-size:12px">
+          <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="flex:1 1 5em;width:5em;min-width:0;min-height:32px;font-size:12px"></span>`;
     pane.innerHTML = `<div class="acard"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <span class="t-module">Members</span>
         <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${A.members.length} in the yard · click a row to open their profile</span></div>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Invite contacts save as you leave each box; email is optional: use Copy invite link and send it on WhatsApp or Messenger.</span>
-      <table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th>Last login</th><th>Status</th><th>Invite contact</th><th>Claim link</th></tr></thead><tbody>
-      ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}"><td style="display:flex;align-items:center;gap:8px"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)} ${roleTag(m.role)}</td>
+      <div class="tscroll"><table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th class="wrap">Last login</th><th>Status</th><th>Invite contact</th><th>Claim link</th></tr></thead><tbody>
+      ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}"><td style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)} ${roleTag(m.role)}</td>
         <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:12px;width:auto">${roleOpts(m.role)}</select></td>
         <td data-online="${m.id}">${onlineCell(null)}</td>
         <td>${charCell(m)}</td>
         <td style="white-space:normal">${lastLoginCell(m)}</td>
         <td data-st="${m.id}">${invStatus(m)}</td>
         <td>${contactCell(m)}</td>
-        <td style="white-space:nowrap">${m.user_id ? '' : `<button class="rowbtn" data-link="${m.id}">Copy invite link</button> <button class="rowbtn" data-link="${m.id}" data-new="1">New link</button>${m.role === 'leader' ? '' : ` <button class="rowbtn warn" data-del="${m.id}">Delete</button>`}`}</td></tr>`).join('')}
-      </tbody></table>
+        <td>${m.user_id ? '' : `<span class="claimbtns"><button class="rowbtn" data-link="${m.id}">Copy invite link</button><button class="rowbtn" data-link="${m.id}" data-new="1">New link</button>${m.role === 'leader' ? '' : `<button class="rowbtn warn" data-del="${m.id}">Delete</button>`}</span>`}</td></tr>`).join('')}
+      </tbody></table></div>
       <form id="newmember" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;max-width:100%"><input class="input" id="nm-nick" placeholder="Nickname" required maxlength="24" style="min-height:40px;flex:1 1 140px;min-width:0;max-width:100%;box-sizing:border-box">
         ${animalSel}
         <select class="input" id="nm-role" aria-label="Role" autocomplete="off" style="min-height:40px;flex:1 1 110px;min-width:0;max-width:100%;box-sizing:border-box">${roleOpts('member')}</select>
