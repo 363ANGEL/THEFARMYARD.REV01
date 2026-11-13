@@ -109,8 +109,10 @@ a:hover { color: var(--neon-pink-hover); }
 .t-module { font-family: var(--font-heading); font-size: var(--fs-h3); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; line-height: 1.2; color: #c8f4f2; text-shadow: 0 0 8px var(--neon-teal), 0 0 18px rgba(95,211,207,.4); }
 /* Module subtitle: sits under/beside .t-module; lighter and dimmer than the title. */
 .t-module-sub { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #8fd9d5; text-shadow: 0 0 4px rgba(95,211,207,.35); }
-.t-title-b { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: var(--fs-h2); letter-spacing: -.01em; line-height: 1.1; color: #eef7f7; margin: 0; }
-.t-tagline { font-size: var(--fs-sm); color: var(--color-neutral-300); }
+.t-title-b { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: var(--fs-h2); letter-spacing: -.01em; line-height: 1.1; color: var(--neon-pink-text); text-shadow: var(--text-glow-pink); margin: 0; }
+.t-tagline { font-size: var(--fs-sm); color: var(--neon-teal); }
+/* One page head everywhere: title (.t-title-b) + tagline (.t-tagline) */
+.fy-pagehead { display: flex; flex-direction: column; gap: 4px; padding: 4px 2px 8px; }
 
 /* Neon boxes — teal frames, pink content */
 .neon-box { border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal); }

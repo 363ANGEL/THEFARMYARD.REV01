@@ -89,7 +89,7 @@
 
   main.innerHTML = `
     <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-      <div style="display:flex; flex-direction:column; gap:4px; padding:4px 2px 8px;"><h2 class="t-title-b">Dashboard</h2><span class="t-tagline">What's on in the yard tonight.</span></div>
+      <div class="fy-pagehead"><h2 class="t-title-b">Dashboard</h2><span class="t-tagline">What's on in the yard tonight.</span></div>
       <div style="flex:1;"></div><span class="tag tag-neutral" style="white-space:nowrap;">${members.length} inside</span>
     </div>
     <div id="wall-box" ${B.leader || Barn.vis('wall', rooms.find(r => r.id === 'wall')) === 'members' ? '' : 'hidden'} style="flex:none; display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;"></div>

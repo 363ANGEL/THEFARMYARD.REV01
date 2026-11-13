@@ -26,7 +26,7 @@
 
   main.innerHTML = `
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-      <div style="display:flex;flex-direction:column;gap:4px;padding:4px 2px 8px"><h2 class="t-title-b">Admin</h2><span class="t-tagline">Hank's office. Edits save as you make them, and everything is logged.</span></div>
+      <div class="fy-pagehead"><h2 class="t-title-b">Admin</h2><span class="t-tagline">Hank's office. Edits save as you make them, and everything is logged.</span></div>
     </div>
     <div class="atabs" role="tablist">${TABS.map(([k, l]) => `<button type="button" class="atab" role="tab" data-tab="${k}" aria-selected="${k === A.tab}">${l}</button>`).join('')}</div>
     <div id="pane" style="display:flex;flex-direction:column;gap:14px"></div>`;
