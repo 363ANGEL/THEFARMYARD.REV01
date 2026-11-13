@@ -321,3 +321,10 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 .soon::after{content:"Coming soon";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:4px 10px;border:1px solid var(--neon-pink-tube);border-radius:6px;background:var(--fy-bg);box-shadow:var(--glow-pink);color:var(--neon-pink-text);font-size:var(--fs-xs);font-weight:700;letter-spacing:.06em;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s}
 .soon:focus::after,.soon:focus-visible::after{opacity:1}
 .soon:focus{outline:none}
+
+/* Admin: the header image for every page, uploaded in one place (RAY, 13 Nov). */
+.phdr{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.phdr-row{display:flex;flex-direction:column;gap:6px;min-width:0}
+.phdr-name{font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fy-text-label)}
+.phdr-img{aspect-ratio:16/5;border-radius:8px;border:1px dashed rgba(95,211,207,.45);display:grid;place-items:center;background:linear-gradient(135deg,color-mix(in srgb,var(--neon-pink) 14%,transparent),color-mix(in srgb,var(--neon-teal) 12%,transparent)) center/cover no-repeat}
+.phdr-img span{font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;color:var(--fy-text-label)}

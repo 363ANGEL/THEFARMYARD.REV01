@@ -60,6 +60,17 @@
   const roleLabel = r => r === 'leader' ? 'Admin' : r ? r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g, ' ') : 'Member';
   const roleTag = r => `<span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:999px;border:1px solid ${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'};color:${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'}">${esc(roleLabel(r))}</span>`;
   const roleOpts = cur => [...new Set(['member', 'leader', cur || 'member'])].map(r => `<option value="${esc(r)}" ${r === (cur || 'member') ? 'selected' : ''}>${esc(roleLabel(r))}</option>`).join('');
+  /* Page headers card: one cell per page that carries a header band. The list comes from the room
+     registry (top-level rooms outside "what's next", so a new league appears by itself), plus the two
+     pages that are not top-level rooms: the wall and the profile. The buttons do nothing yet (.soon). */
+  async function pageHeadersCard() {
+    let rooms = []; try { rooms = await Barn.rooms(); } catch (e) {}
+    const pages = rooms.filter(r => !r.parent_id && r.grp !== 'next' && r.status !== 'hidden' && r.status !== 'later').map(r => r.label);
+    ['Yard wall', 'User profile'].forEach(n => { if (!pages.includes(n)) pages.push(n); });
+    return `<div class="acard"><div style="display:flex;flex-direction:column;gap:3px">
+        <span class="t-module">Page headers</span><span class="t-tagline">One image across the top of each page.</span></div>
+      <div class="phdr">${pages.map(n => `<div class="phdr-row"><span class="phdr-name">${esc(n)}</span><div class="phdr-img"><span>No image</span></div><button type="button" class="rowbtn soon">Upload image</button></div>`).join('')}</div></div>`;
+  }
   async function tabMembers() {
     await loadMembers();
     // Animals (characters.sql): the Add member dropdown uses the same list, taken ones greyed. Falls back to the stock list if absent.
@@ -104,6 +115,7 @@
         <td style="white-space:nowrap"><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${m.invite_email ? esc(m.invite_email) : '—'}</span></td></tr>`).join('')}
       </tbody></table></div></div>
       <div class="acard" id="mdetail" hidden></div>
+      ${await pageHeadersCard()}
       <div class="acard"><span class="t-module">Add a member</span>
       <form id="newmember" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;max-width:100%"><input class="input" id="nm-nick" placeholder="Nickname" required maxlength="24" style="min-height:40px;flex:1 1 140px;min-width:0;max-width:100%;box-sizing:border-box">
         ${animalSel}
