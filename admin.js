@@ -94,7 +94,7 @@
         <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${A.members.length} in the yard · click a row to open their profile</span></div>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Click a row to open that member below: their details, their icons, and their invite link.</span>
       <div class="tscroll"><table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th class="wrap">Last login</th><th>Status</th><th>Email</th></tr></thead><tbody>
-      ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}" data-mid="${m.id}"><td style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="width:28px;height:28px;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 28))}') center/contain no-repeat"></span>${esc(m.nickname)}</td>
+      ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}" data-mid="${m.id}"><td style="display:flex;align-items:center;gap:8px;white-space:nowrap">${FY.faceRing(m, 28, m.nickname)}${esc(m.nickname)}</td>
         <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:12px;width:auto">${roleOpts(m.role)}</select></td>
         <td data-online="${m.id}">${onlineCell(live[m.id])}</td>
         <td>${charCell(m)}</td>
@@ -198,7 +198,7 @@
       const st = Presence.map ? Presence.map()[m.id] : null;
       box.innerHTML = `
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <span style="width:56px;height:56px;flex:none;border-radius:50%;border:1px solid var(--neon-teal);background:url('${esc(FY.face(m, 56))}') center/contain no-repeat"></span>
+          ${FY.faceRing(m, 56, m.nickname)}
           <span style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 180px">
             <span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="t-module">${esc(m.nickname)}</span>${roleTag(m.role)}</span>
             <span style="font-size:var(--fs-sm);font-style:italic;color:${m.tagline ? 'var(--neon-pink-text)' : 'var(--fy-text-label)'}">${esc(m.tagline || 'No tagline yet.')}</span></span>

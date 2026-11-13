@@ -31,7 +31,7 @@
     return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   };
   const profHref = m => m.id === me.id ? 'profile.html' : 'profile.html?user=' + encodeURIComponent(m.nickname);
-  const faceDot = (m, px) => `<a href="${profHref(m)}" aria-label="Open ${esc(m.nickname)}" style="display:contents"><span style="flex:none; width:${px}px; height:${px}px; align-self:center; border-radius:50%; display:grid; place-items:center; box-sizing:border-box; border:1px solid var(--neon-teal); background:url('${esc(FY.face(m, px))}') center / contain no-repeat; font-size:10px; font-weight:700; color:var(--neon-teal);"></span></a>`;
+  const faceDot = (m, px) => `<a href="${profHref(m)}" aria-label="Open ${esc(m.nickname)}" style="display:contents"><span style="flex:none; align-self:center; display:flex;">${FY.faceRing(m, px, m.nickname)}</span></a>`;
 
   const [membersRes, postsRes, iousRes, eventsRes] = await Promise.all([
     FY.q('member').select('id, nickname, avatar, avatar_url'),

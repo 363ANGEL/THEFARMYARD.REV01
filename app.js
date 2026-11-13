@@ -55,6 +55,12 @@
       const key = m && typeof m === 'object' ? m.avatar : m;
       return `assets/avatars/${['hen', 'cock', 'pig', 'sheep', 'goat', 'cow'].includes(key) ? key : 'hen'}.svg`;
     },
+    // Ringed member face (see .fy-face in farmyard.css). Returns HTML; pass a member row or key.
+    faceRing(m, px, label) {
+      const plain = !(m && typeof m === 'object' && m.avatar_url);
+      const rw = px <= 40 ? '1.5px' : '2px';
+      return `<span class="fy-face${plain ? ' plain' : ''}" style="--s:${px}px;--rw:${rw}" role="img" aria-label="${FY.esc(label || '')}"><img src="${FY.esc(FY.face(m, px))}" alt=""></span>`;
+    },
     avatar(m) { return `<img class="avatar" src="${FY.esc(FY.face(m, 48))}" alt="" width="48" height="48">`; },
     fmt(n) { return `<span class="num">${Number(n)}</span>`; },
     toast(msg) {

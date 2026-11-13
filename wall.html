@@ -48,7 +48,7 @@
     const n = likes.filter(l => l.post_id === p.id).length;
     const mine = p.member_id === me.id;
     return `<article style="display:flex; gap:12px; padding:14px; border-top:${i ? '1px solid var(--rule-teal)' : '0'}; min-width:0;">
-      <span role="img" aria-label="${esc(m.nickname)}" style="flex:none; width:36px; height:36px; border-radius:50%; display:grid; place-items:center; box-sizing:border-box; border:1.5px solid var(--neon-teal); box-shadow:0 0 5px color-mix(in srgb, var(--neon-teal) 50%, transparent); background:url('${esc(FY.face(m, 36))}') center/contain no-repeat; font-size:var(--fs-sm); font-weight:700; color:var(--neon-teal);"></span>
+      ${FY.faceRing(m, 36, m.nickname)}
       <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
         <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
           <span style="font-size:var(--fs-sm); font-weight:600;">${esc(m.nickname)}</span>
@@ -70,7 +70,7 @@
       <div id="feed" style="display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;"></div>
       <form id="composer" style="display:flex; flex-direction:column; gap:10px; padding:14px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg);">
         <div style="display:flex; gap:10px; align-items:flex-start;">
-          <span role="img" aria-label="You" style="flex:none; width:36px; height:36px; border-radius:50%; box-sizing:border-box; border:1.5px solid var(--neon-teal); box-shadow:0 0 6px color-mix(in srgb, var(--neon-teal) 60%, transparent); background:url('${esc(FY.face(me, 36))}') center/contain no-repeat;"></span>
+          ${FY.faceRing(me, 36, 'You')}
           <textarea id="draft" rows="2" maxlength="${MAX}" placeholder="Say it to the yard…" aria-label="New post" style="flex:1; min-width:0; resize:vertical; min-height:44px; padding:9px 11px; font:inherit; font-size:var(--fs-body); line-height:1.45; color:var(--fy-text); background:var(--fy-surface); border:1px solid var(--rule-teal); border-radius:8px; outline:none;"></textarea>
         </div>
         <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px;">
