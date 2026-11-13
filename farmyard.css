@@ -52,6 +52,7 @@
   --text-glow-pink: 0 0 4px var(--neon-pink), 0 0 10px rgba(224,21,127,.6);
   --text-glow-green: 0 0 6px var(--neon-green), 0 0 12px var(--neon-green);
   --text-glow-red: 0 0 6px var(--neon-red), 0 0 12px var(--neon-red);
+  --text-glow-amber: 0 0 6px var(--neon-amber), 0 0 12px var(--neon-amber);
   --glow-teal: 0 0 6px var(--neon-teal), 0 0 14px rgba(95,211,207,.45);
   --rule-teal: rgba(95,211,207,.35);
 

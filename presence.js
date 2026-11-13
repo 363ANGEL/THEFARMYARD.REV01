@@ -1,6 +1,6 @@
 /* In the yard — presence strip (REV C03). Loaded after barn.js on shell pages.
    Presence.join(me) tracks { member_id, status, in_voice } on realtime channel "yard" and renders
-   rows into the sidebar's #fy-online slot: voice (pink, LIVE) > online (teal) > away (dimmed).
+   rows into the sidebar's #fy-online slot: voice (green, LIVE) > online (amber) > away (dimmed).
    Clicking a row opens that member's public profile; your own row opens your profile. */
 (function () {
   const esc = s => FY.esc(s);
@@ -85,21 +85,23 @@
       if (!el) return;
       const rows = Presence._rows();
       if (nEl) nEl.textContent = rows.length || '';
-      const L = { voice: 'In voice chat', online: 'Online', away: 'Away' };
+      const L = { voice: 'In Voice', online: 'Online', away: 'Away' };
       el.innerHTML = rows.map(({ m, st }) => {
-        const col = st === 'voice' ? 'var(--neon-pink-text)' : st === 'online' ? '#5fd3cf' : 'var(--color-neutral-400)';
-        const dot = st === 'voice' ? 'var(--neon-pink)' : st === 'online' ? 'var(--neon-teal)' : 'var(--color-neutral-600, #55606a)';
+        const col = st === 'voice' ? 'var(--neon-green-text)' : st === 'online' ? 'var(--neon-amber-text)' : 'var(--color-neutral-400)';
+        const colGlow = st === 'voice' ? 'var(--text-glow-green)' : st === 'online' ? 'var(--text-glow-amber)' : 'none';
+        const dot = st === 'voice' ? 'var(--neon-green-tube)' : st === 'online' ? 'var(--neon-amber-tube)' : 'var(--color-neutral-600, #55606a)';
+        const dotGlow = st === 'away' ? 'none' : `0 0 6px ${dot}`;
         const prof = Presence._me && m.id === Presence._me.id ? 'profile.html' : 'profile.html?user=' + encodeURIComponent(m.nickname);
         return `<a href="${prof}" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:6px; min-width:0; opacity:${st === 'away' ? .6 : 1};">
           <span style="position:relative; flex:none; width:47px; height:47px;">
             ${FY.faceRing(m, 47, m.nickname)}
-            <span style="position:absolute; right:-2px; bottom:-2px; z-index:3; width:11px; height:11px; border-radius:50%; border:2px solid var(--fy-bg); background:${dot};"></span>
+            <span style="position:absolute; right:-2px; bottom:-2px; z-index:3; width:11px; height:11px; border-radius:50%; border:2px solid var(--fy-bg); background:${dot}; box-shadow:${dotGlow};"></span>
           </span>
           <span style="display:flex; flex-direction:column; min-width:0; flex:1; gap:1px;">
             <span style="font-size:var(--fs-sm); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(m.nickname)}</span>
-            <span style="display:flex; gap:6px; font-size:var(--fs-xs); font-variant-numeric:tabular-nums; white-space:nowrap;"><span style="color:${col};">${L[st]}</span></span>
+            <span style="display:flex; gap:6px; font-size:var(--fs-xs); font-variant-numeric:tabular-nums; white-space:nowrap;"><span style="color:${col}; text-shadow:${colGlow};">${L[st]}</span></span>
           </span>
-          ${st === 'voice' ? '<span title="In voice" style="flex:none; font-size:var(--fs-xs); font-weight:700; letter-spacing:.08em; color:var(--neon-pink-text); text-shadow:var(--text-glow-pink);">LIVE</span>' : ''}
+          ${st === 'voice' ? '<span title="In voice" style="flex:none; font-size:var(--fs-xs); font-weight:700; letter-spacing:.08em; color:var(--neon-green-text); text-shadow:var(--text-glow-green);">LIVE</span>' : ''}
         </a>`;
       }).join('');
     },
