@@ -40,7 +40,7 @@ button.iconslot{cursor:pointer}
 .iconslot.empty:hover{border-color:var(--neon-teal);color:var(--neon-teal)}
 .iconslot.empty i{font-size:clamp(15px,2.1vw,24px);line-height:1;color:var(--neon-teal)}
 .iconslot.empty span{font-size:var(--fs-xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
-.iconslot.empty::after{content:"Coming soon";position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);padding:4px 10px;border:1px solid var(--neon-pink-tube);border-radius:6px;background:var(--fy-bg);box-shadow:var(--glow-pink);color:var(--neon-pink-text);font-size:var(--fs-xs);font-weight:700;letter-spacing:.06em;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s}
+.iconslot.empty::after{content:"Coming soon";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:4px 10px;border:1px solid var(--neon-pink-tube);border-radius:6px;background:var(--fy-bg);box-shadow:var(--glow-pink);color:var(--neon-pink-text);font-size:var(--fs-xs);font-weight:700;letter-spacing:.06em;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s}
 .iconslot.empty:focus::after,.iconslot.empty:focus-visible::after{opacity:1}
 .iconslot.empty:focus{outline:none}
 </style>
