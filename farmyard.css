@@ -67,7 +67,7 @@
   --fs-xs:    clamp(10px, .9cqw, 12px);  /* kickers, labels, hints, column heads. Never smaller than 10px */
   --fs-fine:  clamp(8px, 1.1cqw, 12px);  /* in-row fixture meta only: kick-off time, VS, pool tags. The one size allowed under 10px (floor 8px, Phone). */
   /* Sub-page icon style (secondary): smaller glyph, same colour as its label, same 28px box so text aligns with main nav */
-  --sub-ic-size:  53%;                   /* glyph mask size inside the icon box (main icons = 100%) */
+  --sub-ic-size:  61%;                   /* glyph mask size inside the icon box (main icons = 100%); 15% up on 53%, RAY 13 Nov */
   /* Icon scale */
   --ic-lg:   clamp(22px, 2.6cqw, 28px);  /* nav, table board icons, service logos */
   --ic-hd:   64px;  /* page-header sign icons only */
