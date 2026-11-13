@@ -103,7 +103,9 @@ a:hover { color: var(--neon-pink-hover); }
 /* The IOU coin. One mark for token standing everywhere on the site: the coin, then a
    signed number — green in credit, red in debit, grey when square. Size follows the
    surrounding text, so it works in the sidebar, a table or a profile badge (RAY, 13 Nov).
-   Markup: <span class="fy-iou fy-iou-up"><i class="ph-fill ph-coin"></i>+10 tk</span> */
+   Icons: only glyphs inlined as masks in this file (and the design system) draw here, so ph-coin and the
+   ph-fill set do NOT; they render as solid squares. Use ph-coins.
+   Markup: <span class="fy-iou fy-iou-up"><i class="ph ph-coins"></i>+10 tk</span> */
 .fy-iou { display: inline-flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
 .fy-iou i { font-size: 1.15em; line-height: 1; }
 .fy-iou-up { color: var(--neon-green-text); }
