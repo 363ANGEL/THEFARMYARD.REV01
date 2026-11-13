@@ -297,9 +297,14 @@ CHARACTER ART SPEC (baked into each PNG)
 
 
 /* Page header image: a full-bleed band across the main panel, above the page head.
-   It bleeds past the panel's padding (.main is 18px 22px, 14px 12px on phones) so it meets the sidebar and the frame edge (RAY, 13 Nov).
+   It bleeds past the panel's padding (the shell's #main is inline 18px 22px at every width) so it meets the sidebar and the frame edge (RAY, 13 Nov).
    Give it a real picture with background-image; this is the empty state. */
 .fy-banner{margin:-18px -22px 0;height:clamp(96px,13vw,176px);border-bottom:1px solid var(--rule-teal);background:linear-gradient(135deg,color-mix(in srgb,var(--neon-pink) 14%,transparent),color-mix(in srgb,var(--neon-teal) 12%,transparent)) center/cover no-repeat;display:grid;place-items:center}
 .fy-banner-empty{border:1px dashed rgba(95,211,207,.45);border-left:0;border-right:0;border-top:0}
 .fy-banner span{font-size:var(--fs-xs);font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--fy-text-label)}
-@media (max-width:860px){.fy-banner{margin:-14px -12px 0;height:clamp(80px,22vw,120px)}}
+@media (max-width:860px){.fy-banner{height:clamp(80px,22vw,120px)}}
+
+/* A league's header image, shown small on its dashboard card and full width on its own
+   page. One picture per league, two places (RAY, 13 Nov). */
+.fy-leagueimg{position:relative;aspect-ratio:16/7;display:grid;place-items:center;border-bottom:1px solid var(--rule-teal);background:linear-gradient(135deg,color-mix(in srgb,var(--neon-pink) 14%,transparent),color-mix(in srgb,var(--neon-teal) 12%,transparent)) center/cover no-repeat}
+.fy-leagueimg>span.lbl{font-size:var(--fs-xs);font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--fy-text-label)}
