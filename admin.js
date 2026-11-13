@@ -25,6 +25,7 @@
   };
 
   main.innerHTML = `
+    <div class="fy-banner fy-banner-empty" role="img" aria-label="Page header image"><span>Page header image</span></div>
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
       <div class="fy-pagehead"><h2 class="t-title-b">Admin</h2><span class="t-tagline">Hank's office. Edits save as you make them, and everything is logged.</span></div>
     </div>
