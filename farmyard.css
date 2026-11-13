@@ -306,6 +306,8 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
    It bleeds past the panel's padding (the shell's #main is inline 18px 22px at every width) so it meets the sidebar and the frame edge (RAY, 13 Nov).
    Give it a real picture with background-image; this is the empty state. */
 .fy-banner{margin:-18px -22px 0;height:clamp(96px,13vw,176px);border-bottom:1px solid var(--rule-teal);background:linear-gradient(135deg,color-mix(in srgb,var(--neon-pink) 14%,transparent),color-mix(in srgb,var(--neon-teal) 12%,transparent)) center/cover no-repeat;display:grid;place-items:center}
+/* For a leader the View as bar sits first in the panel: the band then starts just under it, and bleeds sideways only. */
+#fy-viewbar + .fy-banner{margin-top:-6px}
 .fy-banner-empty{border:1px dashed rgba(95,211,207,.45);border-left:0;border-right:0;border-top:0}
 .fy-banner span{font-size:var(--fs-xs);font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--fy-text-label)}
 @media (max-width:860px){.fy-banner{height:clamp(80px,22vw,120px)}}
