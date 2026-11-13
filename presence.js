@@ -94,7 +94,7 @@
         const prof = Presence._me && m.id === Presence._me.id ? 'profile.html' : 'profile.html?user=' + encodeURIComponent(m.nickname);
         return `<a href="${prof}" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:6px; min-width:0; opacity:${st === 'away' ? .6 : 1};">
           <span style="position:relative; flex:none; width:36px; height:36px; border-radius:50%; border:1.5px solid ${col}; box-shadow:0 0 6px color-mix(in srgb, ${col} 60%, transparent); display:grid; place-items:center; background:color-mix(in srgb, ${col} 14%, transparent); font-family:var(--font-heading); font-weight:700; font-size:var(--fs-sm); color:${col};">
-            <span style="position:absolute; inset:0; border-radius:50%; overflow:hidden; background:url('${esc(img)}') center / cover no-repeat;"></span>
+            <span style="position:absolute; inset:-1.5px; border-radius:50%; overflow:hidden; background:url('${esc(img)}') center / cover no-repeat;"></span>
             <span style="position:relative; display:none;">${ini}</span>
             <span style="position:absolute; right:-2px; bottom:-2px; width:11px; height:11px; border-radius:50%; border:2px solid var(--fy-bg); background:${dot};"></span>
           </span>
