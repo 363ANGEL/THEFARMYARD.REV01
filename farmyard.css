@@ -314,3 +314,10 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
    page. One picture per league, two places (RAY, 13 Nov). */
 .fy-leagueimg{position:relative;aspect-ratio:16/7;display:grid;place-items:center;border-bottom:1px solid var(--rule-teal);background:linear-gradient(135deg,color-mix(in srgb,var(--neon-pink) 14%,transparent),color-mix(in srgb,var(--neon-teal) 12%,transparent)) center/cover no-repeat}
 .fy-leagueimg>span.lbl{font-size:var(--fs-xs);font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--fy-text-label)}
+
+/* A control that is not built yet: clicking focuses it and a "Coming soon" tooltip shows in its
+   centre. CSS only, no script. Used by the empty icon slot and the Admin upload buttons (RAY, 13 Nov). */
+.soon{position:relative}
+.soon::after{content:"Coming soon";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:4px 10px;border:1px solid var(--neon-pink-tube);border-radius:6px;background:var(--fy-bg);box-shadow:var(--glow-pink);color:var(--neon-pink-text);font-size:var(--fs-xs);font-weight:700;letter-spacing:.06em;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s}
+.soon:focus::after,.soon:focus-visible::after{opacity:1}
+.soon:focus{outline:none}
