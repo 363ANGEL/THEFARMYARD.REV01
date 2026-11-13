@@ -5,8 +5,8 @@
       "name": "farmyard",
       "runtimeExecutable": "python",
       "runtimeArgs": [
-        "-m",
-        "http.server",
+        "C:\\Users\\PinkyC\\THEFARMYARD.REV01\\tools\\devserve.py",
+        "--port",
         "8000",
         "--directory",
         "C:\\Users\\PinkyC\\THEFARMYARD.REV01"
