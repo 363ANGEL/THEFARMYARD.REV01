@@ -100,6 +100,20 @@ a:hover { color: var(--neon-pink-hover); }
 .neon-green { color: var(--neon-green-text); text-shadow: var(--text-glow-green); }
 .neon-red { color: var(--neon-red-text); text-shadow: var(--text-glow-red); }
 .neon-teal { color: var(--neon-teal); text-shadow: 0 0 8px var(--neon-teal); }
+/* The IOU coin. One mark for token standing everywhere on the site: the coin, then a
+   signed number — green in credit, red in debit, grey when square. Size follows the
+   surrounding text, so it works in the sidebar, a table or a profile badge (RAY, 13 Nov).
+   Markup: <span class="fy-iou fy-iou-up"><i class="ph-fill ph-coin"></i>+10 tk</span> */
+.fy-iou { display: inline-flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.fy-iou i { font-size: 1.15em; line-height: 1; }
+.fy-iou-up { color: var(--neon-green-text); }
+.fy-iou-up i { color: var(--neon-green-tube); text-shadow: 0 0 6px var(--neon-green-tube); }
+.fy-iou-down { color: var(--neon-red-text); }
+.fy-iou-down i { color: var(--neon-red-tube); text-shadow: 0 0 6px var(--neon-red-tube); }
+.fy-iou-flat { color: var(--fy-text-label); font-weight: 600; }
+.fy-iou-flat i { color: var(--fy-text-label); }
+/* Coin only, no number: for tight places like the yard strip. */
+.fy-iou-bare { gap: 0; }
 .lot-label { font-family: var(--font-heading); font-weight: 600; font-size: var(--fs-h3); letter-spacing: .08em; text-transform: uppercase; color: var(--neon-pink-text); text-shadow: 0 0 6px rgba(224,21,127,.6); }
 /* Named text styles — use these, don't restyle inline. */
 .kicker { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--neon-teal); }
