@@ -210,7 +210,7 @@
         ${group('home')}
         <div class="fy-nav-group">Leagues</div>
         ${group('leagues')}
-        ${leader ? `<div class="fy-nav-group">Beta-testing · not visible to users yet</div>${group('beta')}` : ''}
+        ${leader ? `<div class="fy-nav-group">In beta-testing</div>${group('beta')}` : ''}
         ${leader ? `<a class="fy-nav-item" href="whats-next.html" ${current === 'whats-next' ? 'aria-current="page"' : ''} style="text-decoration:none"><i class="ph ph-thought-bubble" aria-hidden="true"></i><span style="flex:1">What's Next?</span></a>` : ''}
         ${sep}
         <div style="display:flex; align-items:baseline; justify-content:space-between; padding:10px 6px 4px; font-size:var(--fs-xs); letter-spacing:.08em; text-transform:uppercase; color:var(--color-neutral-400);"><span>In the yard</span><span id="fy-online-n" style="color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal);"></span></div>
