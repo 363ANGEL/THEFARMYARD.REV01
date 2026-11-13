@@ -63,7 +63,7 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
   if (userName && userName !== me.nickname) {
     const { data } = await FY.q('member').select(MCOLS).eq('nickname', userName).limit(1);
     if (!data || !data.length) {
-      main.innerHTML = `<div class="fy-pagehead"><h2 class="t-title-b">Profile</h2></div>
+      main.innerHTML = `<div class="fy-pagehead"><h2 class="t-title-b">User profile</h2></div>
         <div class="pcard"><span class="kicker">Nobody here</span>
         <p style="margin:0">Hank doesn't know anyone called <strong>${esc(userName)}</strong>. They may have changed their yard name.</p>
         <a href="dashboard.html" style="color:var(--neon-pink-link)">Back to the Dashboard</a></div>`;
@@ -270,7 +270,7 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
   main.innerHTML = `
     ${admin ? `<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px;padding:10px 14px;border:2px solid var(--neon-pink-tube);border-radius:10px;box-shadow:var(--glow-pink)"><i class="ph ph-shield-check" style="color:var(--neon-pink-text)"></i><span style="font-size:var(--fs-sm);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--neon-pink-text);white-space:nowrap">Admin view · editing ${esc(subject.nickname)}</span><span style="flex:1"></span><a href="admin.html" style="font-size:var(--fs-xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#5fd3cf;text-decoration:none">← Back to admin</a></div>` : ''}
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-      <div class="fy-pagehead"><h2 class="t-title-b">Profile</h2><span class="t-tagline">${own ? 'Who you are in the yard.' : esc(subject.nickname) + ' · as the yard sees them.'}</span></div><div style="flex:1"></div>
+      <div class="fy-pagehead"><h2 class="t-title-b">User profile</h2><span class="t-tagline">${own ? 'Who you are in the yard.' : esc(subject.nickname) + ' · as the yard sees them.'}</span></div><div style="flex:1"></div>
     </div>
     <div class="pcard" id="hdr">${headerHtml()}</div>
     ${notPublic ? `<div class="pcard" id="icon">${iconHtml()}</div>` : ''}
