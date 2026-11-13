@@ -58,12 +58,14 @@
   function wallBox(posts) {
     const pinned = posts.filter(p => p.pinned_at), latest = posts.filter(p => !p.pinned_at).slice(0, 3);
     return `
+      <div style="display:flex; align-items:center; gap:8px; padding:9px 12px; border-bottom:1px solid var(--rule-teal);">
+        <i class="ph ph-chats-circle" style="color:var(--neon-pink-text); text-shadow:var(--text-glow-pink);"></i>
+        <span class="t-module" style="font-size:var(--fs-sm); letter-spacing:.14em;">Wall posts</span><span style="flex:1;"></span>
+        <a href="wall.html" style="font-size:var(--fs-xs); font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#5fd3cf; text-decoration:none; text-shadow:0 0 5px rgba(95,211,207,.5);">Open the wall →</a></div>
       <button type="button" id="pins-toggle" aria-expanded="true" style="display:flex; align-items:center; gap:8px; padding:8px 12px; border:0; background:transparent; cursor:pointer; font:inherit; color:inherit; text-align:left; width:100%;">
-        <i class="ph ph-chats-circle" style="color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal);"></i>
         <span class="kicker">Pinned by Hank</span><span style="font-size:var(--fs-xs); color:var(--color-neutral-400);">${pinned.length}</span></button>
       <div id="pins">${pinned.map(postRow).join('')}</div>
-      <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; border-top:1px solid var(--rule-teal);"><span class="kicker">Latest on the wall</span><span style="flex:1;"></span>
-        <a href="wall.html" style="font-size:var(--fs-xs); font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#5fd3cf; text-decoration:none; text-shadow:0 0 5px rgba(95,211,207,.5);">Open the wall →</a></div>
+      <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; border-top:1px solid var(--rule-teal);"><span class="kicker">Latest on the wall</span></div>
       ${latest.map(postRow).join('') || '<div style="padding:10px 12px; border-top:1px solid var(--rule-teal); font-size:var(--fs-sm); color:var(--color-neutral-400);">Nothing on the wall yet. Start it.</div>'}`;
   }
 
