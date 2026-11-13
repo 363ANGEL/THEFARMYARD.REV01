@@ -31,9 +31,9 @@
 .acthead,.actrow{display:grid;grid-template-columns:24px 92px minmax(0,1fr) 120px;gap:10px;align-items:center}
 .icongrid{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(10px,1.6vw,20px);width:100%}
 /* The art carries its own circular frame, so it sits inside the ring rather than over it. */
-.iconslot{aspect-ratio:1/1;width:100%;padding:3px;border-radius:50%;box-sizing:border-box;background:#0a1a1a center/contain no-repeat;background-origin:content-box;border:2px solid rgba(95,211,207,.45)}
+.iconslot{aspect-ratio:1/1;width:100%;padding:0;border:0;border-radius:50%;box-sizing:border-box;background:transparent center/contain no-repeat}
 button.iconslot{cursor:pointer}
-.iconslot.on{border-color:var(--neon-green-tube);box-shadow:var(--glow-green)}
+.iconslot.on{filter:drop-shadow(0 0 5px var(--neon-green-tube)) drop-shadow(0 0 14px var(--neon-green-tube))}
 .iconslot.empty{display:grid;place-items:center;border:2px dashed rgba(95,211,207,.35);color:var(--fy-text-label);font-size:var(--fs-sm)}
 </style>
 </head>
