@@ -226,7 +226,7 @@
           ${Array.from({ length: 15 }, (_, k) => { const n = k + 1, r = bySlot[n];
             if (!r) return `<span style="aspect-ratio:1/1;border-radius:50%;border:2px dashed rgba(95,211,207,.35);display:grid;place-items:center;color:var(--fy-text-label);font-size:var(--fs-xs)">${n}</span>`;
             const on = m.icon_slot === n || m.avatar_url === r.url;
-            return `<button type="button" data-mdpick="${n}" aria-label="Set icon ${n} for ${esc(m.nickname)}" aria-pressed="${on}" style="aspect-ratio:1/1;padding:0;border-radius:50%;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/cover no-repeat;background-origin:border-box"></button>`; }).join('')}
+            return `<button type="button" data-mdpick="${n}" aria-label="Set icon ${n} for ${esc(m.nickname)}" aria-pressed="${on}" style="aspect-ratio:1/1;padding:3px;box-sizing:border-box;border-radius:50%;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/contain no-repeat;background-origin:content-box"></button>`; }).join('')}
         </div>`;
       box.querySelector('#md-close').onclick = () => { box.hidden = true; box.dataset.mid = ''; };
       // Walk the site as this member, claimed or not. Read-only: writes are refused while it is on.
@@ -280,7 +280,7 @@
         if (!r) return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="width:64px;height:64px;border-radius:50%;border:2px dashed rgba(95,211,207,.35);display:grid;place-items:center;color:var(--fy-text-label);font-size:var(--fs-sm)">${n}</span></div>`;
         const on = cur && cur === r.url;
         return `<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:4px">
-          <button type="button" data-ipick="${n}" aria-label="Set icon ${n}" aria-pressed="${on ? 'true' : 'false'}" style="width:64px;height:64px;border-radius:50%;padding:0;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/cover no-repeat;background-origin:border-box"></button>
+          <button type="button" data-ipick="${n}" aria-label="Set icon ${n}" aria-pressed="${on ? 'true' : 'false'}" style="width:64px;height:64px;border-radius:50%;padding:3px;box-sizing:border-box;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/contain no-repeat;background-origin:content-box"></button>
           <button type="button" data-irm="${n}" aria-label="Remove icon ${n}" style="position:absolute;top:-4px;right:-4px;width:22px;height:22px;border-radius:50%;padding:0;cursor:pointer;border:1px solid var(--neon-pink-tube);background:#0a1a1a;color:var(--neon-pink-text);font-size:12px;line-height:1">&#10005;</button>
           <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${n}</span></div>`;
       };
