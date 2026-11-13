@@ -221,7 +221,8 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
   const bySlot = {}; D.logos.forEach(l => bySlot[l.slot] = l);
   const curSlot = subject.icon_slot && bySlot[subject.icon_slot] ? subject.icon_slot
     : (D.logos.find(l => l.url === subject.avatar_url) || {}).slot || null;
-  const iconHtml = () => `<span class="t-module">${own ? 'Your icon' : 'Icon'}</span>
+  const ICON_TAGLINE = 'Pick the face the yard sees.';
+  const iconHtml = () => `<div style="display:flex;flex-direction:column;gap:3px"><span class="t-module">${own ? 'Your icon' : 'Icon'}</span><span class="t-tagline">${ICON_TAGLINE}</span></div>
     <div class="icongrid">
       ${Array.from({ length: 15 }, (_, k) => {
         const n = k + 1, r = bySlot[n];
