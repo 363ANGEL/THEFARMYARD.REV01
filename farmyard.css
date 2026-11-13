@@ -106,7 +106,7 @@ a:hover { color: var(--neon-pink-hover); }
 .t-title-a { font-size: var(--fs-h3); font-weight: 800; letter-spacing: .22em; text-transform: uppercase; line-height: 1.2; white-space: nowrap; color: var(--neon-pink-text); text-shadow: var(--text-glow-pink), 0 0 24px rgba(224,21,127,.4); }
 .t-title-sub { font-size: var(--fs-h3) !important; }
 /* Module title: heading above a card/module (stronger than .kicker). */
-.t-module { font-family: var(--font-heading); font-size: var(--fs-h3); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; line-height: 1.2; color: #c8f4f2; text-shadow: 0 0 8px var(--neon-teal), 0 0 18px rgba(95,211,207,.4); }
+.t-module { font-family: var(--font-heading); font-size: var(--fs-h3); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; line-height: 1.2; color: var(--neon-pink-text); text-shadow: var(--text-glow-pink); }
 /* Module subtitle: sits under/beside .t-module; lighter and dimmer than the title. */
 .t-module-sub { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #8fd9d5; text-shadow: 0 0 4px rgba(95,211,207,.35); }
 .t-title-b { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: var(--fs-h2); letter-spacing: -.01em; line-height: 1.1; color: var(--neon-pink-text); text-shadow: var(--text-glow-pink); margin: 0; }
