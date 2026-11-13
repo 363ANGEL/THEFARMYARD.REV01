@@ -50,7 +50,7 @@
   const postRow = p => {
     const m = dir[p.member_id] || { id: p.member_id, nickname: '?' };
     return `<div style="display:flex; gap:8px; align-items:baseline; padding:6px 12px; border-top:1px solid var(--rule-teal); min-width:0; font-size:var(--fs-sm); line-height:1.4;">
-      ${faceDot(m, 22)}<span style="flex:none; font-weight:600;">${esc(m.nickname)}</span>
+      ${faceDot(m, 31)}<span style="flex:none; font-weight:600;">${esc(m.nickname)}</span>
       <span style="flex:1; min-width:0; color:var(--color-neutral-300); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(p.body)}</span>
       <span style="flex:none; font-size:var(--fs-xs); color:var(--color-neutral-400);">${ago(p.created_at)}</span></div>`;
   };
