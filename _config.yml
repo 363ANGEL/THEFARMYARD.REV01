@@ -1,0 +1,20 @@
+# GitHub Pages (Jekyll) settings. Keeps repo-only material off the live site:
+# database migrations, tooling and planning notes should not be public.
+# Nothing the pages load may be listed here (checked: assets/, bids.json,
+# farmyard-design-system/ are all used and stay published).
+exclude:
+  - "*.sql"
+  - "**/*.sql"
+  - supabase/
+  - tools/
+  - docs/
+  - handoff/
+  - design_handoff_slice1_build/
+  - design_handoff_slice2_build/
+  - data/
+  - .claude/
+  - .superpowers/
+  - WORKFLOW.md
+  - YARDS.md
+  - package.json
+  - package-lock.json
