@@ -15,15 +15,8 @@
   const Barn = {
     DISCORD, voice,
     face: (m, px) => FY.face(m, px),
-    /* Sidebar-footer avatar (1.0 design): the member's palette icon in a pink ring,
-       or the open-slot teal ring when no icon is set. */
-    faceDot(m) {
-      const has = !!(m && (m.avatar_url || m.avatar));
-      const ring = has ? 'border:1.5px solid var(--neon-pink); box-shadow:0 0 6px rgba(224,21,127,.65);'
-                       : 'border:1.5px solid var(--neon-teal); box-shadow:0 0 6px rgba(95,211,207,.6);';
-      const img = has ? `<span role="img" aria-label="Your character" style="display:block; width:100%; height:100%; background:url('${esc(Barn.face(m, 32))}') center / contain no-repeat;"></span>` : '';
-      return `<span style="width:32px; height:32px; border-radius:50%; ${ring} overflow:hidden; flex:none; box-sizing:border-box;">${img}</span>`;
-    },
+    /* Sidebar-footer avatar: the member's face, 44px, same ring as the yard strip (.fy-face). */
+    faceDot(m) { return FY.faceRing(m, 44, 'Your character'); },
     discordName(session) {
       const u = (session && session.user && session.user.user_metadata) || {};
       return u.custom_claims?.global_name || u.full_name || u.name || u.preferred_username || u.user_name || 'you';
