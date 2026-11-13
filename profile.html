@@ -215,12 +215,12 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
       <div role="img" aria-label="Character" style="width:160px;height:160px;background:url('${esc(face150(subject))}') center / contain no-repeat;filter:drop-shadow(0 0 10px rgba(224,21,127,.55));flex:none"></div>
       <div style="display:flex;flex-direction:column;gap:4px;flex:1 1 200px;min-width:0">
         <div id="hdr-name" style="font-family:var(--font-heading);font-size:var(--fs-h2);letter-spacing:-.01em;color:#eef7f7;overflow-wrap:anywhere">${esc(subject.nickname)}</div>
-        <div id="hdr-tag" style="font-size:var(--fs-sm);font-style:italic;line-height:1.4;color:${subject.tagline ? 'var(--neon-pink-text)' : 'var(--fy-text-label)'}">${esc(subject.tagline || (notPublic ? 'No tagline yet. Say something.' : ''))}</div>
+        <div id="hdr-tag" style="font-size:var(--fs-sm);font-style:italic;line-height:1.4;overflow-wrap:anywhere;color:${subject.tagline ? 'var(--neon-pink-text)' : 'var(--fy-text-label)'}">${esc(subject.tagline || (notPublic ? 'No tagline yet. Say something.' : ''))}</div>
         ${subject.birth_day && subject.birth_month ? `<div style="font-size:var(--fs-xs);color:var(--fy-text-label)"><i class="ph ph-cake" style="color:var(--neon-pink-text)"></i> ${subject.birth_day} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][subject.birth_month - 1]}</div>` : ''}
       </div>
-      ${notPublic ? `<div style="display:flex;flex-direction:column;gap:8px">
-        <label style="display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);color:var(--color-neutral-400)">Yard name<input class="input" id="ed-name" value="${esc(subject.nickname)}" maxlength="16" style="min-height:40px"></label>
-        <label style="display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);color:var(--color-neutral-400)"><span style="display:flex;justify-content:space-between;gap:8px"><span>Tagline</span><span id="tagleft"></span></span><input class="input" id="ed-tag" value="${esc(subject.tagline || '')}" maxlength="60" placeholder="e.g. Here for the beans" style="min-height:40px"></label>
+      ${notPublic ? `<div style="display:flex;flex-direction:column;gap:8px;flex:2 1 340px;min-width:0">
+        <label style="display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);color:var(--color-neutral-400)">Yard name<input class="input" id="ed-name" value="${esc(subject.nickname)}" maxlength="16" style="min-height:40px;width:100%;box-sizing:border-box"></label>
+        <label style="display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);color:var(--color-neutral-400)"><span style="display:flex;justify-content:space-between;gap:8px"><span>Tagline</span><span id="tagleft"></span></span><input class="input" id="ed-tag" value="${esc(subject.tagline || '')}" maxlength="60" placeholder="e.g. Here for the beans" style="min-height:40px;width:100%;box-sizing:border-box"></label>
         <button type="button" id="ed-save" class="btn btn-primary" style="align-self:flex-start;min-height:36px;padding:0 16px;white-space:nowrap">Done</button></div>` : ''}
     </div>`;
 
