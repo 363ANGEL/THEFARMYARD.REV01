@@ -289,10 +289,11 @@ CHARACTER ART SPEC (baked into each PNG)
 /* Member face: one pink tube ring + glow on the art's own baked ring; the character breaks out of it (design system .char-ring).
    Ring geometry = Hank/icon template (l 3.6%, t 10.4%, w 91%). .plain = stock svg with no baked ring: circle-cropped. */
 .fy-face { position: relative; display: block; flex: none; width: var(--s, 48px); height: var(--s, 48px); }
-.fy-face > img { position: relative; z-index: 1; display: block; width: 100%; height: 100%; object-fit: contain; }
+/* The character sits in front of its ring, and the ring and its glow behind (RAY, 13 Nov). */
+.fy-face > img { position: relative; z-index: 2; display: block; width: 100%; height: 100%; object-fit: contain; }
 .fy-face::before, .fy-face::after { content: ""; position: absolute; left: 3.6%; top: 10.4%; width: 91%; aspect-ratio: 1; border-radius: 50%; box-sizing: border-box; pointer-events: none; }
 .fy-face::before { z-index: 0; background: var(--art-disc); box-shadow: 0 0 4px var(--neon-pink), 0 0 10px rgba(224,21,127,.55), 0 0 20px rgba(224,21,127,.22); }
-.fy-face::after { z-index: 2; border: var(--rw, 2px) solid var(--neon-pink-tube); box-shadow: 0 0 3px #e0157f, 0 0 8px rgba(224,21,127,.45); }
+.fy-face::after { z-index: 1; border: var(--rw, 2px) solid var(--neon-pink-tube); box-shadow: 0 0 3px #e0157f, 0 0 8px rgba(224,21,127,.45); }
 /* Inside a table the rings repeat all the way down the page, so the glow is dialled
    right back - one face glowing is a highlight, twenty is a haze (RAY, 13 Nov). */
 td .fy-face::before { box-shadow: 0 0 3px rgba(224,21,127,.4); }
