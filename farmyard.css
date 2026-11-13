@@ -292,6 +292,10 @@ CHARACTER ART SPEC (baked into each PNG)
 .fy-face::before, .fy-face::after { content: ""; position: absolute; left: 3.6%; top: 10.4%; width: 91%; aspect-ratio: 1; border-radius: 50%; box-sizing: border-box; pointer-events: none; }
 .fy-face::before { z-index: 0; background: var(--art-disc); box-shadow: 0 0 4px var(--neon-pink), 0 0 10px rgba(224,21,127,.55), 0 0 20px rgba(224,21,127,.22); }
 .fy-face::after { z-index: 2; border: var(--rw, 2px) solid var(--neon-pink-tube); box-shadow: 0 0 3px #e0157f, 0 0 8px rgba(224,21,127,.45); }
+/* Inside a table the rings repeat all the way down the page, so the glow is dialled
+   right back - one face glowing is a highlight, twenty is a haze (RAY, 13 Nov). */
+td .fy-face::before { box-shadow: 0 0 3px rgba(224,21,127,.4); }
+td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--neon-pink-tube) 72%, transparent); }
 .fy-face.plain::before, .fy-face.plain::after { left: 0; top: 0; width: 100%; }
 .fy-face.plain > img { clip-path: circle(46%); }
 
