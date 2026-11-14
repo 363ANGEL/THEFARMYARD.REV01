@@ -374,11 +374,8 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 .ystand .fy-iou:not(.trendcoin){font-size:1em}
 .ystand .trendcoin{font-size:1em;gap:3px;justify-content:center}
 .ystandbox{position:relative}
-/* Standings watermark, back at RAY's request (14 Nov) using the pink IOU coin,
-   4.0 IOU REV 01. Transparent PNG now, so no blending, and low enough to sit
-   behind the figures rather than argue with them. */
-/* Watermark behind the standings, the pink IOU coin (RAY, 14 Nov). */
-.ystandbox::before{content:"";position:absolute;inset:0;background:url('assets/iou.coin.pink.png') center/auto 140% no-repeat;opacity:.1;pointer-events:none;z-index:0}
+/* No watermark behind the standings. Tried at 13, 20 and 40% on 14 Nov and RAY took it
+   out each time: the table had grown and the coin was competing with the figures. */
 .ystandbox>*{position:relative;z-index:1}
 /* Plain text triangles: the icon set has no up or down caret, and a missing glyph
    draws as a solid square (RAY spotted it, 13 Nov). */
