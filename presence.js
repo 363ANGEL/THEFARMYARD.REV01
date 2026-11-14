@@ -1,6 +1,6 @@
 /* In the yard — presence strip (REV C03). Loaded after barn.js on shell pages.
    Presence.join(me) tracks { member_id, status, in_voice } on realtime channel "yard" and renders
-   rows into the sidebar's #fy-online slot: voice (green, LIVE) > online (amber) > away (dimmed).
+   rows into the sidebar's #fy-online slot: voice (green) > online (amber) > away (dimmed).
    Clicking a row opens that member's public profile; your own row opens your profile. */
 (function () {
   const esc = s => FY.esc(s);
@@ -60,7 +60,7 @@
       });
     },
 
-    /* The voice pills call this; LIVE shows on your row for the session. */
+    /* The voice pills call this. */
     setVoice(on) { Presence._inVoice = !!on; Presence._track(); },
 
     _rows() {
@@ -81,10 +81,8 @@
 
     render() {
       const el = document.getElementById('fy-online');
-      const nEl = document.getElementById('fy-online-n');
       if (!el) return;
       const rows = Presence._rows();
-      if (nEl) nEl.textContent = rows.length || '';
       const L = { voice: 'In Voice', online: 'Online', away: 'Away' };
       el.innerHTML = rows.map(({ m, st }) => {
         const col = st === 'voice' ? 'var(--neon-green-text)' : st === 'online' ? 'var(--neon-amber-text)' : 'var(--color-neutral-400)';
@@ -101,7 +99,6 @@
             <span style="font-size:var(--fs-sm); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(m.nickname)}</span>
             <span style="display:flex; gap:6px; font-size:var(--fs-xs); font-variant-numeric:tabular-nums; white-space:nowrap;"><span style="color:${col}; text-shadow:${colGlow};">${L[st]}</span></span>
           </span>
-          ${st === 'voice' ? '<span title="In voice" style="flex:none; font-size:var(--fs-xs); font-weight:700; letter-spacing:.08em; color:var(--neon-green-text); text-shadow:var(--text-glow-green);">LIVE</span>' : ''}
         </a>`;
       }).join('');
     },
