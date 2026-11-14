@@ -62,11 +62,14 @@
   }
 
   const NOTES = { poker: "Friday nights · Hold'em", football: 'Fixtures & tables', humidor: 'Vote · results · archive', calendar: 'Game nights & dates', wall: "Posts · Hank's pins" };
+  // A room's header image: shown across the top of its own page and cropped onto its card
+  // here. Add a file to assets and a line here; rooms without one keep the empty state.
+  const HEADER = { poker: 'assets/header.poker.webp' };
   const modules = ['poker', 'football', 'humidor', 'calendar', 'wall']
     .map(id => rooms.find(r => r.id === id)).filter(Boolean)
     .filter(r => B.leader || Barn.vis(r.id, r) === 'members')   // launch scope: members see Poker only
     .map(r => `<a href="${esc(r.path)}" class="card" style="padding:0; overflow:hidden; display:flex; flex-direction:column; text-align:left; color:inherit; text-decoration:none; min-width:0;">
-      <div class="fy-leagueimg"><span class="lbl">${esc(r.label)} header image</span>
+      <div class="fy-leagueimg"${HEADER[r.id] ? ` style="background-image:url('${esc(HEADER[r.id])}')"` : ''}>${HEADER[r.id] ? '' : `<span class="lbl">${esc(r.label)} header image</span>`}
         <span style="position:absolute; left:12px; bottom:-18px; width:36px; height:36px; border-radius:50%; display:grid; place-items:center; background:var(--fy-surface); border:2px solid var(--neon-teal); box-shadow:var(--glow-teal);"><i class="${esc(r.icon)}" style="font-size:var(--ic-lg); color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal);"></i></span>
       </div>
       <div style="display:flex; flex-direction:column; gap:2px; padding:24px 12px 12px;">
