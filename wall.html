@@ -48,16 +48,16 @@
     const n = likes.filter(l => l.post_id === p.id).length;
     const mine = p.member_id === me.id;
     return `<article style="display:flex; gap:12px; padding:14px; border-top:${i ? '1px solid var(--rule-teal)' : '0'}; min-width:0;">
-      ${FY.faceRing(m, 36, m.nickname)}
+      ${FY.faceRing(m, 39, m.nickname)}
       <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
         <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
-          <span style="font-size:var(--fs-sm); font-weight:600;">${esc(m.nickname)}</span>
-          <span style="font-size:var(--fs-xs); color:var(--fy-text-label);">${ago(p.created_at)}</span>
-          ${p.pinned_at ? '<span class="kicker" style="color:var(--neon-pink-text); text-shadow:var(--text-glow-pink);">Pinned by Hank</span>' : ''}
+          <span style="font-size:var(--fs-body); font-weight:800;">${esc(m.nickname)}:</span>
+          <span style="font-size:var(--fs-sm); color:var(--fy-text-label);">${ago(p.created_at)}</span>
+          ${p.pinned_at ? '<span class="kicker" style="font-size:var(--fs-sm); color:var(--neon-pink-text); text-shadow:var(--text-glow-pink);">Pinned by Hank</span>' : ''}
         </div>
         <p style="margin:0; font-size:var(--fs-body); line-height:1.5; color:var(--fy-text); white-space:pre-wrap; overflow-wrap:anywhere; text-wrap:pretty;">${esc(p.body)}</p>
         <div style="display:flex; gap:14px; align-items:center; padding-top:2px;">
-          <button type="button" data-like="${p.id}" aria-pressed="${myLike}" style="display:inline-flex; align-items:center; gap:5px; min-height:32px; padding:0 8px; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:${myLike ? 'var(--neon-pink-text)' : 'var(--fy-text-label)'}; text-shadow:${myLike ? 'var(--text-glow-pink)' : 'none'};"><i class="${myLike ? 'ph-fill' : 'ph'} ph-heart"></i>${n || ''}</button>
+          <button type="button" data-like="${p.id}" aria-pressed="${myLike}" style="display:inline-flex; align-items:center; gap:5px; min-height:32px; padding:0 8px; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:${myLike ? 'var(--neon-pink-text)' : 'var(--fy-text-label)'}; text-shadow:${myLike ? 'var(--text-glow-pink)' : 'none'};"><span class="hrt" aria-hidden="true">${myLike ? '♥' : '♡'}</span>${n || ''}</button>
           ${mine || isLeader ? `<button type="button" data-del="${p.id}" style="min-height:32px; padding:0 8px; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:var(--fy-text-label);">Delete</button>` : ''}
           ${isLeader ? `<button type="button" data-pin="${p.id}" data-on="${p.pinned_at ? '0' : '1'}" style="min-height:32px; padding:0 8px; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:var(--fy-text-label);">${p.pinned_at ? 'Unpin' : 'Pin'}</button>` : ''}
         </div>
@@ -87,8 +87,8 @@
   function draw() {
     const ordered = [...posts].sort((a, b) =>
       ((b.pinned_at ? 1 : 0) - (a.pinned_at ? 1 : 0)) || (new Date(b.created_at) - new Date(a.created_at)));
-    feed.innerHTML = ordered.map(row).join('')
-      || '<div style="padding:14px; font-size:var(--fs-sm); color:var(--color-neutral-400);">Nothing on the wall yet. Start it.</div>';
+    feed.innerHTML = '<div style="display:flex; align-items:center; gap:8px; padding:9px 14px; border-bottom:1px solid var(--rule-teal);"><i class="ph ph-chats-circle" style="color:var(--neon-pink-text); text-shadow:var(--text-glow-pink);"></i><div style="display:flex; flex-direction:column; gap:3px;"><span class="t-module" style="font-size:var(--fs-sm); letter-spacing:.14em;">Wall posts</span><span class="t-tagline" style="opacity:.4">Everything the yard has said.</span></div></div>' + (ordered.map(row).join('')
+      || '<div style="padding:14px; font-size:var(--fs-sm); color:var(--color-neutral-400);">Nothing on the wall yet. Start it.</div>');
   }
   async function refresh() { await fetchAll(); draw(); }
   await refresh();
