@@ -31,6 +31,13 @@
 .acthead,.actrow{display:grid;grid-template-columns:24px 92px minmax(0,1fr) 120px;gap:10px;align-items:center}
 .icongrid{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(10px,1.6vw,20px);width:100%}
 /* The art carries its own circular frame, so it sits inside the ring rather than over it. */
+/* Identity badges: the facts the yard cares about, read at a glance (RAY, 13 Nov). Two rows: leagues, then money. */
+.pbadges{display:flex;flex-wrap:wrap;gap:8px;padding-top:6px}
+.pbadge{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:0 11px;border:1px solid var(--rule-teal);border-radius:15px;font-size:var(--fs-xs);font-weight:600;color:var(--fy-text);white-space:nowrap}
+.pbadge i{font-size:calc(var(--ic-sm) * 1.5);color:var(--neon-teal)}
+.pbadge b{font-weight:700;font-variant-numeric:tabular-nums}
+.pbadge-pink{border-color:var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink)}
+.pbadge-pink i{color:var(--neon-pink-text)}
 .iconslot{aspect-ratio:1/1;width:100%;padding:0;border:0;border-radius:50%;box-sizing:border-box;background:transparent center/contain no-repeat}
 button.iconslot{cursor:pointer;transition:filter .15s ease}
 /* Cyan while you are hovering, green the moment you press, green while it is yours. */
@@ -127,6 +134,9 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
   const due = notPublic
     ? D.ious.filter(i => i.payee_id === subject.id && LIVE.includes(i.state)).reduce((s, i) => s + tkOf(i), 0)
     : badge.owed;
+  // All-time IOUs: lost = what this member has paid out, won = what has come to them (net = won - lost).
+  const lost = notPublic ? D.ious.filter(i => i.payer_id === subject.id).reduce((s, i) => s + tkOf(i), 0) : null;
+  const won = notPublic ? D.ious.filter(i => i.payee_id === subject.id).reduce((s, i) => s + tkOf(i), 0) : null;
   const tkFmt = v => (v < 0 ? '−' : '') + Math.abs(v) + ' tk';
 
   // ---- Ledger pairs (net per counterparty across all rooms) ----
@@ -216,6 +226,15 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
       <div style="display:flex;flex-direction:column;gap:4px;flex:1 1 200px;min-width:0">
         <div id="hdr-name" style="font-family:var(--font-heading);font-size:var(--fs-h2);letter-spacing:-.01em;color:#eef7f7;overflow-wrap:anywhere">${esc(subject.nickname)}</div>
         <div id="hdr-tag" style="font-size:var(--fs-sm);font-style:italic;line-height:1.4;overflow-wrap:anywhere;color:${subject.tagline ? 'var(--neon-pink-text)' : 'var(--fy-text-label)'}">${esc(subject.tagline || (notPublic ? 'No tagline yet. Say something.' : ''))}</div>
+        <div class="pbadges">
+          <span class="pbadge pbadge-pink" title="Poker league position"><i class="ph ph-club" aria-hidden="true"></i>Poker <b>${esc(pokerPos)}</b></span>
+          <span class="pbadge pbadge-pink" title="Football league position"><i class="ph ph-soccer-ball" aria-hidden="true"></i>Football <b>—</b></span>
+        </div>
+        ${notPublic ? `<div class="pbadges">
+          <span class="pbadge" title="IOUs lost and paid, all time"><img class="fy-coin-art" src="assets/iou.coin.red.png" alt=""><span class="fy-iou fy-iou-down">${lost}</span></span>
+          <span class="pbadge" title="IOUs won, all time"><img class="fy-coin-art" src="assets/iou.coin.green.png" alt=""><span class="fy-iou fy-iou-up">${won}</span></span>
+          <span class="pbadge" title="All time net: green while in credit, red while in debit">Net <img class="fy-coin-art" src="assets/iou.coin.${allTime > 0 ? 'green' : allTime < 0 ? 'red' : 'pink'}.png" alt=""><span class="fy-iou ${allTime > 0 ? 'fy-iou-up' : allTime < 0 ? 'fy-iou-down' : 'fy-iou-flat'}">${allTime > 0 ? '+' : allTime < 0 ? '−' : ''}${Math.abs(allTime)}</span></span>
+        </div>` : ''}
         ${subject.birth_day && subject.birth_month ? `<div style="font-size:var(--fs-xs);color:var(--fy-text-label)"><i class="ph ph-cake" style="color:var(--neon-pink-text)"></i> ${subject.birth_day} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][subject.birth_month - 1]}</div>` : ''}
       </div>
       ${notPublic ? `<div style="display:flex;flex-direction:column;gap:8px;flex:2 1 340px;min-width:0">
