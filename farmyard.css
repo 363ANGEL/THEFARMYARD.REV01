@@ -330,3 +330,15 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 .phdr-name{font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fy-text-label)}
 .phdr-img{aspect-ratio:16/5;border-radius:8px;border:1px dashed rgba(95,211,207,.45);display:grid;place-items:center;background:linear-gradient(135deg,color-mix(in srgb,var(--neon-pink) 14%,transparent),color-mix(in srgb,var(--neon-teal) 12%,transparent)) center/cover no-repeat}
 .phdr-img span{font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;color:var(--fy-text-label)}
+
+/* The IOU coin artwork (RAY's own art, real transparency, so it sits on any background and needs no
+   blending). Four files in assets/: iou.coin.pink (neutral, watermark), .green (credit / won),
+   .red (debit / lost), .cyan (headings). Source is about 1500px; it is shown at roughly 3.1em. */
+.fy-coin-art { flex: none; width: 3.1em; height: 3.1em; object-fit: contain; }
+.coinart { flex: none; width: 2.2em; height: 2.2em; object-fit: contain; opacity: .8; }
+/* Text hearts for the wall's like buttons: the icon set has no heart, and a missing glyph draws as a solid square. */
+.hrt { font-size: 1.15em; line-height: 1; }
+/* League cards on the dashboard: a third of the panel each (RAY, 14 Nov). */
+.leaguegrid { flex: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 900px) { .leaguegrid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 620px) { .leaguegrid { grid-template-columns: 1fr; } }
