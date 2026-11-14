@@ -33,15 +33,11 @@
   const profHref = m => m.id === me.id ? 'profile.html' : 'profile.html?user=' + encodeURIComponent(m.nickname);
   const faceDot = (m, px) => `<a href="${profHref(m)}" aria-label="Open ${esc(m.nickname)}" style="display:contents"><span style="flex:none; align-self:center; display:flex;">${FY.faceRing(m, px, m.nickname)}</span></a>`;
 
-  const [membersRes, postsRes, iousRes, eventsRes] = await Promise.all([
+  const [membersRes, postsRes, iousRes] = await Promise.all([
     FY.q('member').select('id, nickname, avatar, avatar_url'),
     FY.q('post').select('*').order('created_at', { ascending: false }).limit(30),
     FY.rpc('my_ious').catch(() => []),
-    FY.q('event').select('id,type_key'),
   ]);
-  // iou.amount is buy-ins on poker events (×5 tk) and plain tk otherwise.
-  const evType = Object.fromEntries((eventsRes.data || []).map(e => [e.id, e.type_key]));
-  const tkOf = i => i.amount * (i.event_id && evType[i.event_id] === 'poker' ? 5 : 1);
   const members = membersRes.data || [];
   const dir = Object.fromEntries(members.map(m => [m.id, m]));
   let rooms = [];
@@ -65,13 +61,6 @@
       ${latest.map(postRow).join('') || '<div style="padding:10px 12px; border-top:1px solid var(--rule-teal); font-size:var(--fs-sm); color:var(--color-neutral-400);">Nothing on the wall yet. Start it.</div>'}`;
   }
 
-  // IOUs owed to you, net per payer, live states only.
-  const owedRows = Object.values((Array.isArray(iousRes) ? iousRes : []).reduce((acc, i) => {
-    if (i.payee_id !== me.id || !['open', 'marked_paid', 'disputed'].includes(i.state)) return acc;
-    (acc[i.payer_id] = acc[i.payer_id] || { who: i.payer_id, tk: 0 }).tk += tkOf(i);
-    return acc;
-  }, {})).sort((a, b) => b.tk - a.tk);
-
   const NOTES = { poker: "Friday nights · Hold'em", football: 'Fixtures & tables', humidor: 'Vote · results · archive', calendar: 'Game nights & dates', wall: "Posts · Hank's pins" };
   const modules = ['poker', 'football', 'humidor', 'calendar', 'wall']
     .map(id => rooms.find(r => r.id === id)).filter(Boolean)
@@ -92,17 +81,44 @@
       <div style="flex:1;"></div><span class="tag tag-neutral" style="white-space:nowrap;">${members.length} inside</span>
     </div>
     <div id="wall-box" ${B.leader || Barn.vis('wall', rooms.find(r => r.id === 'wall')) === 'members' ? '' : 'hidden'} style="flex:none; display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;"></div>
-    <div style="flex:none; display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;">
-      <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; flex-wrap:wrap;">
-        <i class="ph ph-handshake" style="color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal);"></i><span class="kicker">IOUs</span>
-        <span style="font-size:var(--fs-xs); color:var(--color-neutral-400);">tk not yet transferred to you</span><span style="flex:1;"></span>
-        <a href="profile.html#settle" style="font-size:var(--fs-xs); font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#5fd3cf; text-decoration:none; text-shadow:0 0 5px rgba(95,211,207,.5);">Settle up →</a></div>
-      ${owedRows.map(w => { const m = dir[w.who] || { id: w.who, nickname: '?' }; return `<div style="display:flex; align-items:center; gap:10px; padding:6px 12px; border-top:1px solid var(--rule-teal); font-size:var(--fs-sm); min-width:0;">
-        ${faceDot(m, 32)}<span style="flex:1; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(m.nickname)}</span>
-        <span style="font-variant-numeric:tabular-nums; font-weight:700; color:var(--neon-red-text); text-shadow:0 0 6px var(--neon-red-text); white-space:nowrap;">${w.tk} tk</span></div>`; }).join('')
-      || '<div style="padding:10px 12px; border-top:1px solid var(--rule-teal); font-size:var(--fs-sm); color:var(--color-neutral-400);">All square. Nobody owes you.</div>'}
+    <div id="stand-box" class="ystandbox" style="flex:none; display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;">
+      <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; flex-wrap:wrap;"><span class="t-module" style="font-size:var(--fs-sm); letter-spacing:.14em;">Farmyard current standings</span></div>
+      <div class="ystand"></div>
     </div>
     <div class="leaguegrid">${modules}</div>`;
+
+  // Standings: one row per member, columns for every league that exists. fy.yard_standings() is one jsonb.
+  (async () => {
+    const host = main.querySelector('#stand-box .ystand');
+    let st = null;
+    try { st = await FY.rpc('yard_standings'); } catch (e) {}
+    // RPC not deployed yet (or failed): still show everyone, with dashes, rather than hide the box.
+    if (!st) st = { leagues: [], members: members.map(m => ({ ...m, net: null, change: null, pos: {} })) };
+    const mem = (st && st.members) || [], leagues = (st && st.leagues) || [];
+    if (!mem.length) { host.innerHTML = '<div class="empty">Nothing here yet.</div>'; return; }
+    const ord = n => { const v = n % 100, s = ['th', 'st', 'nd', 'rd']; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
+    const lIcon = l => (rooms.find(r => r.id === l.key) || {}).icon || ({ chess: 'ph ph-strategy' }[l.key]) || 'ph ph-ranking';
+    const arrow = { up: '▲', down: '▼', flat: '–' };
+    const lcell = (m, l) => {
+      const p = m.pos && m.pos[l.key];
+      if (!p) return '<span class="lpos-none">—</span>';
+      const mv = arrow[p.move] ? p.move : 'flat';
+      return `<span class="lpos lpos-${mv}">${ord(p.pos)}</span><span class="lmove lmove-${mv}" title="${mv === 'up' ? 'Up since the last docket' : mv === 'down' ? 'Down since the last docket' : 'Unchanged'}">${arrow[mv]}</span>`;
+    };
+    const dirOf = n => (n > 0 ? 'up' : n < 0 ? 'down' : 'flat');
+    const money = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n);
+    const row = m => {
+      const hasNet = typeof m.net === 'number', nd = hasNet ? dirOf(m.net) : 'flat', cd = typeof m.change === 'number' ? dirOf(m.change) : 'flat';
+      const ctitle = cd === 'up' ? 'Up since last week' : cd === 'down' ? 'Down since last week' : 'No change';
+      return `<tr><td><span class="who">${FY.faceRing(m, 45, m.nickname)}${esc(m.nickname)}</span></td>
+        <td>${hasNet ? `<span class="fy-iou fy-iou-${nd}">${money(m.net)}</span>` : '<span class="lpos-none">—</span>'}</td>
+        <td>${hasNet ? `<span class="fy-iou fy-iou-${cd} trendcoin" title="${ctitle}" aria-label="${ctitle}"><span class="tri" aria-hidden="true">${arrow[cd]}</span></span>` : ''}</td>
+        ${leagues.map(l => `<td>${lcell(m, l)}</td>`).join('')}</tr>`;
+    };
+    host.innerHTML = `<table>
+      <thead><tr><th>Member</th><th><span class="hwrap"><img class="coinhdr" src="assets/iou.coin.cyan.png" alt="">IOU</span></th><th><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Recent change</span></th>${leagues.map(l => `<th><span class="hwrap"><i class="${esc(lIcon(l))}" aria-hidden="true"></i>${esc(l.label)}</span></th>`).join('')}</tr></thead>
+      <tbody>${mem.map(row).join('')}</tbody></table>`;
+  })();
 
   // Needs you: leaders only (never in member preview). Unclaimed invites and payments awaiting Received.
   if (B.leader) {

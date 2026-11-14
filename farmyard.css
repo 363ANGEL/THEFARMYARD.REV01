@@ -342,3 +342,61 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 .leaguegrid { flex: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 @media (max-width: 900px) { .leaguegrid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 620px) { .leaguegrid { grid-template-columns: 1fr; } }
+/* Yard standings: one row per member — IOU standing, which way it is moving,
+   and their place in every league. Replaces the old IOUs list (RAY, 13 Nov). */
+.ystand{overflow-x:auto}
+.ystand table{border-collapse:collapse;width:100%;font-size:var(--fs-sm)}
+.ystand th{font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fy-text-label);padding:6px 10px;white-space:nowrap}
+/* Values sit centred under their heading; only the member name reads left (RAY, 13 Nov). */
+.ystand th,.ystand td{text-align:center}
+.ystand th:first-child,.ystand td:first-child{text-align:left}
+/* The change column reads left, against the IOU figure beside it (RAY, 14 Nov). */
+.ystand th:nth-child(3),.ystand td:nth-child(3){text-align:left}
+.ystand .trendcoin{justify-content:flex-start}
+/* Heading marks sit on the heading's own centre line. Every one is a flex row, so an
+   image and a glyph line up the same way instead of each being nudged (RAY, 14 Nov). */
+.ystand th{vertical-align:middle}
+.ystand th>span.hwrap{display:inline-flex;align-items:center;gap:5px;line-height:1}
+.ystand th i{font-size:calc(var(--ic-sm) * 1.5);color:var(--neon-teal);flex:none}
+.ystand th .coinhdr{width:2.55em;height:2.55em;object-fit:contain;flex:none}
+.ystand td{padding:6px 10px;border-top:1px solid var(--rule-teal);vertical-align:middle;white-space:nowrap}
+.ystand tr:hover td{background:color-mix(in srgb,var(--neon-teal) 6%,transparent)}
+.ystand .who{display:flex;align-items:center;gap:9px;font-weight:600;min-width:0}
+.ystand .amt{font-variant-numeric:tabular-nums;font-weight:700}
+.ystand .amt-green{color:var(--neon-green-text);text-shadow:0 0 6px var(--neon-green-tube)}
+.ystand .amt-red{color:var(--neon-red-text);text-shadow:0 0 6px var(--neon-red-text)}
+.ystand .amt-flat{color:var(--fy-text-label);text-shadow:none;font-weight:600}
+.ystand .trend{font-size:15px;line-height:1}
+/* The change column carries the IOU token with its direction, a quarter larger (RAY, 13 Nov). */
+/* Every value in the table reads at one size — name, figure, arrows and positions —
+   so no column shouts over another (RAY, 14 Nov). */
+.ystand td{font-size:1.25em}
+.ystand .fy-iou:not(.trendcoin){font-size:1em}
+.ystand .trendcoin{font-size:1em;gap:3px;justify-content:center}
+.ystandbox{position:relative}
+/* Standings watermark, back at RAY's request (14 Nov) using the pink IOU coin,
+   4.0 IOU REV 01. Transparent PNG now, so no blending, and low enough to sit
+   behind the figures rather than argue with them. */
+/* Watermark behind the standings, the pink IOU coin (RAY, 14 Nov). */
+.ystandbox::before{content:"";position:absolute;inset:0;background:url('assets/iou.coin.pink.png') center/auto 140% no-repeat;opacity:.1;pointer-events:none;z-index:0}
+.ystandbox>*{position:relative;z-index:1}
+/* Plain text triangles: the icon set has no up or down caret, and a missing glyph
+   draws as a solid square (RAY spotted it, 13 Nov). */
+.ystand .trendcoin .tri{font-size:.8em;line-height:1}
+.ystand .trend-up{color:var(--neon-green-tube);text-shadow:0 0 6px var(--neon-green-tube)}
+.ystand .trend-down{color:var(--neon-red-tube);text-shadow:0 0 6px var(--neon-red-tube)}
+.ystand .trend-flat{color:var(--fy-text-label)}
+/* A position takes the colour of its own movement, so the number and its arrow
+   say the same thing: green up, red down, amber unchanged (RAY, 14 Nov). */
+.ystand .lpos{font-variant-numeric:tabular-nums;font-weight:700;color:var(--neon-teal);text-shadow:0 0 7px var(--neon-teal)}
+.ystand .lpos-up{color:var(--neon-green-text);text-shadow:0 0 7px var(--neon-green-tube)}
+.ystand .lpos-down{color:var(--neon-red-text);text-shadow:0 0 7px var(--neon-red-tube)}
+.ystand .lpos-flat{color:var(--neon-amber-text);text-shadow:0 0 7px var(--neon-amber)}
+.ystand .lpos-none{font-weight:600;color:var(--fy-text-label);text-shadow:none}
+/* Movement in that league since its last docket: green up, red down, amber dash (RAY, 13 Nov). */
+.ystand .lmove{margin-left:5px;font-size:.8em;vertical-align:1px}
+.ystand .lmove-up{color:var(--neon-green-tube);text-shadow:0 0 5px var(--neon-green-tube)}
+.ystand .lmove-down{color:var(--neon-red-tube);text-shadow:0 0 5px var(--neon-red-tube)}
+.ystand .lmove-flat{color:var(--neon-amber-tube);text-shadow:0 0 5px var(--neon-amber)}
+.ystand .empty{padding:14px 12px;font-size:var(--fs-sm);color:var(--color-neutral-400)}
+
