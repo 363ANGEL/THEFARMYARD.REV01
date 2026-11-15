@@ -78,7 +78,7 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
   if (userName && userName !== me.nickname) {
     const { data } = await FY.q('member').select(MCOLS).eq('nickname', userName).limit(1);
     if (!data || !data.length) {
-      main.innerHTML = `<div class="fy-banner fy-banner-empty" role="img" aria-label="Page header image"><span>Page header image</span></div><div class="fy-pagehead"><h2 class="t-title-b">User profile</h2></div>
+      main.innerHTML = `<div class="fy-pagehead"><h2 class="t-title-b">User profile</h2></div>
         <div class="pcard"><span class="kicker">Nobody here</span>
         <p style="margin:0">Hank doesn't know anyone called <strong>${esc(userName)}</strong>. They may have changed their yard name.</p>
         <a href="dashboard.html" style="color:var(--neon-pink-link)">Back to the Dashboard</a></div>`;
@@ -231,9 +231,9 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
           <span class="pbadge pbadge-pink" title="Football league position"><i class="ph ph-soccer-ball" aria-hidden="true"></i>Football <b>—</b></span>
         </div>
         ${notPublic ? `<div class="pbadges">
-          <span class="pbadge" title="IOUs lost and paid, all time"><img class="fy-coin-art" src="assets/iou.coin.red.png" alt=""><span class="fy-iou fy-iou-down">${lost}</span></span>
-          <span class="pbadge" title="IOUs won, all time"><img class="fy-coin-art" src="assets/iou.coin.green.png" alt=""><span class="fy-iou fy-iou-up">${won}</span></span>
-          <span class="pbadge" title="All time net: green while in credit, red while in debit">Net <img class="fy-coin-art" src="assets/iou.coin.${allTime > 0 ? 'green' : allTime < 0 ? 'red' : 'pink'}.png" alt=""><span class="fy-iou ${allTime > 0 ? 'fy-iou-up' : allTime < 0 ? 'fy-iou-down' : 'fy-iou-flat'}">${allTime > 0 ? '+' : allTime < 0 ? '−' : ''}${Math.abs(allTime)}</span></span>
+          <span class="pbadge" title="IOUs lost and paid, all time"><img class="fy-coin-art" src="assets/iou.coin.red.sm.png" alt=""><span class="fy-iou fy-iou-down">${lost}</span></span>
+          <span class="pbadge" title="IOUs won, all time"><img class="fy-coin-art" src="assets/iou.coin.green.sm.png" alt=""><span class="fy-iou fy-iou-up">${won}</span></span>
+          <span class="pbadge" title="All time net: green while in credit, red while in debit">Net <img class="fy-coin-art" src="assets/iou.coin.${allTime > 0 ? 'green' : allTime < 0 ? 'red' : 'pink'}.sm.png" alt=""><span class="fy-iou ${allTime > 0 ? 'fy-iou-up' : allTime < 0 ? 'fy-iou-down' : 'fy-iou-flat'}">${allTime > 0 ? '+' : allTime < 0 ? '−' : ''}${Math.abs(allTime)}</span></span>
         </div>` : ''}
         ${subject.birth_day && subject.birth_month ? `<div style="font-size:var(--fs-xs);color:var(--fy-text-label)"><i class="ph ph-cake" style="color:var(--neon-pink-text)"></i> ${subject.birth_day} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][subject.birth_month - 1]}</div>` : ''}
       </div>
@@ -295,7 +295,6 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
 
   // ---- Compose the page ----
   main.innerHTML = `
-    <div class="fy-banner fy-banner-empty" role="img" aria-label="Page header image"><span>Page header image</span></div>
     ${admin ? `<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px;padding:10px 14px;border:2px solid var(--neon-pink-tube);border-radius:10px;box-shadow:var(--glow-pink)"><i class="ph ph-shield-check" style="color:var(--neon-pink-text)"></i><span style="font-size:var(--fs-sm);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--neon-pink-text);white-space:nowrap">Admin view · editing ${esc(subject.nickname)}</span><span style="flex:1"></span><a href="admin.html" style="font-size:var(--fs-xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#5fd3cf;text-decoration:none">← Back to admin</a></div>` : ''}
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
       <div class="fy-pagehead"><h2 class="t-title-b">User profile</h2><span class="t-tagline">${own ? 'Who you are in the yard.' : esc(subject.nickname) + ' · as the yard sees them.'}</span></div><div style="flex:1"></div>

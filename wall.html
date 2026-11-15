@@ -55,7 +55,7 @@
           <span style="font-size:var(--fs-sm); color:var(--fy-text-label);">${ago(p.created_at)}</span>
           ${p.pinned_at ? '<span class="kicker" style="font-size:var(--fs-sm); color:var(--neon-pink-text); text-shadow:var(--text-glow-pink);">Pinned by Hank</span>' : ''}
         </div>
-        <p style="margin:0; font-size:var(--fs-body); line-height:1.5; color:var(--fy-text); white-space:pre-wrap; overflow-wrap:anywhere; text-wrap:pretty;">${esc(p.body)}</p>
+        <p style="margin:0; font-size:var(--fs-body); line-height:1.5; color:var(--fy-post); font-style:italic; white-space:pre-wrap; overflow-wrap:anywhere; text-wrap:pretty;">${esc(p.body)}</p>
         <div style="display:flex; gap:14px; align-items:center; padding-top:2px;">
           <button type="button" data-like="${p.id}" aria-pressed="${myLike}" style="display:inline-flex; align-items:center; gap:5px; min-height:32px; padding:0 8px; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:${myLike ? 'var(--neon-pink-text)' : 'var(--fy-text-label)'}; text-shadow:${myLike ? 'var(--text-glow-pink)' : 'none'};"><span class="hrt" aria-hidden="true">${myLike ? '♥' : '♡'}</span>${n || ''}</button>
           ${mine || isLeader ? `<button type="button" data-del="${p.id}" style="min-height:32px; padding:0 8px; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:var(--fy-text-label);">Delete</button>` : ''}
@@ -65,7 +65,6 @@
   }
 
   main.innerHTML = `
-    <div class="fy-banner fy-banner-empty" role="img" aria-label="Page header image"><span>Page header image</span></div>
     <header class="fy-pagehead"><h2 class="t-title-b">Chat wall</h2><span class="t-tagline">Say it to the yard. Hank pins what matters.</span></header>
     <section style="flex:1; display:flex; flex-direction:column; gap:14px; width:100%; min-width:0;">
       <div id="feed" style="display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;"></div>

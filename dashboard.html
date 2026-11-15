@@ -47,7 +47,7 @@
     const m = dir[p.member_id] || { id: p.member_id, nickname: '?' };
     return `<div style="display:flex; gap:8px; align-items:center; padding:6px 12px; border-top:1px solid var(--rule-teal); min-width:0; font-size:var(--fs-body); line-height:1.4;">
       ${faceDot(m, 39)}<span style="flex:none; font-weight:800;">${esc(m.nickname)}:</span>
-      <span style="flex:1; min-width:0; color:var(--color-neutral-300); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(p.body)}</span>
+      <span style="flex:1; min-width:0; color:var(--fy-post); font-style:italic; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(p.body)}</span>
       <span style="flex:none; font-size:var(--fs-xs); color:var(--color-neutral-400);">${ago(p.created_at)}</span></div>`;
   };
 
@@ -78,7 +78,6 @@
       </div></a>`).join('');
 
   main.innerHTML = `
-    <div class="fy-banner fy-banner-empty" role="img" aria-label="Page header image"><span>Page header image</span></div>
     <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
       <div class="fy-pagehead"><h2 class="t-title-b">Dashboard</h2><span class="t-tagline">What's on in the yard tonight.</span></div>
       <div style="flex:1;"></div><span class="tag tag-neutral" style="white-space:nowrap;">${members.length} inside</span>
@@ -119,7 +118,7 @@
         ${leagues.map(l => `<td>${lcell(m, l)}</td>`).join('')}</tr>`;
     };
     host.innerHTML = `<table>
-      <thead><tr><th>Member</th><th><span class="hwrap"><img class="coinhdr" src="assets/iou.coin.cyan.png" alt="">IOU</span></th><th><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Recent change</span></th>${leagues.map(l => `<th><span class="hwrap"><i class="${esc(lIcon(l))}" aria-hidden="true"></i>${esc(l.label)}</span></th>`).join('')}</tr></thead>
+      <thead><tr><th>Member</th><th><span class="hwrap"><img class="coinhdr" src="assets/iou.coin.cyan.sm.png" alt="">IOU</span></th><th><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Recent change</span></th>${leagues.map(l => `<th><span class="hwrap"><i class="${esc(lIcon(l))}" aria-hidden="true"></i>${esc(l.label)}</span></th>`).join('')}</tr></thead>
       <tbody>${mem.map(row).join('')}</tbody></table>`;
   })();
 

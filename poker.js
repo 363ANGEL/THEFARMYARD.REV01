@@ -62,8 +62,7 @@
   const tip = (text, cls) => `<span class="tip ${cls || ''}" role="alert">${text}</span>`;
 
   // ---- shell ------------------------------------------------------------------
-  main.innerHTML = `<div class="fy-banner" role="img" aria-label="Poker" style="background-image:url('assets/header.poker.webp')"></div>
-  <div class="pk">
+  main.innerHTML = `<div class="pk">
     <section class="pk-steps" id="steps"></section>
     <div class="pk-row solo" id="tablerow" hidden><div id="tablecol" hidden></div><div class="pk-docketcol" id="docketcol" hidden></div></div>
     <div class="pk-row2">
