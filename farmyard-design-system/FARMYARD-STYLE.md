@@ -43,7 +43,8 @@ The working rules live in the site's own `farmyard.css` (repo root); this sheet 
 ### IOU coin
 - One mark for token standing. Artwork is RAY's own: `assets/iou.coin.pink.png` (neutral, also the standings watermark), `.green.png` (credit, IOUs won), `.red.png` (debit, IOUs lost), `.cyan.png` (headings). 1500×1500 RGBA with real transparency, so it sits on any background: no `mix-blend-mode`, no black-key trick. Never re-encode or flatten these.
 - Text form: `.fy-iou` + `-up` (green) / `-down` (red) / `-flat` (grey); the signed figure beside the coin takes the same colour. Markup: `<span class="fy-iou fy-iou-up"><i class="ph ph-coins"></i>+10</span>`.
-- Art form: `<img class="fy-coin-art" src="assets/iou.coin.red.png" alt="">`, 3.1em, so it scales with the text beside it. `.coinart` is the 2.2em, 80% opacity variant. Sizes in use: 3.1em in profile badges; 2.2em small rows.
+- Art form: `<img class="fy-coin-art" src="assets/iou.coin.red.sm.png" alt="">`, 3.1em, so it scales with the text beside it. `.coinart` is the 2.2em, 80% opacity variant. Sizes in use: 3.1em in profile badges; 2.2em small rows.
+- **Two sets.** The full drawings (`iou.coin.<colour>.png`) are for anywhere the coin is large. The `.sm.png` set is for icon size: every stroke thinner than ~7px removed, what survives thickened and flattened to one colour at full brightness (RAY, 15 Nov — at 45px the full drawing read as a dim smudge). Use `.sm.png` at or below about 50px: profile badges, the standings IOU heading. Use the full drawing above it.
 - Colour rule: green = credit/won, red = debit/lost. Net takes green when positive, red when negative, pink and grey when square.
 
 ### Presence colours (the In the yard strip)
@@ -54,11 +55,16 @@ The working rules live in the site's own `farmyard.css` (repo root); this sheet 
 - Every page opens with `.fy-pagehead`: an `<h2 class="t-title-b">` (pink lettering, pink text glow, mixed case: "Chat wall", "User profile") with a `.t-tagline` (cyan, one short dry sentence) under it. There is no `.t-pagehead` class.
 - Card headings are pink too: `.t-module`; inside admin cards they step down to `--fs-sm` with .14em tracking so a card reads as a label, not a headline.
 
-### Page header image: `.fy-banner`
-- A full-bleed band across the top of the main panel, above `.fy-pagehead`. Negative margin `-18px -22px 0` cancels the panel's inline padding (`#main` is `18px 22px` at every width); height `clamp(96px,13vw,176px)`.
-- Empty state: `<div class="fy-banner fy-banner-empty" role="img" aria-label="Page header image"><span>Page header image</span></div>`. A real picture goes in as `background-image`.
-- For a leader the View as bar is the panel's first child; `#fy-viewbar + .fy-banner` drops the top bleed so the band starts just under it.
-- `.fy-leagueimg` is the same picture cropped to 16:7 on a dashboard league card (one image per league, two places). Admin lists every page's image in a "Page headers" card (`.phdr`).
+### Room pictures: `.fy-leagueimg`
+- **There is no page header band.** `.fy-banner` was built on 13 Nov and taken out again on 15 Nov: a picture across the top of every page fought the page wherever it was put, and the empty placeholder told the crew about a feature that did not exist. The class is gone from `farmyard.css`; do not reintroduce it.
+- A room's picture appears in one place: its card on the dashboard, `.fy-leagueimg`, cropped to 16:7. The artwork is wider than that (2000×500), so the crop is deliberate — at a third-panel card the whole image renders about 15px tall and turns to mush.
+- The picture is painted by `.fy-leagueimg::before` (inheriting `background-image`, hence `background-size:0 0` on the box itself), so `filter: saturate(.85)` reaches the photograph and not the neon league badge sitting on its corner.
+- One image per room, named `assets/header.<room>.webp`, listed in the `HEADER` map in `dashboard.html`. A room with no entry keeps the empty card.
+- The Admin "Page headers" card (`.phdr`) still offers an upload and is **unsettled** — it describes a band that no longer exists.
+
+### Posted words: `--fy-post`
+- Anything a member typed — wall posts on `wall.html`, the summary rows in the dashboard wall box — reads in `var(--fy-post)` and `font-style: italic`. Everything else on the site is site copy.
+- `--fy-post` is `--neon-amber-text`: the text weight of amber, not the tube weight, so a full wall does not glare. Names stay bold white and timestamps grey, which keeps the three levels of a row: who, when, what.
 
 ### Coming-soon tooltip: `.soon`
 - Add `soon` to any control that is not built yet. Clicking focuses it and a pink-bordered "Coming soon" shows in its centre. CSS only (`:focus::after`), no script; never `disabled`, or it cannot take focus.
