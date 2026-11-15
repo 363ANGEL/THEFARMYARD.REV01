@@ -1,7 +1,7 @@
 /* 2.1 Poker Room. One game at a time: any member presses START, pastes the PokerNow link inside the table
    (PASTE → OPEN TABLE → GO TO TABLE), members take seats (a picked seat is HELD for everyone else until it is
    confirmed), the initiator files the Table Docket, anyone can CLOSE once it is filed. All state lives in the
-   database (fy.poker_*); this page reads poker_current / poker_board / poker_debts / poker_feeds and writes
+   database (fy.poker_*); this page reads poker_current / poker_board / poker_debts and writes
    through the poker_* RPCs. Every screen polls every 5 seconds while visible; Realtime pings make the refetch instant. */
 (async function () {
   const B = await Barn.open('poker'); if (!B) return;
@@ -16,12 +16,12 @@
   const esc = FY.esc;
 
   const S = {
-    cur: null, board: null, debts: null, feeds: null, boardAt: 0, key: '', seq: 0,
+    cur: null, board: null, debts: null, boardAt: 0, key: '', seq: 0,
     names: {},                                     // member id -> { nickname, avatar, avatar_url }
     picks: {}, winner: null, stamp: false,         // docket (buy-ins per member id)
     draft: '', pasteHint: false, nickCopied: false, closeTip: false, seatTip: '',
     sel: null, seat: { phase: 'idle', name: '', count: 10, p: null, url: null, blocked: false },
-    shell: '', vidOrder: null, vidPlay: false
+    shell: ''
   };
   ((await FY.q('v_members_public').select('id,nickname,avatar,avatar_url')).data || []).forEach(m => S.names[m.id] = m);
 
@@ -69,7 +69,6 @@
       <div class="pk-board pk-thin" id="board"><p class="pk-empty">Loading the board…</p></div>
       <div class="pk-debts pk-thin" id="debts"></div>
     </div>
-    <section class="pk-mod pk-thin" id="school"></section>
   </div>`;
 
   // ---- checklist --------------------------------------------------------------
@@ -354,32 +353,6 @@
     renderBoard(); renderDebts(); if (docketVisible()) renderDocket();
   }
 
-  // ---- Poker School (daily feed) -----------------------------------------------
-  // The Scandal Sheet was removed on RAY's call, 15 Nov. fy.poker_feeds still returns
-  // its stories; nothing renders them.
-  function renderFeeds() {
-    const f = S.feeds || { news: [], videos: [] };
-    const vids = f.videos;
-    if (!vids.length) { $('school').innerHTML = '<div class="pk-modhead"><span class="pk-title">Poker School</span><span class="pk-sub">Intermediate tips &amp; wild hands</span></div><p class="pk-empty">No videos yet. The school refreshes daily.</p>'; return; }
-    const order = S.vidOrder && S.vidOrder.length === vids.length ? S.vidOrder : vids.map((_, i) => i);
-    const v = vids[order[0]];
-    $('school').innerHTML = `<div class="pk-modhead"><span class="pk-title">Poker School</span><span class="pk-sub">Intermediate tips &amp; wild hands</span></div>
-      <div class="pk-player"><iframe src="https://www.youtube-nocookie.com/embed/${esc(v.youtube_id)}${S.vidPlay ? '?autoplay=1' : ''}" title="${esc(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
-      <div class="pk-now"><span class="t">Now playing: ${esc(v.title)}</span>${v.channel ? `<span class="ch">${esc(v.channel)}</span>` : ''}</div>
-      <div class="pk-queue">${order.slice(1).map(i => { const q = vids[i]; return `<button type="button" class="pk-vid" data-vid="${i}">
-        <span class="th" style="background-image:url('https://i.ytimg.com/vi/${esc(q.youtube_id)}/mqdefault.jpg')"><i class="ph-fill ph-play-circle"></i></span>
-        ${q.tag ? `<span class="tag">${esc(q.tag)}</span>` : ''}<span class="t">${esc(q.title)}</span>${q.channel ? `<span class="ch">${esc(q.channel)}</span>` : ''}</button>`; }).join('')}</div>`;
-    S.vidOrder = order;
-  }
-  $('school').addEventListener('click', ev => {
-    const b = ev.target.closest('[data-vid]'); if (!b) return;
-    const i = Number(b.dataset.vid), o = S.vidOrder.slice(); o.splice(o.indexOf(i), 1); o.unshift(i);
-    S.vidOrder = o; S.vidPlay = true; renderFeeds();
-  });
-  async function refreshFeeds() {
-    try { S.feeds = await FY.rpc('poker_feeds'); } catch (e) { console.warn(e); }
-    renderFeeds();
-  }
 
   // ---- data loop: Realtime pings, 5s polling fallback ---------------------------
   async function refresh(force) {
@@ -424,5 +397,5 @@
   setInterval(renderRecent, 15000);                // "x min left to change"
   setInterval(refreshBoard, 60000);
 
-  renderSteps(); refreshFeeds(); await refresh(true); await refreshBoard();
+  renderSteps(); await refresh(true); await refreshBoard();
 })().catch(e => FY.toast(e.message));
