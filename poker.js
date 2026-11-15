@@ -69,7 +69,6 @@
       <div class="pk-board pk-thin" id="board"><p class="pk-empty">Loading the board…</p></div>
       <div class="pk-debts pk-thin" id="debts"></div>
     </div>
-    <section class="pk-mod pk-thin" id="news"></section>
     <section class="pk-mod pk-thin" id="school"></section>
   </div>`;
 
@@ -355,17 +354,11 @@
     renderBoard(); renderDebts(); if (docketVisible()) renderDocket();
   }
 
-  // ---- Scandal Sheet + Poker School (daily feeds) ------------------------------
+  // ---- Poker School (daily feed) -----------------------------------------------
+  // The Scandal Sheet was removed on RAY's call, 15 Nov. fy.poker_feeds still returns
+  // its stories; nothing renders them.
   function renderFeeds() {
     const f = S.feeds || { news: [], videos: [] };
-    const fmt = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
-    $('news').innerHTML = `<div class="pk-modhead"><span class="pk-title">Poker Scandal Sheet</span><span class="pk-sub">Top 5 · controversy &amp; bad behaviour</span></div>
-      <div class="pk-news">${f.news.length ? f.news.map((n, i) => `<div class="pk-newsrow pk-hover">
-        <span class="no">${String(i + 1).padStart(2, '0')}</span>
-        <span>${n.image_url ? `<img class="img" src="${esc(n.image_url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<span class=noimg><i class=&quot;ph ph-newspaper&quot;></i></span>'">` : '<span class="noimg"><i class="ph ph-newspaper"></i></span>'}</span>
-        <a class="txt" href="${esc(n.url)}" target="_blank" rel="noopener"><span class="t">${esc(n.title)}</span>${n.note ? `<span class="nt">${esc(n.note)}</span>` : ''}</a>
-        <span class="meta"><span class="src">Source: ${esc(n.source)}</span>${n.about ? `<span class="about">${esc(n.about)}</span>` : ''}<span>${fmt(n.published_on)}</span></span>
-      </div>`).join('') : '<p class="pk-empty">No stories yet. The sheet refreshes daily.</p>'}</div>`;
     const vids = f.videos;
     if (!vids.length) { $('school').innerHTML = '<div class="pk-modhead"><span class="pk-title">Poker School</span><span class="pk-sub">Intermediate tips &amp; wild hands</span></div><p class="pk-empty">No videos yet. The school refreshes daily.</p>'; return; }
     const order = S.vidOrder && S.vidOrder.length === vids.length ? S.vidOrder : vids.map((_, i) => i);
