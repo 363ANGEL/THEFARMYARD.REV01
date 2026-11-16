@@ -84,15 +84,17 @@
   // or if the browser refuses anyway.
   function startTutorial(v) {
     if (!v) return;
-    let armed = true;
-    const cancel = () => { armed = false; };
-    v.addEventListener('play', cancel, { once: true });
-    setTimeout(() => {
-      if (!armed || v.ended || !v.paused || document.hidden) return;
+    // Straight away, not after a pause: RAY asked for it to start on page load.
+    // `autoplay` on the tag does the work in most browsers; this is the fallback for the
+    // ones that ignore it, and it retries once the first frame is actually decodable.
+    const go = () => {
+      if (v.ended || !v.paused) return;
       v.muted = true;
       const p = v.play();
       if (p && p.catch) p.catch(() => { /* blocked: the first frame and the controls remain */ });
-    }, 2000);
+    };
+    go();
+    v.addEventListener('loadeddata', go, { once: true });
   }
 
   let stepsSig = '';
@@ -108,8 +110,8 @@
     // Rendered once and left alone - re-writing it mid-game would restart the playback.
     if (!$('steps').querySelector('video')) {
       $('steps').innerHTML =
-        '<video class="pk-tut" controls playsinline preload="auto" muted src="assets/poker.tutorial.mp4?v=20261116m">' +
-        '<a href="assets/poker.tutorial.mp4?v=20261116m">Download the tutorial</a></video>';
+        '<video class="pk-tut" controls playsinline preload="auto" autoplay muted src="assets/poker.tutorial.mp4?v=20261116n">' +
+        '<a href="assets/poker.tutorial.mp4?v=20261116n">Download the tutorial</a></video>';
       startTutorial($('steps').querySelector('video'));
     }
   }
