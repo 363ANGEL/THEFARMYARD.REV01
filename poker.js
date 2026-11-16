@@ -62,7 +62,8 @@
   const tip = (text, cls) => `<span class="tip ${cls || ''}" role="alert">${text}</span>`;
 
   // ---- shell ------------------------------------------------------------------
-  main.innerHTML = `<div class="pk">
+  main.innerHTML = `<div class="fy-pagehead"><h2 class="t-title-b">Poker Room</h2><span class="t-tagline">Tonight's table, the league board, and who owes who.</span></div>
+  <div class="pk">
     <div class="pk-signwrap" id="pksign"></div>
     <section class="pk-steps" id="steps"></section>
     <div class="pk-row2"><div class="pk-board pk-thin" id="board"><p class="pk-empty">Loading the board…</p></div></div>
@@ -110,8 +111,8 @@
     // Rendered once and left alone - re-writing it mid-game would restart the playback.
     if (!$('steps').querySelector('video')) {
       $('steps').innerHTML =
-        '<video class="pk-tut" controls playsinline preload="auto" autoplay muted src="assets/poker.tutorial.mp4?v=20261116n">' +
-        '<a href="assets/poker.tutorial.mp4?v=20261116n">Download the tutorial</a></video>';
+        '<video class="pk-tut" controls playsinline preload="auto" autoplay muted src="assets/poker.tutorial.mp4?v=20261116q">' +
+        '<a href="assets/poker.tutorial.mp4?v=20261116q">Download the tutorial</a></video>';
       startTutorial($('steps').querySelector('video'));
     }
   }

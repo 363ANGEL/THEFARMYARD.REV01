@@ -399,4 +399,19 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 .ystand .lmove-down{color:var(--neon-red-tube);text-shadow:0 0 5px var(--neon-red-tube)}
 .ystand .lmove-flat{color:var(--neon-amber-tube);text-shadow:0 0 5px var(--neon-amber)}
 .ystand .empty{padding:14px 12px;font-size:var(--fs-sm);color:var(--color-neutral-400)}
+/* Below desktop - the same 860px where the sidebar becomes a drawer - the member column
+   is the face alone and every column is squeezed, so more leagues stay in view without
+   the table scrolling sideways. RAY, 2026-11-16. */
+@media (max-width:860px){
+  .ystand .who{gap:0}
+  .ystand .who .ynm{display:none}
+  .ystand th,.ystand td{padding:4px 3px}
+  .ystand th{letter-spacing:.04em}
+  .ystand th .coinhdr{width:1.8em;height:1.8em}
+  .ystand th i{font-size:var(--ic-sm)}
+  .ystand th:first-child,.ystand td:first-child{padding-left:8px}
+  .ystand td{font-size:1.1em}
+  .ystand .lmove{margin-left:2px}
+  .ystand .trendcoin{gap:1px}
+}
 

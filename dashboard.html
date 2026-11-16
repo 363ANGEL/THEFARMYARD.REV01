@@ -5,15 +5,15 @@
 <title>The Farmyard · Dashboard</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="app.css?v=20261116n">
-<link rel="stylesheet" href="farmyard.css?v=20261116n">
-<link rel="stylesheet" href="barn.css?v=20261116n">
-<script src="fy-clucks.js?v=20261116n"></script>
+<link rel="stylesheet" href="app.css?v=20261116q">
+<link rel="stylesheet" href="farmyard.css?v=20261116q">
+<link rel="stylesheet" href="barn.css?v=20261116q">
+<script src="fy-clucks.js?v=20261116q"></script>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261116n"></script><script src="app.js?v=20261116n"></script><script src="barn.js?v=20261116n"></script><script src="presence.js?v=20261116n"></script><script src="sidebar-subs.js?v=20261116n"></script>
+<script src="config.js?v=20261116q"></script><script src="app.js?v=20261116q"></script><script src="barn.js?v=20261116q"></script><script src="presence.js?v=20261116q"></script><script src="sidebar-subs.js?v=20261116q"></script>
 <script>
 /* 1.0 BARN DASHBOARD (REV C03): wall widget (Hank's pins + latest), IOUs owed to you,
    room modules. The online strip lives in the sidebar (presence.js). */
@@ -112,7 +112,7 @@
     const row = m => {
       const hasNet = typeof m.net === 'number', nd = hasNet ? dirOf(m.net) : 'flat', cd = typeof m.change === 'number' ? dirOf(m.change) : 'flat';
       const ctitle = cd === 'up' ? 'Up since last week' : cd === 'down' ? 'Down since last week' : 'No change';
-      return `<tr><td><span class="who">${FY.faceRing(m, 45, m.nickname)}${esc(m.nickname)}</span></td>
+      return `<tr><td><span class="who">${FY.faceRing(m, 45, m.nickname)}<span class="ynm">${esc(m.nickname)}</span></span></td>
         <td>${hasNet ? `<span class="fy-iou fy-iou-${nd}">${money(m.net)}</span>` : '<span class="lpos-none">—</span>'}</td>
         <td>${hasNet ? `<span class="fy-iou fy-iou-${cd} trendcoin" title="${ctitle}" aria-label="${ctitle}"><span class="tri" aria-hidden="true">${arrow[cd]}</span></span>` : ''}</td>
         ${leagues.map(l => `<td>${lcell(m, l)}</td>`).join('')}</tr>`;
