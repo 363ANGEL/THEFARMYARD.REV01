@@ -86,9 +86,11 @@
     // Tonight's table. What is left is the slot for a tutorial video, which always shows.
     $('steps').style.display = '';
     $('steps').classList.toggle('live', live);
-    // A video box and nothing else: no heading, no caption (RAY, 16 Nov).
-    $('steps').innerHTML =
-      '<div class="pk-tut" role="img" aria-label="Tutorial video"><span class="play" aria-hidden="true"></span></div>';
+    // A video and nothing else: no heading, no caption (RAY, 16 Nov).
+    // Rendered once and left alone - re-writing it mid-game would restart the playback.
+    if (!$('steps').querySelector('video')) $('steps').innerHTML =
+      '<video class="pk-tut" controls preload="metadata" playsinline src="assets/poker.tutorial.mp4">' +
+      '<a href="assets/poker.tutorial.mp4">Download the tutorial</a></video>';
   }
   $('tablecol').addEventListener('click', async ev => {
     const t = ev.target.closest('a,button'); if (!t) return;
