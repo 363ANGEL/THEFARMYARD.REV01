@@ -108,8 +108,8 @@
     // Rendered once and left alone - re-writing it mid-game would restart the playback.
     if (!$('steps').querySelector('video')) {
       $('steps').innerHTML =
-        '<video class="pk-tut" controls playsinline preload="auto" muted src="assets/poker.tutorial.mp4">' +
-        '<a href="assets/poker.tutorial.mp4">Download the tutorial</a></video>';
+        '<video class="pk-tut" controls playsinline preload="auto" muted src="assets/poker.tutorial.mp4?v=20261116m">' +
+        '<a href="assets/poker.tutorial.mp4?v=20261116m">Download the tutorial</a></video>';
       startTutorial($('steps').querySelector('video'));
     }
   }
