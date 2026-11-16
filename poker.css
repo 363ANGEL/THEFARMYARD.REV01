@@ -62,9 +62,12 @@
 .pk-signwrap + *{margin-top:44px}
 /* The card above the table is the tutorial slot now: no numbered step, no CLOSE
    (RAY, 16 Nov). The placeholder is line work only until a video is added. */
-/* The tutorial itself. A real video now, so a solid frame rather than the dashed
-   placeholder, and the aspect ratio comes from the file (RAY sent it, 16 Nov). */
-.pk-tut{display:block;width:100%;max-height:60vh;border:2px solid rgba(158,234,230,.72);border-radius:12px;background:#07090a}
+/* The tutorial itself. The box stays the full width of the panel while the picture is
+   capped in height, and object-fit:contain means the frame is fitted inside rather than
+   cropped -- nothing is cut off the edges (RAY, 16 Nov). Past the cap the spare width
+   either side is the player's own near-black, which on this page reads as nothing at all.
+   Below the cap the 16:9 takes over and there is no spare width to see. */
+.pk-tut{display:block;width:100%;aspect-ratio:16/9;max-height:340px;object-fit:contain;border:2px solid rgba(158,234,230,.72);border-radius:12px;background:#07090a}
 /* The play mark is drawn here, not taken from the icon set: ph-play-circle is not in it
    and a missing name renders as a solid black square (RAY spotted it again, 16 Nov). */
 .play{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:2px solid var(--neon-teal);box-shadow:0 0 8px var(--neon-teal),inset 0 0 6px color-mix(in srgb,var(--neon-teal) 45%,transparent)}
