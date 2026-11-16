@@ -53,7 +53,11 @@
 /* checklist + sign. Border breathes teal while idle, red while a game is live. */
 .pk-steps{position:relative;margin-top:44px;display:flex;flex-direction:column;gap:10px;padding:16px;border:2px solid rgba(158,234,230,.72);border-radius:14px;animation:checkTeal 5s ease-in-out infinite}
 .pk-steps.live{animation:checkRed 4s ease-in-out infinite}
-.pk-sign{position:absolute;right:22px;top:-14px;z-index:3;transform-origin:78% 0;transform:rotate(5deg);animation:signSwayP 6s ease-in-out infinite alternate;zoom:.99}
+/* The sign hangs off the panel, not off the checklist card (RAY, 16 Nov), so it stays put
+   when the checklist is hidden mid-game. The wrapper has no height: the sign is lifted out
+   of the flow entirely and .pk-steps keeps its own top margin to sit clear underneath. */
+.pk-signwrap{position:relative;height:0;z-index:5}
+.pk-sign{position:absolute;right:22px;top:-6px;z-index:3;transform-origin:78% 0;transform:rotate(5deg);animation:signSwayP 6s ease-in-out infinite alternate;zoom:.99}
 .pk-sign .wire{position:absolute;top:0;width:1px;height:22px;background:#9eeae6;opacity:.75;transform-origin:50% 100%}
 .pk-sign .plate{position:relative;display:flex;align-items:center;gap:6px;padding:22px 36px 20px 96px;border-radius:8px;background:#07090a;border:2px solid var(--neon-green-tube);border-left-color:transparent;margin-top:20px;box-shadow:0 0 4px var(--neon-green-tube),0 0 12px var(--neon-green),0 0 28px rgba(10,158,67,.5),inset 0 0 8px rgba(10,158,67,.45),0 10px 22px rgba(0,0,0,.55)}
 .pk-sign .edge{position:absolute;left:-2px;top:-2px;bottom:-2px;width:16px;box-sizing:border-box;border:2px solid var(--neon-green-tube);border-right:0;border-radius:8px 0 0 8px;box-shadow:-2px 0 4px var(--neon-green-tube),-8px 0 12px rgba(10,158,67,.55),inset 2px 0 8px rgba(10,158,67,.45);animation:edgeFlick 13s linear infinite}

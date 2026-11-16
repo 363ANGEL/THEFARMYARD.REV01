@@ -63,6 +63,7 @@
 
   // ---- shell ------------------------------------------------------------------
   main.innerHTML = `<div class="pk">
+    <div class="pk-signwrap" id="pksign"></div>
     <section class="pk-steps" id="steps"></section>
     <div class="pk-row solo" id="tablerow" hidden><div id="tablecol" hidden></div><div class="pk-docketcol" id="docketcol" hidden></div></div>
     <div class="pk-row2">
@@ -77,6 +78,7 @@
     <div class="plate"><span class="edge"></span>
     <svg viewBox="0 0 100 110">${FLAME} fill="#07090a" stroke="#07090a" stroke-width="15" stroke-linejoin="round"></path>${FLAME} fill="none" stroke="var(--neon-red-tube)" stroke-width="2.6" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px var(--neon-red-tube)) drop-shadow(0 0 8px var(--neon-red))"></path></svg>
     <h2>POKER R<span>O</span>OM</h2></div></div>`;
+  $('pksign').innerHTML = SIGN;   // once: the sign is the page's title and must outlive any re-render
   let stepsSig = '';
   function renderSteps(force) {
     const c = S.cur, live = !!c, host = isHost();
@@ -85,7 +87,7 @@
     $('steps').style.display = live && !host ? 'none' : '';   // checklist and CLOSE: initiator only once a table has started
     $('steps').classList.toggle('live', live);
     const note = S.closeTip ? tip('Complete the <strong>Table Docket</strong> card and press <strong>FILE DOCKET</strong> before closing the game.') : '';
-    $('steps').innerHTML = SIGN +
+    $('steps').innerHTML =
       '<span class="pk-kicker pk-tealtext" style="align-self:flex-start;white-space:nowrap">Game checklist</span>' +
       `<div class="pk-step"><span class="n">1</span>
         <span class="txt"><span class="t">Start a New Table &amp; Take a Seat!</span></span>
