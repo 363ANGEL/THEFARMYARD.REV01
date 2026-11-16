@@ -10,13 +10,13 @@
   const S = { feeds: null, order: null, play: false };
 
   main.innerHTML = `
-    <div class="fy-pagehead"><h2 class="t-title-b">Poker School</h2><span class="t-tagline">Intermediate tips and the hands people are still arguing about.</span></div>
+    <div class="fy-pagehead"><h2 class="t-title-b">Poker School</h2><span class="t-tagline">Start at the top. Four videos and you know enough to sit down.</span></div>
     <div class="pk"><section class="pk-mod pk-thin" id="school"><p class="pk-empty">Loading the school…</p></section></div>`;
 
   function render() {
     const vids = (S.feeds && S.feeds.videos) || [];
-    const head = '<div class="pk-modhead"><span class="pk-title">Poker School</span><span class="pk-sub">Intermediate tips &amp; wild hands</span></div>';
-    if (!vids.length) { $('school').innerHTML = head + '<p class="pk-empty">No videos yet. The school refreshes daily.</p>'; return; }
+    const head = '<div class="pk-modhead"><span class="pk-title">Poker School</span><span class="pk-sub">Everything you need to play, in order</span></div>';
+    if (!vids.length) { $('school').innerHTML = head + '<p class="pk-empty">No videos yet.</p>'; return; }
     const order = S.order && S.order.length === vids.length ? S.order : vids.map((_, i) => i);
     const v = vids[order[0]];
     $('school').innerHTML = head + `
