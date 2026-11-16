@@ -77,6 +77,24 @@
     <svg viewBox="0 0 100 110">${FLAME} fill="#07090a" stroke="#07090a" stroke-width="15" stroke-linejoin="round"></path>${FLAME} fill="none" stroke="var(--neon-red-tube)" stroke-width="2.6" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px var(--neon-red-tube)) drop-shadow(0 0 8px var(--neon-red))"></path></svg>
     <h2>POKER R<span>O</span>OM</h2></div></div>`;
   $('pksign').innerHTML = SIGN;   // once: the sign is the page's title and must outlive any re-render
+  // The tutorial starts itself two seconds in (RAY, 16 Nov). It has to be muted: every
+  // browser blocks a video that makes noise without a click, and a blocked play() would
+  // leave a stopped video looking broken. Controls are there to turn the sound on.
+  // It gives up quietly if the member has already pressed play, scrolled it out of sight,
+  // or if the browser refuses anyway.
+  function startTutorial(v) {
+    if (!v) return;
+    let armed = true;
+    const cancel = () => { armed = false; };
+    v.addEventListener('play', cancel, { once: true });
+    setTimeout(() => {
+      if (!armed || v.ended || !v.paused || document.hidden) return;
+      v.muted = true;
+      const p = v.play();
+      if (p && p.catch) p.catch(() => { /* blocked: the first frame and the controls remain */ });
+    }, 2000);
+  }
+
   let stepsSig = '';
   function renderSteps(force) {
     const c = S.cur, live = !!c, host = isHost();
@@ -88,9 +106,12 @@
     $('steps').classList.toggle('live', live);
     // A video and nothing else: no heading, no caption (RAY, 16 Nov).
     // Rendered once and left alone - re-writing it mid-game would restart the playback.
-    if (!$('steps').querySelector('video')) $('steps').innerHTML =
-      '<video class="pk-tut" controls preload="metadata" playsinline src="assets/poker.tutorial.mp4">' +
-      '<a href="assets/poker.tutorial.mp4">Download the tutorial</a></video>';
+    if (!$('steps').querySelector('video')) {
+      $('steps').innerHTML =
+        '<video class="pk-tut" controls playsinline preload="auto" muted src="assets/poker.tutorial.mp4">' +
+        '<a href="assets/poker.tutorial.mp4">Download the tutorial</a></video>';
+      startTutorial($('steps').querySelector('video'));
+    }
   }
   $('tablecol').addEventListener('click', async ev => {
     const t = ev.target.closest('a,button'); if (!t) return;
