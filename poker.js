@@ -86,13 +86,9 @@
     // Tonight's table. What is left is the slot for a tutorial video, which always shows.
     $('steps').style.display = '';
     $('steps').classList.toggle('live', live);
+    // A video box and nothing else: no heading, no caption (RAY, 16 Nov).
     $('steps').innerHTML =
-      '<span class="pk-kicker pk-tealtext" style="align-self:flex-start;white-space:nowrap">How to run a game</span>' +
-      `<div class="pk-tut" role="img" aria-label="Tutorial video, not added yet">
-        <span class="play" aria-hidden="true"></span>
-        <span class="t">Tutorial video</span>
-        <span class="s">A walk through starting a table, taking a seat and filing the docket. Not added yet.</span>
-      </div>`;
+      '<div class="pk-tut" role="img" aria-label="Tutorial video"><span class="play" aria-hidden="true"></span></div>';
   }
   $('tablecol').addEventListener('click', async ev => {
     const t = ev.target.closest('a,button'); if (!t) return;
