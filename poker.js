@@ -89,7 +89,7 @@
     $('steps').innerHTML =
       '<span class="pk-kicker pk-tealtext" style="align-self:flex-start;white-space:nowrap">How to run a game</span>' +
       `<div class="pk-tut" role="img" aria-label="Tutorial video, not added yet">
-        <i class="ph-fill ph-play-circle" aria-hidden="true"></i>
+        <span class="play" aria-hidden="true"></span>
         <span class="t">Tutorial video</span>
         <span class="s">A walk through starting a table, taking a seat and filing the docket. Not added yet.</span>
       </div>`;

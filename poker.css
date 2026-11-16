@@ -60,7 +60,12 @@
 /* The card above the table is the tutorial slot now: no numbered step, no CLOSE
    (RAY, 16 Nov). The placeholder is line work only until a video is added. */
 .pk-tut{display:grid;place-items:center;gap:6px;text-align:center;padding:22px 16px;border:2px dashed rgba(158,234,230,.45);border-radius:12px;color:var(--fy-text-label)}
-.pk-tut i{font-size:46px;line-height:1;color:var(--neon-teal);text-shadow:0 0 10px var(--neon-teal)}
+/* The play mark is drawn here, not taken from the icon set: ph-play-circle is not in it
+   and a missing name renders as a solid black square (RAY spotted it again, 16 Nov). */
+.play{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:2px solid var(--neon-teal);box-shadow:0 0 8px var(--neon-teal),inset 0 0 6px color-mix(in srgb,var(--neon-teal) 45%,transparent)}
+.play::after{content:"";width:0;height:0;margin-left:4px;border-style:solid;border-width:9px 0 9px 15px;border-color:transparent transparent transparent var(--neon-teal);filter:drop-shadow(0 0 5px var(--neon-teal))}
+.pk-queue .play{width:30px;height:30px}
+.pk-queue .play::after{border-width:6px 0 6px 10px;margin-left:3px}
 .pk-tut .t{font-size:var(--fs-sm);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#c8f4f2}
 .pk-tut .s{font-size:var(--fs-xs);line-height:1.45;max-width:46ch}
 /* Tonight's table carries its own CLOSE, so its kicker becomes a row. */

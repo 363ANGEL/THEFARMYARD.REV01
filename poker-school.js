@@ -23,7 +23,7 @@
       <div class="pk-player"><iframe src="https://www.youtube-nocookie.com/embed/${esc(v.youtube_id)}${S.play ? '?autoplay=1' : ''}" title="${esc(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
       <div class="pk-now"><span class="t">Now playing: ${esc(v.title)}</span>${v.channel ? `<span class="ch">${esc(v.channel)}</span>` : ''}</div>
       <div class="pk-queue">${order.slice(1).map(i => { const q = vids[i]; return `<button type="button" class="pk-vid" data-vid="${i}">
-        <span class="th" style="background-image:url('https://i.ytimg.com/vi/${esc(q.youtube_id)}/mqdefault.jpg')"><i class="ph-fill ph-play-circle"></i></span>
+        <span class="th" style="background-image:url('https://i.ytimg.com/vi/${esc(q.youtube_id)}/mqdefault.jpg')"><span class="play" aria-hidden="true"></span></span>
         ${q.tag ? `<span class="tag">${esc(q.tag)}</span>` : ''}<span class="t">${esc(q.title)}</span>${q.channel ? `<span class="ch">${esc(q.channel)}</span>` : ''}</button>`; }).join('')}</div>`;
     S.order = order;
   }
