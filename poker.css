@@ -113,7 +113,10 @@
 .pk-seat.held{color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
 .pk-seat.held .dash circle.base{stroke-dasharray:3 5}
 .pk-seat.held .sit{letter-spacing:.06em;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.pk-seat .face{position:relative;width:min(57px,100%);aspect-ratio:1;display:block;box-sizing:border-box;border-radius:50%;border:2px solid var(--neon-pink-tube);background:#0a1a1a center/84% no-repeat;box-shadow:var(--glow-pink)}
+/* The seat face is the site's own .fy-face (RAY, 16 Nov): the character fills its circle
+   and breaks past the pink ring, instead of sitting at 84% on a dark disc with a gap
+   around it. Width is overridden here so it still shrinks with the felt. */
+.pk-seat .fy-face{width:min(57px,100%);height:auto;aspect-ratio:1}
 .pk-seat .who{font-size:10px;font-weight:600;color:#c8f4f2;text-shadow:0 0 5px rgba(95,211,207,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .pk-seat.me .who{color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
 

@@ -184,7 +184,7 @@
     const dash = n => `<span class="dash"><svg aria-hidden="true" viewBox="0 0 57 57"><circle class="base" cx="28.5" cy="28.5" r="27"></circle><circle class="chase" cx="28.5" cy="28.5" r="27"></circle></svg>${n + 1}</span>`;
     el.innerHTML = SEAT_XY.map(([x, y], n) => {
       const pos = `left:${x}%;top:${y}%`, p = taken[n];
-      if (p) return `<div class="pk-seat taken ${p.member_id === me.id ? 'me' : ''}" style="${pos}"><span class="col"><span class="face" role="img" aria-label="${esc(p.nickname)}" style="background-image:url('${esc(FY.face(p, 57))}')"></span><span class="who">${esc(p.table_name)}</span></span></div>`;
+      if (p) return `<div class="pk-seat taken ${p.member_id === me.id ? 'me' : ''}" style="${pos}"><span class="col">${FY.faceRing(p, 57, p.nickname)}<span class="who">${esc(p.table_name)}</span></span></div>`;
       return `<div class="pk-seat" style="${pos}"><span class="col">${dash(n)}</span></div>`;
     }).join('');
     renderPop();
