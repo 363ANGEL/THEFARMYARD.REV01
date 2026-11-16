@@ -65,11 +65,9 @@
   main.innerHTML = `<div class="pk">
     <div class="pk-signwrap" id="pksign"></div>
     <section class="pk-steps" id="steps"></section>
+    <div class="pk-row2"><div class="pk-board pk-thin" id="board"><p class="pk-empty">Loading the board…</p></div></div>
     <div class="pk-row solo" id="tablerow" hidden><div id="tablecol" hidden></div><div class="pk-docketcol" id="docketcol" hidden></div></div>
-    <div class="pk-row2">
-      <div class="pk-board pk-thin" id="board"><p class="pk-empty">Loading the board…</p></div>
-      <div class="pk-debts pk-thin" id="debts"></div>
-    </div>
+    <div class="pk-row2"><div class="pk-debts pk-thin" id="debts"></div></div>
   </div>`;
 
   // ---- checklist --------------------------------------------------------------
@@ -270,8 +268,13 @@
         <div class="win"><button type="button" class="${win ? 'on' : ''}" data-w="${s.member_id}" aria-label="Winner" ${dis}><i class="ph-fill ph-crown" style="font-size:15px"></i></button></div></div>`;
     }).join('');
     const no = String(((S.board && S.board.games) || 0) + (filed() ? 0 : 1)).padStart(3, '0');
+    // A disabled button with no reason beside it reads as broken (RAY, 16 Nov). Say what is missing.
     const foot = filed() ? 'Filed. Change it from <em>Just filed</em> in Poker debts within 15 minutes.'
-      : !mine() ? `Only ${nick(c.started_by)} files the docket.` : !seats.length ? 'Nobody is seated yet.' : '';
+      : !mine() ? `Only ${nick(c.started_by)} files the docket.`
+      : !seats.length ? 'Nobody is seated yet.'
+      : picked.length === 0 ? 'Give each player their buy-ins with <strong>+</strong>, then crown the winner.'
+      : picked.length === 1 ? 'A game needs at least two players with buy-ins.'
+      : !S.winner ? 'Crown the winner to file.' : '';
     $('docketcol').innerHTML = `<div class="pk-docket"><div class="in">
       <div class="hd"><span class="t">Table Docket</span><span class="no">No. ${no}</span></div>
       <div><div class="pk-dgrid pk-dhead"><span>Who played</span><span>Buy-ins</span><span>Won</span></div>${rows || '<p class="pk-empty">Seats fill in here as members sit down.</p>'}</div>

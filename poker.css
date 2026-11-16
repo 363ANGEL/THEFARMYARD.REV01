@@ -176,6 +176,9 @@
 
 /* league board + debts */
 .pk-row2{display:flex;flex-wrap:wrap;gap:14px;align-items:stretch}
+/* The board sits on its own row above Tonight's table, and the debts on their own below
+   it (RAY, 16 Nov), so each takes the full width of the panel rather than sharing. */
+.pk-row2 > .pk-board,.pk-row2 > .pk-debts{flex:1 1 100%;min-width:0}
 .pk-board{flex:3 1 360px;display:flex;flex-direction:column;gap:12px;padding:16px 14px 14px}
 .pk-board .ttl{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
 .pk-board .meta{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;row-gap:6px;margin-top:8px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:#c8f4f2;text-shadow:0 0 5px var(--neon-teal)}
