@@ -51,12 +51,15 @@
 .pk-mini:hover{color:var(--neon-green-text);box-shadow:0 0 6px var(--neon-green),0 0 18px var(--neon-green),0 0 32px rgba(10,158,67,.6),inset 0 0 8px rgba(10,158,67,.6)}
 
 /* checklist + sign. Border breathes teal while idle, red while a game is live. */
-.pk-steps{position:relative;margin-top:44px;display:flex;flex-direction:column;gap:10px;padding:16px;border:2px solid rgba(158,234,230,.72);border-radius:14px;animation:checkTeal 5s ease-in-out infinite}
+.pk-steps{position:relative;display:flex;flex-direction:column;gap:10px;padding:16px;border:2px solid rgba(158,234,230,.72);border-radius:14px;animation:checkTeal 5s ease-in-out infinite}
 .pk-steps.live{animation:checkRed 4s ease-in-out infinite}
 /* The sign hangs off the panel, not off the checklist card (RAY, 16 Nov), so it stays put
    when the checklist is hidden mid-game. The wrapper has no height: the sign is lifted out
    of the flow entirely and .pk-steps keeps its own top margin to sit clear underneath. */
 .pk-signwrap{position:relative;height:0;z-index:5}
+/* The sign hangs into whatever comes first, so the clearance belongs to that element
+   rather than to the checklist card, which is no longer first (RAY, 16 Nov). */
+.pk-signwrap + *{margin-top:44px}
 /* The card above the table is the tutorial slot now: no numbered step, no CLOSE
    (RAY, 16 Nov). The placeholder is line work only until a video is added. */
 .pk-tut{display:grid;place-items:center;gap:6px;text-align:center;padding:22px 16px;border:2px dashed rgba(158,234,230,.45);border-radius:12px;color:var(--fy-text-label)}
