@@ -114,29 +114,16 @@ i.ph,i.ph-fill,i.ph-bold,i.ph-light{text-shadow:0 0 6px currentColor}
 .main .head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .main .head .grow{flex:1}
 .placeholder{display:grid;place-items:center;border:1px dashed var(--neon-teal);border-radius:12px;font-family:var(--font-heading);letter-spacing:.12em;color:var(--fy-text-label)}
-/* Wide screens: the sidebar stays on screen while the page scrolls (RAY, 2026-10-25). Sticky needs
-   overflow:clip, not hidden, on .barn; the divider moves to .main so it still runs the full height. */
+/* Wide screens: the divider between nav and page. The sticky sidebar that used to live here
+   moved to farmyard.css on 2026-11-16 - these rules named .barn and .side, which no page has
+   built since the frame became .fy-frame / .fy-side, so they had quietly stopped applying. */
 @media (min-width:861px){
-  .barn{overflow:clip}
-  .side{position:sticky;top:16px;align-self:start;height:calc(100vh - 32px);overflow-y:auto;box-sizing:border-box;border-right:0;box-shadow:none}
   .main{border-left:1px solid var(--neon-teal);box-shadow:inset 4px 0 10px -4px var(--neon-teal)}
 }
-/* Phones and narrow windows: the sidebar becomes a strip above the page */
-@media (max-width:860px){
-  .barn-wrap{padding:8px}
-  .barn{grid-template-columns:minmax(0,1fr);min-height:calc(100vh - 16px)}
-  .side{border-right:0;border-bottom:1px solid var(--neon-teal);box-shadow:0 4px 10px -4px var(--neon-teal);flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px;padding:8px}
-  .side .brand img{width:48px;height:48px}
-  .side .brand span{font-size:16px}
-  .side .sep,.side .sep2,.side .label,.side .grow{display:none}
-  .nav{width:auto}
-  .vc{width:100%;padding:4px 6px 0}
-  .voice{width:auto;flex:1 1 140px;margin-top:0!important}
-  .side .tip{flex-basis:100%}
-  .me-btn{width:auto;margin-top:0;margin-left:auto}
-  .me-btn i{display:none}   /* the Humidor strip design has no gear on the profile button; the nav icons stay */
-  .main{padding:14px 12px}
-}
+/* Phones and narrow windows: the sidebar rolls out over the page - see farmyard.css.
+   The strip design that stood here was written for .side inside .barn and had not applied
+   to anything for some time; the few rules that did still bite (.nav, .vc, .voice, .me-btn)
+   were strip shapes leaking into a nav that is no longer a strip. Removed 2026-11-16. */
 /* Touch screens (a tablet is pointer:coarse at any width) and the strip: nav rows at least 44px tall.
    A mouse on a wide screen keeps the designs' 30px pitch. The rows stay in flow, so they never overlap. */
 @media (max-width:860px),(pointer:coarse){.nav{min-height:44px}}

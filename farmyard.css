@@ -415,3 +415,28 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
   .ystand .trendcoin{gap:1px}
 }
 
+/* ---------------------------------------------------------------------------------------
+   The barn frame: sidebar beside the page, and below 860px a sidebar that rolls out over it.
+   These were inline styles on the elements until 2026-11-16, so no media query could touch
+   them: the frame kept a hard 860px min-width and a phone simply scrolled off the side.
+   The 860px break is the same one barn.css uses, so everything changes shape together.
+--------------------------------------------------------------------------------------- */
+.fy-shell{width:100%;min-height:100vh;box-sizing:border-box;padding:16px;overflow-x:auto}
+.fy-frame{position:relative;min-height:calc(100vh - 32px);display:grid;grid-template-columns:232px minmax(0,1fr);align-items:start;min-width:860px}
+.fy-frame>.fy-side{position:sticky;top:16px;height:calc(100vh - 32px);box-sizing:border-box;overflow-y:auto}
+.fy-frame>.main{padding:18px 22px;display:flex;flex-direction:column;gap:14px;min-width:0;min-height:calc(100vh - 34px);box-sizing:border-box}
+.fy-burger{display:none;align-items:center;gap:8px;position:absolute;left:10px;top:10px;z-index:32;min-height:40px;padding:0 12px;border-radius:8px;border:1px solid var(--neon-teal);background:var(--fy-bg);color:var(--neon-teal);font:inherit;font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+.fy-burger .bars{display:inline-flex;flex-direction:column;gap:3px}
+.fy-burger .bars i{display:block;width:16px;height:2px;background:currentColor;border-radius:1px}
+.fy-scrim{display:none;position:absolute;inset:0;z-index:29;border:0;padding:0;background:rgba(5,6,12,.62);opacity:0;pointer-events:none;transition:opacity .22s ease}
+@media (max-width:860px){
+  .fy-shell{padding:8px}
+  .fy-frame{grid-template-columns:minmax(0,1fr);min-width:0}
+  .fy-frame>.fy-side{position:absolute;left:0;top:0;bottom:0;height:auto;z-index:30;width:min(282px,82%);border-right:1px solid var(--neon-teal);box-shadow:6px 0 24px -6px rgba(0,0,0,.7);transform:translateX(-101%);transition:transform .22s ease}
+  .fy-shell.nav-open .fy-side{transform:none}
+  .fy-burger{display:inline-flex}
+  .fy-scrim{display:block}
+  .fy-shell.nav-open .fy-scrim{opacity:1;pointer-events:auto}
+  .fy-frame>.main{padding:58px 12px 14px}
+}
+@media (prefers-reduced-motion:reduce){.fy-frame>.fy-side,.fy-scrim{transition:none}}

@@ -117,6 +117,24 @@
     },
 
     /* Viewport classes the design's phone/tablet overrides key off. */
+    /* Narrow screens: the sidebar rolls out over the page and a scrim closes it. Nothing
+       below 861px could reach the nav at all before this. */
+    drawer() {
+      const shell = document.getElementById('shell'), burger = document.getElementById('burger');
+      if (!shell || !burger) return;
+      const close = () => { shell.classList.remove('nav-open'); burger.setAttribute('aria-expanded', 'false'); };
+      burger.addEventListener('click', () => {
+        const on = shell.classList.toggle('nav-open');
+        burger.setAttribute('aria-expanded', on ? 'true' : 'false');
+        if (on) { const first = shell.querySelector('.fy-side a'); if (first) first.focus(); }
+      });
+      const scrim = document.getElementById('scrim');
+      if (scrim) scrim.addEventListener('click', close);
+      const side = document.getElementById('side');
+      if (side) side.addEventListener('click', ev => { if (ev.target.closest('a')) close(); });
+      document.addEventListener('keydown', ev => { if (ev.key === 'Escape') close(); });
+    },
+
     responsive() {
       const apply = () => {
         const w = window.innerWidth;
@@ -160,13 +178,20 @@
         }
       }
       Barn.responsive();
+      // The frame's layout lives in farmyard.css, not inline here: an inline style cannot be
+      // overridden by a media query, which is why the narrow-screen rules never fired and the
+      // page kept its 860px min-width on a phone (RAY, 2026-11-16).
       root.innerHTML = `
-        <div style="width:100%; min-height:100vh; box-sizing:border-box; padding:16px; overflow-x:auto;">
-          <div class="fy-frame" style="min-height:calc(100vh - 32px); display:grid; grid-template-columns:232px minmax(0,1fr); align-items:start; min-width:860px;">
-            <nav class="fy-side fy-sidebar" id="side" aria-label="The Barn" style="position:sticky; top:16px; height:calc(100vh - 32px); box-sizing:border-box; overflow-y:auto;"></nav>
-            <div class="main" id="main" style="padding:18px 22px; display:flex; flex-direction:column; gap:14px; min-width:0; min-height:calc(100vh - 34px); box-sizing:border-box;"></div>
+        <div class="fy-shell" id="shell">
+          <div class="fy-frame">
+            <button type="button" class="fy-burger" id="burger" aria-expanded="false" aria-controls="side">
+              <span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Menu</button>
+            <nav class="fy-side fy-sidebar" id="side" aria-label="The Barn"></nav>
+            <button type="button" class="fy-scrim" id="scrim" aria-label="Close the menu" tabindex="-1"></button>
+            <div class="main" id="main"></div>
           </div>
         </div>`;
+      Barn.drawer();
       Barn.sidebar(document.getElementById('side'), page, meView, rooms, { leader });
       if (realLeader) Barn.viewBar(document.getElementById('main'), preview, previewName);
       return { me: meView, realMe: me, leader, preview, session, main: document.getElementById('main'), root };
