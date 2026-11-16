@@ -57,6 +57,15 @@
    when the checklist is hidden mid-game. The wrapper has no height: the sign is lifted out
    of the flow entirely and .pk-steps keeps its own top margin to sit clear underneath. */
 .pk-signwrap{position:relative;height:0;z-index:5}
+/* The card above the table is the tutorial slot now: no numbered step, no CLOSE
+   (RAY, 16 Nov). The placeholder is line work only until a video is added. */
+.pk-tut{display:grid;place-items:center;gap:6px;text-align:center;padding:22px 16px;border:2px dashed rgba(158,234,230,.45);border-radius:12px;color:var(--fy-text-label)}
+.pk-tut i{font-size:46px;line-height:1;color:var(--neon-teal);text-shadow:0 0 10px var(--neon-teal)}
+.pk-tut .t{font-size:var(--fs-sm);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#c8f4f2}
+.pk-tut .s{font-size:var(--fs-xs);line-height:1.45;max-width:46ch}
+/* Tonight's table carries its own CLOSE, so its kicker becomes a row. */
+.pk-tablehd{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pk-tablehd .btns{margin-left:auto;display:flex;align-items:center;gap:10px}
 .pk-sign{position:absolute;right:22px;top:-6px;z-index:3;transform-origin:78% 0;transform:rotate(5deg);animation:signSwayP 6s ease-in-out infinite alternate;zoom:.99}
 .pk-sign .wire{position:absolute;top:0;width:1px;height:22px;background:#9eeae6;opacity:.75;transform-origin:50% 100%}
 .pk-sign .plate{position:relative;display:flex;align-items:center;gap:6px;padding:22px 36px 20px 96px;border-radius:8px;background:#07090a;border:2px solid var(--neon-green-tube);border-left-color:transparent;margin-top:20px;box-shadow:0 0 4px var(--neon-green-tube),0 0 12px var(--neon-green),0 0 28px rgba(10,158,67,.5),inset 0 0 8px rgba(10,158,67,.45),0 10px 22px rgba(0,0,0,.55)}

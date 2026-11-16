@@ -82,24 +82,24 @@
     const c = S.cur, live = !!c, host = isHost();
     const sig = JSON.stringify([c && c.id, c && c.status, host, filed(), S.closeTip, force && Math.random()]);
     if (sig === stepsSig) return; stepsSig = sig;
-    $('steps').style.display = live && !host ? 'none' : '';   // checklist and CLOSE: initiator only once a table has started
+    // RAY, 16 Nov: the numbered step and its text are gone, and CLOSE has moved to the top of
+    // Tonight's table. What is left is the slot for a tutorial video, which always shows.
+    $('steps').style.display = '';
     $('steps').classList.toggle('live', live);
-    const note = S.closeTip ? tip('Complete the <strong>Table Docket</strong> card and press <strong>FILE DOCKET</strong> before closing the game.') : '';
     $('steps').innerHTML =
-      '<span class="pk-kicker pk-tealtext" style="align-self:flex-start;white-space:nowrap">Game checklist</span>' +
-      `<div class="pk-step"><span class="n">1</span>
-        <span class="txt"><span class="t">Start a New Table &amp; Take a Seat!</span></span>
-        <span class="btns">
-          ${live && host ? '<button type="button" id="close" class="pk-btn red">CLOSE</button>' : ''}
-          ${note}
-        </span></div>`;
+      '<span class="pk-kicker pk-tealtext" style="align-self:flex-start;white-space:nowrap">How to run a game</span>' +
+      `<div class="pk-tut" role="img" aria-label="Tutorial video, not added yet">
+        <i class="ph-fill ph-play-circle" aria-hidden="true"></i>
+        <span class="t">Tutorial video</span>
+        <span class="s">A walk through starting a table, taking a seat and filing the docket. Not added yet.</span>
+      </div>`;
   }
-  $('steps').addEventListener('click', async ev => {
+  $('tablecol').addEventListener('click', async ev => {
     const t = ev.target.closest('a,button'); if (!t) return;
     if (t.id === 'close') {
       if (!S.cur) return;
       if (S.cur.seats.length && !filed() && !isLeader) {   // rule 6: anyone sat → the docket must be filed first
-        S.closeTip = true; renderSteps(); clearTimeout(S.closeTipT); S.closeTipT = setTimeout(() => { S.closeTip = false; renderSteps(); }, 5000); return;
+        S.closeTip = true; renderTableBtns(); clearTimeout(S.closeTipT); S.closeTipT = setTimeout(() => { S.closeTip = false; renderTableBtns(); }, 5000); return;
       }
       if (!arm(t, 'Tap again to close')) return;
       t.disabled = true;
@@ -115,12 +115,19 @@
     col.hidden = false;
     if (S.shell !== key) {
       S.shell = key;
-      col.innerHTML = `<div class="pk-table"><span class="pk-kicker pk-tealtext">Tonight's table</span>
+      col.innerHTML = `<div class="pk-table"><div class="pk-tablehd"><span class="pk-kicker pk-tealtext">Tonight's table</span><span class="btns" id="tablebtns"></span></div>
         <div class="pk-felt" id="felt"><div class="rail"></div><div class="cloth"></div><div class="inner"></div>
           <div class="buyin">1000 Buy-In</div><div id="mid"></div><div id="seatsl"></div><div id="seatpop"></div></div></div>`;
       midSig = '';
     }
-    renderMid(); renderSeats(); renderRow();
+    renderTableBtns(); renderMid(); renderSeats(); renderRow();
+  }
+  // CLOSE sits with the table it closes, not on the card above it (RAY, 16 Nov).
+  function renderTableBtns() {
+    const el = $('tablebtns'); if (!el) return;
+    const live = !!S.cur, host = isHost();
+    const note = S.closeTip ? tip('Complete the <strong>Table Docket</strong> card and press <strong>FILE DOCKET</strong> before closing the game.') : '';
+    el.innerHTML = (live && host ? '<button type="button" id="close" class="pk-btn red">CLOSE</button>' : '') + note;
   }
   let midSig = '';
   function renderMid() {
