@@ -65,9 +65,9 @@
   main.innerHTML = `<div class="pk">
     <div class="pk-signwrap" id="pksign"></div>
     <div class="pk-row2"><div class="pk-board pk-thin" id="board"><p class="pk-empty">Loading the board…</p></div></div>
+    <div class="pk-row2"><div class="pk-debts pk-thin" id="debts"></div></div>
     <section class="pk-steps" id="steps"></section>
     <div class="pk-row solo" id="tablerow" hidden><div id="tablecol" hidden></div><div class="pk-docketcol" id="docketcol" hidden></div></div>
-    <div class="pk-row2"><div class="pk-debts pk-thin" id="debts"></div></div>
   </div>`;
 
   // ---- checklist --------------------------------------------------------------
