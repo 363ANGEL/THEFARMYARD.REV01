@@ -5,15 +5,15 @@
 <title>The Farmyard · Dashboard</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="app.css?v=20261116r">
-<link rel="stylesheet" href="farmyard.css?v=20261116r">
-<link rel="stylesheet" href="barn.css?v=20261116r">
-<script src="fy-clucks.js?v=20261116r"></script>
+<link rel="stylesheet" href="app.css?v=20261117a">
+<link rel="stylesheet" href="farmyard.css?v=20261117a">
+<link rel="stylesheet" href="barn.css?v=20261117a">
+<script src="fy-clucks.js?v=20261117a"></script>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261116r"></script><script src="app.js?v=20261116r"></script><script src="barn.js?v=20261116r"></script><script src="presence.js?v=20261116r"></script><script src="sidebar-subs.js?v=20261116r"></script>
+<script src="config.js?v=20261117a"></script><script src="app.js?v=20261117a"></script><script src="barn.js?v=20261117a"></script><script src="presence.js?v=20261117a"></script><script src="sidebar-subs.js?v=20261117a"></script>
 <script>
 /* 1.0 BARN DASHBOARD (REV C03): wall widget (Hank's pins + latest), IOUs owed to you,
    room modules. The online strip lives in the sidebar (presence.js). */
@@ -70,7 +70,7 @@
     .filter(r => B.leader || Barn.vis(r.id, r) === 'members')   // launch scope: members see Poker only
     .map(r => `<a href="${esc(r.path)}" class="card" style="padding:0; overflow:hidden; display:flex; flex-direction:column; text-align:left; color:inherit; text-decoration:none; min-width:0;">
       <div class="fy-leagueimg"${HEADER[r.id] ? ` style="background-image:url('${esc(HEADER[r.id])}')"` : ''}>${HEADER[r.id] ? '' : `<span class="lbl">${esc(r.label)} header image</span>`}
-        <span style="position:absolute; left:12px; bottom:-18px; width:36px; height:36px; border-radius:50%; display:grid; place-items:center; background:var(--fy-surface); border:2px solid var(--neon-teal); box-shadow:var(--glow-teal);"><i class="${esc(r.icon)}" style="font-size:var(--ic-lg); color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal);"></i></span>
+        <span style="position:absolute; left:12px; bottom:-18px; width:2.25rem; height:2.25rem; border-radius:50%; display:grid; place-items:center; background:var(--fy-surface); border:2px solid var(--neon-teal); box-shadow:var(--glow-teal);"><i class="${esc(r.icon)}" style="font-size:var(--ic-lg); color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal);"></i></span>
       </div>
       <div style="display:flex; flex-direction:column; gap:2px; padding:24px 12px 12px;">
         <span style="font-family:var(--font-heading); font-weight:500; font-size:var(--fs-h3); color:var(--neon-pink-text); text-shadow:0 0 6px rgba(224,21,127,.6);">${esc(r.label)}</span>
@@ -80,7 +80,6 @@
   main.innerHTML = `
     <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
       <div class="fy-pagehead"><h2 class="t-title-b">Dashboard</h2><span class="t-tagline">What's on in the yard tonight.</span></div>
-      <div style="flex:1;"></div><span class="tag tag-neutral" style="white-space:nowrap;">${members.length} inside</span>
     </div>
     <div id="wall-box" ${B.leader || Barn.vis('wall', rooms.find(r => r.id === 'wall')) === 'members' ? '' : 'hidden'} style="flex:none; display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;"></div>
     <div id="stand-box" class="ystandbox" style="flex:none; display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;">
@@ -99,7 +98,10 @@
     const mem = (st && st.members) || [], leagues = (st && st.leagues) || [];
     if (!mem.length) { host.innerHTML = '<div class="empty">Nothing here yet.</div>'; return; }
     const ord = n => { const v = n % 100, s = ['th', 'st', 'nd', 'rd']; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
-    const lIcon = l => (rooms.find(r => r.id === l.key) || {}).icon || ({ chess: 'ph ph-strategy' }[l.key]) || 'ph ph-ranking';
+    // The Super 6 column is the football league: it shows the Football room's icon and title (RAY, 17 Nov).
+    const lRoom = l => rooms.find(r => r.id === ({ super6: 'football' }[l.key] || l.key)) || {};
+    const lIcon = l => lRoom(l).icon || ({ chess: 'ph ph-strategy', super6: 'ph ph-soccer-ball' }[l.key]) || 'ph ph-ranking';
+    const lName = l => l.key === 'super6' ? (lRoom(l).label || 'Football') : l.label;
     const arrow = { up: '▲', down: '▼', flat: '–' };
     const lcell = (m, l) => {
       const p = m.pos && m.pos[l.key];
@@ -118,7 +120,7 @@
         ${leagues.map(l => `<td>${lcell(m, l)}</td>`).join('')}</tr>`;
     };
     host.innerHTML = `<table>
-      <thead><tr><th>Member</th><th><span class="hwrap"><img class="coinhdr" src="assets/iou.coin.cyan.sm.png" alt="">IOU</span></th><th><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Recent change</span></th>${leagues.map(l => `<th><span class="hwrap"><i class="${esc(lIcon(l))}" aria-hidden="true"></i>${esc(l.label)}</span></th>`).join('')}</tr></thead>
+      <thead><tr><th>Member</th><th><span class="hwrap"><img class="coinhdr" src="assets/iou.coin.cyan.sm.png" alt="">IOU</span></th><th><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Recent change</span></th>${leagues.map(l => `<th><span class="hwrap"><i class="${esc(lIcon(l))}" aria-hidden="true"></i>${esc(lName(l))}</span></th>`).join('')}</tr></thead>
       <tbody>${mem.map(row).join('')}</tbody></table>`;
   })();
 

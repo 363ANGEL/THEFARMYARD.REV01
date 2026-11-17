@@ -62,21 +62,21 @@
 
 
   /* Type scale (27 Oct 2026) — 7 sizes only. cqw = % of the page container width, so every size scales down on Tablet and Phone. */
-  --fs-hero:  clamp(34px, 6cqw, 56px);   /* landing headline */
-  --fs-h1:    clamp(26px, 4cqw, 44px);   /* big page title */
-  --fs-h2:    clamp(20px, 2.6cqw, 28px); /* page title (sub pages) */
-  --fs-h3:    clamp(16px, 1.8cqw, 20px); /* section title, module title, big number, row title */
-  --fs-body:  clamp(13px, 1.2cqw, 15px); /* body, lead text, buttons */
-  --fs-sm:    clamp(12px, 1cqw, 13px);   /* table text, helper text */
-  --fs-xs:    clamp(10px, .9cqw, 12px);  /* kickers, labels, hints, column heads. Never smaller than 10px */
-  --fs-fine:  clamp(8px, 1.1cqw, 12px);  /* in-row fixture meta only: kick-off time, VS, pool tags. The one size allowed under 10px (floor 8px, Phone). */
+  --fs-hero:  clamp(2.125rem, 6cqw, 3.5rem);   /* landing headline */
+  --fs-h1:    clamp(1.625rem, 4cqw, 2.75rem);   /* big page title */
+  --fs-h2:    clamp(1.25rem, 2.6cqw, 1.75rem); /* page title (sub pages) */
+  --fs-h3:    clamp(1rem, 1.8cqw, 1.25rem); /* section title, module title, big number, row title */
+  --fs-body:  clamp(0.8125rem, 1.2cqw, 0.9375rem); /* body, lead text, buttons */
+  --fs-sm:    clamp(0.75rem, 1cqw, 0.8125rem);   /* table text, helper text */
+  --fs-xs:    clamp(0.625rem, .9cqw, 0.75rem);  /* kickers, labels, hints, column heads. Never smaller than 10px */
+  --fs-fine:  clamp(0.5rem, 1.1cqw, 0.75rem);  /* in-row fixture meta only: kick-off time, VS, pool tags. The one size allowed under 10px (floor 8px, Phone). */
   /* Sub-page icon style (secondary): smaller glyph, same colour as its label, same 28px box so text aligns with main nav */
   --sub-ic-size:  61%;                   /* glyph mask size inside the icon box (main icons = 100%); 15% up on 53%, RAY 13 Nov */
   /* Icon scale */
-  --ic-lg:   clamp(22px, 2.6cqw, 28px);  /* nav, table board icons, service logos */
-  --ic-hd:   64px;  /* page-header sign icons only */
-  --ic-md:   clamp(16px, 1.8cqw, 20px);  /* row icons, kickers */
-  --ic-sm:   clamp(13px, 1.4cqw, 16px);  /* inline icons in text/buttons */
+  --ic-lg:   clamp(1.375rem, 2.6cqw, 1.75rem);  /* nav, table board icons, service logos */
+  --ic-hd:   4rem;  /* page-header sign icons only */
+  --ic-md:   clamp(1rem, 1.8cqw, 1.25rem);  /* row icons, kickers */
+  --ic-sm:   clamp(0.8125rem, 1.4cqw, 1rem);  /* inline icons in text/buttons */
 
   /* Character sizes */
   --char-hero: 531px;
@@ -131,9 +131,13 @@ a:hover { color: var(--neon-pink-hover); }
 /* Module subtitle: sits under/beside .t-module; lighter and dimmer than the title. */
 .t-module-sub { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #8fd9d5; text-shadow: 0 0 4px rgba(95,211,207,.35); }
 .t-title-b { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: var(--fs-h2); letter-spacing: -.01em; line-height: 1.1; color: var(--neon-pink-text); text-shadow: var(--text-glow-pink); margin: 0; }
-.t-tagline { font-size: var(--fs-sm); color: var(--neon-teal); }
+.t-tagline { font-size: var(--fs-sm); color: color-mix(in srgb, var(--neon-teal) 60%, transparent); }   /* translucent (RAY, 17 Nov) */
+@media (max-width: 640px) { .t-tagline { font-size: .6875rem; } }   /* a notch smaller on phones (RAY, 17 Nov) */
 /* One page head everywhere: title (.t-title-b) + tagline (.t-tagline) */
-.fy-pagehead { display: flex; flex-direction: column; gap: 4px; padding: 4px 2px 8px; }
+.fy-pagehead { display: flex; flex-direction: column; gap: 2px; padding: 4px 2px 8px; }
+/* Tighter under every title: less line height, and the gap the card puts beneath it pulled in by 4px (RAY, 17 Nov). */
+.t-module, .t-title-a { line-height: 1.1; margin-bottom: -4px; }
+.pk-title { line-height: 1.1; }
 
 /* Neon boxes — teal frames, pink content */
 .neon-box { border: 1px solid var(--neon-teal); border-radius: 10px; box-shadow: var(--glow-teal); }
@@ -149,7 +153,7 @@ a:hover { color: var(--neon-pink-hover); }
 .btn-primary { border-color: var(--neon-pink-tube) !important; color: var(--neon-pink-text); box-shadow: var(--glow-pink); text-shadow: var(--text-glow-pink); white-space: nowrap; }
 .btn-primary:hover { background: rgba(224,21,127,.12); }
 /* Neon pill buttons */
-.neon-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 110px; height: 38px; padding: 0 16px; box-sizing: border-box; border-radius: 19px; background: transparent; font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-decoration: none; cursor: pointer; transition: box-shadow .2s; border: 2px solid var(--neon-pink-tube); color: var(--neon-pink-text); text-shadow: var(--text-glow-pink); box-shadow: var(--glow-pink); }
+.neon-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 6.875rem; height: 2.375rem; padding: 0 1rem; box-sizing: border-box; border-radius: 19px; background: transparent; font: inherit; font-size: 0.75rem; font-weight: 700; letter-spacing: .1em; text-decoration: none; cursor: pointer; transition: box-shadow .2s; border: 2px solid var(--neon-pink-tube); color: var(--neon-pink-text); text-shadow: var(--text-glow-pink); box-shadow: var(--glow-pink); }
 .neon-btn:hover { box-shadow: 0 0 6px var(--neon-pink), 0 0 18px var(--neon-pink), 0 0 40px rgba(224,21,127,.65), inset 0 0 10px rgba(224,21,127,.8); }
 .neon-btn-green { border-color: var(--neon-green-tube); color: var(--neon-green-text); text-shadow: var(--text-glow-green); box-shadow: var(--glow-green); }
 .neon-btn-green:hover { animation: buzz 1.4s steps(1, end) infinite; box-shadow: 0 0 6px var(--neon-green), 0 0 18px var(--neon-green), 0 0 40px rgba(10,158,67,.65), inset 0 0 10px rgba(10,158,67,.8); }
@@ -208,13 +212,13 @@ CHARACTER ART SPEC (baked into each PNG)
 .nav-sub { display: flex; gap: 10px; align-items: center; width: 100%; padding: 1px 6px 1px 22px; box-sizing: border-box; border: 1px solid transparent; border-radius: 6px; font-size: var(--fs-sm); color: var(--fy-text-label); text-decoration: none; background: transparent; transition: box-shadow .25s ease, background .25s ease, border-color .25s ease; }
 .nav-sub:hover { border-color: var(--neon-teal); box-shadow: inset 0 0 0 .5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55); background: color-mix(in srgb, var(--neon-teal) 8%, transparent); }
 .nav-sub[aria-current="page"] { border-color: var(--neon-pink); box-shadow: 0 0 6px var(--neon-pink), 0 0 14px color-mix(in srgb, var(--neon-pink) 55%, transparent); }
-.nav-sub > i { flex: none; display: grid; place-items: center; width: 28px; height: 22px; font-size: 15px; line-height: 1; color: inherit; text-shadow: 0 0 6px currentColor; -webkit-mask-size: var(--sub-ic-size); mask-size: var(--sub-ic-size); -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+.nav-sub > i { flex: none; display: grid; place-items: center; width: 1.75rem; height: 1.375rem; font-size: 0.9375rem; line-height: 1; color: inherit; text-shadow: 0 0 6px currentColor; -webkit-mask-size: var(--sub-ic-size); mask-size: var(--sub-ic-size); -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
 .sub-js .nav-sub { overflow: hidden; max-height: 48px; transition: max-height .35s ease, opacity .25s ease, padding .35s ease, margin .35s ease, border-width .35s ease, box-shadow .25s ease, background .25s ease; }
 .fy-side .nav-sub, .fy-side .fy-nav-item, nav[aria-label="The Barn"] .nav-sub, nav[aria-label="The Barn"] .fy-nav-item { flex-shrink: 0; }
 .sub-js .nav-sub:not(.sub-open) { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; margin: 0; border-width: 0; pointer-events: none; box-shadow: none; }
 
 /* Main nav row icon box. Add to the design system next to .fy-nav-item. */
-.fy-nav-item > i { flex: none; display: grid; place-items: center; width: 28px; height: 28px; font-size: 28px; line-height: 1; color: inherit; }
+.fy-nav-item > i { flex: none; display: grid; place-items: center; width: 1.75rem; height: 1.75rem; font-size: 1.75rem; line-height: 1; color: inherit; }
 .fy-nav-item[aria-current="page"] > i { color: var(--neon-pink-text); }
 
 /* Glyphs outside the design system's inlined Phosphor set. Add to the design system. */
@@ -260,7 +264,7 @@ CHARACTER ART SPEC (baked into each PNG)
 .fy-sign-wire.is-r { right: 18%; transform: translateY(-4px) rotate(10deg); }
 .fy-sign-plate { position: relative; display: flex; align-items: center; gap: 6px; padding: 22px 48px 20px 104px; margin-top: 20px; border-radius: 8px; background: #07090a; border: 2px solid var(--sg-tube); border-left-color: transparent; box-shadow: 0 0 4px var(--sg-tube), 0 0 12px var(--sg-glow), 0 0 28px rgba(var(--sg-rgb), .5), inset 0 0 8px rgba(var(--sg-rgb), .45), 0 10px 22px rgba(0,0,0,.55); }
 .fy-sign-edge { position: absolute; left: -2px; top: -2px; bottom: -2px; width: 16px; box-sizing: border-box; border: 2px solid var(--sg-tube); border-right: 0; border-radius: 8px 0 0 8px; box-shadow: -2px 0 4px var(--sg-tube), -8px 0 12px rgba(var(--sg-rgb), .55), inset 2px 0 8px rgba(var(--sg-rgb), .45); animation: fyEdge 13s linear infinite; }
-.fy-sign-icon { position: absolute; z-index: 2; left: -18px; top: -34px; width: 124px; height: 124px; display: grid; place-items: center; transform: rotate(-14deg); pointer-events: none; color: var(--neon-red-tube); font-size: 84px; filter: drop-shadow(0 0 3px var(--neon-red-tube)) drop-shadow(0 0 8px var(--neon-red)); }
+.fy-sign-icon { position: absolute; z-index: 2; left: -18px; top: -34px; width: 7.75rem; height: 7.75rem; display: grid; place-items: center; transform: rotate(-14deg); pointer-events: none; color: var(--neon-red-tube); font-size: 5.25rem; filter: drop-shadow(0 0 3px var(--neon-red-tube)) drop-shadow(0 0 8px var(--neon-red)); }
 .fy-sign-icon.is-white { filter: drop-shadow(0 0 3px #fff2f4) drop-shadow(0 0 8px rgba(255,242,244,.55)); }
 .fy-sign-icon svg { width: 100%; overflow: visible; }
 .fy-sign-title { margin: 0; font-family: var(--font-heading); font-weight: 600; font-size: var(--fs-h3); letter-spacing: .26em; color: var(--sg-text); text-shadow: 0 0 4px var(--sg-tube), 0 0 12px var(--sg-glow), 0 0 28px rgba(var(--sg-rgb), .6); }
@@ -271,18 +275,18 @@ CHARACTER ART SPEC (baked into each PNG)
 
 /* Phone: tighter ledger rows on Profile */
 .fy-phone #balances div[style*="grid-template-columns:28px"] { grid-template-columns: 22px minmax(0,1.2fr) minmax(0,1fr) minmax(72px,auto) !important; gap: 6px !important; font-size: var(--fs-xs) !important; padding-top: 4px !important; padding-bottom: 4px !important; }
-.fy-phone #balances div[style*="grid-template-columns:28px"] > span:first-child { width: 22px !important; height: 22px !important; font-size: 9px !important; }
-.fy-phone #balances div[style*="grid-template-columns:28px"] button, .fy-phone #balances div[style*="grid-template-columns:28px"] a { min-height: 26px !important; padding: 0 6px !important; font-size: 10px !important; letter-spacing: .06em !important; }
+.fy-phone #balances div[style*="grid-template-columns:28px"] > span:first-child { width: 22px !important; height: 22px !important; font-size: 0.5625rem !important; }
+.fy-phone #balances div[style*="grid-template-columns:28px"] button, .fy-phone #balances div[style*="grid-template-columns:28px"] a { min-height: 1.625rem !important; padding: 0 0.375rem !important; font-size: 0.625rem !important; letter-spacing: .06em !important; }
 .fy-phone #balances div[style*="grid-template-columns:28px"] > span { font-size: var(--fs-xs) !important; }
 .fy-phone #balances div[style*="grid-template-columns:28px"] > :nth-child(3) { justify-self: center !important; text-align: center !important; }
 .fy-phone #balances div[style*="grid-template-columns:28px"] > :nth-child(4) { justify-self: end !important; }
 .fy-abbr { display: none; }
 .fy-compact .fy-full, .fy-phone .fy-full { display: none; }
 .fy-compact .fy-abbr, .fy-phone .fy-abbr { display: inline; }
-.fy-phone #balances div[style*="grid-template-columns:28px"] > :nth-child(3), .fy-phone #balances div[style*="grid-template-columns:28px"] > :nth-child(3) span { font-size: 11px !important; justify-content: center !important; text-align: center !important; }
+.fy-phone #balances div[style*="grid-template-columns:28px"] > :nth-child(3), .fy-phone #balances div[style*="grid-template-columns:28px"] > :nth-child(3) span { font-size: 0.6875rem !important; justify-content: center !important; text-align: center !important; }
 /* Phone: profile header text sits beside the icon */
-.fy-phone button[aria-label="Edit your profile"] { flex-wrap: nowrap !important; align-items: center !important; gap: 12px !important; }
-.fy-phone button[aria-label="Edit your profile"] > div[role="img"] { width: 160px !important; height: 160px !important; max-width: 48%; flex: none !important; }
+.fy-phone button[aria-label="Edit your profile"] { flex-wrap: nowrap !important; align-items: center !important; gap: 0.75rem !important; }
+.fy-phone button[aria-label="Edit your profile"] > div[role="img"] { width: 10rem !important; height: 10rem !important; max-width: 48%; flex: none !important; }
 .fy-phone button[aria-label="Edit your profile"] > div:nth-child(2) { flex: 1 1 0 !important; min-width: 0 !important; }
 .fy-phone button[aria-label="Edit your profile"] > div:nth-child(2) { align-items: flex-end !important; text-align: right !important; }
 .fy-phone button[aria-label="Edit your profile"] > div:nth-child(2) > * { justify-content: flex-end !important; }
@@ -291,12 +295,12 @@ CHARACTER ART SPEC (baked into each PNG)
 .fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > * { min-width: 0 !important; font-size: var(--fs-xs) !important; overflow: hidden; text-overflow: ellipsis; }
 .fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > :nth-child(6) { grid-column: 1 / -1 !important; justify-self: end !important; overflow: visible; }
 .fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > :first-child { width: 24px !important; height: 24px !important; }
-.fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > :nth-child(2) { font-size: 10px !important; line-height: 1.2; white-space: normal !important; }
+.fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > :nth-child(2) { font-size: 0.625rem !important; line-height: 1.2; white-space: normal !important; }
 .fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > :nth-child(4), .fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > :nth-child(5) { overflow: visible !important; white-space: nowrap; }
 
 /* Member face: one pink tube ring + glow on the art's own baked ring; the character breaks out of it (design system .char-ring).
    Ring geometry = Hank/icon template (l 3.6%, t 10.4%, w 91%). .plain = stock svg with no baked ring: circle-cropped. */
-.fy-face { position: relative; display: block; flex: none; width: var(--s, 48px); height: var(--s, 48px); }
+.fy-face { position: relative; display: block; flex: none; width: var(--s, 3rem); height: var(--s, 3rem); }
 /* The character sits in front of its ring, and the ring and its glow behind (RAY, 13 Nov). */
 .fy-face > img { position: relative; z-index: 2; display: block; width: 100%; height: 100%; object-fit: contain; }
 .fy-face::before, .fy-face::after { content: ""; position: absolute; left: 3.6%; top: 10.4%; width: 91%; aspect-ratio: 1; border-radius: 50%; box-sizing: border-box; pointer-events: none; }
@@ -316,7 +320,7 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 .fy-leagueimg{position:relative;aspect-ratio:16/7;display:grid;place-items:center;border-bottom:1px solid var(--rule-teal);background:linear-gradient(135deg,color-mix(in srgb,var(--neon-pink) 14%,transparent),color-mix(in srgb,var(--neon-teal) 12%,transparent)) center/cover no-repeat;background-size:0 0}
 /* The picture is painted on its own layer so its saturation can come down without
    draining the league badge sitting on the corner of it (RAY, 15 Nov). */
-.fy-leagueimg::before{content:"";position:absolute;inset:0;background-image:inherit;background-size:cover;background-position:center;background-repeat:no-repeat;filter:saturate(.85);pointer-events:none;z-index:0}
+.fy-leagueimg::before{content:"";position:absolute;inset:0;background-image:inherit;background-size:cover;background-position:center;background-repeat:no-repeat;filter:saturate(.9);opacity:.8;pointer-events:none;z-index:0}
 .fy-leagueimg>*{position:relative;z-index:1}
 .fy-leagueimg>span.lbl{font-size:var(--fs-xs);font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--fy-text-label)}
 
@@ -342,8 +346,7 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 /* Text hearts for the wall's like buttons: the icon set has no heart, and a missing glyph draws as a solid square. */
 .hrt { font-size: 1.15em; line-height: 1; }
 /* League cards on the dashboard: a third of the panel each (RAY, 14 Nov). */
-.leaguegrid { flex: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-@media (max-width: 900px) { .leaguegrid { grid-template-columns: repeat(2, 1fr); } }
+.leaguegrid { flex: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }   /* two equal columns on desktop and tablet (RAY, 17 Nov); one on phones */
 @media (max-width: 620px) { .leaguegrid { grid-template-columns: 1fr; } }
 /* Yard standings: one row per member — IOU standing, which way it is moving,
    and their place in every league. Replaces the old IOUs list (RAY, 13 Nov). */
@@ -359,7 +362,7 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 /* Heading marks sit on the heading's own centre line. Every one is a flex row, so an
    image and a glyph line up the same way instead of each being nudged (RAY, 14 Nov). */
 .ystand th{vertical-align:middle}
-.ystand th>span.hwrap{display:inline-flex;align-items:center;gap:5px;line-height:1}
+.ystand th>span.hwrap{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;line-height:1;text-align:center}   /* icon centred above its label (RAY, 17 Nov) */
 .ystand th i{font-size:calc(var(--ic-sm) * 1.5);color:var(--neon-teal);flex:none}
 .ystand th .coinhdr{width:2.55em;height:2.55em;object-fit:contain;flex:none}
 .ystand td{padding:6px 10px;border-top:1px solid var(--rule-teal);vertical-align:middle;white-space:nowrap}
@@ -369,7 +372,7 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 .ystand .amt-green{color:var(--neon-green-text);text-shadow:0 0 6px var(--neon-green-tube)}
 .ystand .amt-red{color:var(--neon-red-text);text-shadow:0 0 6px var(--neon-red-text)}
 .ystand .amt-flat{color:var(--fy-text-label);text-shadow:none;font-weight:600}
-.ystand .trend{font-size:15px;line-height:1}
+.ystand .trend{font-size:0.9375rem;line-height:1}
 /* The change column carries the IOU token with its direction, a quarter larger (RAY, 13 Nov). */
 /* Every value in the table reads at one size — name, figure, arrows and positions —
    so no column shouts over another (RAY, 14 Nov). */
@@ -425,18 +428,43 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 .fy-frame{position:relative;min-height:calc(100vh - 32px);display:grid;grid-template-columns:232px minmax(0,1fr);align-items:start;min-width:860px}
 .fy-frame>.fy-side{position:sticky;top:16px;height:calc(100vh - 32px);box-sizing:border-box;overflow-y:auto}
 .fy-frame>.main{padding:18px 22px;display:flex;flex-direction:column;gap:14px;min-width:0;min-height:calc(100vh - 34px);box-sizing:border-box}
-.fy-burger{display:none;align-items:center;gap:8px;position:absolute;left:10px;top:10px;z-index:32;min-height:40px;padding:0 12px;border-radius:8px;border:1px solid var(--neon-teal);background:var(--fy-bg);color:var(--neon-teal);font:inherit;font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
-.fy-burger .bars{display:inline-flex;flex-direction:column;gap:3px}
-.fy-burger .bars i{display:block;width:16px;height:2px;background:currentColor;border-radius:1px}
-.fy-scrim{display:none;position:absolute;inset:0;z-index:29;border:0;padding:0;background:rgba(5,6,12,.62);opacity:0;pointer-events:none;transition:opacity .22s ease}
+/* Stacking, bottom to top: page, scrim (28), this tab (29), drawer (30). The tab sits behind the
+   drawer so the drawer's fill and border trim it where the two meet.
+   A tall triangle on the screen edge, flat side against it, point into the page. Inside, three
+   outlines follow its edge all the way round, fat, thinner, thinnest, each stepped in. The clip-path is the hit area as well as the shape. */
+.fy-burger{display:none;position:fixed;left:0;top:33.333%;transform:translateY(-50%);z-index:29;width:42px;height:110px;padding:0;border:0;background:transparent;color:var(--neon-teal);cursor:pointer;clip-path:polygon(0 0,81.52% 41.81%,81.52% 58.19%,0 100%);transition:left .22s ease,transform .22s ease}
+.fy-burger svg{display:block;width:100%;height:100%;overflow:visible}
+.fy-burger .tri{fill:none;stroke:none}
+.fy-burger .edge{fill:none;stroke:var(--neon-teal);stroke-width:1.5;stroke-linejoin:round}
+.fy-burger .ring{fill:none;stroke:currentColor;stroke-linejoin:round;filter:drop-shadow(0 0 2px var(--neon-teal)) drop-shadow(0 0 5px color-mix(in srgb,var(--neon-teal) 70%,transparent))}   /* neon glow (RAY, 17 Nov) */
+.fy-burger:focus-visible .edge{stroke:var(--neon-pink);stroke-width:2.5}
+/* With a mouse the tab stays tucked into the screen edge, a sliver showing, and rolls out when
+   the pointer reaches it, when it takes keyboard focus, or while the drawer is open. A phone has
+   no mouse, so a touch screen keeps it fully out: .has-mouse is only added once barn.js has seen
+   a real mouse move. (hover:hover) is no good for this: a phone preview in the browser pane
+   reports no hover even with a mouse on it, and then the tuck could never be seen or tested. */
+/* Slow on purpose: rolling out takes 2s, and once the pointer leaves it holds 1s before rolling
+   back over another 2s. A transition uses the timing of the state it is going TO, so the 1s hold
+   is the delay on the tucked state and the roll-out has none. */
+.fy-shell.has-mouse .fy-burger{transform:translateY(-50%) translateX(-23.8px);transition:left .22s ease,transform 2s ease 1s}
+.fy-shell.has-mouse .fy-burger:hover,.fy-shell.has-mouse .fy-burger:focus-visible,.fy-shell.has-mouse.nav-open .fy-burger{transform:translateY(-50%);transition:left .22s ease,transform 2s ease 0s}
+/* Mouse-over peek (RAY, 17 Nov): while the tab rolls out, the drawer slides out too, just far enough
+   to show 10% of its right-hand edge, holds, then rolls back. barn.js runs the fixed timeline with
+   the .peek class (2s out, 1s hold) and then .peek-back (2s back); a click opens the drawer as normal. */
+.fy-shell.has-mouse.peek .fy-burger{left:calc(min(282px,82%) * .1);transform:translateY(-50%);transition:left 2s ease 0s,transform 2s ease 0s}
+.fy-shell.has-mouse.peek-back .fy-burger{transition:left 2s ease 0s,transform 2s ease 0s}
+.fy-scrim{display:none;position:absolute;inset:0;z-index:28;border:0;padding:0;background:rgba(5,6,12,.62);opacity:0;pointer-events:none;transition:opacity .22s ease}
 @media (max-width:860px){
   .fy-shell{padding:8px}
   .fy-frame{grid-template-columns:minmax(0,1fr);min-width:0}
-  .fy-frame>.fy-side{position:absolute;left:0;top:0;bottom:0;height:auto;z-index:30;width:min(282px,82%);border-right:1px solid var(--neon-teal);box-shadow:6px 0 24px -6px rgba(0,0,0,.7);transform:translateX(-101%);transition:transform .22s ease}
+  .fy-frame>.fy-side{position:absolute;left:0;top:0;bottom:0;height:auto;z-index:30;background:var(--fy-bg);width:min(282px,82%);border-right:1px solid var(--neon-teal);box-shadow:6px 0 24px -6px rgba(0,0,0,.7);transform:translateX(-101%);transition:transform .22s ease}
   .fy-shell.nav-open .fy-side{transform:none}
+  .fy-shell.has-mouse.peek .fy-side{transform:translateX(-90%);transition:transform 2s ease 0s}
+  .fy-shell.has-mouse.peek-back .fy-side{transition:transform 2s ease 0s}
   .fy-burger{display:inline-flex}
   .fy-scrim{display:block}
   .fy-shell.nav-open .fy-scrim{opacity:1;pointer-events:auto}
-  .fy-frame>.main{padding:58px 12px 14px}
+  .fy-shell.nav-open .fy-burger{left:min(282px,82%)}
+  .fy-frame>.main{padding:14px 12px}
 }
-@media (prefers-reduced-motion:reduce){.fy-frame>.fy-side,.fy-scrim{transition:none}}
+@media (prefers-reduced-motion:reduce){.fy-frame>.fy-side,.fy-scrim,.fy-burger{transition:none}}

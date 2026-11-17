@@ -5,15 +5,15 @@
 <title>The Farmyard · Room</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="app.css?v=20261116r">
-<link rel="stylesheet" href="farmyard.css?v=20261116r">
-<link rel="stylesheet" href="barn.css?v=20261116r">
-<script src="fy-clucks.js?v=20261116r"></script>
+<link rel="stylesheet" href="app.css?v=20261117a">
+<link rel="stylesheet" href="farmyard.css?v=20261117a">
+<link rel="stylesheet" href="barn.css?v=20261117a">
+<script src="fy-clucks.js?v=20261117a"></script>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261116r"></script><script src="app.js?v=20261116r"></script><script src="barn.js?v=20261116r"></script><script src="presence.js?v=20261116r"></script><script src="sidebar-subs.js?v=20261116r"></script>
+<script src="config.js?v=20261117a"></script><script src="app.js?v=20261117a"></script><script src="barn.js?v=20261117a"></script><script src="presence.js?v=20261117a"></script><script src="sidebar-subs.js?v=20261117a"></script>
 <script>
 /* 2.0 Room Template: shell + online strip + Coming Soon holding block. ?room=<id> picks the copy
    (ids match the fy.room registry); anything else falls back to "New room". Copy from the 2.0 design. */
@@ -31,11 +31,7 @@ window.FY_ROOMS = {
 };
 /* The swinging "UNDER CONSTRUCTION" sign, static copy of the 0.0 design's sign (fy-sign classes in farmyard.css). */
 window.FY_SIGN = (() => {
-  const paths = ['M58 22 L86 50 L77 59 L49 31 Z', 'M64 45 L20 89', 'M27.5 18.5 A14 14 0 1 1 16.5 28.5 L27 31 L29.5 21 Z', 'M38 41 L80 86'];
-  const svg = `<svg viewBox="0 0 100 110" aria-hidden="true"><g transform="translate(16 18) scale(.68)">`
-    + paths.map(d => `<path d="${d}" fill="#07090a" stroke="#07090a" stroke-width="15" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`).join('')
-    + paths.map(d => `<path d="${d}" fill="none" stroke="var(--neon-amber-tube, #ffb020)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join('')
-    + `</g></svg>`;
+  const svg = '<svg viewBox="0 0 100 110" aria-hidden="true"><g fill="currentColor"><rect x="14" y="14" width="72" height="30" rx="6"/><rect x="43" y="42" width="14" height="60" rx="5"/></g></svg>';
   return `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--neon-teal);--sg-glow:var(--neon-teal);--sg-rgb:95,211,207;--sg-text:#c8f4f2">
     <span class="fy-sign-wire is-l"></span><span class="fy-sign-wire is-r"></span>
     <div class="fy-sign-plate"><span class="fy-sign-edge" aria-hidden="true"></span>
@@ -47,7 +43,7 @@ window.FY_SIGN = (() => {
    itself (Barn.hangSign), not this head, so the frame never clips it. */
 window.FY_HOLDING = (R, esc) => `
   <div class="fy0-head" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:8px 16px;">
-    <h1 style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:clamp(28px,5vw,48px); letter-spacing:-.01em;">${esc(R.title)}</h1>
+    <h1 style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:clamp(1.75rem,5vw,3rem); letter-spacing:-.01em;">${esc(R.title)}</h1>
   </div>
   <div style="display:flex; flex-direction:column; gap:10px; padding:16px 18px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); min-width:0; max-width:720px;">
     <span class="kicker">Current concept</span>
@@ -62,9 +58,9 @@ window.FY_SUGG_BOX = `
   <div style="display:flex; flex-direction:column; align-items:center; gap:16px; max-width:720px; box-sizing:border-box; padding:22px; border:1px solid var(--neon-teal); border-radius:12px; box-shadow:var(--glow-teal); background:var(--fy-bg);">
     <span style="align-self:flex-start; color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal), 0 0 14px rgba(95,211,207,.45);" class="lot-label">Site Suggestion Box - What should we add next?</span>
     <form id="sugg" style="display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;">
-      <span style="align-self:flex-start; margin-bottom:-8px; font-size:13px; line-height:1.5; font-style:italic; color:var(--color-neutral-400);">Submit your comments below.</span>
+      <span style="align-self:flex-start; margin-bottom:-8px; font-size:0.8125rem; line-height:1.5; font-style:italic; color:var(--color-neutral-400);">Submit your comments below.</span>
       <textarea class="input" id="sugg-text" rows="4" required maxlength="280" placeholder="Games, rooms, rules, anything..." aria-label="Your suggestion" style="width:100%; box-sizing:border-box; resize:vertical; border-color:var(--neon-teal); font-family:inherit;"></textarea>
-      <button type="submit" class="btn btn-primary" style="min-height:36px; align-self:flex-start; font-size:13px;">Send it</button>
+      <button type="submit" class="btn btn-primary" style="min-height:2.25rem; align-self:flex-start; font-size:0.8125rem;">Send it</button>
     </form>
   </div>`;
 window.FY_WIRE_SUGG = (main, roomKey) => {
@@ -76,7 +72,7 @@ window.FY_WIRE_SUGG = (main, roomKey) => {
     if (!text) return;
     try { await FY.rpc('suggest', { p_room: roomKey, p_body: text }); }
     catch (e) { FY.toast(e.message); return; }
-    form.outerHTML = '<span style="display:flex; align-items:center; gap:8px; font-size:13px; min-height:60px; color:var(--neon-teal);"><i class="ph ph-check-circle" style="font-size:20px; text-shadow:0 0 6px var(--neon-teal);"></i>Thanks. Hank has it.</span>';
+    form.outerHTML = '<span style="display:flex; align-items:center; gap:8px; font-size:0.8125rem; min-height:60px; color:var(--neon-teal);"><i class="ph ph-check-circle" style="font-size:1.25rem; text-shadow:0 0 6px var(--neon-teal);"></i>Thanks. Hank has it.</span>';
   });
 };
 

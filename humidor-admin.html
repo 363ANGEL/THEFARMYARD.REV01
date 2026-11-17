@@ -7,10 +7,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-<link rel="stylesheet" href="app.css?v=20261116r">
-<link rel="stylesheet" href="farmyard.css?v=20261116r">
-<link rel="stylesheet" href="barn.css?v=20261116r">
-<link rel="stylesheet" href="humidor.css?v=20261116r">
+<link rel="stylesheet" href="app.css?v=20261117a">
+<link rel="stylesheet" href="farmyard.css?v=20261117a">
+<link rel="stylesheet" href="barn.css?v=20261117a">
+<link rel="stylesheet" href="humidor.css?v=20261117a">
 <style>
 /* 4.0 The Humidor · Admin (leader), ported from P15.003 HUMIDOR ADMIN.dc.html.
    No page-local tokens: the design's --text-*, --hint-text and --color-neutral-100 come from humidor.css,
@@ -55,7 +55,7 @@
 .ha-scroll{overflow-x:auto;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px;background:var(--fy-bg)}
 .ha-scroll:focus-visible{outline:2px solid var(--neon-teal);outline-offset:2px}
 .ha-vt{width:100%;border-collapse:collapse;min-width:640px}
-.ha-vt thead th{text-align:left;padding:8px 12px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal);border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);white-space:nowrap}
+.ha-vt thead th{text-align:left;padding:8px 12px;font-size:0.625rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal);border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);white-space:nowrap}
 .ha-vt .stick{position:sticky;left:0;z-index:1;background:var(--fy-bg)}
 .ha-vt tbody th{text-align:left;padding:9px 12px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 15%,transparent);font-weight:400;white-space:nowrap}
 .ha-vt tbody th .nm{display:block;font-size:var(--text-ui);font-weight:500;color:var(--color-neutral-100)}
@@ -68,7 +68,7 @@
 .ha-tbx{overflow-x:auto}
 .ha-tt{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;min-width:520px}
 .ha-tt thead th{text-align:center;padding:6px 8px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent)}
-.ha-tt thead th:first-child{text-align:left;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--fy-text-label)}
+.ha-tt thead th:first-child{text-align:left;font-size:0.625rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--fy-text-label)}
 .ha-tt .cn{display:block;font-size:var(--text-small);font-weight:500;color:var(--fy-text-body)}
 .ha-tt .cn.top{color:var(--neon-pink-text)}
 .ha-tt .sm{display:block;font-size:var(--text-kicker);font-weight:400;color:var(--fy-text-label)}
@@ -77,7 +77,7 @@
 .ha-tt tbody td{text-align:center;padding:7px 8px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 15%,transparent)}
 .ha-tt .mk{display:block;font-size:var(--text-ui);font-weight:600;color:var(--neon-red-text)}
 .ha-tt .mk.ok{color:var(--neon-green-text)}
-.ha-tt tfoot th{text-align:left;padding:8px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal)}
+.ha-tt tfoot th{text-align:left;padding:8px;font-size:0.625rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal)}
 .ha-tt tfoot td{text-align:center;padding:8px}
 .ha-tt .fit{display:block;font-size:var(--text-card-title);font-weight:500;color:var(--color-neutral-100)}
 .ha-tt .fit.top{color:var(--neon-pink-text)}
@@ -86,8 +86,8 @@
 .ha-ws{display:flex;flex-direction:column;gap:12px}
 .ha-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px}
 .ha-stat{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px;background:var(--fy-bg)}
-.ha-stat .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)}
-.ha-stat .v{font-size:24px;font-weight:500;line-height:1.1;color:var(--color-neutral-100);font-variant-numeric:tabular-nums}
+.ha-stat .k{font-size:0.625rem;letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)}
+.ha-stat .v{font-size:1.5rem;font-weight:500;line-height:1.1;color:var(--color-neutral-100);font-variant-numeric:tabular-nums}
 .ha-dims{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:10px}
 .ha-dim{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);border-radius:10px;background:var(--fy-bg);min-width:0}
 .ha-dim .dh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -103,11 +103,11 @@
 /* 2 · Likely selection */
 .ha-lk{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border:2px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg)}
 .ha-lk .nmrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
-.ha-lk .nm{font-size:24px;font-weight:500;line-height:1.15;color:var(--neon-pink-text)}
+.ha-lk .nm{font-size:1.5rem;font-weight:500;line-height:1.15;color:var(--neon-pink-text)}
 .ha-lk .spec{font-size:var(--text-ui);color:var(--fy-text-body);font-variant-numeric:tabular-nums}
 .ha-lk .pf{font-size:var(--text-ui);line-height:1.5;color:var(--fy-text-body)}
 .ha-lk .alt{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;padding-top:8px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 20%,transparent)}
-.ha-lk .alt .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)}
+.ha-lk .alt .k{font-size:0.625rem;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)}
 .ha-lk .alt .x{font-size:var(--text-small);color:var(--hint-text);font-variant-numeric:tabular-nums}
 
 /* 3 · Prompt sheet */
@@ -154,12 +154,12 @@
   .ha-pbar div{transition:width .4s ease-out}
 }
 </style>
-<script src="fy-clucks.js?v=20261116r"></script>
+<script src="fy-clucks.js?v=20261117a"></script>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261116r"></script><script src="app.js?v=20261116r"></script><script src="barn.js?v=20261116r"></script><script src="humidor.js?v=20261116r"></script>
+<script src="config.js?v=20261117a"></script><script src="app.js?v=20261117a"></script><script src="barn.js?v=20261117a"></script><script src="humidor.js?v=20261117a"></script>
 <script>
 /* 4.0 The Humidor · Admin (leader). Pending-payment notices, the landing page stage (league-wide pin, R6),
    round actions, Who's voted, the Tally board and Likely selection (the design's lk, verbatim), the Prompt sheet

@@ -90,12 +90,12 @@
         const dot = st === 'voice' ? 'var(--neon-green-tube)' : st === 'online' ? 'var(--neon-amber-tube)' : 'var(--color-neutral-600, #55606a)';
         const dotGlow = st === 'away' ? 'none' : `0 0 6px ${dot}`;
         const prof = Presence._me && m.id === Presence._me.id ? 'profile.html' : 'profile.html?user=' + encodeURIComponent(m.nickname);
-        return `<a href="${prof}" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:6px; min-width:0; opacity:${st === 'away' ? .6 : 1};">
-          <span style="position:relative; flex:none; width:47px; height:47px;">
+        return `<a href="${prof}" style="text-decoration:none; color:inherit; display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:6px; min-width:0;">
+          <span style="position:relative; flex:none; width:2.9375rem; height:2.9375rem;">
             ${FY.faceRing(m, 47, m.nickname)}
-            <span style="position:absolute; right:-2px; bottom:-2px; z-index:3; width:11px; height:11px; border-radius:50%; border:2px solid var(--fy-bg); background:${dot}; box-shadow:${dotGlow};"></span>
+            <span style="position:absolute; right:-2px; bottom:-2px; z-index:3; width:0.6875rem; height:0.6875rem; border-radius:50%; border:2px solid var(--fy-bg); background:${dot}; box-shadow:${dotGlow};"></span>
           </span>
-          <span style="display:flex; flex-direction:column; min-width:0; flex:1; gap:1px;">
+          <span style="display:flex; flex-direction:column; min-width:0; flex:1; gap:1px; opacity:${st === 'away' ? .6 : 1};">
             <span style="font-size:var(--fs-sm); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(m.nickname)}</span>
             <span style="display:flex; gap:6px; font-size:var(--fs-xs); font-variant-numeric:tabular-nums; white-space:nowrap;"><span style="color:${col}; text-shadow:${colGlow};">${L[st]}</span></span>
           </span>

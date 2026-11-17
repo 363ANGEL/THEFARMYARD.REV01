@@ -6,10 +6,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-<link rel="stylesheet" href="app.css?v=20261116r">
-<link rel="stylesheet" href="farmyard.css?v=20261116r">
-<link rel="stylesheet" href="barn.css?v=20261116r">
-<link rel="stylesheet" href="humidor.css?v=20261116r">
+<link rel="stylesheet" href="app.css?v=20261117a">
+<link rel="stylesheet" href="farmyard.css?v=20261117a">
+<link rel="stylesheet" href="barn.css?v=20261117a">
+<link rel="stylesheet" href="humidor.css?v=20261117a">
 <style>
 /* 4.0 The Humidor · Archive, ported from P15.003 HUMIDOR ARCHIVE.dc.html. Closed rounds, newest first:
    the last round large, earlier rounds in a grid. No page-local tokens. */
@@ -18,14 +18,14 @@
 
 /* Lede */
 .ha-lede{display:flex;flex-direction:column;gap:8px}
-.ha-lede h1{margin:0;font-size:clamp(26px,4vw,40px);line-height:1.05;font-weight:500;text-wrap:balance}
+.ha-lede h1{margin:0;font-size:clamp(1.625rem,4vw,2.5rem);line-height:1.05;font-weight:500;text-wrap:balance}
 .ha-lede p{margin:0;font-size:var(--text-body-size);line-height:1.5;color:var(--fy-text-body);max-width:62ch;text-wrap:pretty}
 .ha-err{margin:0;font-size:var(--text-small);line-height:1.45;color:var(--neon-red-text)}
 
 /* Photo: the option's img, else a size photo, else a plain tile */
 .ha-photo{position:relative;border-radius:8px;overflow:hidden;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);background:var(--fy-surface)}
 .ha-photo img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain}
-.ha-photo .ph-tile{position:absolute;inset:0;display:grid;place-items:center;font-size:40px;color:color-mix(in srgb,var(--neon-teal) 40%,transparent)}
+.ha-photo .ph-tile{position:absolute;inset:0;display:grid;place-items:center;font-size:2.5rem;color:color-mix(in srgb,var(--neon-teal) 40%,transparent)}
 
 /* Last round */
 .ha-last{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px 24px;padding:18px;border:2px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg);min-width:0}
@@ -54,12 +54,12 @@
 .ha-rd .meta{font-size:var(--text-meta);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
 .ha-rd .run{font-size:var(--text-meta);color:var(--fy-text-label);overflow-wrap:anywhere}
 </style>
-<script src="fy-clucks.js?v=20261116r"></script>
+<script src="fy-clucks.js?v=20261117a"></script>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261116r"></script><script src="app.js?v=20261116r"></script><script src="barn.js?v=20261116r"></script><script src="humidor.js?v=20261116r"></script>
+<script src="config.js?v=20261117a"></script><script src="app.js?v=20261117a"></script><script src="barn.js?v=20261117a"></script><script src="humidor.js?v=20261117a"></script>
 <script>
 /* 4.0 The Humidor · Archive. humidor_archive() → closed rounds newest first: { n, closed_at, options, winner,
    voters, points[] }. The last round is the large module, the rest a grid. Copy from the design's renderVals().

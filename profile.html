@@ -6,10 +6,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-<link rel="stylesheet" href="app.css?v=20261116r">
-<link rel="stylesheet" href="farmyard.css?v=20261116r">
-<link rel="stylesheet" href="barn.css?v=20261116r">
-<script src="fy-clucks.js?v=20261116r"></script>
+<link rel="stylesheet" href="app.css?v=20261117a">
+<link rel="stylesheet" href="farmyard.css?v=20261117a">
+<link rel="stylesheet" href="barn.css?v=20261117a">
+<script src="fy-clucks.js?v=20261117a"></script>
 <style>
 .pcard{display:flex;flex-direction:column;gap:10px;padding:16px 14px;border:1px solid rgba(95,211,207,.55);border-radius:10px;box-shadow:0 0 4px rgba(95,211,207,.4);background:var(--fy-bg);min-width:0}
 .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
@@ -19,9 +19,9 @@
 .ledcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;padding:6px 0 12px}
 .ledbox{display:flex;flex-direction:column;gap:4px;padding:12px;border:1px solid rgba(95,211,207,.55);border-radius:9px;min-width:0}
 .ledrow{display:grid;grid-template-columns:28px minmax(0,1fr) max-content minmax(84px,max-content);gap:10px;align-items:center;padding:6px 0;border-top:1px solid rgba(95,211,207,.22)}
-.ledrow .ini{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--neon-teal);display:grid;place-items:center;font-size:10px;font-weight:800;color:#c8f4f2;background-size:cover;background-position:center}
+.ledrow .ini{width:1.75rem;height:1.75rem;border-radius:50%;border:1.5px solid var(--neon-teal);display:grid;place-items:center;font-size:0.625rem;font-weight:800;color:#c8f4f2;background-size:cover;background-position:center}
 .ledrow .who{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pmbtn{width:26px;height:26px;display:grid;place-items:center;padding:0;background:transparent;border:1.5px solid var(--neon-teal);border-radius:6px;color:#c8f4f2;cursor:pointer;font-family:inherit;font-size:15px;line-height:1}
+.pmbtn{width:1.625rem;height:1.625rem;display:grid;place-items:center;padding:0;background:transparent;border:1.5px solid var(--neon-teal);border-radius:6px;color:#c8f4f2;cursor:pointer;font-family:inherit;font-size:0.9375rem;line-height:1}
 .pmbtn:hover{box-shadow:0 0 8px rgba(95,211,207,.6)}
 .rcv{justify-self:center;min-height:32px;padding:0 10px;background:transparent;border:1.5px solid var(--neon-teal);border-radius:6px;color:#c8f4f2;font-family:inherit;font-size:var(--fs-xs);font-weight:800;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
 .paybtn{min-height:32px;padding:0 14px;display:inline-flex;align-items:center;box-sizing:border-box;background:transparent;border:1.5px solid var(--neon-pink-tube);border-radius:6px;color:var(--neon-pink-text);font-size:var(--fs-xs);font-weight:800;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;white-space:nowrap}
@@ -32,12 +32,14 @@
 .icongrid{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(10px,1.6vw,20px);width:100%}
 /* The art carries its own circular frame, so it sits inside the ring rather than over it. */
 /* Identity badges: the facts the yard cares about, read at a glance (RAY, 13 Nov). Two rows: leagues, then money. */
-.pbadges{display:flex;flex-wrap:wrap;gap:8px;padding-top:6px}
-.pbadge{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:0 11px;border:1px solid var(--rule-teal);border-radius:15px;font-size:var(--fs-xs);font-weight:600;color:var(--fy-text);white-space:nowrap}
+.pbadges{display:flex;flex-wrap:nowrap;gap:8px;padding-top:6px;min-width:0}   /* one row at every width; badges give way before they wrap (RAY, 17 Nov) */
+.pbadge{display:inline-flex;flex:0 1 auto;min-width:0;align-items:center;gap:7px;min-height:34px;padding:0 11px;border:0;border-radius:15px;font-size:var(--fs-xs);font-weight:600;color:var(--fy-text);white-space:nowrap}
 .pbadge i{font-size:calc(var(--ic-sm) * 1.5);color:var(--neon-teal)}
 .pbadge b{font-weight:700;font-variant-numeric:tabular-nums}
-.pbadge-pink{border-color:var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink)}
+.pbadge-pink{border:1px solid var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink)}
 .pbadge-pink i{color:var(--neon-pink-text)}
+@media (max-width:640px){.pbadges{zoom:.8}}
+@media (max-width:420px){.pbadges{gap:4px}.pbadge{gap:4px;padding:0 6px}}   /* badges 20% smaller on phones (RAY, 17 Nov) */
 .iconslot{aspect-ratio:1/1;width:100%;padding:0;border:0;border-radius:50%;box-sizing:border-box;background:transparent center/contain no-repeat}
 button.iconslot{cursor:pointer;transition:filter .15s ease}
 /* Cyan while you are hovering, green the moment you press, green while it is yours. */
@@ -48,14 +50,14 @@ button.iconslot:active,.iconslot.on,.iconslot.on:hover{filter:drop-shadow(0 0 5p
 .iconslot.empty{position:relative;display:grid;place-content:center;justify-items:center;gap:2px;padding:0;border:2px dashed rgba(95,211,207,.45);background:transparent;color:var(--fy-text-label)}
 .iconslot.empty:hover{border-color:var(--neon-teal);color:var(--neon-teal);filter:none}
 button.iconslot.empty:active{filter:none}
-.iconslot.empty i{font-size:clamp(15px,2.1vw,24px);line-height:1;color:var(--neon-teal)}
+.iconslot.empty i{font-size:clamp(0.9375rem,2.1vw,1.5rem);line-height:1;color:var(--neon-teal)}
 .iconslot.empty span{font-size:var(--fs-xs);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 </style>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261116r"></script><script src="app.js?v=20261116r"></script><script src="barn.js?v=20261116r"></script><script src="presence.js?v=20261116r"></script><script src="sidebar-subs.js?v=20261116r"></script>
+<script src="config.js?v=20261117a"></script><script src="app.js?v=20261117a"></script><script src="barn.js?v=20261117a"></script><script src="presence.js?v=20261117a"></script><script src="sidebar-subs.js?v=20261117a"></script>
 <script>
 /* 3.0 Barn Profile (REV C03) — one page, three views.
    Own (default): header + edit, stats, icon palette, ledger (pair-netted, Pay / Received?), pools,
@@ -71,6 +73,9 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
   const { me, main } = B, esc = FY.esc;
   Presence.join(me).catch(() => {});
   const isLeader = me.role === 'leader';
+  // Football shows on the profile only once its section is switched from admin only to members (RAY, 17 Nov).
+  let fbRooms = []; try { fbRooms = await Barn.rooms(); } catch (e) {}
+  const fbPublic = Barn.vis('football', fbRooms.find(r => r.id === 'football')) === 'members';
 
   // ---- Resolve the subject and the view ----
   let subject = me, view = 'own';
@@ -106,7 +111,7 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
     const all = await FY.rpc('my_ious').catch(() => []);
     D.ious = (all || []).filter(i => i.payer_id === subject.id || i.payee_id === subject.id);
     D.links = (await FY.q('member_link').select('provider,handle,enabled').eq('member_id', subject.id)).data || [];
-    // The 15 slots belong to the animal the member holds (icons-per-character.sql).
+    // The 20 slots belong to the animal the member holds (icons-per-character.sql).
     D.logos = subject.character_id
       ? await FY.q('icon_palette').select('slot,url').eq('character_id', subject.character_id).order('slot').then(r => r.data || [], () => [])
       : [];
@@ -174,11 +179,11 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
         <span style="display:flex;gap:6px">${payBtn}<button type="button" class="rcv" data-paid="${p.other}" title="Tell ${esc(nick(p.other))} you have paid">Paid</button></span></div>`;
     }).join('');
     // Per-league strip: all-time tk and live owes/owed by room.
-    const leagues = [['poker', 'Poker', 'ph ph-club'], ['football', 'Football', 'ph ph-soccer-ball']].map(([key, label, icon]) => {
+    const leagues = [['poker', 'Poker', 'ph ph-club'], ['football', 'Football', 'ph ph-soccer-ball']].filter(([key]) => key !== 'football' || fbPublic).map(([key, label, icon]) => {
       const tkAll = D.ious.filter(i => roomOf(i) === key && i.payee_id === subject.id).reduce((s, i) => s + tkOf(i), 0);
       const o = D.ious.filter(i => roomOf(i) === key && LIVE.includes(i.state) && i.payer_id === subject.id).reduce((s, i) => s + tkOf(i), 0);
       const d2 = D.ious.filter(i => roomOf(i) === key && LIVE.includes(i.state) && i.payee_id === subject.id).reduce((s, i) => s + tkOf(i), 0);
-      return `<div class="leaguerow"><i class="${icon}" aria-hidden="true" style="color:var(--neon-teal);font-size:20px"></i><span style="font-weight:600;color:#eef7f7">${label}</span>
+      return `<div class="leaguerow"><i class="${icon}" aria-hidden="true" style="color:var(--neon-teal);font-size:1.25rem"></i><span style="font-weight:600;color:#eef7f7">${label}</span>
         <span style="text-align:center;font-weight:700;color:#ffd84a;font-variant-numeric:tabular-nums">${tkAll.toLocaleString('en-GB')} tk</span>
         <span style="text-align:center;font-weight:700;font-variant-numeric:tabular-nums;color:${o ? 'var(--neon-red-text)' : 'var(--color-neutral-400)'}">${o} tk</span>
         <span style="text-align:center;font-weight:700;font-variant-numeric:tabular-nums;color:${d2 ? '#ffb020' : 'var(--color-neutral-400)'}">${d2} tk</span></div>`;
@@ -210,7 +215,7 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
     return `<span class="t-module" style="padding-bottom:6px">Recent actions</span>
       <div class="acthead" style="padding:0 0 6px;font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fy-text-label)"><span></span><span>Date</span><span>Action</span><span>Result</span></div>
       ${rows.map(r => `<div style="border-top:1px solid rgba(95,211,207,.22)"><div class="actrow" role="button" tabindex="0" data-roll="1" style="padding:8px 0;font-size:var(--fs-sm);cursor:${r.note ? 'pointer' : 'default'};border-radius:6px">
-        <i class="${r.icon}" aria-hidden="true" style="color:var(--neon-teal);font-size:18px"></i>
+        <i class="${r.icon}" aria-hidden="true" style="color:var(--neon-teal);font-size:1.125rem"></i>
         <span>${r.d.getDate()} ${r.d.toLocaleString('en-GB', { month: 'short' })}</span>
         <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.what)}</span>
         <span style="font-weight:700;color:${r.res.startsWith('+') ? 'var(--neon-green-text)' : 'var(--neon-red-text)'}">${r.res}</span></div>
@@ -221,14 +226,14 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
   // ---- Header, icon, pools, links ----
   const face150 = m => FY.face(m, 150);
   const headerHtml = () => `
-    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px">
-      <div role="img" aria-label="Character" style="width:160px;height:160px;background:url('${esc(face150(subject))}') center / contain no-repeat;filter:drop-shadow(0 0 10px rgba(224,21,127,.55));flex:none"></div>
-      <div style="display:flex;flex-direction:column;gap:4px;flex:1 1 200px;min-width:0">
-        <div id="hdr-name" style="font-family:var(--font-heading);font-size:var(--fs-h2);letter-spacing:-.01em;color:#eef7f7;overflow-wrap:anywhere">${esc(subject.nickname)}</div>
+    <div style="display:flex;flex-wrap:wrap;align-items:flex-start;gap:16px">
+      <div role="img" aria-label="Character" style="width:clamp(84px,22vw,120px);height:clamp(84px,22vw,120px);background:url('${esc(face150(subject))}') center / contain no-repeat;filter:drop-shadow(0 0 10px rgba(224,21,127,.55));flex:none"></div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex:1 1 140px;min-width:0">
+        <div id="hdr-name" style="font-family:var(--font-heading);font-size:var(--fs-h2);letter-spacing:-.01em;line-height:1.1;color:#eef7f7;overflow-wrap:anywhere">${esc(subject.nickname)}</div>
         <div id="hdr-tag" style="font-size:var(--fs-sm);font-style:italic;line-height:1.4;overflow-wrap:anywhere;color:${subject.tagline ? 'var(--neon-pink-text)' : 'var(--fy-text-label)'}">${esc(subject.tagline || (notPublic ? 'No tagline yet. Say something.' : ''))}</div>
         <div class="pbadges">
           <span class="pbadge pbadge-pink" title="Poker league position"><i class="ph ph-club" aria-hidden="true"></i>Poker <b>${esc(pokerPos)}</b></span>
-          <span class="pbadge pbadge-pink" title="Football league position"><i class="ph ph-soccer-ball" aria-hidden="true"></i>Football <b>—</b></span>
+          ${fbPublic ? `<span class="pbadge pbadge-pink" title="Football league position"><i class="ph ph-soccer-ball" aria-hidden="true"></i>Football <b>—</b></span>` : ''}
         </div>
         ${notPublic ? `<div class="pbadges">
           <span class="pbadge" title="IOUs lost and paid, all time"><img class="fy-coin-art" src="assets/iou.coin.red.sm.png" alt=""><span class="fy-iou fy-iou-down">${lost}</span></span>
@@ -240,27 +245,33 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
       ${notPublic ? `<div style="display:flex;flex-direction:column;gap:8px;flex:2 1 340px;min-width:0">
         <label style="display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);color:var(--color-neutral-400)">Yard name<input class="input" id="ed-name" value="${esc(subject.nickname)}" maxlength="16" style="min-height:40px;width:100%;box-sizing:border-box"></label>
         <label style="display:flex;flex-direction:column;gap:4px;font-size:var(--fs-xs);color:var(--color-neutral-400)"><span style="display:flex;justify-content:space-between;gap:8px"><span>Tagline</span><span id="tagleft"></span></span><input class="input" id="ed-tag" value="${esc(subject.tagline || '')}" maxlength="60" placeholder="e.g. Here for the beans" style="min-height:40px;width:100%;box-sizing:border-box"></label>
-        <button type="button" id="ed-save" class="btn btn-primary" style="align-self:flex-start;min-height:36px;padding:0 16px;white-space:nowrap">Done</button></div>` : ''}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button type="button" id="ed-save" class="btn btn-primary" style="min-height:2.25rem;padding:0 1rem;white-space:nowrap">Done</button>
+        ${admin && subject.role !== 'leader' && subject.id !== me.id ? `<button type="button" id="ed-del" class="btn" style="min-height:2.25rem;padding:0 1rem;white-space:nowrap;border-color:var(--neon-red-tube);color:var(--neon-red-text)">Delete user</button>` : ''}</div></div>` : ''}
     </div>`;
 
-  // All 15 slots of the animal this member holds, as a 5 × 3 grid. A filled slot shows its picture
+  // All 20 slots of the animal this member holds, as a 5 × 4 grid. A filled slot shows its picture
   // and can be picked; an empty one is a dim numbered teal ring. Never animals, never letters.
   const bySlot = {}; D.logos.forEach(l => bySlot[l.slot] = l);
   const curSlot = subject.icon_slot && bySlot[subject.icon_slot] ? subject.icon_slot
     : (D.logos.find(l => l.url === subject.avatar_url) || {}).slot || null;
-  const ICON_TAGLINE = 'Pick the face the yard sees.';
-  const iconHtml = () => `<div style="display:flex;flex-direction:column;gap:3px"><span class="t-module">${own ? 'Your icon' : 'Icon'}</span><span class="t-tagline">${ICON_TAGLINE}</span></div>
+  const canUpload = isLeader && !!subject.character_id;   // admins add pictures to this animal's set (shared by everyone who holds it)
+  const iconHtml = () => `<div style="display:flex;flex-direction:column;gap:3px"><span class="t-module">${own ? 'Your icon' : 'Icon'}</span></div>
     <div class="icongrid">
-      ${Array.from({ length: 15 }, (_, k) => {
+      ${Array.from({ length: 20 }, (_, k) => {
         const n = k + 1, r = bySlot[n];
-        if (!r) return `<button type="button" class="iconslot empty soon" aria-label="Empty slot — upload coming soon"><i class="ph ph-plus" aria-hidden="true"></i><span>Upload</span></button>`;
+        if (!r) return canUpload
+          ? `<button type="button" class="iconslot empty" data-up="${n}" aria-label="Upload a picture to slot ${n}"><i class="ph ph-plus" aria-hidden="true"></i><span>Upload</span></button>`
+          : `<button type="button" class="iconslot empty soon" aria-label="Empty slot — upload coming soon"><i class="ph ph-plus" aria-hidden="true"></i><span>Upload</span></button>`;
         return `<button type="button" class="iconslot ${n === curSlot ? 'on' : ''}" data-pick="slot:${n}" aria-label="Icon ${n}" aria-pressed="${n === curSlot ? 'true' : 'false'}" style="background-image:url('${esc(r.url)}')"></button>`;
       }).join('')}
     </div>
-    <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${subject.character_id
-      ? (D.logos.length ? 'These belong to your animal. An admin uploads them in Admin → Icon palette; pick one here.'
-                        : 'No pictures in this animal&rsquo;s set yet. An admin uploads them in Admin → Icon palette.')
-      : 'No animal yet, so no icons. An admin gives you one in Admin → Members.'}</span>`;
+    ${canUpload ? `<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <label class="btn btn-primary" id="ic-batch-lbl" style="min-height:2.25rem;padding:0 1rem;cursor:pointer;white-space:nowrap">Batch upload<input type="file" id="ic-batch" accept="image/*" multiple style="display:none"></label>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Pick several pictures at once. They fill the empty slots in order. Everyone who holds this animal can choose them.</span>
+      <input type="file" id="ic-one" accept="image/*" style="display:none"></div>` : ''}
+    ${subject.character_id && D.logos.length ? '' : `<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${subject.character_id
+      ? (canUpload ? 'No pictures in this animal&rsquo;s set yet. Tap a slot, or use Batch upload.' : 'No pictures in this animal&rsquo;s set yet. An admin uploads them in Admin → Icon palette.')
+      : 'No animal yet, so no icons. An admin gives you one in Admin → Members.'}</span>`}`;   // the usual how-it-works lines are gone (RAY, 17 Nov); only the empty-state notes remain
 
   const charHtml = () => `<span class="t-module">Your animal</span>
     <select class="input" id="char-sel" aria-label="Your animal" style="min-height:44px;max-width:320px">
@@ -280,16 +291,16 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
     const rev = subject.revolut_url || '';
     return `<span class="t-module">Linked accounts</span>
       <div style="display:flex;flex-direction:column;gap:10px">
-        <div class="linked" style="display:flex;gap:12px;align-items:center"><i class="ph ph-discord-logo" style="font-size:22px;color:var(--neon-teal)"></i><div style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:14px">Discord</span><span style="font-size:12px;color:var(--fy-text-label)">The key to the door · Lounge voice</span></div><span class="neon-teal" style="font-size:12px">Connected</span></div>
+        <div class="linked" style="display:flex;gap:12px;align-items:center"><i class="ph ph-discord-logo" style="font-size:1.375rem;color:var(--neon-teal)"></i><div style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:0.875rem">Discord</span><span style="font-size:0.75rem;color:var(--fy-text-label)">The key to the door · Lounge voice</span></div><span class="neon-teal" style="font-size:0.75rem">Connected</span></div>
         <div class="rule-teal"></div>
         <form id="revform" style="display:flex;flex-direction:column;gap:8px">
-          <label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--fy-text-label)"><span style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--fy-text)"><i class="ph ph-hand-coins" style="font-size:20px;color:var(--neon-teal)"></i>Revolut pay-me link</span>
-          <input class="input" id="rv" type="url" value="${esc(rev)}" maxlength="120" placeholder="https://revolut.me/yourname" style="min-height:44px;font-size:14px"></label>
-          <span style="font-size:12px;color:var(--fy-text-label)">When you win, anyone who owes you gets a Pay button that opens this link. 1 tk = £1. The Farmyard never holds money.</span>
-          <div><button class="btn btn-ghost" type="submit" style="min-height:40px">Save link</button></div>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:0.75rem;color:var(--fy-text-label)"><span style="display:flex;gap:8px;align-items:center;font-size:0.875rem;color:var(--fy-text)"><i class="ph ph-hand-coins" style="font-size:1.25rem;color:var(--neon-teal)"></i>Revolut pay-me link</span>
+          <input class="input" id="rv" type="url" value="${esc(rev)}" maxlength="120" placeholder="https://revolut.me/yourname" style="min-height:44px;font-size:0.875rem"></label>
+          <span style="font-size:0.75rem;color:var(--fy-text-label)">When you win, anyone who owes you gets a Pay button that opens this link. 1 tk = £1. The Farmyard never holds money.</span>
+          <div><button class="btn btn-ghost" type="submit" style="min-height:2.5rem">Save link</button></div>
         </form>
-        <div style="display:flex;gap:12px;align-items:center;opacity:.55"><i class="ph ph-game-controller" style="font-size:22px;color:var(--neon-teal)"></i><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:14px">Steam ID</span><span style="font-size:12px;color:var(--fy-text-label)">For Worms and other Steam lobbies in the Arcade.</span></div><span class="kicker">Coming soon</span></div>
-        <div style="display:flex;gap:12px;align-items:center;opacity:.55"><i class="ph ph-strategy" style="font-size:22px;color:var(--neon-teal)"></i><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:14px">Chess.com username</span><span style="font-size:12px;color:var(--fy-text-label)">Your games count towards the chess league.</span></div><span class="kicker">Coming soon</span></div>
+        <div style="display:flex;gap:12px;align-items:center;opacity:.55"><i class="ph ph-game-controller" style="font-size:1.375rem;color:var(--neon-teal)"></i><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:0.875rem">Steam ID</span><span style="font-size:0.75rem;color:var(--fy-text-label)">For Worms and other Steam lobbies in the Arcade.</span></div><span class="kicker">Coming soon</span></div>
+        <div style="display:flex;gap:12px;align-items:center;opacity:.55"><i class="ph ph-strategy" style="font-size:1.375rem;color:var(--neon-teal)"></i><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:0.875rem">Chess.com username</span><span style="font-size:0.75rem;color:var(--fy-text-label)">Your games count towards the chess league.</span></div><span class="kicker">Coming soon</span></div>
       </div>`;
   };
 
@@ -303,25 +314,25 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
     ${notPublic ? `<div class="pcard" id="icon">${iconHtml()}</div>` : ''}
     <div class="statgrid">
       <div class="stat"><span class="kicker">Poker league position</span><span class="v"><i class="ph ph-club" aria-hidden="true"></i>${esc(pokerPos)}</span></div>
-      <div class="stat"><span class="kicker">Football league</span><span class="v"><i class="ph ph-soccer-ball" aria-hidden="true"></i>—</span></div>
+      ${fbPublic ? `<div class="stat"><span class="kicker">Football league</span><span class="v"><i class="ph ph-soccer-ball" aria-hidden="true"></i>—</span></div>` : ''}
       <div class="stat"><span class="kicker">All time net</span><span class="v" style="color:${(allTime ?? 0) < 0 ? 'var(--neon-red-text)' : 'var(--neon-green-text)'}">${allTime === null ? '—' : tkFmt(allTime)}</span></div>
       <div class="stat"><span class="kicker">Current debt</span><span class="v" style="color:${debt ? 'var(--neon-red-text)' : 'inherit'}">${debt} tk</span></div>
       <div class="stat"><span class="kicker">Pending due</span><span class="v" style="color:${due ? '#ffb020' : 'inherit'}">${due} tk</span></div>
     </div>
-    ${own && D.chars.length ? `<div class="pcard" id="char">${charHtml()}</div>` : ''}
+    ${own && isLeader && D.chars.length ? `<div class="pcard" id="char">${charHtml()}</div>` : ''}
     ${notPublic ? `<div class="pcard" id="ledger">${ledgerHtml()}</div>` : ''}
-    ${notPublic ? `<div class="pcard" id="pools">${poolsHtml()}</div>` : ''}
-    <div class="pcard" id="acts">${actsHtml()}</div>
+    ${notPublic && fbPublic ? `<div class="pcard" id="pools">${poolsHtml()}</div>` : ''}
+    ${isLeader ? `<div class="pcard" id="acts">${actsHtml()}</div>` : ''}
     ${notPublic ? `<div class="pcard" id="links">${linksHtml()}</div>` : ''}
     ${own ? `<form class="pcard" id="claim" style="gap:12px">
       <span class="t-module">Something wrong?</span>
-      <div class="field"><label for="ctype">Claim</label><select id="ctype" class="input"><option value="points">Points I should have</option><option value="iou">An IOU that is missing</option></select></div>
+      <div class="field"><label for="ctype">Claim</label><select id="ctype" class="input"><option value="points">Points I should have</option><option value="iou">An IOU that is missing</option><option value="bug">Site bug</option></select></div>
       <div class="field" id="f-points"><label for="cpts">Poker points</label><input class="input" id="cpts" type="number" min="1" value="1"></div>
       <div class="field" id="f-iou" hidden><label for="cpayer">Who owes whom</label>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select id="cpayer" class="input">${members.map(m => `<option value="${esc(m.id)}">${esc(m.nickname)}</option>`).join('')}</select><span>owes</span>
         <select id="cpayee" class="input">${members.map(m => `<option value="${esc(m.id)}">${esc(m.nickname)}</option>`).join('')}</select><input class="input" id="camt" type="number" min="1" value="1" style="width:5em"></div></div>
       <div class="field"><label for="cnote">What happened</label><input class="input" id="cnote" required placeholder="e.g. side pot on the 12th"></div>
-      <div><button class="btn btn-ghost" style="min-height:44px">Send to RAY</button></div>
+      <div><button class="btn btn-ghost" style="min-height:2.75rem">Send to RAY</button></div>
     </form>
     <div style="display:flex;justify-content:flex-end"><button type="button" id="out" class="btn btn-ghost">Leave the yard</button></div>` : ''}`;
 
@@ -346,6 +357,14 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
       try { await saveSubject(admin ? Object.fromEntries(Object.entries(patch).map(([k, v]) => [k, v ?? ''])) : patch); FY.toast('Saved.'); location.reload(); }
       catch (e) { FY.toast(e.message); ev.target.disabled = false; }
     });
+    const del = main.querySelector('#ed-del');
+    if (del) del.addEventListener('click', async () => {
+      // Two taps, and the server has the final say: it refuses anyone who has claimed their profile or has any poker, token or league history.
+      if (del.dataset.armed !== '1') { del.dataset.armed = '1'; del.textContent = 'Tap again to delete ' + subject.nickname; setTimeout(() => { del.dataset.armed = ''; del.textContent = 'Delete user'; }, 5000); return; }
+      del.disabled = true;
+      try { await FY.rpc('admin_delete_member', { p_member: subject.id }); FY.toast(subject.nickname + ' deleted. Logged.'); location.href = 'dashboard.html'; }
+      catch (e) { FY.toast(e.message); del.disabled = false; del.dataset.armed = ''; del.textContent = 'Delete user'; }
+    });
     main.querySelector('#icon').addEventListener('click', async ev => {
       const b = ev.target.closest('[data-pick]'); if (!b) return;
       const n = Number(b.dataset.pick.slice(5));
@@ -355,6 +374,43 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
         FY.toast('Icon saved.'); location.reload();
       } catch (e) { FY.toast(e.message); }
     });
+    // Admin uploads: square-crop to 256px PNG, store at icons/<animal>/slot-N.png, then record it (admin_icon_add checks the URL and the slot).
+    if (canUpload) {
+      const cid = subject.character_id;
+      const squarePng = file => new Promise((res, rej) => {
+        const url = URL.createObjectURL(file), img = new Image();
+        img.onload = () => { const S = 256, m = Math.min(img.width, img.height), c = document.createElement('canvas'); c.width = S; c.height = S;
+          c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S); URL.revokeObjectURL(url); c.toBlob(b => b ? res(b) : rej(new Error('Could not read that image.')), 'image/png'); };
+        img.onerror = () => { URL.revokeObjectURL(url); rej(new Error(file.name + ' is not an image.')); }; img.src = url;
+      });
+      const putSlot = async (file, n) => {
+        const blob = await squarePng(file), path = `${cid}/slot-${n}.png`;
+        const { error } = await FY.sb.storage.from('icons').upload(path, blob, { contentType: 'image/png', upsert: true, cacheControl: '3600' });
+        if (error) throw new Error(error.message);
+        await FY.rpc('admin_icon_add', { p_character: cid, p_slot: n, p_url: FY.sb.storage.from('icons').getPublicUrl(path).data.publicUrl + '?v=' + Date.now() });
+      };
+      let slotWanted = null;
+      const one = main.querySelector('#ic-one'), batch = main.querySelector('#ic-batch');
+      main.querySelector('#icon').addEventListener('click', ev => {
+        const b = ev.target.closest('[data-up]'); if (!b) return;
+        slotWanted = Number(b.dataset.up); one.click();
+      });
+      one.addEventListener('change', async () => {
+        const f = one.files && one.files[0]; one.value = ''; if (!f || !slotWanted) return;
+        try { await putSlot(f, slotWanted); FY.toast('Added to slot ' + slotWanted + '.'); location.reload(); }
+        catch (e) { FY.toast(e.message); }
+      });
+      batch.addEventListener('change', async () => {
+        const files = [...(batch.files || [])]; batch.value = ''; if (!files.length) return;
+        let done = 0, why = '';
+        for (const f of files) {
+          try { const n = await FY.rpc('admin_icon_next', { p_character: cid }); await putSlot(f, n); done++; FY.toast(`Uploaded ${done} of ${files.length}…`); }
+          catch (e) { why = e.message; break; }
+        }
+        FY.toast(`${done} of ${files.length} added.` + (why ? ' Stopped: ' + why : ''));
+        if (done) setTimeout(() => location.reload(), 900);
+      });
+    }
     const cs = main.querySelector('#char-sel');
     if (cs) cs.addEventListener('change', async () => {
       cs.disabled = true;
@@ -400,7 +456,8 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
       } catch (e) { FY.toast(e.message); }
     });
   }
-  main.querySelector('#acts').addEventListener('click', ev => {
+  // Recent actions is admins only for now (RAY, 17 Nov).
+  if (main.querySelector('#acts')) main.querySelector('#acts').addEventListener('click', ev => {
     const r = ev.target.closest('[data-roll]'); if (!r) return;
     const d = r.nextElementSibling; if (d) d.hidden = !d.hidden;
   });
@@ -410,12 +467,14 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
     main.querySelector('#claim').addEventListener('submit', async ev => {
       ev.preventDefault();
       const note = main.querySelector('#cnote').value.trim();
-      const payload = ctype.value === 'points'
+      const payload = ctype.value === 'bug'
+        ? { type: 'bug', note }
+        : ctype.value === 'points'
         ? { type: 'points', type_key: 'poker', points: Number(main.querySelector('#cpts').value), note }
         : { type: 'iou', payer_id: main.querySelector('#cpayer').value, payee_id: main.querySelector('#cpayee').value, amount: Number(main.querySelector('#camt').value), note };
       if (payload.type === 'iou' && payload.payer_id === payload.payee_id) return FY.toast('Pick two different people.');
       const btn = ev.submitter || ev.target.querySelector('button'); btn.disabled = true;
-      try { await FY.rpc('raise_claim', { p_payload: payload }); FY.toast('Sent. RAY will approve or reject it.'); ev.target.reset(); ctype.dispatchEvent(new Event('change')); }
+      try { await FY.rpc('raise_claim', { p_payload: payload }); FY.toast(payload.type === 'bug' ? 'Sent. RAY will take a look.' : 'Sent. RAY will approve or reject it.'); ev.target.reset(); ctype.dispatchEvent(new Event('change')); }
       catch (e) { FY.toast(e.message); }
       finally { btn.disabled = false; }
     });

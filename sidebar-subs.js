@@ -1,4 +1,4 @@
-/* Sidebar sub-page groups: first click on a section with sub-pages rolls them down; a second click goes to the section page. */
+/* Sidebar sub-page groups: one click on any row goes straight to that page (RAY, 16 Nov). A section's sub-pages roll down once you are on it or on one of its sub-pages. */
 (function () {
   document.documentElement.classList.add('sub-js');
   function subsOf(p) { var o = [], n = p && p.nextElementSibling; while (n && n.classList && n.classList.contains('nav-sub')) { o.push(n); n = n.nextElementSibling; } return o; }
@@ -13,11 +13,4 @@
   }
   new MutationObserver(init).observe(document.documentElement, { childList: true, subtree: true });
   init();
-  document.addEventListener('click', function (e) {
-    var t = e.target.closest && e.target.closest('button, a');
-    if (!t || t.classList.contains('nav-sub')) return;
-    var subs = subsOf(t);
-    if (!subs.length || subs[0].classList.contains('sub-open')) return;
-    e.preventDefault(); e.stopPropagation(); open(subs);
-  }, true);
 })();

@@ -1,4 +1,4 @@
-/* 0.9 Admin Dashboard (REV C03). Tabs: Members · Humidor · Poker · League · Tokens & IOUs · Site.
+/* 0.9 Admin Dashboard (REV C03). Tabs: Members · Pages · Humidor · Poker · League · Tokens & IOUs · Site.
    Leader only (checked here AND in every RPC). Edits save instantly; every change is written to
    fy.admin_edit by the fy.admin_* functions. Docket amounts are buy-ins (1 buy-in = 5 tk). */
 (async function () {
@@ -9,7 +9,7 @@
   if (me.role !== 'leader' || !(await FY.rpc('is_leader').then(Boolean).catch(() => false))) { location.replace('dashboard.html'); return; }
 
   const A = { tab: location.hash.replace('#', '') || 'members', members: [] };
-  const TABS = [['members', 'Members'], ['humidor', 'Humidor'], ['poker', 'Poker'], ['league', 'League'], ['tokens', 'Tokens & IOUs'], ['site', 'Site']];
+  const TABS = [['members', 'Members'], ['pages', 'Pages'], ['humidor', 'Humidor'], ['poker', 'Poker'], ['league', 'League'], ['tokens', 'Tokens & IOUs'], ['site', 'Site']];
   const loadMembers = async () => { A.members = (await FY.q('member').select('id,nickname,avatar,avatar_url,user_id,role,setup_at,invite_email,discord_username,mobile,character_id,icon_slot,last_login,tagline,birth_day,birth_month,revolut_url,created_at,claimed').order('nickname')).data || []; };
   const nick = id => A.members.find(m => m.id === id)?.nickname || '?';
   const opts = sel => A.members.map(m => `<option value="${m.id}" ${m.id === sel ? 'selected' : ''}>${esc(m.nickname)}</option>`).join('');
@@ -44,7 +44,7 @@
   const ONLINE = { voice: 'In voice', online: 'Online', away: 'Away' };
   const onlineCell = st => { const here = !!ONLINE[st], label = ONLINE[st] || 'Offline';
     const col = here ? 'var(--neon-green-tube, #3ddc97)' : 'var(--neon-red-tube, #e8263a)';
-    return `<span title="${label}" aria-label="${label}" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${col};box-shadow:0 0 6px ${col}"></span>`; };
+    return `<span title="${label}" aria-label="${label}" style="display:inline-block;width:0.625rem;height:0.625rem;border-radius:50%;background:${col};box-shadow:0 0 6px ${col}"></span>`; };
   // One subscription for the life of the page: every redraw's cells are found fresh in the DOM.
   Presence.onSync(map => { document.querySelectorAll('td[data-online]').forEach(td => { td.innerHTML = onlineCell(map[td.dataset.online]); }); });
 
@@ -57,7 +57,7 @@
     : `<span style="color:var(--fy-text-label)">Invited · ${m.invite_email ? 'matches on email' : m.discord_username ? 'matches on Discord username' : 'invite link'}</span>`;
   // Role is a plain text column; Member and Admin (stored as 'leader') are the two the page offers, any other stored role still shows.
   const roleLabel = r => r === 'leader' ? 'Admin' : r ? r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g, ' ') : 'Member';
-  const roleTag = r => `<span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:999px;border:1px solid ${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'};color:${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'}">${esc(roleLabel(r))}</span>`;
+  const roleTag = r => `<span style="font-size:0.625rem;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:999px;border:1px solid ${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'};color:${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'}">${esc(roleLabel(r))}</span>`;
   const roleOpts = cur => [...new Set(['member', 'leader', cur || 'member'])].map(r => `<option value="${esc(r)}" ${r === (cur || 'member') ? 'selected' : ''}>${esc(roleLabel(r))}</option>`).join('');
   /* Page headers card: one cell per page that carries a header band. The list comes from the room
      registry (top-level rooms outside "what's next", so a new league appears by itself), plus the two
@@ -85,7 +85,7 @@
     // Per-row Character dropdown: every animal is listed; one held by someone else is shown with the holder and disabled.
     const charCell = m => !chars0
       ? '<span style="color:var(--fy-text-label)">—</span>'
-      : `<select class="input" data-char="${m.id}" aria-label="Character for ${esc(m.nickname)}" style="min-height:32px;font-size:12px;width:auto;max-width:12em">
+      : `<select class="input" data-char="${m.id}" aria-label="Character for ${esc(m.nickname)}" style="min-height:32px;font-size:0.75rem;width:auto;max-width:12em">
           <option value="">None</option>
           ${chars0.map(c => { const by = held0[c.id], mine = c.id === m.character_id, gone = by && !mine;
             return `<option value="${c.id}" ${mine ? 'selected' : ''} ${gone ? 'disabled' : ''}>${esc(c.name)}${gone ? ' · ' + esc(by) : ''}</option>`; }).join('')}
@@ -96,9 +96,9 @@
     const contactCell = m => m.user_id
       ? `<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${esc(m.invite_email || m.discord_username || '')}</span>`
       : `<span style="display:flex;gap:6px;flex-wrap:wrap">
-          <input class="input" data-inv="invite_email" data-m="${m.id}" type="email" placeholder="Invite email" maxlength="254" value="${esc(m.invite_email || '')}" style="flex:1 1 7em;width:7em;min-width:0;min-height:32px;font-size:12px">
-          <input class="input" data-inv="discord_username" data-m="${m.id}" placeholder="Discord username" maxlength="40" value="${esc(m.discord_username || '')}" style="flex:1 1 6em;width:6em;min-width:0;min-height:32px;font-size:12px">
-          <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="flex:1 1 5em;width:5em;min-width:0;min-height:32px;font-size:12px"></span>`;
+          <input class="input" data-inv="invite_email" data-m="${m.id}" type="email" placeholder="Invite email" maxlength="254" value="${esc(m.invite_email || '')}" style="flex:1 1 7em;width:7em;min-width:0;min-height:32px;font-size:0.75rem">
+          <input class="input" data-inv="discord_username" data-m="${m.id}" placeholder="Discord username" maxlength="40" value="${esc(m.discord_username || '')}" style="flex:1 1 6em;width:6em;min-width:0;min-height:32px;font-size:0.75rem">
+          <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="flex:1 1 5em;width:5em;min-width:0;min-height:32px;font-size:0.75rem"></span>`;
     const live = (Presence && Presence.map) ? Presence.map() : {};   // paint the current state, don't wait for the next sync
     pane.innerHTML = `<div class="acard"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <span class="t-module">Members</span>
@@ -106,7 +106,7 @@
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Click a row to open that member below: their details, their icons, and their invite link.</span>
       <div class="tscroll"><table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th class="wrap">Last login</th><th>Status</th><th>Email</th></tr></thead><tbody>
       ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}" data-mid="${m.id}"><td style="display:flex;align-items:center;gap:8px;white-space:nowrap">${FY.faceRing(m, 28, m.nickname)}${esc(m.nickname)}</td>
-        <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:12px;width:auto">${roleOpts(m.role)}</select></td>
+        <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:0.75rem;width:auto">${roleOpts(m.role)}</select></td>
         <td data-online="${m.id}">${onlineCell(live[m.id])}</td>
         <td>${charCell(m)}</td>
         <td style="white-space:normal">${lastLoginCell(m)}</td>
@@ -122,19 +122,19 @@
         <input class="input" id="nm-email" type="email" placeholder="Invite email" maxlength="254" style="min-height:40px;flex:1 1 180px;min-width:0;max-width:100%;box-sizing:border-box">
         <input class="input" id="nm-disc" placeholder="Discord username" maxlength="40" style="min-height:40px;flex:1 1 150px;min-width:0;max-width:100%;box-sizing:border-box">
         <input class="input" id="nm-mob" type="tel" placeholder="Mobile (contact only)" maxlength="20" style="min-height:40px;flex:1 1 150px;min-width:0;max-width:100%;box-sizing:border-box">
-        <button class="btn btn-primary" style="min-height:40px">Add member</button></form>
+        <button class="btn btn-primary" style="min-height:2.5rem">Add member</button></form>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Email and Discord username are optional. Copy the invite link from the member's row and send it on WhatsApp or Messenger. Mobile is contact only, never used for login.</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An invite link works once and expires after 7 days. Copy invite link reuses an unused one; New link voids it and makes a fresh one.</span>
       <div id="linkbox" hidden style="display:flex;gap:8px"><input class="input" id="linkout" readonly style="flex:1;min-height:40px"><button class="rowbtn" id="copylink">Copy</button></div></div>
       <div class="acard"><span class="t-module">Icon palette</span>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Each animal has its own 15 slots: pick a character, then upload an image (it takes that animal's lowest free number). Click a picture to set it as the icon of whoever holds the animal; the cross removes it.</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Each animal has its own 20 slots: pick a character, then upload an image (it takes that animal's lowest free number). Click a picture to set it as the icon of whoever holds the animal; the cross removes it.</span>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label for="lg-c">Character</label><select class="input" id="lg-c" style="min-height:40px">${(chars0 || []).map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
         <span id="lg-holder" style="font-size:var(--fs-xs);color:var(--fy-text-label)"></span></div>
       <div id="ip" style="display:flex;flex-direction:column;gap:14px;max-width:100%"></div></div>
       <div class="acard" id="chars"><span class="t-module">Characters</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">One farmyard animal per member. Members pick theirs on their profile. Rename, free a taken animal, or remove one; names are unique.</span>
       <div id="charlist" style="display:flex;flex-direction:column;gap:8px"></div>
-      <form id="charadd" class="charrow"><input class="input" id="char-new" placeholder="New animal" maxlength="24" required style="min-height:34px;font-size:12px;min-width:0;width:100%"><button class="btn btn-primary" style="min-height:34px;padding:0 12px;font-size:var(--fs-xs);white-space:nowrap">Add animal</button><span></span><span></span><span></span></form></div>`;
+      <form id="charadd" class="charrow"><input class="input" id="char-new" placeholder="New animal" maxlength="24" required style="min-height:34px;font-size:0.75rem;min-width:0;width:100%"><button class="btn btn-primary" style="min-height:2.125rem;padding:0 0.75rem;font-size:var(--fs-xs);white-space:nowrap">Add animal</button><span></span><span></span><span></span></form></div>`;
     // A row opens that member's details below the table (RAY, 12 Nov): the full profile page
     // is still a click away, but the admin stays on this page.
     pane.addEventListener('click', ev => {
@@ -233,12 +233,12 @@
           <span class="kicker" style="font-size:var(--fs-xs);color:var(--fy-text-label)">Invite · contacts save as you leave each box, and the link works once and expires after 7 days</span>
           ${contactCell(m)}
           <span style="display:flex;gap:6px;flex-wrap:wrap"><button class="rowbtn" data-link="${m.id}">Copy invite link</button><button class="rowbtn" data-link="${m.id}" data-new="1">New link</button>${m.role === 'leader' ? '' : `<button class="rowbtn warn" data-del="${m.id}">Delete member</button>`}</span></div>`}
-        <span class="kicker" style="font-size:var(--fs-xs);color:var(--fy-text-label)">Icon ${charName ? '· ' + esc(charName.name) + "'s 15 slots · click one to make it theirs" : '· no animal yet, so no slots'}</span>
+        <span class="kicker" style="font-size:var(--fs-xs);color:var(--fy-text-label)">Icon ${charName ? '· ' + esc(charName.name) + "'s 20 slots · click one to make it theirs" : '· no animal yet, so no slots'}</span>
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(10px,1.6vw,20px);width:100%">
-          ${Array.from({ length: 15 }, (_, k) => { const n = k + 1, r = bySlot[n];
+          ${Array.from({ length: 20 }, (_, k) => { const n = k + 1, r = bySlot[n];
             if (!r) return `<span style="aspect-ratio:1/1;border-radius:50%;border:2px dashed rgba(95,211,207,.35);display:grid;place-items:center;color:var(--fy-text-label);font-size:var(--fs-xs)">${n}</span>`;
             const on = m.icon_slot === n || m.avatar_url === r.url;
-            return `<button type="button" data-mdpick="${n}" aria-label="Set icon ${n} for ${esc(m.nickname)}" aria-pressed="${on}" style="aspect-ratio:1/1;padding:3px;box-sizing:border-box;border-radius:50%;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/contain no-repeat;background-origin:content-box"></button>`; }).join('')}
+            return `<button type="button" data-mdpick="${n}" aria-label="Set icon ${n} for ${esc(m.nickname)}" aria-pressed="${on}" style="aspect-ratio:1/1;padding:0.1875rem;box-sizing:border-box;border-radius:50%;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/contain no-repeat;background-origin:content-box"></button>`; }).join('')}
         </div>`;
       box.querySelector('#md-close').onclick = () => { box.hidden = true; box.dataset.mid = ''; };
       // Walk the site as this member, claimed or not. Read-only: writes are refused while it is on.
@@ -269,7 +269,7 @@
       box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // Icon palette: one Upload box beside 15 numbered slots. The slots belong to the ANIMAL;
+    // Icon palette: one Upload box beside 20 numbered slots. The slots belong to the ANIMAL;
     // a click sets the icon of whoever holds it (icons-per-character.sql).
     const ICON_BUCKET = 'icons';
     let palette = [];
@@ -286,19 +286,19 @@
         ? `Held by <strong style="color:var(--neon-teal)">${esc(holder.nickname)}</strong> · clicking a picture makes it theirs`
         : 'Nobody holds this animal, so a picture cannot be anyone&rsquo;s icon yet. Give it to a member in the Members table.';
       const cur = (holder || {}).avatar_url;
-      const full = palette.length >= 15;
+      const full = palette.length >= 20;
       const slot = n => {
         const r = bySlot[n];
-        if (!r) return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="width:64px;height:64px;border-radius:50%;border:2px dashed rgba(95,211,207,.35);display:grid;place-items:center;color:var(--fy-text-label);font-size:var(--fs-sm)">${n}</span></div>`;
+        if (!r) return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="width:4rem;height:4rem;border-radius:50%;border:2px dashed rgba(95,211,207,.35);display:grid;place-items:center;color:var(--fy-text-label);font-size:var(--fs-sm)">${n}</span></div>`;
         const on = cur && cur === r.url;
         return `<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:4px">
-          <button type="button" data-ipick="${n}" aria-label="Set icon ${n}" aria-pressed="${on ? 'true' : 'false'}" style="width:64px;height:64px;border-radius:50%;padding:3px;box-sizing:border-box;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/contain no-repeat;background-origin:content-box"></button>
-          <button type="button" data-irm="${n}" aria-label="Remove icon ${n}" style="position:absolute;top:-4px;right:-4px;width:22px;height:22px;border-radius:50%;padding:0;cursor:pointer;border:1px solid var(--neon-pink-tube);background:#0a1a1a;color:var(--neon-pink-text);font-size:12px;line-height:1">&#10005;</button>
+          <button type="button" data-ipick="${n}" aria-label="Set icon ${n}" aria-pressed="${on ? 'true' : 'false'}" style="width:4rem;height:4rem;border-radius:50%;padding:0.1875rem;box-sizing:border-box;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/contain no-repeat;background-origin:content-box"></button>
+          <button type="button" data-irm="${n}" aria-label="Remove icon ${n}" style="position:absolute;top:-4px;right:-4px;width:1.375rem;height:1.375rem;border-radius:50%;padding:0;cursor:pointer;border:1px solid var(--neon-pink-tube);background:#0a1a1a;color:var(--neon-pink-text);font-size:0.75rem;line-height:1">&#10005;</button>
           <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${n}</span></div>`;
       };
-      // The 15 slots fill the module, five to a line; Upload sits under them (RAY, 12 Nov).
+      // The 20 slots fill the module, five to a line; Upload sits under them (RAY, 12 Nov).
       pane.querySelector('#ip').innerHTML = `
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px clamp(10px,1.6vw,20px);width:100%">${Array.from({ length: 15 }, (_, k) => slot(k + 1)).join('')}</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px clamp(10px,1.6vw,20px);width:100%">${Array.from({ length: 20 }, (_, k) => slot(k + 1)).join('')}</div>
         <label style="align-self:center;min-height:34px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;padding:0 14px;border:1.5px dashed var(--neon-teal);border-radius:8px;color:var(--fy-text);font-size:var(--fs-xs);white-space:nowrap;cursor:${full ? 'not-allowed' : 'pointer'};opacity:${full ? '.45' : '1'}">
           <span>Upload image</span><span style="color:var(--fy-text-label)">${full ? 'Palette full' : 'PNG or JPG'}</span>
           <input type="file" id="ip-file" accept="image/*" ${full ? 'disabled' : ''} style="display:none"></label>`;
@@ -313,7 +313,7 @@
       ((await FY.q('member').select('nickname,character_id').not('character_id', 'is', null)).data || []).forEach(m => { holders[m.character_id] = m.nickname; });
       // One grid for every row, so the columns line up down the list.
       box.innerHTML = chars.length ? chars.map(c => `<div class="charrow" data-c="${c.id}">
-          <input class="input" data-cname="${c.id}" value="${esc(c.name)}" maxlength="24" aria-label="Animal name" style="min-height:34px;font-size:12px;min-width:0;width:100%">
+          <input class="input" data-cname="${c.id}" value="${esc(c.name)}" maxlength="24" aria-label="Animal name" style="min-height:34px;font-size:0.75rem;min-width:0;width:100%">
           <button class="rowbtn" data-crename="${c.id}">Rename</button>
           <span style="font-size:var(--fs-xs);color:var(--fy-text-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${holders[c.id] ? 'Taken by ' + esc(holders[c.id]) : 'Free'}</span>
           ${holders[c.id] ? `<button class="rowbtn" data-cfree="${c.id}">Free</button>` : '<span></span>'}
@@ -432,7 +432,7 @@
           <td><input class="input num" type="number" data-id="${m.id}" min="1" value="1" style="min-height:34px"></td><td><input type="radio" name="winner" value="${m.id}"></td></tr>`).join('')}
         </tbody></table>
         <div style="display:flex;gap:8px;align-items:center"><label for="nnote">Note</label><input class="input" id="nnote" maxlength="120" placeholder="optional" style="flex:1;min-height:40px"></div>
-        <div><button class="btn btn-primary" style="min-height:44px">Record night</button></div>
+        <div><button class="btn btn-primary" style="min-height:2.75rem">Record night</button></div>
       </form><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Winner takes all. Each loser gets an IOU to the winner for their buy-ins.</span></div>`;
     pane.querySelector('#filed').addEventListener('click', ev => {
       const save = ev.target.closest('[data-save]'), del = ev.target.closest('[data-delete]');
@@ -511,11 +511,11 @@
         <select class="input" id="ai-payee" style="min-height:40px">${opts()}</select>
         <input class="input num" id="ai-tk" type="number" min="1" value="1" style="min-height:40px"><span>tk</span>
         <input class="input" id="ai-note" placeholder="why" style="min-height:40px">
-        <button class="btn btn-primary" style="min-height:40px">Add IOU</button></form></div>
+        <button class="btn btn-primary" style="min-height:2.5rem">Add IOU</button></form></div>
       <div class="acard"><span class="t-module">Claims waiting</span>
-      ${claims.map(c => { const p = c.payload; const what = p.type === 'points' ? `${Number(p.points)} ${esc(p.type_key)} points` : `${esc(nick(p.payer_id))} owes ${esc(nick(p.payee_id))} ${Number(p.amount)}`;
+      ${claims.map(c => { const p = c.payload; const bug = p.type === 'bug'; const what = bug ? 'a site bug fixed' : p.type === 'points' ? `${Number(p.points)} ${esc(p.type_key)} points` : `${esc(nick(p.payer_id))} owes ${esc(nick(p.payee_id))} ${Number(p.amount)}`;
         return `<div style="display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid rgba(95,211,207,.22);font-size:var(--fs-sm)"><span style="flex:1"><strong>${esc(nick(c.member_id))}</strong> asks for ${what}<br><span style="color:var(--fy-text-label)">${esc(p.note || '')}</span></span>
-        <button class="rowbtn" data-claim="${c.id}" data-ok="1">Approve</button><button class="rowbtn warn" data-claim="${c.id}" data-ok="0">Reject</button></div>`; }).join('') || '<span style="font-size:var(--fs-sm);color:var(--fy-text-label)">Nothing waiting.</span>'}</div>`;
+        <button class="rowbtn" data-claim="${c.id}" data-ok="1">${bug ? 'Done' : 'Approve'}</button><button class="rowbtn warn" data-claim="${c.id}" data-ok="0">${bug ? 'Dismiss' : 'Reject'}</button></div>`; }).join('') || '<span style="font-size:var(--fs-sm);color:var(--fy-text-label)">Nothing waiting.</span>'}</div>`;
     pane.addEventListener('click', async ev => {
       const sq = ev.target.closest('[data-square-a]'), step = ev.target.closest('[data-step]'),
             del = ev.target.closest('[data-deliou]'), cl = ev.target.closest('[data-claim]');
@@ -534,6 +534,33 @@
       if (payer === payee) return FY.toast('Pick two different people.');
       try { await FY.rpc('admin_add_iou', { p_payer: payer, p_payee: payee, p_tk: Number(pane.querySelector('#ai-tk').value), p_note: pane.querySelector('#ai-note').value || null }); FY.toast('Added. Logged.'); draw(); }
       catch (e) { FY.toast(e.message); }
+    });
+  }
+
+  // ---- Pages: who can see each page (admin only / members). Sub-pages follow their page. ----
+  async function tabPages() {
+    const rooms = await Barn.rooms();
+    const byId = Object.fromEntries(rooms.map(r => [r.id, r]));
+    const top = r => !r.parent_id || r.parent_id === 'dashboard';
+    const list = rooms.filter(r => top(r) && r.grp !== 'next' && r.status !== 'later' && r.status !== 'hidden' && r.id !== 'humidor-admin' && r.id !== 'dashboard' && r.id !== 'admin');
+    const kids = id => rooms.filter(c => c.parent_id === id && c.id !== 'humidor-admin');
+    const sel = r => `<select class="input" data-vis="${esc(r.id)}" style="min-height:34px"><option value="admin" ${Barn.vis(r.id, r) !== 'members' ? 'selected' : ''}>Admin only</option><option value="members" ${Barn.vis(r.id, r) === 'members' ? 'selected' : ''}>Members</option></select>`;
+    const fixed = (label, why) => `<tr><td>${esc(label)}</td><td style="color:var(--fy-text-label)">${why}</td></tr>`;
+    pane.innerHTML = `<div class="acard"><span class="t-module">Page visibility</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Admin only pages are hidden from members completely: not in their menu, and the address sends them home. You always see every page. A page's sub-pages follow it.</span>
+      <table><thead><tr><th>Page</th><th>Who can see it</th></tr></thead><tbody>
+      ${fixed('Home', 'Always members')}
+      ${list.map(r => `<tr><td>${esc(r.label)}${kids(r.id).length ? ` <span style="color:var(--fy-text-label)">+ ${kids(r.id).map(k => esc(k.label)).join(', ')}</span>` : ''}</td><td>${sel(r)}</td></tr>`).join('')}
+      ${fixed('Admin', 'Always admin only')}
+      </tbody></table></div>`;
+    pane.addEventListener('change', async ev => {
+      const el = ev.target.closest('select[data-vis]'); if (!el) return;
+      const id = el.dataset.vis, v = el.value, label = byId[id]?.label || id;
+      el.disabled = true;
+      try { await FY.rpc('admin_set_room_visibility', { p_room: id, p_visibility: v });
+        FY.toast(v === 'members' ? label + ' is now visible to members.' : label + ' is now admin only.'); }
+      catch (e) { FY.toast(e.message); el.value = v === 'members' ? 'admin' : 'members'; }
+      el.disabled = false;
     });
   }
 
@@ -563,7 +590,7 @@
     });
   }
 
-  const RENDER = { members: tabMembers, humidor: tabHumidor, poker: tabPoker, league: tabLeague, tokens: tabTokens, site: tabSite };
+  const RENDER = { members: tabMembers, pages: tabPages, humidor: tabHumidor, poker: tabPoker, league: tabLeague, tokens: tabTokens, site: tabSite };
   async function draw() {
     // A fresh pane node per draw, so each tab's listeners die with it.
     const fresh = pane.cloneNode(false);

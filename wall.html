@@ -6,15 +6,15 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-<link rel="stylesheet" href="app.css?v=20261116r">
-<link rel="stylesheet" href="farmyard.css?v=20261116r">
-<link rel="stylesheet" href="barn.css?v=20261116r">
-<script src="fy-clucks.js?v=20261116r"></script>
+<link rel="stylesheet" href="app.css?v=20261117a">
+<link rel="stylesheet" href="farmyard.css?v=20261117a">
+<link rel="stylesheet" href="barn.css?v=20261117a">
+<script src="fy-clucks.js?v=20261117a"></script>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261116r"></script><script src="app.js?v=20261116r"></script><script src="barn.js?v=20261116r"></script><script src="presence.js?v=20261116r"></script><script src="sidebar-subs.js?v=20261116r"></script>
+<script src="config.js?v=20261117a"></script><script src="app.js?v=20261117a"></script><script src="barn.js?v=20261117a"></script><script src="presence.js?v=20261117a"></script><script src="sidebar-subs.js?v=20261117a"></script>
 <script>
 /* 1.2 Yard Wall (REV C03): composer (<=280), feed pinned-first then newest, one heart per member,
    delete own (leader deletes and pins anything). Live via realtime on fy.post / fy.post_like. */
@@ -57,9 +57,9 @@
         </div>
         <p style="margin:0; font-size:var(--fs-body); line-height:1.5; color:var(--fy-post); font-style:italic; white-space:pre-wrap; overflow-wrap:anywhere; text-wrap:pretty;">${esc(p.body)}</p>
         <div style="display:flex; gap:14px; align-items:center; padding-top:2px;">
-          <button type="button" data-like="${p.id}" aria-pressed="${myLike}" style="display:inline-flex; align-items:center; gap:5px; min-height:32px; padding:0 8px; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:${myLike ? 'var(--neon-pink-text)' : 'var(--fy-text-label)'}; text-shadow:${myLike ? 'var(--text-glow-pink)' : 'none'};"><span class="hrt" aria-hidden="true">${myLike ? '♥' : '♡'}</span>${n || ''}</button>
-          ${mine || isLeader ? `<button type="button" data-del="${p.id}" style="min-height:32px; padding:0 8px; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:var(--fy-text-label);">Delete</button>` : ''}
-          ${isLeader ? `<button type="button" data-pin="${p.id}" data-on="${p.pinned_at ? '0' : '1'}" style="min-height:32px; padding:0 8px; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:var(--fy-text-label);">${p.pinned_at ? 'Unpin' : 'Pin'}</button>` : ''}
+          <button type="button" data-like="${p.id}" aria-pressed="${myLike}" style="display:inline-flex; align-items:center; gap:0.3125rem; min-height:2rem; padding:0 0.5rem; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:${myLike ? 'var(--neon-pink-text)' : 'var(--fy-text-label)'}; text-shadow:${myLike ? 'var(--text-glow-pink)' : 'none'};"><span class="hrt" aria-hidden="true">${myLike ? '♥' : '♡'}</span>${n || ''}</button>
+          ${mine || isLeader ? `<button type="button" data-del="${p.id}" style="min-height:2rem; padding:0 0.5rem; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:var(--fy-text-label);">Delete</button>` : ''}
+          ${isLeader ? `<button type="button" data-pin="${p.id}" data-on="${p.pinned_at ? '0' : '1'}" style="min-height:2rem; padding:0 0.5rem; border:0; border-radius:6px; background:transparent; cursor:pointer; font:inherit; font-size:var(--fs-xs); color:var(--fy-text-label);">${p.pinned_at ? 'Unpin' : 'Pin'}</button>` : ''}
         </div>
       </div></article>`;
   }
@@ -75,7 +75,7 @@
         </div>
         <div style="display:flex; justify-content:flex-end; align-items:center; gap:12px;">
           <span id="remaining" style="font-size:var(--fs-xs); color:var(--fy-text-label); font-variant-numeric:tabular-nums;">${MAX} left</span>
-          <button type="submit" id="post-btn" class="btn btn-primary" disabled style="min-height:40px; padding:0 18px;">Post it</button>
+          <button type="submit" id="post-btn" class="btn btn-primary" disabled style="min-height:2.5rem; padding:0 1.125rem;">Post it</button>
         </div>
       </form>
     </section>`;

@@ -62,13 +62,12 @@
   const tip = (text, cls) => `<span class="tip ${cls || ''}" role="alert">${text}</span>`;
 
   // ---- shell ------------------------------------------------------------------
-  main.innerHTML = `<div class="fy-pagehead"><h2 class="t-title-b">Poker Room</h2><span class="t-tagline">Tonight's table, the league board, and who owes who.</span></div>
+  main.innerHTML = `<div class="fy-pagehead pk-head"><h2 class="t-title-b">Poker Room</h2><span class="t-tagline">Tonight's table, the league board, and who owes who.</span><div class="pk-signwrap" id="pksign"></div></div>
   <div class="pk">
-    <div class="pk-signwrap" id="pksign"></div>
     <section class="pk-steps" id="steps"></section>
     <div class="pk-row2"><div class="pk-board pk-thin" id="board"><p class="pk-empty">Loading the board…</p></div></div>
-    <div class="pk-row2"><div class="pk-debts pk-thin" id="debts"></div></div>
     <div class="pk-row solo" id="tablerow" hidden><div id="tablecol" hidden></div><div class="pk-docketcol" id="docketcol" hidden></div></div>
+    <div class="pk-row2"><div class="pk-debts pk-thin" id="debts"></div></div>
   </div>`;
 
   // ---- checklist --------------------------------------------------------------
@@ -88,11 +87,22 @@
     // Straight away, not after a pause: RAY asked for it to start on page load.
     // `autoplay` on the tag does the work in most browsers; this is the fallback for the
     // ones that ignore it, and it retries once the first frame is actually decodable.
+    // Sound on (RAY, 17 Nov). Browsers only allow that without a tap when the visitor has already
+    // used the site (Chrome, desktop). Where it is refused it starts muted instead, and the first
+    // tap or key press anywhere on the page switches the sound on, since that tap is allowed to.
+    v.volume = 0.6;   // starts at 60% (RAY, 17 Nov); touch browsers ignore this and use the phone's own volume
     const go = () => {
       if (v.ended || !v.paused) return;
-      v.muted = true;
+      v.muted = false;
       const p = v.play();
-      if (p && p.catch) p.catch(() => { /* blocked: the first frame and the controls remain */ });
+      if (p && p.catch) p.catch(() => {
+        v.muted = true;
+        const q = v.play();
+        if (q && q.catch) q.catch(() => { /* blocked: the first frame and the controls remain */ });
+        const unmute = () => { v.muted = false; if (v.paused && !v.ended) { const r = v.play(); if (r && r.catch) r.catch(() => {}); } };
+        document.addEventListener('pointerdown', unmute, { once: true });
+        document.addEventListener('keydown', unmute, { once: true });
+      });
     };
     go();
     v.addEventListener('loadeddata', go, { once: true });
@@ -111,16 +121,49 @@
     // Rendered once and left alone - re-writing it mid-game would restart the playback.
     if (!$('steps').querySelector('video')) {
       $('steps').innerHTML =
-        '<video class="pk-tut" controls playsinline preload="auto" autoplay muted src="assets/poker.tutorial.mp4?v=20261116q">' +
-        '<a href="assets/poker.tutorial.mp4?v=20261116q">Download the tutorial</a></video>';
-      startTutorial($('steps').querySelector('video'));
+        '<div class="pk-howto">How it works...</div>' +
+        '<div class="pk-tutwrap">' +
+        '<video class="pk-tut" controls playsinline preload="auto" src="assets/poker.tutorial.mp4?v=20261117a">' +
+        '<a href="assets/poker.tutorial.mp4?v=20261117a">Download the tutorial</a></video>' +
+        // Big centred full screen button, shown on small screens where the native one is tiny (RAY, 16 Nov).
+        '<button type="button" class="pk-fs" id="pkfs" aria-label="Full screen">' +
+        '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
+        '</div>';
+      const tv = $('steps').querySelector('video');
+      const wrap = $('steps').querySelector('.pk-tutwrap'), fsb = $('pkfs');
+      // Fallback when the browser refuses real full screen (some in-app browsers do): the
+      // video fills the window itself and the same button, moved to the corner, closes it.
+      const pseudo = on => {
+        wrap.classList.toggle('pk-pfs', on);
+        document.documentElement.style.overflow = on ? 'hidden' : '';
+        fsb.setAttribute('aria-label', on ? 'Exit full screen' : 'Full screen');
+      };
+      document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) { try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {} }
+      });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && wrap.classList.contains('pk-pfs')) pseudo(false); });
+      fsb.addEventListener('click', () => {
+        if (wrap.classList.contains('pk-pfs')) { pseudo(false); return; }
+        // Standard API first; iPhone Safari only allows its own video full screen.
+        const f = tv.requestFullscreen || tv.webkitRequestFullscreen || tv.webkitEnterFullscreen;
+        const fail = () => { if (!wrap.classList.contains('pk-pfs') && !document.fullscreenElement && !document.webkitFullscreenElement && !tv.webkitDisplayingFullscreen) pseudo(true); };
+        // Real full screen on a phone: turn it to landscape (Android Chrome allows this once full
+        // screen has started; iPhone Safari turns its own video player with the handset instead).
+        const land = () => { try { const o = screen.orientation; if (o && o.lock) o.lock('landscape').catch(() => {}); } catch (e) {} };
+        if (f) { try { const r = f.call(tv); if (r && r.then) r.then(land, fail); else land(); } catch (e) { fail(); } } else fail();
+        // Some in-app browsers neither enter full screen nor reject the request, so it can hang
+        // silently. If it has not started shortly after the tap, fill the window ourselves.
+        setTimeout(fail, 500);
+        if (tv.paused) { const p = tv.play(); if (p && p.catch) p.catch(() => {}); }
+      });
+      startTutorial(tv);
     }
   }
   $('tablecol').addEventListener('click', async ev => {
     const t = ev.target.closest('a,button'); if (!t) return;
     if (t.id === 'close') {
       if (!S.cur) return;
-      if (S.cur.seats.length && !filed() && !isLeader) {   // rule 6: anyone sat → the docket must be filed first
+      if (S.cur.seats.length > 1 && !filed() && !isLeader) {   // rule 6: two or more sat → the docket must be filed first; a lone player may just close (RAY, 17 Nov)
         S.closeTip = true; renderTableBtns(); clearTimeout(S.closeTipT); S.closeTipT = setTimeout(() => { S.closeTip = false; renderTableBtns(); }, 5000); return;
       }
       if (!arm(t, 'Tap again to close')) return;
@@ -228,12 +271,12 @@
     const again = !!pop.innerHTML;                 // card already up (new phase or another seat): no second entrance, as in the design
     const [x, y] = SEAT_XY[selIdx()], above = y > 40, shift = x <= 12 ? 15 : x <= 20 ? 25 : x >= 88 ? 85 : x >= 80 ? 75 : 50;
     const busy = S.seat.phase !== 'idle';
-    const lock = 'font-size:21px';
+    const lock = 'font-size:1.3125rem';
     const body = busy
       ? `<div class="clock"><span class="face"><span class="dot"></span><i style="width:2.5px;height:15px;margin-left:-1.25px;background:#f2fbfb;animation:handSpin 16s linear infinite"></i><i style="width:1.5px;height:21px;margin-left:-.75px;background:#9eeae6;box-shadow:0 0 4px var(--neon-teal);animation:handSpin 1.6s linear infinite"></i></span><span class="count" id="count">${S.seat.count}</span></div>`
       : `<label>FARMYARD NAME<div class="field locked"><i class="ph-light ph-lock-simple" style="${lock};color:var(--neon-red-tube);text-shadow:var(--text-glow-red)"></i><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(me.nickname)}</span></div></label>
          <label>TABLE NAME<div class="field edit"><i class="ph-light ph-lock-simple-open" style="${lock};color:var(--neon-green-tube);text-shadow:var(--text-glow-green)"></i><input id="tname" value="${esc(S.seat.name)}" maxlength="16" placeholder="${esc(me.nickname)}" autocomplete="off"></div><span class="hint">Try an Alt Tag On? (Just for the table)</span></label>`;
-    const note = busy ? `<div class="note">Your table name has been copied to your clipboard.<span style="display:block;height:.8em"></span><span style="display:block;white-space:nowrap;font-size:12px">TAKE <b>SEAT ${selIdx() + 1}</b> ON POKERNOW.</span>${S.seat.hint ? '<span style="display:block;margin-top:8px;font-size:12px">Allow popups for the-farmyard.com to open PokerNow beside the yard.</span>' : ''}${S.seat.blocked && S.seat.url ? `<a class="pk-btn green sm" style="margin-top:8px" href="${esc(S.seat.url)}" target="_blank" rel="noopener">OPEN POKERNOW</a>` : ''}</div>` : '';
+    const note = busy ? `<div class="note">Your table name has been copied to your clipboard.<span style="display:block;height:.8em"></span><span style="display:block;white-space:nowrap;font-size:0.75rem">TAKE <b>SEAT ${selIdx() + 1}</b> ON POKERNOW.</span>${S.seat.hint ? '<span style="display:block;margin-top:8px;font-size:0.75rem">Allow popups for the-farmyard.com to open PokerNow beside the yard.</span>' : ''}${S.seat.blocked && S.seat.url ? `<a class="pk-btn green sm" style="margin-top:8px" href="${esc(S.seat.url)}" target="_blank" rel="noopener">OPEN POKERNOW</a>` : ''}</div>` : '';
     pop.innerHTML = `<div class="pk-pop${again ? ' again' : ''}${S.seat.phase === 'done' ? ' done' : ''}" style="left:${x}%;transform:translateX(-${shift}%);top:${above ? 'auto' : (y + 9) + '%'};bottom:${above ? (100 - y + 9) + '%' : 'auto'}" role="dialog" aria-label="Take seat ${selIdx() + 1}">
       ${body}<button type="button" id="take" class="pk-btn green take ${busy ? 'off' : ''}">TAKE THE SEAT</button>${note}
       <span class="arrow" style="left:${shift}%;top:${above ? 'auto' : '-9px'};bottom:${above ? '-9px' : 'auto'};transform:translateX(-50%) rotate(${above ? 45 : 225}deg)"></span></div>`;
@@ -294,7 +337,7 @@
       const n = S.picks[s.member_id] || 0, win = S.winner === s.member_id && n > 0;
       return `<div class="pk-dgrid pk-drow ${n ? '' : 'off'}"><button type="button" class="who" data-t="${s.member_id}" ${dis}><span class="box"></span><span>${esc(s.nickname)}</span></button>
         <div class="bi"><button type="button" data-d="${s.member_id}" aria-label="Less" ${n ? '' : 'data-sfx="off"'} ${dis}>−</button><b>${n}</b><button type="button" data-i="${s.member_id}" aria-label="More" ${dis}>+</button></div>
-        <div class="win"><button type="button" class="${win ? 'on' : ''}" data-w="${s.member_id}" aria-label="Winner" ${dis}><i class="ph-fill ph-crown" style="font-size:15px"></i></button></div></div>`;
+        <div class="win"><button type="button" class="${win ? 'on' : ''}" data-w="${s.member_id}" aria-label="Winner" ${dis}><i class="ph-fill ph-crown" style="font-size:0.9375rem"></i></button></div></div>`;
     }).join('');
     const no = String(((S.board && S.board.games) || 0) + (filed() ? 0 : 1)).padStart(3, '0');
     // A disabled button with no reason beside it reads as broken (RAY, 16 Nov). Say what is missing.

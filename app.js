@@ -59,7 +59,7 @@
     faceRing(m, px, label) {
       const plain = !(m && typeof m === 'object' && m.avatar_url);
       const rw = px <= 48 ? '1.5px' : '2px';
-      return `<span class="fy-face${plain ? ' plain' : ''}" style="--s:${px}px;--rw:${rw}" role="img" aria-label="${FY.esc(label || '')}"><img src="${FY.esc(FY.face(m, px))}" alt=""></span>`;
+      return `<span class="fy-face${plain ? ' plain' : ''}" style="--s:${px / 16}rem;--rw:${rw}" role="img" aria-label="${FY.esc(label || '')}"><img src="${FY.esc(FY.face(m, px))}" alt=""></span>`;
     },
     avatar(m) { return `<img class="avatar" src="${FY.esc(FY.face(m, 48))}" alt="" width="48" height="48">`; },
     fmt(n) { return `<span class="num">${Number(n)}</span>`; },

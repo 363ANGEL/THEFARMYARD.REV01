@@ -29,11 +29,13 @@
       const { data, error } = await FY.q('room').select('*').order('sort');
       if (error) throw error;
       const rows = data || [];
-      // About the yard and Admin are Home sub-items; synthesised until rooms-visibility.sql adds the rows.
+      // Home sub-items synthesised until supabase/room-visibility.sql has added the rows.
       [{ id: 'about', label: 'About the yard', path: 'about.html', icon: 'ph ph-question', sort: 13 },
-       { id: 'admin', label: 'Admin', path: 'admin.html', icon: 'ph ph-gear-six', sort: 14 }].forEach(x => {
+       { id: 'admin', label: 'Admin', path: 'admin.html', icon: 'ph ph-gear-six', sort: 14 },
+       { id: 'whats-next', label: "What's Next?", path: 'whats-next.html', icon: 'ph ph-thought-bubble', sort: 17 }].forEach(x => {
         if (!rows.some(r => r.id === x.id)) rows.push({ ...x, status: 'ship', grp: 'home', parent_id: 'dashboard' });
       });
+      rows.forEach(r => { if (r.id === 'admin') r.sort = 10.5; });   // Admin is the first row under Home (RAY, 17 Nov)
       rows.sort((a, b) => (a.sort || 0) - (b.sort || 0));
       return (Barn._rooms = rows);
     },
@@ -43,28 +45,31 @@
        Profile and set-up are never gated. */
     vis(id, row) {
       if (id === 'profile' || id === 'setup') return 'members';
+      if (id === 'admin') return 'admin';
       if (row && row.visibility) return row.visibility;
       return id === 'dashboard' || id === 'poker' ? 'members' : 'admin';
     },
-    /* View as, top-right of every page's header, leaders only (never rendered for members).
-       Member preview swaps it for a dashed banner carrying Back to admin. Pages overwrite #main,
-       so the bar re-seats itself at the top whenever they do. */
-    viewBar(main, preview, whoName) {
+    /* View as, in the sidebar under the brand, leaders only (never rendered for members).
+       Member preview swaps it for a dashed banner carrying Back to admin. It used to sit at the
+       top of every page's header and had to re-seat itself whenever a page overwrote #main; the
+       sidebar is built once, so it does not. */
+    viewBar(side, preview, whoName) {
       const bar = document.createElement('div');
       bar.id = 'fy-viewbar';
-      bar.style.cssText = 'flex:none; display:flex; align-items:center; justify-content:flex-end; gap:10px; margin:-6px 0 -4px;';
+      bar.style.cssText = 'flex:none; display:flex; flex-direction:column; gap:8px; margin:6px 2px 8px; color:var(--neon-teal);'
+        + (preview ? ' padding:8px 10px; border:1px dashed var(--neon-teal); border-radius:8px; text-shadow:0 0 6px rgba(95,211,207,.5);' : ' padding:0 6px;');
       if (preview) {
         const who = (whoName ? ' as ' + FY.esc(whoName) : ' as a member');
-        bar.innerHTML = `<div style="flex:1; display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:6px 12px; border:1px dashed var(--neon-teal); border-radius:8px; color:var(--neon-teal); text-shadow:0 0 6px rgba(95,211,207,.5);">
-          <i class="ph ph-user-circle-gear" style="font-size:var(--ic-md)" aria-hidden="true"></i>
-          <span style="flex:1; font-size:var(--fs-sm); letter-spacing:.04em;">Previewing${who} · nothing here saves</span>
-          <button type="button" id="fy-back" class="btn btn-teal" style="min-height:32px; font-size:var(--fs-xs);">Back to admin</button></div>`;
+        bar.innerHTML = `<div style="display:flex; align-items:flex-start; gap:8px;">
+          <i class="ph ph-user-circle-gear" style="font-size:var(--ic-md); flex:none" aria-hidden="true"></i>
+          <span style="flex:1; font-size:var(--fs-xs); letter-spacing:.04em; line-height:1.35;">Previewing${who} · nothing here saves</span></div>
+          <button type="button" id="fy-back" class="btn btn-teal" style="width:100%; min-height:2rem; font-size:var(--fs-xs);">Back to admin</button>`;
         bar.querySelector('#fy-back').addEventListener('click', () => Barn.setPreview(false));
       } else {
-        bar.innerHTML = `<label style="display:flex; align-items:center; gap:8px; color:var(--neon-teal);">
-          <i class="ph ph-user-circle-gear" style="font-size:var(--ic-md)" aria-hidden="true"></i>
-          <span class="kicker">View as</span>
-          <select id="fy-viewas" class="input" aria-label="View as" style="width:auto; min-height:32px; padding:2px 8px; font-size:var(--fs-sm);"><option value="admin" selected>Admin</option><option value="member">Member</option></select></label>`;
+        bar.innerHTML = `<label style="display:flex; flex-direction:column; gap:4px; color:var(--neon-teal);">
+          <span style="display:flex; align-items:center; gap:8px;"><i class="ph ph-user-circle-gear" style="font-size:var(--ic-md)" aria-hidden="true"></i>
+          <span class="kicker">View as</span></span>
+          <select id="fy-viewas" class="input" aria-label="View as" style="width:100%; min-height:32px; padding:2px 8px; font-size:var(--fs-sm);"><option value="admin" selected>Admin</option><option value="member">Member</option></select></label>`;
         const sel = bar.querySelector('#fy-viewas');
         // Every member is an option, claimed or not: that is how a leader tests pages
         // for someone who has never signed in.
@@ -77,9 +82,8 @@
           else if (v.startsWith('member:')) Barn.setPreview(v.slice(7));
         });
       }
-      const seat = () => { if (!main.contains(bar)) main.prepend(bar); };
-      seat();
-      new MutationObserver(seat).observe(main, { childList: true });
+      const brand = side.querySelector('.fy-brand');
+      if (brand) brand.after(bar); else side.prepend(bar);
     },
 
     /* View as: a UI-only preview for leaders. It never touches the real role or any RPC.
@@ -103,7 +107,7 @@
         <img class="hank" src="assets/hank-oink.png" alt="Hank">
         <div class="centre"><h1>The Farmyard.</h1><p>Members only. Hank checks the door.</p></div>
         <div class="card thin">
-          <button type="button" id="barn-in" class="btn btn-primary" style="min-height:44px;width:100%"><i class="ph ph-discord-logo" style="font-size:20px"></i>Sign in with Discord</button>
+          <button type="button" id="barn-in" class="btn btn-primary" style="min-height:2.75rem;width:100%"><i class="ph ph-discord-logo" style="font-size:1.25rem"></i>Sign in with Discord</button>
           <span class="small">Discord is just the key. No passwords. Who you are in the yard is up to you.</span>
           <div class="rule-teal" style="margin:4px 0"></div>
           <span class="small">Not on the list yet? <a href="index.html">Join the waitlist</a></span>
@@ -133,6 +137,21 @@
       const side = document.getElementById('side');
       if (side) side.addEventListener('click', ev => { if (ev.target.closest('a')) close(); });
       document.addEventListener('keydown', ev => { if (ev.key === 'Escape') close(); });
+      // Mouse-over peek: tab and drawer roll out over 2s, hold 1s, roll back over 2s, whatever the
+      // pointer does meanwhile, so the moving tab cannot make it flicker. Opening the drawer cancels it.
+      let peekT = [];
+      const endPeek = () => { peekT.forEach(clearTimeout); peekT = []; shell.classList.remove('peek', 'peek-back'); };
+      burger.addEventListener('pointerenter', ev => {
+        if (ev.pointerType !== 'mouse' || shell.classList.contains('nav-open') || peekT.length) return;
+        shell.classList.add('peek');
+        peekT.push(setTimeout(() => { shell.classList.remove('peek'); shell.classList.add('peek-back'); }, 3000));
+        peekT.push(setTimeout(endPeek, 5100));
+      });
+      burger.addEventListener('click', endPeek);
+      // The tab tucks itself away only for people with a mouse; a touch screen cannot hover.
+      document.addEventListener('pointermove', ev => {
+        if (ev.pointerType === 'mouse') shell.classList.add('has-mouse');
+      }, { passive: true });
     },
 
     responsive() {
@@ -184,8 +203,8 @@
       root.innerHTML = `
         <div class="fy-shell" id="shell">
           <div class="fy-frame">
-            <button type="button" class="fy-burger" id="burger" aria-expanded="false" aria-controls="side">
-              <span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Menu</button>
+            <button type="button" class="fy-burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="side">
+              <svg viewBox="0 0 46 120" aria-hidden="true" focusable="false"><polygon class="tri" points="0.00,1.00 37.50,50.17 37.50,69.83 0.00,119.00"/><polyline class="edge" points="0.00,1.00 37.50,50.17 37.50,69.83 0.00,119.00"/><polyline class="ring" points="0.00,10.89 31.50,52.19 31.50,67.81 0.00,109.11" stroke-width="2.6"/><polyline class="ring" points="0.00,25.73 22.50,55.23 22.50,64.77 0.00,94.27" stroke-width="1.7"/><polyline class="ring" points="0.00,40.57 13.50,58.27 13.50,61.73 0.00,79.43" stroke-width="0.9"/></svg></button>
             <nav class="fy-side fy-sidebar" id="side" aria-label="The Barn"></nav>
             <button type="button" class="fy-scrim" id="scrim" aria-label="Close the menu" tabindex="-1"></button>
             <div class="main" id="main"></div>
@@ -193,7 +212,7 @@
         </div>`;
       Barn.drawer();
       Barn.sidebar(document.getElementById('side'), page, meView, rooms, { leader });
-      if (realLeader) Barn.viewBar(document.getElementById('main'), preview, previewName);
+      if (realLeader) Barn.viewBar(document.getElementById('side'), preview, previewName);
       return { me: meView, realMe: me, leader, preview, session, main: document.getElementById('main'), root };
     },
 
@@ -205,12 +224,12 @@
     },
 
     /* One registry row as a nav row. Parents are .fy-nav-item, children .nav-sub. */
-    _navRow(r, current, openParent, tag) {
+    _navRow(r, current, openParent, tag, deep) {
       const sub = !!r.parent_id;
       const on = current === r.id;
       const cls = sub ? 'nav-sub' : 'fy-nav-item';
-      const open = sub && openParent === r.parent_id ? ' data-open="true"' : '';
-      return `<a class="${cls}" href="${esc(Barn.stubPath(r))}" ${on ? 'aria-current="page"' : ''}${open} style="text-decoration:none">
+      const open = sub && (deep || openParent === r.parent_id) ? ' data-open="true"' : '';
+      return `<a class="${cls}" href="${esc(Barn.stubPath(r))}" ${on ? 'aria-current="page"' : ''}${open} style="text-decoration:none${deep ? '; padding-left:2.25rem' : ''}">
         <i class="${esc(r.icon)}" aria-hidden="true"></i><span style="flex:1">${esc(r.label)}</span>${tag && sub && Barn.vis(r.id, r) !== 'members' ? '<span style="font-size:var(--fs-xs); letter-spacing:.08em; text-transform:uppercase; color:var(--neon-pink-text); text-shadow:none; opacity:.8;">admin</span>' : ''}</a>`;
     },
 
@@ -221,13 +240,20 @@
       // The page id marks the current row; a current child also lights its parent's group open.
       const byId = Object.fromEntries(rooms.map(r => [r.id, r]));
       const current = byId[page] ? page : ({ yard: 'dashboard' }[page] || page);
-      const openParent = byId[current] ? (byId[current].parent_id || current) : null;
+      // The top of the current page's chain (Football's Results sits under Football under Home).
+      const rootOf = id => { let r = byId[id], n = 0; while (r && r.parent_id && n++ < 5) r = byId[r.parent_id]; return r ? r.id : null; };
+      const openParent = byId[current] ? rootOf(current) : null;
+      // A page's own sub-pages (Humidor: Vote, Results...) show only while you are on that page or one of them.
+      const within = id => { let r = byId[current], n = 0; while (r && n++ < 5) { if (r.id === id) return true; r = byId[r.parent_id]; } return false; };
       const group = (grp) => {
         const parents = rooms.filter(r => r.grp === grp && !r.parent_id && shown(r));
         return parents.map(p => Barn._navRow(p, current, openParent, leader)
           + rooms.filter(c => c.parent_id === p.id && shown(c))
-                 .map(c => Barn._navRow(c, current, openParent, leader)).join('')).join('');
+                 .map(c => Barn._navRow(c, current, openParent, leader)
+                   + (within(c.id) ? rooms.filter(g => g.parent_id === c.id && shown(g))
+                       .map(g => Barn._navRow(g, current, openParent, leader, true)).join('') : '')).join('')).join('');
       };
+      const beta = group('beta');
       const sep = '<div style="margin:8px 6px 0; border-top:1px solid color-mix(in srgb, var(--neon-teal) 35%, transparent);"></div>';
       const v = voice.get();
       side.innerHTML = `
@@ -235,8 +261,7 @@
         ${group('home')}
         <div class="fy-nav-group">Leagues</div>
         ${group('leagues')}
-        ${leader ? `<div class="fy-nav-group">In beta-testing</div>${group('beta')}` : ''}
-        ${leader ? `<a class="fy-nav-item" href="whats-next.html" ${current === 'whats-next' ? 'aria-current="page"' : ''} style="text-decoration:none"><i class="ph ph-thought-bubble" aria-hidden="true"></i><span style="flex:1">What's Next?</span></a>` : ''}
+        ${leader && beta ? `<div class="fy-nav-group">In beta-testing</div>${beta}` : ''}
         ${sep}
         <div style="display:flex; align-items:baseline; justify-content:space-between; padding:10px 6px 4px; font-size:var(--fs-xs); letter-spacing:.08em; text-transform:uppercase; color:var(--color-neutral-400);"><span>In the yard</span></div>
         <div id="fy-online" style="flex:1; display:flex; flex-direction:column; gap:2px; overflow-y:auto; min-height:48px;"></div>

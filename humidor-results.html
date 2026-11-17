@@ -6,10 +6,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-<link rel="stylesheet" href="app.css?v=20261116r">
-<link rel="stylesheet" href="farmyard.css?v=20261116r">
-<link rel="stylesheet" href="barn.css?v=20261116r">
-<link rel="stylesheet" href="humidor.css?v=20261116r">
+<link rel="stylesheet" href="app.css?v=20261117a">
+<link rel="stylesheet" href="farmyard.css?v=20261117a">
+<link rel="stylesheet" href="barn.css?v=20261117a">
+<link rel="stylesheet" href="humidor.css?v=20261117a">
 <style>
 /* 4.0 The Humidor · Results (rank and pay), ported from P15.003 HUMIDOR VOTE.dc.html.
    --hint-text-glow is read by the design's shop link but defined nowhere in the pack; this is the teal hint glow. */
@@ -20,7 +20,7 @@
 
 /* Lede */
 .hr-lede{display:flex;flex-direction:column;gap:8px}
-.hr-lede h1{margin:0;font-size:clamp(30px,5vw,44px);line-height:1.05;font-weight:500;text-wrap:balance;overflow-wrap:anywhere}
+.hr-lede h1{margin:0;font-size:clamp(1.875rem,5vw,2.75rem);line-height:1.05;font-weight:500;text-wrap:balance;overflow-wrap:anywhere}
 .hr-lede p{margin:0;font-size:var(--text-body-size);line-height:1.5;color:var(--fy-text-body);max-width:62ch;text-wrap:pretty}
 
 /* Pink tube link / button (ADD MY PREFERENCES, PAY ON REVOLUT, SUBMIT MY RANKING) */
@@ -43,7 +43,7 @@
 .hr-card.first{border:2px solid var(--neon-pink-tube);box-shadow:var(--glow-pink)}
 .hr-photo{position:relative;height:150px;border-radius:8px;overflow:hidden;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);background:var(--fy-bg)}
 .hr-photo img{display:block;width:100%;height:100%;object-fit:contain}
-.hr-photo .ph-tile{position:absolute;inset:0;display:grid;place-items:center;font-size:40px;color:color-mix(in srgb,var(--neon-teal) 40%,transparent)}
+.hr-photo .ph-tile{position:absolute;inset:0;display:grid;place-items:center;font-size:2.5rem;color:color-mix(in srgb,var(--neon-teal) 40%,transparent)}
 .hr-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .hr-top .hr-k{white-space:nowrap}
 .hr-mine{font-size:var(--text-meta);letter-spacing:.06em;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
@@ -77,7 +77,7 @@
 .hr-pay{display:flex;flex-direction:column;gap:16px;padding:18px;border:2px solid var(--neon-pink-tube);border-radius:10px;box-shadow:var(--glow-pink);background:var(--fy-bg);min-width:0}
 .hr-win{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 14px}
 .hr-win .l{display:flex;flex-direction:column;gap:4px;flex:1 1 240px;min-width:0}
-.hr-win .nm{font-size:24px;font-weight:500;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink);overflow-wrap:anywhere}
+.hr-win .nm{font-size:1.5rem;font-weight:500;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink);overflow-wrap:anywhere}
 .hr-win .meta{font-size:var(--text-small);color:var(--fy-text-secondary)}
 .hr-win .r{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
 .hr-win .r .hr-k{white-space:nowrap}
@@ -97,18 +97,18 @@
 .hr-bar .txt .full{color:var(--neon-green-text)}
 .hr-who{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:14px 18px}
 .hr-who li{display:flex;flex-direction:column;align-items:center;gap:6px;width:64px}
-.hr-who .av{position:relative;width:52px;height:52px}
-.hr-who .av img{display:block;width:52px;height:52px;border-radius:50%;border:1.5px solid var(--neon-teal);box-sizing:border-box;background:var(--fy-surface);object-fit:contain}
-.hr-who .tk{position:absolute;right:-4px;bottom:-4px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:var(--text-small);font-weight:700;line-height:1;background:var(--fy-bg);box-sizing:border-box;border:2px solid var(--neon-red-text);color:var(--neon-red-text);box-shadow:0 0 6px color-mix(in srgb,var(--neon-red-tube) 40%,transparent)}
+.hr-who .av{position:relative;width:3.25rem;height:3.25rem}
+.hr-who .av img{display:block;width:3.25rem;height:3.25rem;border-radius:50%;border:1.5px solid var(--neon-teal);box-sizing:border-box;background:var(--fy-surface);object-fit:contain}
+.hr-who .tk{position:absolute;right:-4px;bottom:-4px;width:1.375rem;height:1.375rem;border-radius:50%;display:grid;place-items:center;font-size:var(--text-small);font-weight:700;line-height:1;background:var(--fy-bg);box-sizing:border-box;border:2px solid var(--neon-red-text);color:var(--neon-red-text);box-shadow:0 0 6px color-mix(in srgb,var(--neon-red-tube) 40%,transparent)}
 .hr-who .ok .tk{border-color:var(--neon-green-text);color:var(--neon-green-text);box-shadow:0 0 6px color-mix(in srgb,var(--neon-green-tube) 45%,transparent)}
 .hr-who .nm{width:100%;text-align:center;font-size:var(--text-meta);color:var(--fy-text-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hr-who .st{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--neon-red-text);white-space:nowrap}
+.hr-who .st{font-size:0.625rem;letter-spacing:.06em;text-transform:uppercase;color:var(--neon-red-text);white-space:nowrap}
 .hr-who .ok .st{color:var(--neon-green-text)}
 .hr-foot{font-size:var(--text-meta);color:var(--fy-text-label)}
 
 /* Last round's winner */
 .hr-last{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal)}
-.hr-last .w{font-size:18px;color:var(--neon-pink-text);overflow-wrap:anywhere}
+.hr-last .w{font-size:1.125rem;color:var(--neon-pink-text);overflow-wrap:anywhere}
 .hr-last a{display:inline-flex;align-items:center;min-height:44px;align-self:flex-start;font-size:var(--text-small)}
 
 @keyframes ember{0%,100%{opacity:.75}50%{opacity:1}}
@@ -120,12 +120,12 @@
   .hr-cig .ember.lit{animation:ember 2.4s ease-in-out infinite}
 }
 </style>
-<script src="fy-clucks.js?v=20261116r"></script>
+<script src="fy-clucks.js?v=20261117a"></script>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261116r"></script><script src="app.js?v=20261116r"></script><script src="barn.js?v=20261116r"></script><script src="humidor.js?v=20261116r"></script>
+<script src="config.js?v=20261117a"></script><script src="app.js?v=20261117a"></script><script src="barn.js?v=20261117a"></script><script src="humidor.js?v=20261117a"></script>
 <script>
 /* 4.0 The Humidor · Results. Ranking (three cards, a rank select each, picking a used rank swaps the two cards,
    points bars once my ballot is in) and Paying up (winner, my share, the cigar bar, who's paid, Revolut link,
