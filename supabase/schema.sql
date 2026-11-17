@@ -481,7 +481,8 @@ declare me fy.member; v_id uuid;
 begin
   select * into me from fy.member where user_id = auth.uid();
   if me.id is null then raise exception 'sign in first' using errcode = '42501'; end if;
-  if coalesce(p_payload->>'type', '') not in ('points','iou') then raise exception 'claim type must be points or iou'; end if;
+  if coalesce(p_payload->>'type', '') not in ('points','iou','bug') then raise exception 'claim type must be points, iou or bug'; end if;
+  if p_payload->>'type' = 'bug' and length(btrim(coalesce(p_payload->>'note', ''))) = 0 then raise exception 'say what went wrong'; end if;
   if p_payload->>'type' = 'points' and coalesce(p_payload->>'points', '') !~ '^[1-9][0-9]{0,3}$' then raise exception 'points must be a whole number, 1 to 9999'; end if;
   if p_payload->>'type' = 'iou' and coalesce(p_payload->>'amount', '') !~ '^[1-9][0-9]{0,3}$' then raise exception 'amount must be a whole number, 1 to 9999'; end if;
   insert into fy.claim (league_id, member_id, payload) values (fy._league(), me.id, p_payload) returning id into v_id;
@@ -501,10 +502,10 @@ begin
       values (fy._league(), c.payload->>'type_key', leader.id, 'claim ' || c.id) returning id into v_event;
       insert into fy.score_entry (league_id, event_id, member_id, points, reason)
       values (fy._league(), v_event, c.member_id, (c.payload->>'points')::int, 'claim');
-    else
+    elsif c.payload->>'type' = 'iou' then
       insert into fy.iou (league_id, payer_id, payee_id, amount)
       values (fy._league(), (c.payload->>'payer_id')::uuid, (c.payload->>'payee_id')::uuid, (c.payload->>'amount')::int);
-    end if;
+    end if;   -- a site bug report scores nothing: approving it just marks it done
   end if;
   update fy.claim set state = case when p_approve then 'approved' else 'rejected' end,
                       decided_by = leader.id, decided_at = now() where id = p_claim;
@@ -780,8 +781,9 @@ begin
   delete from fy.poker_seat where table_id = p_table and member_id = me.id;
 end $$;
 
--- One game at a time, and any member may CLOSE it. If anyone sat down, the docket must be filed first
--- (the leader may still close an unfiled table to unstick a night).
+-- One game at a time, and any member may CLOSE it. If two or more players sat down, the docket must be
+-- filed first (the leader may still close an unfiled table to unstick a night). A table with one player
+-- or none closes freely: there is no game to record (RAY, 17 Nov).
 create or replace function fy.poker_close(p_table uuid) returns void
 language plpgsql security definer set search_path = fy, public as $$
 declare me fy.member; t fy.poker_table; v_filed boolean;
@@ -791,7 +793,7 @@ begin
   if t.id is null then raise exception 'no such table' using errcode = 'P0002'; end if;
   if t.status = 'closed' then return; end if;
   select exists (select 1 from fy.event e where e.id = t.event_id and e.voided_at is null) into v_filed;
-  if not v_filed and me.role <> 'leader' and exists (select 1 from fy.poker_seat where table_id = p_table) then
+  if not v_filed and me.role <> 'leader' and (select count(*) from fy.poker_seat where table_id = p_table) > 1 then
     raise exception 'file the docket before closing the game';
   end if;
   -- Seat rows stay as the night's record; a closed table simply stops being the live one.
@@ -1448,6 +1450,28 @@ insert into fy.room (id, label, path, icon, status, grp, parent_id, sort) values
   ('chess',           'Chess club',  'room.html?room=chess',    'ph ph-strategy',        'stub', 'next',    null,        54)
 on conflict (id) do nothing;
 
+-- Page visibility (RAY, 17 Nov): each room is 'admin' (leaders only) or 'members'. Set from Admin > Pages.
+-- Adds the column if missing, seeds the three Home sub-pages that were synthesised in barn.js,
+-- and moves Football, The Humidor and What's Next under Home. Safe to re-run.
+do $$
+declare fresh boolean := not exists (select 1 from information_schema.columns where table_schema = 'fy' and table_name = 'room' and column_name = 'visibility');
+begin
+  -- The column may already exist (the older rooms-visibility.sql adds it); everything below is safe either way.
+  alter table fy.room add column if not exists visibility text not null default 'admin';
+  if not exists (select 1 from pg_constraint where conname = 'room_visibility_check' and conrelid = 'fy.room'::regclass) then
+    alter table fy.room add constraint room_visibility_check check (visibility in ('admin','members'));
+  end if;
+  insert into fy.room (id, label, path, icon, status, grp, parent_id, sort) values
+    ('about',      'About the yard', 'about.html',      'ph ph-question',       'ship', 'home', 'dashboard', 13),
+    ('admin',      'Admin',          'admin.html',      'ph ph-gear-six',       'ship', 'home', 'dashboard', 14),
+    ('whats-next', 'What''s Next?',  'whats-next.html', 'ph ph-thought-bubble', 'ship', 'home', 'dashboard', 17)
+  on conflict (id) do nothing;
+  if fresh then update fy.room set visibility = 'members' where id in ('dashboard', 'poker'); end if;
+  update fy.room set grp = 'home', parent_id = 'dashboard', sort = 15 where id = 'football' and parent_id is distinct from 'dashboard';
+  update fy.room set grp = 'home', parent_id = 'dashboard', sort = 16 where id = 'humidor' and parent_id is distinct from 'dashboard';
+  update fy.room set grp = 'home' where parent_id in ('football', 'humidor') and grp is distinct from 'home';
+end $$;
+
 -- Yard Wall (1.2): text-only posts, one reaction per member, Hank (the leader) pins.
 create table if not exists fy.post (
   id uuid primary key default gen_random_uuid(),
@@ -1731,6 +1755,22 @@ end $$;
 grant execute on function fy.admin_set_member, fy.admin_add_iou, fy.admin_set_iou, fy.admin_delete_iou,
   fy.admin_edit_docket, fy.admin_delete_docket, fy.admin_set_pool, fy.admin_set_payout, fy.admin_delete_pool,
   fy.admin_set_room to authenticated;
+
+-- Admin > Pages: the leader sets a page to admin-only or members. A page's own sub-pages follow it.
+-- Home, Admin, Profile and Set-up are never switchable.
+create or replace function fy.admin_set_room_visibility(p_room text, p_visibility text) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_old text;
+begin
+  leader := fy._require_leader();
+  if p_visibility not in ('admin', 'members') then raise exception 'visibility must be admin or members' using errcode = '22023'; end if;
+  if p_room in ('dashboard', 'admin', 'profile', 'setup') then raise exception 'that page cannot be switched' using errcode = '22023'; end if;
+  select visibility into v_old from fy.room where id = p_room for update;
+  if v_old is null then raise exception 'no such room' using errcode = 'P0002'; end if;
+  update fy.room set visibility = p_visibility where id = p_room or parent_id = p_room;
+  perform fy._admin_log(leader.id, 'room', p_room, 'visibility', v_old, p_visibility);
+end $$;
+grant execute on function fy.admin_set_room_visibility to authenticated;
 
 -- Realtime for the wall, same guard style as the poker tables.
 do $$ begin
