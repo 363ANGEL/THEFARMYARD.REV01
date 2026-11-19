@@ -2,18 +2,18 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>The Farmyard · Dashboard</title>
+<title>The Farmyard · The Yard</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="app.css?v=20261117a">
-<link rel="stylesheet" href="farmyard.css?v=20261117a">
-<link rel="stylesheet" href="barn.css?v=20261117a">
-<script src="fy-clucks.js?v=20261117a"></script>
+<link rel="stylesheet" href="app.css?v=20261119a">
+<link rel="stylesheet" href="farmyard.css?v=20261119a">
+<link rel="stylesheet" href="barn.css?v=20261119a">
+<script src="fy-clucks.js?v=20261119a"></script>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261117a"></script><script src="app.js?v=20261117a"></script><script src="barn.js?v=20261117a"></script><script src="presence.js?v=20261117a"></script><script src="sidebar-subs.js?v=20261117a"></script>
+<script src="config.js?v=20261119a"></script><script src="app.js?v=20261119a"></script><script src="barn.js?v=20261119a"></script><script src="presence.js?v=20261119a"></script><script src="sidebar-subs.js?v=20261119a"></script>
 <script>
 /* 1.0 BARN DASHBOARD (REV C03): wall widget (Hank's pins + latest), IOUs owed to you,
    room modules. The online strip lives in the sidebar (presence.js). */
@@ -79,7 +79,7 @@
 
   main.innerHTML = `
     <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-      <div class="fy-pagehead"><h2 class="t-title-b">Dashboard</h2><span class="t-tagline">What's on in the yard tonight.</span></div>
+      <div class="fy-pagehead"><h2 class="t-title-b">The Yard</h2><span class="t-tagline">Home of The Farmyard. Everything on in the yard tonight starts here.</span></div>
     </div>
     <div id="wall-box" ${B.leader || Barn.vis('wall', rooms.find(r => r.id === 'wall')) === 'members' ? '' : 'hidden'} style="flex:none; display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;"></div>
     <div id="stand-box" class="ystandbox" style="flex:none; display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;">

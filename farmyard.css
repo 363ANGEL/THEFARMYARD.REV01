@@ -258,13 +258,16 @@ CHARACTER ART SPEC (baked into each PNG)
 @keyframes fySway { from { transform: rotate(3.5deg); } to { transform: rotate(10deg); } }
 @keyframes fyEdge { 0%, 14%, 16%, 17.5%, 41%, 43%, 44%, 45%, 46.5%, 71%, 73%, 100% { opacity: 1; } 15%, 17%, 42%, 44.5%, 45.5%, 72% { opacity: .12; } }
 @keyframes fyLetter { 0%, 91%, 93%, 96%, 100% { opacity: 1; } 92%, 95% { opacity: .18; } }
-.fy-sign { position: absolute; right: 22px; top: -6px; z-index: 3; transform-origin: 78% 0; transform: rotate(5deg); animation: fySway 6s ease-in-out infinite alternate; }
+.fy-sign { position: absolute; right: 22px; top: -6px; z-index: 3; transform-origin: 78% 0; transform: rotate(5deg); animation: fySway 6s ease-in-out infinite alternate; zoom: .55; }   /* same size as the Poker sign (RAY, 18 Nov) */
+@media (max-width: 800px) { .fy-sign { right: 12px; } }
+@media (max-width: 520px) { .fy-sign { zoom: .43; right: 8px; } }
 .fy-sign-wire { position: absolute; top: 0; width: 1px; height: 22px; background: #9eeae6; opacity: .75; transform-origin: 50% 100%; }
 .fy-sign-wire.is-l { left: 26%; transform: translateY(-4px) rotate(-12deg); }
 .fy-sign-wire.is-r { right: 18%; transform: translateY(-4px) rotate(10deg); }
-.fy-sign-plate { position: relative; display: flex; align-items: center; gap: 6px; padding: 22px 48px 20px 104px; margin-top: 20px; border-radius: 8px; background: #07090a; border: 2px solid var(--sg-tube); border-left-color: transparent; box-shadow: 0 0 4px var(--sg-tube), 0 0 12px var(--sg-glow), 0 0 28px rgba(var(--sg-rgb), .5), inset 0 0 8px rgba(var(--sg-rgb), .45), 0 10px 22px rgba(0,0,0,.55); }
+.fy-sign-plate { position: relative; display: flex; align-items: center; gap: 6px; padding: 22px 48px 20px 124px; margin-top: 20px; border-radius: 8px; background: #07090a; border: 2px solid var(--sg-tube); border-left-color: transparent; box-shadow: 0 0 4px var(--sg-tube), 0 0 12px var(--sg-glow), 0 0 28px rgba(var(--sg-rgb), .5), inset 0 0 8px rgba(var(--sg-rgb), .45), 0 10px 22px rgba(0,0,0,.55); }
 .fy-sign-edge { position: absolute; left: -2px; top: -2px; bottom: -2px; width: 16px; box-sizing: border-box; border: 2px solid var(--sg-tube); border-right: 0; border-radius: 8px 0 0 8px; box-shadow: -2px 0 4px var(--sg-tube), -8px 0 12px rgba(var(--sg-rgb), .55), inset 2px 0 8px rgba(var(--sg-rgb), .45); animation: fyEdge 13s linear infinite; }
 .fy-sign-icon { position: absolute; z-index: 2; left: -18px; top: -34px; width: 7.75rem; height: 7.75rem; display: grid; place-items: center; transform: rotate(-14deg); pointer-events: none; color: var(--neon-red-tube); font-size: 5.25rem; filter: drop-shadow(0 0 3px var(--neon-red-tube)) drop-shadow(0 0 8px var(--neon-red)); }
+.fy-sign-icon.is-ivory { color: #fff8e7; filter: drop-shadow(0 0 3px rgba(255,248,231,.75)) drop-shadow(0 0 8px rgba(255,248,231,.35)); }   /* ivory line-work calendar (RAY, 18 Nov) */
 .fy-sign-icon.is-white { filter: drop-shadow(0 0 3px #fff2f4) drop-shadow(0 0 8px rgba(255,242,244,.55)); }
 .fy-sign-icon svg { width: 100%; overflow: visible; }
 .fy-sign-title { margin: 0; font-family: var(--font-heading); font-weight: 600; font-size: var(--fs-h3); letter-spacing: .26em; color: var(--sg-text); text-shadow: 0 0 4px var(--sg-tube), 0 0 12px var(--sg-glow), 0 0 28px rgba(var(--sg-rgb), .6); }
@@ -363,8 +366,8 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
    image and a glyph line up the same way instead of each being nudged (RAY, 14 Nov). */
 .ystand th{vertical-align:middle}
 .ystand th>span.hwrap{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;line-height:1;text-align:center}   /* icon centred above its label (RAY, 17 Nov) */
-.ystand th i{font-size:calc(var(--ic-sm) * 1.5);color:var(--neon-teal);flex:none}
-.ystand th .coinhdr{width:2.55em;height:2.55em;object-fit:contain;flex:none}
+.ystand th i{font-size:calc(var(--ic-sm) * 2.25);color:var(--neon-teal);flex:none}
+.ystand th .coinhdr{width:3.83em;height:3.83em;object-fit:contain;flex:none}
 .ystand td{padding:6px 10px;border-top:1px solid var(--rule-teal);vertical-align:middle;white-space:nowrap}
 .ystand tr:hover td{background:color-mix(in srgb,var(--neon-teal) 6%,transparent)}
 .ystand .who{display:flex;align-items:center;gap:9px;font-weight:600;min-width:0}
@@ -410,8 +413,8 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
   .ystand .who .ynm{display:none}
   .ystand th,.ystand td{padding:4px 3px}
   .ystand th{letter-spacing:.04em}
-  .ystand th .coinhdr{width:1.8em;height:1.8em}
-  .ystand th i{font-size:var(--ic-sm)}
+  .ystand th .coinhdr{width:2.7em;height:2.7em}
+  .ystand th i{font-size:calc(var(--ic-sm) * 1.5)}
   .ystand th:first-child,.ystand td:first-child{padding-left:8px}
   .ystand td{font-size:1.1em}
   .ystand .lmove{margin-left:2px}
@@ -426,16 +429,17 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 --------------------------------------------------------------------------------------- */
 .fy-shell{width:100%;min-height:100vh;box-sizing:border-box;padding:16px;overflow-x:auto}
 .fy-frame{position:relative;min-height:calc(100vh - 32px);display:grid;grid-template-columns:232px minmax(0,1fr);align-items:start;min-width:860px}
-.fy-frame>.fy-side{position:sticky;top:16px;height:calc(100vh - 32px);box-sizing:border-box;overflow-y:auto}
+.fy-frame>.fy-side{position:relative;align-self:stretch;height:auto;min-height:calc(100vh - 32px);box-sizing:border-box}   /* RAY, 18 Nov: the menu grows to its full length and scrolls with the page, no scroll bar of its own */
 .fy-frame>.main{padding:18px 22px;display:flex;flex-direction:column;gap:14px;min-width:0;min-height:calc(100vh - 34px);box-sizing:border-box}
 /* Stacking, bottom to top: page, scrim (28), this tab (29), drawer (30). The tab sits behind the
    drawer so the drawer's fill and border trim it where the two meet.
    A tall triangle on the screen edge, flat side against it, point into the page. Inside, three
    outlines follow its edge all the way round, fat, thinner, thinnest, each stepped in. The clip-path is the hit area as well as the shape. */
-.fy-burger{display:none;position:fixed;left:0;top:33.333%;transform:translateY(-50%);z-index:29;width:42px;height:110px;padding:0;border:0;background:transparent;color:var(--neon-teal);cursor:pointer;clip-path:polygon(0 0,81.52% 41.81%,81.52% 58.19%,0 100%);transition:left .22s ease,transform .22s ease}
+.fy-burger{display:none;position:fixed;left:var(--bn,8.4px);top:33.333%;transform:translateY(-50%);z-index:29;width:42px;height:110px;padding:0;border:0;background:transparent;color:var(--neon-teal);cursor:pointer;clip-path:polygon(0 0,81.52% 41.81%,81.52% 58.19%,0 100%);transition:left .22s ease,transform .22s ease}
+.fy-burger{opacity:.5}   /* RAY, 18 Nov: 50% */
 .fy-burger svg{display:block;width:100%;height:100%;overflow:visible}
 .fy-burger .tri{fill:none;stroke:none}
-.fy-burger .edge{fill:none;stroke:var(--neon-teal);stroke-width:1.5;stroke-linejoin:round}
+.fy-burger .edge{fill:none;stroke:var(--neon-pink);stroke-width:1.5;stroke-linejoin:round}
 .fy-burger .ring{fill:none;stroke:currentColor;stroke-linejoin:round;filter:drop-shadow(0 0 2px var(--neon-teal)) drop-shadow(0 0 5px color-mix(in srgb,var(--neon-teal) 70%,transparent))}   /* neon glow (RAY, 17 Nov) */
 .fy-burger:focus-visible .edge{stroke:var(--neon-pink);stroke-width:2.5}
 /* With a mouse the tab stays tucked into the screen edge, a sliver showing, and rolls out when
@@ -451,20 +455,21 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 /* Mouse-over peek (RAY, 17 Nov): while the tab rolls out, the drawer slides out too, just far enough
    to show 10% of its right-hand edge, holds, then rolls back. barn.js runs the fixed timeline with
    the .peek class (2s out, 1s hold) and then .peek-back (2s back); a click opens the drawer as normal. */
-.fy-shell.has-mouse.peek .fy-burger{left:calc(min(282px,82%) * .1);transform:translateY(-50%);transition:left 2s ease 0s,transform 2s ease 0s}
+.fy-shell{--drawer-w:clamp(210px,62%,282px)}  /* phone menu drawer: scales with the screen, 210px floor, 282px cap */
+.fy-shell.has-mouse.peek .fy-burger{left:calc(var(--drawer-w) * .1 + var(--bn,8.4px));transform:translateY(-50%);transition:left 2s ease 0s,transform 2s ease 0s}
 .fy-shell.has-mouse.peek-back .fy-burger{transition:left 2s ease 0s,transform 2s ease 0s}
 .fy-scrim{display:none;position:absolute;inset:0;z-index:28;border:0;padding:0;background:rgba(5,6,12,.62);opacity:0;pointer-events:none;transition:opacity .22s ease}
 @media (max-width:860px){
   .fy-shell{padding:8px}
   .fy-frame{grid-template-columns:minmax(0,1fr);min-width:0}
-  .fy-frame>.fy-side{position:absolute;left:0;top:0;bottom:0;height:auto;z-index:30;background:var(--fy-bg);width:min(282px,82%);border-right:1px solid var(--neon-teal);box-shadow:6px 0 24px -6px rgba(0,0,0,.7);transform:translateX(-101%);transition:transform .22s ease}
+  .fy-frame>.fy-side{position:absolute;left:0;top:0;bottom:0;height:auto;min-height:0;overflow-y:auto;z-index:30;background:var(--fy-bg);width:var(--drawer-w);border-right:1px solid var(--neon-teal);box-shadow:6px 0 24px -6px rgba(0,0,0,.7);transform:translateX(-101%);transition:transform .22s ease}
   .fy-shell.nav-open .fy-side{transform:none}
   .fy-shell.has-mouse.peek .fy-side{transform:translateX(-90%);transition:transform 2s ease 0s}
   .fy-shell.has-mouse.peek-back .fy-side{transition:transform 2s ease 0s}
   .fy-burger{display:inline-flex}
   .fy-scrim{display:block}
   .fy-shell.nav-open .fy-scrim{opacity:1;pointer-events:auto}
-  .fy-shell.nav-open .fy-burger{left:min(282px,82%)}
+  .fy-shell.nav-open .fy-burger{left:calc(var(--drawer-w) + var(--bn,8.4px))}   /* --bn = 20% of the tab's 42px width (RAY, 18 Nov) */
   .fy-frame>.main{padding:14px 12px}
 }
 @media (prefers-reduced-motion:reduce){.fy-frame>.fy-side,.fy-scrim,.fy-burger{transition:none}}

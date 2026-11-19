@@ -39,6 +39,10 @@
 .pk-btn.green:hover{background:transparent;color:var(--neon-green-text);animation:tubeFlicker 1.4s steps(1,end) infinite;box-shadow:0 0 6px var(--neon-green),0 0 18px var(--neon-green),0 0 40px rgba(10,158,67,.65),inset 0 0 10px rgba(10,158,67,.8)}
 .pk-btn.red{border-color:var(--neon-red-tube);color:var(--neon-red-text);text-shadow:var(--text-glow-red);box-shadow:var(--glow-red);letter-spacing:.14em;font-weight:700}
 .pk-btn.red:hover{background:transparent;color:#ffd6db;text-shadow:0 0 6px var(--neon-red),0 0 16px var(--neon-red);box-shadow:0 0 6px var(--neon-red),0 0 18px var(--neon-red),0 0 40px rgba(232,38,58,.65),inset 0 0 10px rgba(232,38,58,.45)}
+/* OPEN POKERNOW only appears once the seat countdown has finished; it breathes so it gets noticed (RAY, 18 Nov). */
+@keyframes greenBreathe{0%,100%{box-shadow:0 0 2px rgba(10,158,67,.35);text-shadow:none;border-color:rgba(63,224,127,.45)}50%{box-shadow:0 0 6px var(--neon-green),0 0 18px var(--neon-green),0 0 36px rgba(10,158,67,.55),inset 0 0 8px rgba(10,158,67,.5);text-shadow:var(--text-glow-green);border-color:var(--neon-green-tube)}}
+.pk-btn.green.breathe{animation:greenBreathe 2.2s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.pk-btn.green.breathe{animation:none}}
 .pk-btn.sm{min-width:0;min-height:1.75rem;padding:0 0.75rem;font-size:0.625rem}
 .pk-btn.ghost{border-width:1px;border-color:var(--rule-teal);box-shadow:none;text-shadow:none;color:var(--fy-text-secondary)}
 /* unlit glass */
@@ -47,7 +51,7 @@
 .pk-btn.off.red,.pk-btn.red:disabled{color:rgba(232,38,58,.38);border-color:rgba(168,0,22,.35)}
 .pk-btn.off:not(.green):not(.red),.pk-btn:disabled:not(.green):not(.red){color:rgba(255,127,191,.38);border-color:rgba(224,21,127,.35)}
 /* small green pills inside the felt (PASTE / OPEN TABLE / GO TO TABLE) */
-.pk-mini{height:22px;padding:0 12px;background:transparent;border:1.5px solid var(--neon-green-tube);border-radius:5px;box-shadow:0 0 6px var(--neon-green),0 0 16px rgba(10,158,67,.45),inset 0 0 6px rgba(10,158,67,.3);color:var(--neon-green-text);text-shadow:0 0 6px var(--neon-green);font:inherit;font-size:0.5625rem;font-weight:700;letter-spacing:.14em;cursor:pointer;display:inline-flex;align-items:center;text-decoration:none;box-sizing:border-box;white-space:nowrap}
+.pk-mini{height:1.375rem;padding:0 .75rem;background:transparent;border:1.5px solid var(--neon-green-tube);border-radius:5px;box-shadow:0 0 6px var(--neon-green),0 0 16px rgba(10,158,67,.45),inset 0 0 6px rgba(10,158,67,.3);color:var(--neon-green-text);text-shadow:0 0 6px var(--neon-green);font:inherit;font-size:0.5625rem;font-weight:700;letter-spacing:.14em;cursor:pointer;display:inline-flex;align-items:center;text-decoration:none;box-sizing:border-box;white-space:nowrap}
 .pk-mini:hover{color:var(--neon-green-text);box-shadow:0 0 6px var(--neon-green),0 0 18px var(--neon-green),0 0 32px rgba(10,158,67,.6),inset 0 0 8px rgba(10,158,67,.6)}
 
 /* checklist + sign. Border breathes teal while idle, red while a game is live. */
@@ -84,11 +88,24 @@
 .pk-fs:hover,.pk-fs:focus-visible{opacity:1;background:rgba(7,9,10,.82);color:#fff;outline:0;box-shadow:0 0 10px var(--neon-teal),0 0 24px rgba(95,211,207,.6),inset 0 0 8px rgba(95,211,207,.35)}
 .pk-fs:hover svg,.pk-fs:focus-visible svg{filter:drop-shadow(0 0 3px var(--neon-teal)) drop-shadow(0 0 7px var(--neon-teal))}
 @media (max-width:860px){.pk-fs{display:flex}}
+/* Replay card: the header image fills the module once the video has played through (RAY, 18 Nov). */
+.pk-replay{position:absolute;inset:0;z-index:1;padding:0;cursor:pointer;border:2px solid rgba(158,234,230,.72);border-radius:12px;background:#07090a url("assets/header.poker.webp") center/cover no-repeat;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.pk-replay[hidden]{display:none}
+.pk-play{display:flex;align-items:center;justify-content:center;width:4rem;height:4rem;border-radius:50%;border:2px solid var(--neon-teal);background:rgba(7,9,10,.82);color:#fff;padding-left:3px;opacity:0;transform:scale(.9);transition:opacity .2s ease,transform .2s ease;box-shadow:0 0 10px var(--neon-teal),0 0 24px rgba(95,211,207,.6)}
+.pk-replay:hover .pk-play,.pk-replay:focus-visible .pk-play{opacity:1;transform:none}
+@media (hover:none){.pk-play{opacity:.85;transform:none}}   /* no roll over on touch: keep it showing */
+.pk-tutwrap.ended:not(.pk-pfs) .pk-fs{display:none}
+/* The header image is 4:1, the video box 64:27. A box 20% wider for its height shows 20% more of the image (RAY, 18 Nov). */
+.pk-tutwrap.ended:not(.pk-pfs){aspect-ratio:76.8/27;max-height:383px}
+.pk-tutwrap.ended:not(.pk-pfs) .pk-tut{display:none}
+.pk-tutwrap.pk-pfs .pk-replay{border:0;border-radius:0}
+/* Held upright the video is turned on its side, so the screen's top-right corner is the box's top-left (RAY, 18 Nov: X on the right). */
+@media (orientation:portrait){.pk-tutwrap.pk-pfs button.pk-fs{left:12px;right:auto}}
 .pk-tutwrap.pk-pfs{position:fixed;inset:0;z-index:200;background:#000;display:flex;align-items:center;justify-content:center}
 .pk-tutwrap.pk-pfs .pk-tut{width:100%;height:100%;max-height:none;aspect-ratio:auto;border:0;border-radius:0}
 /* Held upright in portrait, the filled-window video turns on its side so it fills the screen like a landscape player (RAY, 17 Nov). */
 @media (orientation:portrait){.pk-tutwrap.pk-pfs{inset:auto;top:0;left:0;width:100vh;height:100vw;width:100dvh;height:100dvw;transform-origin:top left;transform:rotate(90deg) translateY(-100%)}}
-.pk-tutwrap.pk-pfs .pk-fs{display:flex;left:auto;top:12px;right:12px;transform:none;width:3rem;height:3rem}
+.pk-tutwrap.pk-pfs .pk-fs{display:flex;left:auto;top:12px;right:12px;bottom:auto;transform:none;width:3rem;height:3rem;opacity:1;z-index:2;border-color:var(--neon-pink);color:#fff;background:rgba(7,9,10,.82);box-shadow:0 0 10px var(--neon-pink),0 0 22px rgba(255,79,163,.45)}   /* always-visible exit X while maximised */
 .pk-tut{display:block;width:100%;aspect-ratio:64/27;max-height:460px;object-fit:contain;border:2px solid rgba(158,234,230,.72);border-radius:12px;background:#07090a}
 /* The play mark is drawn here, not taken from the icon set: ph-play-circle is not in it
    and a missing name renders as a solid black square (RAY spotted it again, 16 Nov). */
@@ -132,7 +149,7 @@
 .pk-felt .inner{position:absolute;left:21.83%;right:21.83%;top:28.73%;bottom:28.73%;border-radius:50%;border:1px solid rgba(158,234,230,.14)}
 .pk-felt .buyin{position:absolute;left:50%;top:29%;transform:translateX(-50%);min-width:12%;padding:2px 10px;border-radius:999px;border:1px solid rgba(158,234,230,.4);background:rgba(10,26,26,.8);text-align:center;font-size:0.6875rem;font-weight:700;font-variant-numeric:tabular-nums;color:#c8f4f2;text-shadow:0 0 6px rgba(95,211,207,.6);box-sizing:border-box;white-space:nowrap}
 .pk-felt .mid{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
-.pk-felt .mid input{width:180px;max-width:60vw;height:26px;box-sizing:border-box;padding:0 10px;text-align:center;background:rgba(0,0,0,.35);border:1px solid var(--neon-teal);border-radius:999px;box-shadow:0 0 6px rgba(95,211,207,.45),inset 0 0 6px rgba(95,211,207,.2);color:#f2fbfb;font:inherit;font-size:0.625rem;letter-spacing:.1em;outline:none;animation:boxRedFlash 1.2s steps(1,end) infinite}
+.pk-felt .mid input{width:11.25rem;max-width:60vw;height:1.625rem;box-sizing:border-box;padding:0 .625rem;text-align:center;background:rgba(0,0,0,.35);border:1px solid var(--neon-teal);border-radius:999px;box-shadow:0 0 6px rgba(95,211,207,.45),inset 0 0 6px rgba(95,211,207,.2);color:#f2fbfb;font:inherit;font-size:0.625rem;letter-spacing:.1em;outline:none;animation:boxRedFlash 1.2s steps(1,end) infinite}
 .pk-felt .mid input::placeholder{color:inherit;opacity:.9}
 .pk-felt .mid .hint{max-width:230px;font-size:0.625rem;line-height:1.4;color:#c8f4f2;text-shadow:0 0 6px var(--neon-teal)}
 .pk-felt .wait{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);max-width:220px;padding:6px 12px;border:1px solid rgba(158,234,230,.5);border-radius:999px;background:rgba(10,26,26,.8);font-size:0.625rem;letter-spacing:.1em;text-align:center;color:#c8f4f2;text-shadow:0 0 6px var(--neon-teal);animation:vcBreathe 3s ease-in-out infinite;white-space:nowrap}
@@ -190,6 +207,7 @@
 .pk-docket .in{padding:16px 18px 14px;display:flex;flex-direction:column;gap:14px}
 .pk-docket .hd{display:flex;align-items:baseline;gap:12px}
 .pk-docket .hd .t{flex:1;font-size:0.9375rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#c8f4f2;text-shadow:0 0 6px var(--neon-teal),0 0 16px rgba(95,211,207,.4)}
+.pk-docket .sub{margin-top:-2px;font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;line-height:1.15;color:var(--color-neutral-400);text-align:left}
 .pk-docket .hd .no{font-size:1.125rem;font-weight:800;letter-spacing:.06em;font-variant-numeric:tabular-nums;color:var(--neon-red-text);text-shadow:0 0 4px var(--neon-red-tube),0 0 12px var(--neon-red)}
 .pk-dgrid{display:grid;grid-template-columns:minmax(0,1fr) 104px 44px;align-items:center}
 .pk-dhead{padding:0 0 6px;border-bottom:1px solid rgba(95,211,207,.5);font-size:0.625rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#c8f4f2;text-shadow:0 0 5px var(--neon-teal)}
@@ -210,7 +228,7 @@
 .pk-docket button:disabled{cursor:default;opacity:.6}
 .pk-docket .ft{display:flex;gap:12px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
 .pk-docket .sum{flex:1 1 160px;font-size:0.75rem;color:var(--color-neutral-300)}
-.pk-docket .file{min-height:40px;padding:0 20px;border-radius:8px;font-size:0.8125rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;border:2px solid var(--neon-green-tube);color:var(--neon-green-text);text-shadow:var(--text-glow-green);box-shadow:0 0 4px var(--neon-green-tube),0 0 14px var(--neon-green),inset 0 0 8px rgba(10,158,67,.35);background:transparent;cursor:pointer;font-family:inherit}
+.pk-docket .file{min-height:2.5rem;padding:0 1.25rem;border-radius:.5rem;font-size:0.8125rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;border:2px solid var(--neon-green-tube);color:var(--neon-green-text);text-shadow:var(--text-glow-green);box-shadow:0 0 4px var(--neon-green-tube),0 0 14px var(--neon-green),inset 0 0 8px rgba(10,158,67,.35);background:transparent;cursor:pointer;font-family:inherit}
 .pk-docket .file:disabled{border-color:rgba(95,211,207,.25);color:rgba(200,244,242,.35);text-shadow:none;box-shadow:none;cursor:not-allowed;opacity:1}
 .pk-stamp{position:absolute;right:22px;top:40%;padding:4px 14px;border:3px solid var(--neon-red-tube);border-radius:8px;transform:rotate(-12deg);color:var(--neon-red-text);background:rgba(15,20,22,.6);font-size:1.625rem;font-weight:900;letter-spacing:.12em;text-shadow:0 0 6px var(--neon-red-tube),0 0 16px var(--neon-red);box-shadow:0 0 6px var(--neon-red-tube),0 0 18px var(--neon-red),inset 0 0 8px rgba(168,0,22,.5);pointer-events:none;animation:stampIn .35s cubic-bezier(.2,1.6,.4,1)}
 
@@ -244,7 +262,7 @@
 .pk-lrow .medal.copper{color:#d9894f;text-shadow:0 0 4px #b8692f,0 0 12px rgba(184,105,47,.75),0 0 22px rgba(184,105,47,.35)}
 .pk-lrow .up{font-size:0.8125rem;color:#3fd978;text-shadow:0 0 6px var(--neon-green-tube),0 0 12px var(--neon-green)}
 .pk-lrow .down{font-size:0.8125rem;color:#ff3b52;text-shadow:0 0 6px var(--neon-red-tube),0 0 12px var(--neon-red)}
-.pk-board .foot{font-size:0.6875rem;line-height:1.5;letter-spacing:.04em;color:var(--color-neutral-400);text-align:center;text-wrap:pretty}
+.pk-board .foot{font-size:0.6875rem;line-height:1.5;letter-spacing:.04em;color:var(--color-neutral-400);text-align:left;text-wrap:pretty}
 .pk-empty{padding:18px 8px;text-align:center;font-size:0.8125rem;color:var(--color-neutral-400)}
 .pk-debts{flex:2 1 280px;display:flex;flex-direction:column;gap:4px;padding:16px 14px 14px}
 .pk-debts .ttl{padding-bottom:6px}

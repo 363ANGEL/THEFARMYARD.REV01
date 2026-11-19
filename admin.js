@@ -513,7 +513,7 @@
         <input class="input" id="ai-note" placeholder="why" style="min-height:40px">
         <button class="btn btn-primary" style="min-height:2.5rem">Add IOU</button></form></div>
       <div class="acard"><span class="t-module">Claims waiting</span>
-      ${claims.map(c => { const p = c.payload; const bug = p.type === 'bug'; const what = bug ? 'a site bug fixed' : p.type === 'points' ? `${Number(p.points)} ${esc(p.type_key)} points` : `${esc(nick(p.payer_id))} owes ${esc(nick(p.payee_id))} ${Number(p.amount)}`;
+      ${claims.map(c => { const p = c.payload; const bug = p.type === 'bug'; const what = bug ? ({ docket: 'a poker docket problem looked at', profile: 'a user profile problem looked at', ledger: 'a change to the recorded ledger', bug: 'a site bug fixed' }[p.category] || 'a site bug fixed') : p.type === 'points' ? `${Number(p.points)} ${esc(p.type_key)} points` : `${esc(nick(p.payer_id))} owes ${esc(nick(p.payee_id))} ${Number(p.amount)}`;
         return `<div style="display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid rgba(95,211,207,.22);font-size:var(--fs-sm)"><span style="flex:1"><strong>${esc(nick(c.member_id))}</strong> asks for ${what}<br><span style="color:var(--fy-text-label)">${esc(p.note || '')}</span></span>
         <button class="rowbtn" data-claim="${c.id}" data-ok="1">${bug ? 'Done' : 'Approve'}</button><button class="rowbtn warn" data-claim="${c.id}" data-ok="0">${bug ? 'Dismiss' : 'Reject'}</button></div>`; }).join('') || '<span style="font-size:var(--fs-sm);color:var(--fy-text-label)">Nothing waiting.</span>'}</div>`;
     pane.addEventListener('click', async ev => {

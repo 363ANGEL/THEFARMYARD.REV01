@@ -5,15 +5,15 @@
 <title>The Farmyard · About</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="app.css?v=20261117a">
-<link rel="stylesheet" href="farmyard.css?v=20261117a">
-<link rel="stylesheet" href="barn.css?v=20261117a">
-<script src="fy-clucks.js?v=20261117a"></script>
+<link rel="stylesheet" href="app.css?v=20261119a">
+<link rel="stylesheet" href="farmyard.css?v=20261119a">
+<link rel="stylesheet" href="barn.css?v=20261119a">
+<script src="fy-clucks.js?v=20261119a"></script>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261117a"></script><script src="app.js?v=20261117a"></script><script src="barn.js?v=20261117a"></script><script src="presence.js?v=20261117a"></script><script src="sidebar-subs.js?v=20261117a"></script>
+<script src="config.js?v=20261119a"></script><script src="app.js?v=20261119a"></script><script src="barn.js?v=20261119a"></script><script src="presence.js?v=20261119a"></script><script src="sidebar-subs.js?v=20261119a"></script>
 <script>
 /* 0.3 About — public (no session needed). Room Template layout with room=About.
    COPY TBD: placeholder until Hank writes the About copy (HANDOFF: copy added during the build). */
@@ -21,12 +21,12 @@ const ABOUT = { title: 'About', tag: 'The Farmyard, in a few lines.', head: 'Abo
 const SIGN = `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--neon-teal);--sg-glow:var(--neon-teal);--sg-rgb:95,211,207;--sg-text:#c8f4f2">
   <span class="fy-sign-wire is-l"></span><span class="fy-sign-wire is-r"></span>
   <div class="fy-sign-plate"><span class="fy-sign-edge" aria-hidden="true"></span>
-    <span class="fy-sign-icon" aria-hidden="true"><svg viewBox="0 0 100 110" aria-hidden="true"><g fill="currentColor"><rect x="14" y="14" width="72" height="30" rx="6"/><rect x="43" y="42" width="14" height="60" rx="5"/></g></svg></span>
+    <span class="fy-sign-icon is-ivory" aria-hidden="true"><svg viewBox="0 0 100 110" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="22" width="76" height="76" rx="10"/><path d="M12 46h76M32 10v22M68 10v22"/></g></svg></span>
     <h2 class="fy-sign-title">UNDER&nbsp;C<span class="is-flick">O</span>NSTRUCTION</h2>
   </div></div>`;
 const block = esc => `
   <div class="fy0-head" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:8px 16px;">
-    <h1 style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:clamp(1.75rem,5vw,3rem); letter-spacing:-.01em;">${esc(ABOUT.title)}</h1>
+    <div class="fy-pagehead"><h1 class="t-title-b" style="margin:0;">${esc(ABOUT.title)}</h1></div>
   </div>
   <div style="display:flex; flex-direction:column; gap:10px; padding:16px 18px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); min-width:0; max-width:720px;">
     <span class="kicker">Current concept</span>

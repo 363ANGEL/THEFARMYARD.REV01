@@ -90,7 +90,7 @@
     // Sound on (RAY, 17 Nov). Browsers only allow that without a tap when the visitor has already
     // used the site (Chrome, desktop). Where it is refused it starts muted instead, and the first
     // tap or key press anywhere on the page switches the sound on, since that tap is allowed to.
-    v.volume = 0.6;   // starts at 60% (RAY, 17 Nov); touch browsers ignore this and use the phone's own volume
+    v.volume = 0.2;   // starts at 20% (RAY, 18 Nov; was 60%); touch browsers ignore this and use the phone's own volume
     const go = () => {
       if (v.ended || !v.paused) return;
       v.muted = false;
@@ -123,8 +123,11 @@
       $('steps').innerHTML =
         '<div class="pk-howto">How it works...</div>' +
         '<div class="pk-tutwrap">' +
-        '<video class="pk-tut" controls playsinline preload="auto" src="assets/poker.tutorial.mp4?v=20261117a">' +
-        '<a href="assets/poker.tutorial.mp4?v=20261117a">Download the tutorial</a></video>' +
+        '<video class="pk-tut" controls playsinline preload="auto" src="assets/poker.tutorial.mp4?v=20261119a">' +
+        '<a href="assets/poker.tutorial.mp4?v=20261119a">Download the tutorial</a></video>' +
+        // After one full play the header image fills the module; a play button shows on roll over to run it again (RAY, 18 Nov).
+        '<button type="button" class="pk-replay" id="pkreplay" aria-label="Play the tutorial again" hidden>' +
+        '<span class="pk-play"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span></button>' +
         // Big centred full screen button, shown on small screens where the native one is tiny (RAY, 16 Nov).
         '<button type="button" class="pk-fs" id="pkfs" aria-label="Full screen">' +
         '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
@@ -137,6 +140,10 @@
         wrap.classList.toggle('pk-pfs', on);
         document.documentElement.style.overflow = on ? 'hidden' : '';
         fsb.setAttribute('aria-label', on ? 'Exit full screen' : 'Full screen');
+        // Maximised: the corner button becomes a clear X that minimises it (RAY, 18 Nov).
+        fsb.querySelector('svg').innerHTML = on
+          ? '<path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>'
+          : '<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>';
       };
       document.addEventListener('fullscreenchange', () => {
         if (!document.fullscreenElement) { try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {} }
@@ -156,6 +163,16 @@
         setTimeout(fail, 500);
         if (tv.paused) { const p = tv.play(); if (p && p.catch) p.catch(() => {}); }
       });
+      const rep = $('pkreplay');
+      tv.addEventListener('ended', () => {
+        try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
+        rep.hidden = false; wrap.classList.add('ended');
+      });
+      rep.addEventListener('click', () => {
+        rep.hidden = true; wrap.classList.remove('ended');
+        tv.currentTime = 0; tv.muted = false;
+        const p = tv.play(); if (p && p.catch) p.catch(() => {});
+      });
       startTutorial(tv);
     }
   }
@@ -163,7 +180,8 @@
     const t = ev.target.closest('a,button'); if (!t) return;
     if (t.id === 'close') {
       if (!S.cur) return;
-      if (S.cur.seats.length > 1 && !filed() && !isLeader) {   // rule 6: two or more sat → the docket must be filed first; a lone player may just close (RAY, 17 Nov)
+      if (!isHost()) return;
+      if (S.cur.seats.length > 1 && !filed()) {   // rule 6: two or more sat → the docket must be filed first; a lone player may just close (RAY, 17 Nov)
         S.closeTip = true; renderTableBtns(); clearTimeout(S.closeTipT); S.closeTipT = setTimeout(() => { S.closeTip = false; renderTableBtns(); }, 5000); return;
       }
       if (!arm(t, 'Tap again to close')) return;
@@ -180,7 +198,7 @@
     col.hidden = false;
     if (S.shell !== key) {
       S.shell = key;
-      col.innerHTML = `<div class="pk-table"><div class="pk-tablehd"><span class="pk-kicker pk-tealtext">Tonight's table</span><span class="btns" id="tablebtns"></span></div>
+      col.innerHTML = `<div class="pk-table"><div class="pk-tablehd"><span class="t-module">Tonight's table</span><span class="btns" id="tablebtns"></span></div>
         <div class="pk-felt" id="felt"><div class="rail"></div><div class="cloth"></div><div class="inner"></div>
           <div class="buyin">1000 Buy-In</div><div id="mid"></div><div id="seatsl"></div><div id="seatpop"></div></div></div>`;
       midSig = '';
@@ -192,7 +210,9 @@
     const el = $('tablebtns'); if (!el) return;
     const live = !!S.cur, host = isHost();
     const note = S.closeTip ? tip('Complete the <strong>Table Docket</strong> card and press <strong>FILE DOCKET</strong> before closing the game.') : '';
-    el.innerHTML = (live && host ? '<button type="button" id="close" class="pk-btn red">CLOSE</button>' : '') + note;
+    // Only the player who started the game sees CLOSE, and it stays dead until the docket is filed (a lone player may just close). RAY, 18 Nov.
+    const canClose = live && (filed() || S.cur.seats.length <= 1);
+    el.innerHTML = (live && host ? `<button type="button" id="close" class="pk-btn red" ${canClose ? '' : 'disabled title="File the docket first"'}>CLOSE</button>` : '') + note;
   }
   let midSig = '';
   function renderMid() {
@@ -254,6 +274,9 @@
     const dash = n => `<span class="dash"><svg aria-hidden="true" viewBox="0 0 57 57"><circle class="base" cx="28.5" cy="28.5" r="27"></circle><circle class="chase" cx="28.5" cy="28.5" r="27"></circle></svg>${n + 1}</span>`;
     el.innerHTML = SEAT_XY.map(([x, y], n) => {
       const pos = `left:${x}%;top:${y}%`, p = taken[n];
+      // The initiator's seat is only held until a valid PokerNow game link has been submitted (the server
+      // checks the address); it shows as taken, with the face, once the link is in. RAY, 18 Nov.
+      if (p && p.member_id === c.started_by && !c.pokernow_url) return `<div class="pk-seat held" style="${pos}"><span class="col">${dash(n)}<span class="who" style="opacity:.75">Held</span></span></div>`;
       if (p) return `<div class="pk-seat taken ${p.member_id === me.id ? 'me' : ''}" style="${pos}"><span class="col">${FY.faceRing(p, 57, p.nickname)}<span class="who">${esc(p.table_name)}</span></span></div>`;
       return `<div class="pk-seat" style="${pos}"><span class="col">${dash(n)}</span></div>`;
     }).join('');
@@ -276,7 +299,7 @@
       ? `<div class="clock"><span class="face"><span class="dot"></span><i style="width:2.5px;height:15px;margin-left:-1.25px;background:#f2fbfb;animation:handSpin 16s linear infinite"></i><i style="width:1.5px;height:21px;margin-left:-.75px;background:#9eeae6;box-shadow:0 0 4px var(--neon-teal);animation:handSpin 1.6s linear infinite"></i></span><span class="count" id="count">${S.seat.count}</span></div>`
       : `<label>FARMYARD NAME<div class="field locked"><i class="ph-light ph-lock-simple" style="${lock};color:var(--neon-red-tube);text-shadow:var(--text-glow-red)"></i><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(me.nickname)}</span></div></label>
          <label>TABLE NAME<div class="field edit"><i class="ph-light ph-lock-simple-open" style="${lock};color:var(--neon-green-tube);text-shadow:var(--text-glow-green)"></i><input id="tname" value="${esc(S.seat.name)}" maxlength="16" placeholder="${esc(me.nickname)}" autocomplete="off"></div><span class="hint">Try an Alt Tag On? (Just for the table)</span></label>`;
-    const note = busy ? `<div class="note">Your table name has been copied to your clipboard.<span style="display:block;height:.8em"></span><span style="display:block;white-space:nowrap;font-size:0.75rem">TAKE <b>SEAT ${selIdx() + 1}</b> ON POKERNOW.</span>${S.seat.hint ? '<span style="display:block;margin-top:8px;font-size:0.75rem">Allow popups for the-farmyard.com to open PokerNow beside the yard.</span>' : ''}${S.seat.blocked && S.seat.url ? `<a class="pk-btn green sm" style="margin-top:8px" href="${esc(S.seat.url)}" target="_blank" rel="noopener">OPEN POKERNOW</a>` : ''}</div>` : '';
+    const note = busy ? `<div class="note">Your table name has been copied to your clipboard.<span style="display:block;height:.8em"></span><span style="display:block;white-space:nowrap;font-size:0.75rem">TAKE <b>SEAT ${selIdx() + 1}</b> ON POKERNOW.</span>${S.seat.hint ? '<span style="display:block;margin-top:8px;font-size:0.75rem">Allow popups for the-farmyard.com to open PokerNow beside the yard.</span>' : ''}${S.seat.blocked && S.seat.url ? `<a class="pk-btn green sm breathe" style="margin-top:8px" href="${esc(S.seat.url)}" target="_blank" rel="noopener">OPEN POKERNOW</a>` : ''}</div>` : '';
     pop.innerHTML = `<div class="pk-pop${again ? ' again' : ''}${S.seat.phase === 'done' ? ' done' : ''}" style="left:${x}%;transform:translateX(-${shift}%);top:${above ? 'auto' : (y + 9) + '%'};bottom:${above ? (100 - y + 9) + '%' : 'auto'}" role="dialog" aria-label="Take seat ${selIdx() + 1}">
       ${body}<button type="button" id="take" class="pk-btn green take ${busy ? 'off' : ''}">TAKE THE SEAT</button>${note}
       <span class="arrow" style="left:${shift}%;top:${above ? 'auto' : '-9px'};bottom:${above ? '-9px' : 'auto'};transform:translateX(-50%) rotate(${above ? 45 : 225}deg)"></span></div>`;
@@ -344,11 +367,12 @@
     const foot = filed() ? 'Filed. Change it from <em>Just filed</em> in Poker debts within 15 minutes.'
       : !mine() ? `Only ${nick(c.started_by)} files the docket.`
       : !seats.length ? 'Nobody is seated yet.'
-      : picked.length === 0 ? 'Give each player their buy-ins with <strong>+</strong>, then crown the winner.'
+      : picked.length === 0 ? 'Use the <strong>+/-</strong> to reflect the number of buy-ins per player. Then select the game winner with the crown icon.'
       : picked.length === 1 ? 'A game needs at least two players with buy-ins.'
       : !S.winner ? 'Crown the winner to file.' : '';
     $('docketcol').innerHTML = `<div class="pk-docket"><div class="in">
-      <div class="hd"><span class="t">Table Docket</span><span class="no">No. ${no}</span></div>
+      <div class="hd"><span class="t">Game Ledger</span><span class="no">No. ${no}</span></div>
+      <div class="sub">Filed by the table initiator at game end. (1 completed per game)</div>
       <div><div class="pk-dgrid pk-dhead"><span>Who played</span><span>Buy-ins</span><span>Won</span></div>${rows || '<p class="pk-empty">Seats fill in here as members sit down.</p>'}</div>
       <div class="ft">${foot ? `<span class="sum">${foot}</span>` : ''}<button type="button" class="file" id="file" ${ready ? '' : 'disabled'}>File docket</button></div></div>
       ${S.stamp || filed() ? '<span class="pk-stamp">FILED</span>' : ''}</div>`;

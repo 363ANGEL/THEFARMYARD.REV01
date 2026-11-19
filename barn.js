@@ -264,7 +264,7 @@
         ${leader && beta ? `<div class="fy-nav-group">In beta-testing</div>${beta}` : ''}
         ${sep}
         <div style="display:flex; align-items:baseline; justify-content:space-between; padding:10px 6px 4px; font-size:var(--fs-xs); letter-spacing:.08em; text-transform:uppercase; color:var(--color-neutral-400);"><span>In the yard</span></div>
-        <div id="fy-online" style="flex:1; display:flex; flex-direction:column; gap:2px; overflow-y:auto; min-height:48px;"></div>
+        <div id="fy-online" style="flex:none; display:flex; flex-direction:column; gap:2px; min-height:5.25rem; padding:8px 6px;"></div>
         ${sep}
         <div class="fy-voice-head" id="vc">Voice channel</div>
         <button type="button" class="fy-voice fy-voice-live ${v === 'lounge' ? 'is-on' : ''}" data-voice="lounge"><i class="ph ph-speaker-high" style="font-size:var(--ic-sm)"></i><span style="flex:1">LIVE CHANNEL<small>Voice via Discord</small></span><span id="fy-vc-live" style="font-size:var(--fs-xs); font-weight:400; letter-spacing:0; color:var(--color-neutral-400); text-shadow:none;">OFF AIR</span></button>

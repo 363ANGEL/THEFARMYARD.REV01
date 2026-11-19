@@ -6,10 +6,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-<link rel="stylesheet" href="app.css?v=20261117a">
-<link rel="stylesheet" href="farmyard.css?v=20261117a">
-<link rel="stylesheet" href="barn.css?v=20261117a">
-<script src="fy-clucks.js?v=20261117a"></script>
+<link rel="stylesheet" href="app.css?v=20261119a">
+<link rel="stylesheet" href="farmyard.css?v=20261119a">
+<link rel="stylesheet" href="barn.css?v=20261119a">
+<script src="fy-clucks.js?v=20261119a"></script>
 <style>
 .pcard{display:flex;flex-direction:column;gap:10px;padding:16px 14px;border:1px solid rgba(95,211,207,.55);border-radius:10px;box-shadow:0 0 4px rgba(95,211,207,.4);background:var(--fy-bg);min-width:0}
 .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
@@ -30,9 +30,10 @@
 .leaguerow{display:grid;grid-template-columns:28px minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:center;padding:8px 0;border-top:1px solid rgba(255,255,255,.12);font-size:var(--fs-sm)}
 .acthead,.actrow{display:grid;grid-template-columns:24px 92px minmax(0,1fr) 120px;gap:10px;align-items:center}
 .icongrid{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(10px,1.6vw,20px);width:100%}
+@media (min-width:700px){.icongrid{grid-template-columns:repeat(6,1fr)}}   /* tablet and PC: 6 in a row (RAY, 18 Nov) */
 /* The art carries its own circular frame, so it sits inside the ring rather than over it. */
 /* Identity badges: the facts the yard cares about, read at a glance (RAY, 13 Nov). Two rows: leagues, then money. */
-.pbadges{display:flex;flex-wrap:nowrap;gap:8px;padding-top:6px;min-width:0}   /* one row at every width; badges give way before they wrap (RAY, 17 Nov) */
+.pbadges{display:flex;flex-wrap:nowrap;justify-content:space-between;gap:8px;padding-top:6px;min-width:0}   /* one row at every width; badges give way before they wrap (RAY, 17 Nov) */
 .pbadge{display:inline-flex;flex:0 1 auto;min-width:0;align-items:center;gap:7px;min-height:34px;padding:0 11px;border:0;border-radius:15px;font-size:var(--fs-xs);font-weight:600;color:var(--fy-text);white-space:nowrap}
 .pbadge i{font-size:calc(var(--ic-sm) * 1.5);color:var(--neon-teal)}
 .pbadge b{font-weight:700;font-variant-numeric:tabular-nums}
@@ -57,7 +58,7 @@ button.iconslot.empty:active{filter:none}
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261117a"></script><script src="app.js?v=20261117a"></script><script src="barn.js?v=20261117a"></script><script src="presence.js?v=20261117a"></script><script src="sidebar-subs.js?v=20261117a"></script>
+<script src="config.js?v=20261119a"></script><script src="app.js?v=20261119a"></script><script src="barn.js?v=20261119a"></script><script src="presence.js?v=20261119a"></script><script src="sidebar-subs.js?v=20261119a"></script>
 <script>
 /* 3.0 Barn Profile (REV C03) — one page, three views.
    Own (default): header + edit, stats, icon palette, ledger (pair-netted, Pay / Received?), pools,
@@ -324,13 +325,10 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
     ${notPublic && fbPublic ? `<div class="pcard" id="pools">${poolsHtml()}</div>` : ''}
     ${isLeader ? `<div class="pcard" id="acts">${actsHtml()}</div>` : ''}
     ${notPublic ? `<div class="pcard" id="links">${linksHtml()}</div>` : ''}
+    ${own ? `<div class="pcard" id="evcard" style="gap:12px"><span class="t-module">Calendar events</span><span style="font-size:var(--fs-sm);color:var(--fy-text-label)">Loading…</span></div>` : ''}
     ${own ? `<form class="pcard" id="claim" style="gap:12px">
       <span class="t-module">Something wrong?</span>
-      <div class="field"><label for="ctype">Claim</label><select id="ctype" class="input"><option value="points">Points I should have</option><option value="iou">An IOU that is missing</option><option value="bug">Site bug</option></select></div>
-      <div class="field" id="f-points"><label for="cpts">Poker points</label><input class="input" id="cpts" type="number" min="1" value="1"></div>
-      <div class="field" id="f-iou" hidden><label for="cpayer">Who owes whom</label>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select id="cpayer" class="input">${members.map(m => `<option value="${esc(m.id)}">${esc(m.nickname)}</option>`).join('')}</select><span>owes</span>
-        <select id="cpayee" class="input">${members.map(m => `<option value="${esc(m.id)}">${esc(m.nickname)}</option>`).join('')}</select><input class="input" id="camt" type="number" min="1" value="1" style="width:5em"></div></div>
+      <div class="field"><label for="ctype">Claim</label><select id="ctype" class="input"><option value="docket">Poker docket problem</option><option value="profile">User profile problem</option><option value="bug">Other site bug</option><option value="ledger">Request change to recorded ledger</option></select></div>
       <div class="field"><label for="cnote">What happened</label><input class="input" id="cnote" required placeholder="e.g. side pot on the 12th"></div>
       <div><button class="btn btn-ghost" style="min-height:2.75rem">Send to RAY</button></div>
     </form>
@@ -462,19 +460,42 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
     const d = r.nextElementSibling; if (d) d.hidden = !d.hidden;
   });
   if (own) {
+    // ---- Calendar events: this week's, then the notices about events (a notice clears 5 days after its event) ----
+    (async () => {
+      const box = main.querySelector('#evcard'); if (!box) return;
+      const ICON = { poker: 'ph ph-club', birthday: 'ph ph-cake', football: 'ph ph-soccer-ball', party: 'ph ph-confetti', other: 'ph ph-star' };
+      const COL = { poker: 'var(--neon-pink-text)', birthday: '#ffd84a', football: 'var(--neon-green-text)', party: '#c9a7ff', other: 'var(--neon-teal)' };
+      const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      const t0 = new Date(); t0.setHours(12, 0, 0, 0);
+      const mon = new Date(t0); mon.setDate(t0.getDate() - ((t0.getDay() + 6) % 7));
+      const week = Array.from({ length: 7 }, (_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); return d; });
+      const [evs, bdays, notices] = await Promise.all([
+        FY.q('cal_event').select('id,title,event_date,event_time,icon,note').gte('event_date', iso(week[0])).lte('event_date', iso(week[6])).then(r => r.data || []).catch(() => []),
+        FY.q('member').select('nickname,birth_day,birth_month').then(r => r.data || []).catch(() => []),
+        FY.rpc('cal_notices').then(r => r || []).catch(() => []),
+      ]);
+      const byDay = {}; const add = (k, o) => (byDay[k] = byDay[k] || []).push(o);
+      evs.forEach(e => add(e.event_date, { icon: ICON[e.icon] ? e.icon : 'other', text: e.title, time: (e.event_time || '').slice(0, 5) }));
+      week.forEach(d => bdays.forEach(m => { if (m.birth_day === d.getDate() && m.birth_month === d.getMonth() + 1) add(iso(d), { icon: 'birthday', text: m.nickname + "'s birthday", time: '' }); }));
+      const fmt = (ds, tm) => new Date(ds + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + (tm ? ', ' + tm.slice(0, 5) : '');
+      const KINDTXT = { new: 'added', changed: 'changed', cancelled: 'cancelled' };
+      box.innerHTML = `<span class="t-module">Calendar events</span>
+        <span style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--fy-text-label)">This week</span>
+        <div style="display:flex;flex-direction:column">${week.map(d => { const k = iso(d), it = byDay[k] || [], today = k === iso(t0);
+          return `<div style="display:flex;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid var(--rule-teal);font-size:var(--fs-sm)${today ? ';color:var(--neon-pink-text)' : ''}"><span style="flex:0 0 5.5rem;font-weight:600">${d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' })}${today ? ' · today' : ''}</span>
+            <span style="flex:1;display:flex;flex-direction:column;gap:2px">${it.length ? it.map(x => `<span><i class="${ICON[x.icon]}" style="color:${COL[x.icon]};margin-right:.4rem"></i>${esc(x.text)}${x.time ? ` <span style="color:var(--fy-text-label)">${x.time}</span>` : ''}</span>`).join('') : '<span style="color:var(--fy-text-label)">Nothing on</span>'}</span></div>`; }).join('')}</div>
+        <a href="room.html?room=calendar" class="btn btn-ghost" style="align-self:flex-start;text-decoration:none;min-height:2.25rem">Open the Calendar</a>
+        <span style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--fy-text-label);margin-top:4px">Notices</span>
+        <div style="display:flex;flex-direction:column">${(notices || []).map(n => `<div style="padding:6px 0;border-top:1px solid var(--rule-teal);font-size:var(--fs-sm)"><i class="${ICON.other}" style="color:var(--neon-teal);margin-right:.4rem"></i><strong>${esc(n.by_nickname || 'Someone')}</strong> ${KINDTXT[n.kind] || 'changed'} <strong>${esc(n.title)}</strong><br><span style="color:var(--fy-text-label)">${fmt(n.event_date, n.event_time)}${n.kind === 'cancelled' ? ' · cancelled' : ''}</span></div>`).join('') || '<span style="font-size:var(--fs-sm);color:var(--fy-text-label);padding-top:4px;border-top:1px solid var(--rule-teal)">No notices. They clear 5 days after the event.</span>'}</div>`;
+    })();
     const ctype = main.querySelector('#ctype');
-    ctype.addEventListener('change', () => { main.querySelector('#f-points').hidden = ctype.value !== 'points'; main.querySelector('#f-iou').hidden = ctype.value !== 'iou'; });
     main.querySelector('#claim').addEventListener('submit', async ev => {
       ev.preventDefault();
       const note = main.querySelector('#cnote').value.trim();
-      const payload = ctype.value === 'bug'
-        ? { type: 'bug', note }
-        : ctype.value === 'points'
-        ? { type: 'points', type_key: 'poker', points: Number(main.querySelector('#cpts').value), note }
-        : { type: 'iou', payer_id: main.querySelector('#cpayer').value, payee_id: main.querySelector('#cpayee').value, amount: Number(main.querySelector('#camt').value), note };
-      if (payload.type === 'iou' && payload.payer_id === payload.payee_id) return FY.toast('Pick two different people.');
+      // All four are reports for RAY to look at: the server stores them as a 'bug' note carrying the category (RAY, 18 Nov).
+      const payload = { type: 'bug', category: ctype.value, note };
       const btn = ev.submitter || ev.target.querySelector('button'); btn.disabled = true;
-      try { await FY.rpc('raise_claim', { p_payload: payload }); FY.toast(payload.type === 'bug' ? 'Sent. RAY will take a look.' : 'Sent. RAY will approve or reject it.'); ev.target.reset(); ctype.dispatchEvent(new Event('change')); }
+      try { await FY.rpc('raise_claim', { p_payload: payload }); FY.toast('Sent. RAY will take a look.'); ev.target.reset(); }
       catch (e) { FY.toast(e.message); }
       finally { btn.disabled = false; }
     });
