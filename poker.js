@@ -123,8 +123,8 @@
       $('steps').innerHTML =
         '<div class="pk-howto">How it works...</div>' +
         '<div class="pk-tutwrap">' +
-        '<video class="pk-tut" controls playsinline preload="auto" src="assets/poker.tutorial.mp4?v=20261119a">' +
-        '<a href="assets/poker.tutorial.mp4?v=20261119a">Download the tutorial</a></video>' +
+        '<video class="pk-tut" controls playsinline preload="auto" src="assets/poker.tutorial.mp4?v=20261119b">' +
+        '<a href="assets/poker.tutorial.mp4?v=20261119b">Download the tutorial</a></video>' +
         // After one full play the header image fills the module; a play button shows on roll over to run it again (RAY, 18 Nov).
         '<button type="button" class="pk-replay" id="pkreplay" aria-label="Play the tutorial again" hidden>' +
         '<span class="pk-play"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span></button>' +

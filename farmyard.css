@@ -313,6 +313,8 @@ CHARACTER ART SPEC (baked into each PNG)
    right back - one face glowing is a highlight, twenty is a haze (RAY, 13 Nov). */
 td .fy-face::before { box-shadow: 0 0 3px rgba(224,21,127,.4); }
 td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--neon-pink-tube) 72%, transparent); }
+/* Uploaded character art carries its own pink ring and disc, so the CSS ring would sit off-centre over it. */
+.fy-face.art::before, .fy-face.art::after { display: none; }
 .fy-face.plain::before, .fy-face.plain::after { left: 0; top: 0; width: 100%; }
 .fy-face.plain > img { clip-path: circle(46%); }
 
