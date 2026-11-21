@@ -108,10 +108,7 @@
         <div class="centre"><h1>The Farmyard.</h1><p>Members only. Hank checks the door.</p></div>
         <div class="card thin">
           <button type="button" id="barn-in" class="btn btn-primary" style="min-height:2.75rem;width:100%"><i class="ph ph-discord-logo" style="font-size:1.25rem"></i>Sign in with Discord</button>
-          <span class="small">Discord is just the key. No passwords. Who you are in the yard is up to you.</span>
-          <div class="rule-teal" style="margin:4px 0"></div>
-          <span class="small">Not on the list yet? <a href="index.html">Join the waitlist</a></span>
-        </div></main>`;
+          <span class="small">Discord is just the key. No passwords. Who you are in the yard is up to you.</span>        </div></main>`;
       root.querySelector('#barn-in').addEventListener('click', () => FY.signIn(location.href.split('#')[0]));
     },
     /* Signed in but no members row: the invite door explains it. Never the public holding page. */
