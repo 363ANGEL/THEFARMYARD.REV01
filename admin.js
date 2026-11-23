@@ -77,10 +77,11 @@
     const chars0 = cr0.error ? null : (cr0.data || []);
     const held0 = {};
     if (chars0) A.members.forEach(m => { if (m.character_id) held0[m.character_id] = m.nickname; });
-    // dd.mm.yy, with the time dimmed after it (RAY, 12 Nov).
+    // THU 12TH NOV, with the time dimmed after it (RAY, 23 Nov). Fixed arrays, so no locale surprises.
+    const ord = n => n + (n % 100 >= 11 && n % 100 <= 13 ? 'TH' : ['TH', 'ST', 'ND', 'RD'][n % 10 < 4 ? n % 10 : 0]);
     const lastLoginCell = m => { if (!m.last_login) return '<span style="color:var(--fy-text-label)">Never</span>';
       const d = new Date(m.last_login), p2 = n => String(n).padStart(2, '0');
-      const date = `${p2(d.getDate())}.${p2(d.getMonth() + 1)}.${p2(d.getFullYear() % 100)}`;
+      const date = `${['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][d.getDay()]} ${ord(d.getDate())} ${['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][d.getMonth()]}`;
       return `<span style="font-variant-numeric:tabular-nums;white-space:nowrap">${date} <span style="color:var(--fy-text-label)">${p2(d.getHours())}:${p2(d.getMinutes())}</span></span>`; };
     // Per-row Character dropdown: every animal is listed; one held by someone else is shown with the holder and disabled.
     const charCell = m => !chars0
@@ -101,20 +102,18 @@
           <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="flex:1 1 5em;width:5em;min-width:0;min-height:32px;font-size:0.75rem"></span>`;
     const live = (Presence && Presence.map) ? Presence.map() : {};   // paint the current state, don't wait for the next sync
     pane.innerHTML = `<div class="acard"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
-        <span class="t-module">Members</span>
-        <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${A.members.length} in the yard · click a row to open their profile</span></div>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Click a row to open that member below: their details, their icons, and their invite link.</span>
-      <div class="tscroll"><table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th class="wrap">Last login</th><th>Status</th><th>Email</th></tr></thead><tbody>
-      ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}" data-mid="${m.id}"><td style="display:flex;align-items:center;gap:8px;white-space:nowrap">${FY.faceRing(m, 28, m.nickname)}${esc(m.nickname)}</td>
+        <span class="t-module">Members</span></div>
+      <div class="tscroll"><table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th class="wrap">Last login</th><th>Status</th><th>Email</th><th><span style="position:absolute;left:-9999px">Delete</span></th></tr></thead><tbody>
+      ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}" data-mid="${m.id}"><td data-nmcell="${m.id}" style="display:flex;align-items:center;gap:8px;white-space:nowrap">${FY.faceRing(m, 28, m.nickname)}<span data-nm>${esc(m.nickname)}</span><button type="button" class="rowbtn" data-rename="${m.id}" aria-label="Rename ${esc(m.nickname)}" style="min-height:26px;padding:0 8px">Edit</button></td>
         <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:0.75rem;width:auto">${roleOpts(m.role)}</select></td>
         <td data-online="${m.id}">${onlineCell(live[m.id])}</td>
         <td>${charCell(m)}</td>
         <td style="white-space:normal">${lastLoginCell(m)}</td>
         <td data-st="${m.id}">${statusCell(m)}</td>
-        <td style="white-space:nowrap"><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${m.invite_email ? esc(m.invite_email) : '—'}</span></td></tr>`).join('')}
+        <td style="white-space:nowrap"><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${m.invite_email ? esc(m.invite_email) : '—'}</span></td>
+        <td style="white-space:nowrap">${!m.user_id && m.role !== 'leader' ? `<button type="button" class="rowbtn warn" data-rowdel="${m.id}" aria-label="Delete ${esc(m.nickname)}" style="min-height:26px;padding:0 8px">Delete</button>` : ''}</td></tr>`).join('')}
       </tbody></table></div></div>
       <div class="acard" id="mdetail" hidden></div>
-      ${await pageHeadersCard()}
       <div class="acard"><span class="t-module">Add a member</span>
       <form id="newmember" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;max-width:100%"><input class="input" id="nm-nick" placeholder="Nickname" required maxlength="24" style="min-height:40px;flex:1 1 140px;min-width:0;max-width:100%;box-sizing:border-box">
         ${animalSel}
@@ -141,6 +140,52 @@
       const tr = ev.target.closest('tr[data-mid]');
       if (tr && !ev.target.closest('button,input,select')) showDetail(tr.dataset.mid);
     });
+    // Delete from the row: only unclaimed non-admins get the button; the server still refuses anyone with history.
+    pane.addEventListener('click', ev => {
+      const b = ev.target.closest('[data-rowdel]'); if (!b) return;
+      ev.stopPropagation();
+      const m = A.members.find(x => x.id === b.dataset.rowdel); if (!m) return;
+      twoTap(b, 'Delete', async () => {
+        await FY.rpc('admin_delete_member', { p_member: m.id });
+        FY.toast(`${m.nickname} deleted. Logged.`);
+        const box = pane.querySelector('#mdetail'); if (box && box.dataset.mid === m.id) { box.hidden = true; box.dataset.mid = ''; }
+        await loadMembers(); draw();
+      });
+    });
+    // Rename from the row: Edit swaps the name for an input with Save and Cancel (Enter saves, Escape cancels).
+    // After a save the whole tab is redrawn so every label keyed to the old name refreshes; an open member panel is re-opened.
+    pane.addEventListener('click', ev => {
+      const b = ev.target.closest('[data-rename]'); if (!b) return;
+      ev.stopPropagation();
+      const m = A.members.find(x => x.id === b.dataset.rename), td = b.closest('td'); if (!m || !td) return;
+      const original = td.innerHTML;
+      td.innerHTML = `${FY.faceRing(m, 28, m.nickname)}<input class="input" data-nmin maxlength="24" value="${esc(m.nickname)}" aria-label="New name for ${esc(m.nickname)}" style="min-height:32px;font-size:0.75rem;width:9em;min-width:0">
+        <button type="button" class="rowbtn" data-nmsave style="min-height:30px">Save</button><button type="button" class="rowbtn" data-nmcancel style="min-height:30px">Cancel</button>`;
+      const inp = td.querySelector('[data-nmin]'), stop = e => e.stopPropagation();
+      td.addEventListener('click', stop);
+      inp.focus(); inp.select();
+      const cancel = () => { td.removeEventListener('click', stop); td.innerHTML = original; };
+      const save = async () => {
+        const v = inp.value.trim();
+        if (!v) return FY.toast('Name cannot be empty.');
+        if (v === m.nickname) return cancel();
+        const sv = td.querySelector('[data-nmsave]'); sv.disabled = true;
+        try {
+          await FY.rpc('admin_set_member', { p_member: m.id, p_field: 'nickname', p_value: v });
+          const box = pane.querySelector('#mdetail'), reopen = box && !box.hidden && box.dataset.mid === m.id;
+          m.nickname = v; FY.toast('Renamed.');
+          A._reopen = reopen ? m.id : null;
+          draw();
+        } catch (e) {
+          sv.disabled = false;
+          FY.toast(/duplicate|unique|already/i.test(e.message || '') ? 'That name is already taken.' : e.message);
+        }
+      };
+      td.querySelector('[data-nmsave]').onclick = save;
+      td.querySelector('[data-nmcancel]').onclick = cancel;
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); save(); } else if (e.key === 'Escape') cancel(); });
+    });
+    if (A._reopen) { const rid = A._reopen; A._reopen = null; setTimeout(() => showDetail(rid), 0); }   // after the consts below exist
     // Invite contacts save on blur (focusout bubbles; wired once, the pane node survives redraws).
     if (!pane.dataset.invWired) {
       pane.dataset.invWired = '1';
@@ -299,9 +344,13 @@
       // The 20 slots fill the module, five to a line; Upload sits under them (RAY, 12 Nov).
       pane.querySelector('#ip').innerHTML = `
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px clamp(10px,1.6vw,20px);width:100%">${Array.from({ length: 20 }, (_, k) => slot(k + 1)).join('')}</div>
-        <label style="align-self:center;min-height:34px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;padding:0 14px;border:1.5px dashed var(--neon-teal);border-radius:8px;color:var(--fy-text);font-size:var(--fs-xs);white-space:nowrap;cursor:${full ? 'not-allowed' : 'pointer'};opacity:${full ? '.45' : '1'}">
+        <div style="align-self:center;display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+        <label style="min-height:34px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;padding:0 14px;border:1.5px dashed var(--neon-teal);border-radius:8px;color:var(--fy-text);font-size:var(--fs-xs);white-space:nowrap;cursor:${full ? 'not-allowed' : 'pointer'};opacity:${full ? '.45' : '1'}">
           <span>Upload image</span><span style="color:var(--fy-text-label)">${full ? 'Palette full' : 'PNG or JPG'}</span>
-          <input type="file" id="ip-file" accept="image/*" ${full ? 'disabled' : ''} style="display:none"></label>`;
+          <input type="file" id="ip-file" accept="image/*" ${full ? 'disabled' : ''} style="display:none"></label>
+        <label style="min-height:34px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;padding:0 14px;border:1.5px dashed var(--neon-teal);border-radius:8px;color:var(--fy-text);font-size:var(--fs-xs);white-space:nowrap;cursor:${full ? 'not-allowed' : 'pointer'};opacity:${full ? '.45' : '1'}">
+          <span>Batch upload</span><span style="color:var(--fy-text-label)">${full ? 'Palette full' : 'PNG or JPG, several'}</span>
+          <input type="file" id="ip-batch" accept="image/*" multiple ${full ? 'disabled' : ''} style="display:none"></label></div>`;
     };
     await drawIcons();
     // Characters: list, rename, free, remove, add. The server (fy.admin_character_*) is leader-only and keeps names unique per yard.
@@ -345,22 +394,44 @@
         c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S); URL.revokeObjectURL(url); c.toBlob(b => b ? res(b) : rej(new Error('Could not read that image.')), 'image/png'); };
       img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('That file is not an image.')); }; img.src = url;
     });
+    // One slot: next free number, crop, upload, record. Shared by Upload image and Batch upload so they cannot drift.
+    const putIcon = async (f, who) => {
+      const n = await FY.rpc('admin_icon_next', { p_character: who });
+      const blob = await squarePng(f);
+      const { error } = await FY.sb.storage.from(ICON_BUCKET).upload(`${who}/slot-${n}.png`, blob, { contentType: 'image/png', upsert: true, cacheControl: '3600' });
+      if (error) throw new Error(error.message);
+      const url = FY.sb.storage.from(ICON_BUCKET).getPublicUrl(`${who}/slot-${n}.png`).data.publicUrl + '?v=' + Date.now();
+      await FY.rpc('admin_icon_add', { p_character: who, p_slot: n, p_url: url });
+      return n;
+    };
+    // One upload at a time: admin_icon_next reserves nothing, so overlapping runs would hit the same slot.
+    let iconBusy = false;
+    const setBusy = on => { iconBusy = on; pane.querySelectorAll('#ip-file,#ip-batch,#lg-c').forEach(el => { el.disabled = on; }); };
     pane.querySelector('#ip').addEventListener('change', async ev => {
-      if (ev.target.id !== 'ip-file') return;
-      const f = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (!f) return;
-      let n = null;
+      const id = ev.target.id;
+      if (id !== 'ip-file' && id !== 'ip-batch') return;
+      const files = [...(ev.target.files || [])]; ev.target.value = ''; if (!files.length) return;
+      if (iconBusy) return FY.toast('Upload still running.');
+      setBusy(true);
       try {
         if (!A._logoChar) throw new Error('Pick a character first.');
         const who = A._logoChar;
-        n = await FY.rpc('admin_icon_next', { p_character: who });
-        const blob = await squarePng(f);
-        const { error } = await FY.sb.storage.from(ICON_BUCKET).upload(`${who}/slot-${n}.png`, blob, { contentType: 'image/png', upsert: true, cacheControl: '3600' });
-        if (error) throw new Error(error.message);
-        const url = FY.sb.storage.from(ICON_BUCKET).getPublicUrl(`${who}/slot-${n}.png`).data.publicUrl + '?v=' + Date.now();
-        await FY.rpc('admin_icon_add', { p_character: who, p_slot: n, p_url: url });
-        FY.toast(`Added as icon ${n}.`);
+        if (id === 'ip-file') {
+          const n = await putIcon(files[0], who);
+          FY.toast(`Added as icon ${n}.`);
+        } else {
+          files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+          const free = Math.max(0, 20 - palette.length);
+          const list = files.slice(0, free), skipped = files.length - list.length;
+          let done = 0, why = '';
+          for (const f of list) {
+            try { await putIcon(f, who); done++; FY.toast(`Uploaded ${done} of ${list.length}…`); }
+            catch (e) { why = `${f.name}: ${e.message}`; break; }
+          }
+          FY.toast(`${done} of ${list.length} added.` + (skipped ? ` Only ${free} free slot${free === 1 ? '' : 's'}, ${skipped} skipped.` : '') + (why ? ' Stopped: ' + why : ''));
+        }
       } catch (e) { FY.toast(e.message); }
-      drawIcons();
+      finally { setBusy(false); drawIcons(); }
     });
     pane.querySelector('#ip').addEventListener('click', async ev => {
       const pick = ev.target.closest('[data-ipick]'), rm = ev.target.closest('[data-irm]');
@@ -552,7 +623,8 @@
       ${fixed('Home', 'Always members')}
       ${list.map(r => `<tr><td>${esc(r.label)}${kids(r.id).length ? ` <span style="color:var(--fy-text-label)">+ ${kids(r.id).map(k => esc(k.label)).join(', ')}</span>` : ''}</td><td>${sel(r)}</td></tr>`).join('')}
       ${fixed('Admin', 'Always admin only')}
-      </tbody></table></div>`;
+      </tbody></table></div>
+      ${await pageHeadersCard()}`;
     pane.addEventListener('change', async ev => {
       const el = ev.target.closest('select[data-vis]'); if (!el) return;
       const id = el.dataset.vis, v = el.value, label = byId[id]?.label || id;
