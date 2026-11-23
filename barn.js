@@ -23,6 +23,8 @@
     },
     async signOut() { voice.set(null); await FY.sb.auth.signOut(); location.href = 'dashboard.html'; },
 
+    /* Merged into another page: the Calendar now lives on the Yard wall (RAY, 23 Nov). */
+    MERGED: ['calendar'],
     /* Rooms registry, cached for the page's life. Rows: { id, label, path, icon, status, grp, parent_id, sort }. */
     async rooms() {
       if (Barn._rooms) return Barn._rooms;
@@ -30,14 +32,15 @@
       if (error) throw error;
       const rows = data || [];
       // Home sub-items synthesised until supabase/room-visibility.sql has added the rows.
-      [{ id: 'about', label: 'About the yard', path: 'about.html', icon: 'ph ph-question', sort: 13 },
+      [{ id: 'about', label: 'About', path: 'about.html', icon: 'ph ph-question', sort: 13 },
        { id: 'admin', label: 'Admin', path: 'admin.html', icon: 'ph ph-gear-six', sort: 14 },
        { id: 'whats-next', label: "What's Next?", path: 'whats-next.html', icon: 'ph ph-thought-bubble', sort: 17 }].forEach(x => {
         if (!rows.some(r => r.id === x.id)) rows.push({ ...x, status: 'ship', grp: 'home', parent_id: 'dashboard' });
       });
       rows.forEach(r => { if (r.id === 'admin') r.sort = 10.5; });   // Admin is the first row under Home (RAY, 17 Nov)
       rows.sort((a, b) => (a.sort || 0) - (b.sort || 0));
-      return (Barn._rooms = rows);
+      // Pages folded into another page drop out of the sidebar, Admin > Pages and the dashboard (no SQL needed).
+      return (Barn._rooms = rows.filter(r => !Barn.MERGED.includes(r.id)));
     },
 
     /* Launch scope: members see only Home and Poker. The registry's visibility column ('admin' |
@@ -258,7 +261,8 @@
         ${group('home')}
         <div class="fy-nav-group">Leagues</div>
         ${group('leagues')}
-        ${leader && beta ? `<div class="fy-nav-group">In beta-testing</div>${beta}` : ''}
+        <div class="fy-nav-group">Beta testing</div>
+        ${beta}
         ${sep}
         <div style="display:flex; align-items:baseline; justify-content:space-between; padding:10px 6px 4px; font-size:var(--fs-xs); letter-spacing:.08em; text-transform:uppercase; color:var(--color-neutral-400);"><span>In the yard</span></div>
         <div id="fy-online" style="flex:none; display:flex; flex-direction:column; gap:2px; min-height:5.25rem; padding:8px 6px;"></div>

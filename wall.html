@@ -7,14 +7,14 @@
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <link rel="stylesheet" href="app.css?v=20261119b">
-<link rel="stylesheet" href="farmyard.css?v=20261119b">
+<link rel="stylesheet" href="farmyard.css?v=20261123a">
 <link rel="stylesheet" href="barn.css?v=20261119b">
 <script src="fy-clucks.js?v=20261119b"></script>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261119b"></script><script src="presence.js?v=20261119b"></script><script src="sidebar-subs.js?v=20261119b"></script>
+<script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123a"></script><script src="presence.js?v=20261119b"></script><script src="sidebar-subs.js?v=20261119b"></script><script src="calendar-room.js?v=20261123a"></script>
 <script>
 /* 1.2 Yard Wall (REV C03): composer (<=280), feed pinned-first then newest, one heart per member,
    delete own (leader deletes and pins anything). Live via realtime on fy.post / fy.post_like. */
@@ -68,7 +68,7 @@
     <header class="fy-pagehead"><h2 class="t-title-b">Chat wall</h2><span class="t-tagline">Say it to the yard. Hank pins what matters.</span></header>
     <section style="flex:1; display:flex; flex-direction:column; gap:14px; width:100%; min-width:0;">
       <div id="feed" style="display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;"></div>
-      <form id="composer" style="display:flex; flex-direction:column; gap:10px; padding:14px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg);">
+      <form id="composer" style="display:flex; flex-direction:column; gap:10px; padding:14px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:color-mix(in srgb, var(--neon-teal) 22%, var(--fy-bg));">
         <div style="display:flex; gap:10px; align-items:flex-start;">
           ${FY.faceRing(me, 36, 'You')}
           <textarea id="draft" rows="2" maxlength="${MAX}" placeholder="Say it to the yard…" aria-label="New post" style="flex:1; min-width:0; resize:vertical; min-height:44px; padding:9px 11px; font:inherit; font-size:var(--fs-body); line-height:1.45; color:var(--fy-text); background:var(--fy-surface); border:1px solid var(--rule-teal); border-radius:8px; outline:none;"></textarea>
@@ -78,6 +78,10 @@
           <button type="submit" id="post-btn" class="btn btn-primary" disabled style="min-height:2.5rem; padding:0 1.125rem;">Post it</button>
         </div>
       </form>
+    </section>
+    <section id="calendar" style="display:flex; flex-direction:column; gap:14px; width:100%; min-width:0; scroll-margin-top:16px;">
+      <div style="display:flex; align-items:center; gap:8px;"><span class="t-module" style="font-size:var(--fs-sm); letter-spacing:.14em;">Calendar</span></div>
+      <div id="cal-card" style="display:flex; flex-direction:column; gap:10px; padding:16px 18px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); min-width:0; max-width:720px;"></div>
     </section>`;
 
   const feed = main.querySelector('#feed'), draft = main.querySelector('#draft');
@@ -91,6 +95,12 @@
   }
   async function refresh() { await fetchAll(); draw(); }
   await refresh();
+
+  // The Calendar sits under the chat (RAY, 23 Nov: "chat above, calendar below"). It must never take the wall down with it.
+  const calCard = main.querySelector('#cal-card');
+  try { await window.FY_RENDER_CALENDAR(B, calCard); }
+  catch (e) { calCard.innerHTML = '<span style="font-size:var(--fs-sm); color:var(--fy-text-label);">The Calendar could not load. Reload the page to try again.</span>'; }
+  if (location.hash === '#calendar') main.querySelector('#calendar').scrollIntoView({ block: 'start' });
 
   draft.addEventListener('input', () => {
     remaining.textContent = (MAX - draft.value.length) + ' left';

@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <link rel="stylesheet" href="app.css?v=20261119b">
-<link rel="stylesheet" href="farmyard.css?v=20261119b">
+<link rel="stylesheet" href="farmyard.css?v=20261123a">
 <link rel="stylesheet" href="barn.css?v=20261119b">
 <script src="fy-clucks.js?v=20261119b"></script>
 <style>
@@ -58,7 +58,7 @@ button.iconslot.empty:active{filter:none}
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261119b"></script><script src="presence.js?v=20261119b"></script><script src="sidebar-subs.js?v=20261119b"></script>
+<script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123a"></script><script src="presence.js?v=20261119b"></script><script src="sidebar-subs.js?v=20261119b"></script>
 <script>
 /* 3.0 Barn Profile (REV C03) — one page, three views.
    Own (default): header + edit, stats, icon palette, ledger (pair-netted, Pay / Received?), pools,
@@ -484,7 +484,7 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
         <div style="display:flex;flex-direction:column">${week.map(d => { const k = iso(d), it = byDay[k] || [], today = k === iso(t0);
           return `<div style="display:flex;gap:10px;align-items:baseline;padding:6px 0;border-top:1px solid var(--rule-teal);font-size:var(--fs-sm)${today ? ';color:var(--neon-pink-text)' : ''}"><span style="flex:0 0 5.5rem;font-weight:600">${d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' })}${today ? ' · today' : ''}</span>
             <span style="flex:1;display:flex;flex-direction:column;gap:2px">${it.length ? it.map(x => `<span><i class="${ICON[x.icon]}" style="color:${COL[x.icon]};margin-right:.4rem"></i>${esc(x.text)}${x.time ? ` <span style="color:var(--fy-text-label)">${x.time}</span>` : ''}</span>`).join('') : '<span style="color:var(--fy-text-label)">Nothing on</span>'}</span></div>`; }).join('')}</div>
-        <a href="room.html?room=calendar" class="btn btn-ghost" style="align-self:flex-start;text-decoration:none;min-height:2.25rem">Open the Calendar</a>
+        <a href="wall.html#calendar" class="btn btn-ghost" style="align-self:flex-start;text-decoration:none;min-height:2.25rem">Open the Calendar</a>
         <span style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--fy-text-label);margin-top:4px">Notices</span>
         <div style="display:flex;flex-direction:column">${(notices || []).map(n => `<div style="padding:6px 0;border-top:1px solid var(--rule-teal);font-size:var(--fs-sm)"><i class="${ICON.other}" style="color:var(--neon-teal);margin-right:.4rem"></i><strong>${esc(n.by_nickname || 'Someone')}</strong> ${KINDTXT[n.kind] || 'changed'} <strong>${esc(n.title)}</strong><br><span style="color:var(--fy-text-label)">${fmt(n.event_date, n.event_time)}${n.kind === 'cancelled' ? ' · cancelled' : ''}</span></div>`).join('') || '<span style="font-size:var(--fs-sm);color:var(--fy-text-label);padding-top:4px;border-top:1px solid var(--rule-teal)">No notices. They clear 5 days after the event.</span>'}</div>`;
     })();
