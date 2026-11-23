@@ -38,7 +38,13 @@ window.FY_RENDER_CALENDAR = async function (B, card) {
       /* Month card at half size (RAY, 23 Nov): cells about 40px, text no smaller than --fs-xs. */
       .cal-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:var(--fs-body)}.cal-row .rowbtn{min-height:2rem}
       #cal-form{display:flex;flex-direction:column;gap:12px}#cal-form .two{display:flex;gap:10px;flex-wrap:wrap}#cal-form .two>*{flex:1 1 9rem}
-      .cal-nav{min-height:2rem;min-width:2rem;padding:0 .4rem}`;
+      .cal-nav{min-height:2rem;min-width:2rem;padding:0 .4rem}
+      /* Wide screens: month card left, Create event right (RAY, 23 Nov). The container is the outer wrapper, not a
+         sized box (a box that is both ignores its own width); media query as the fallback. Stacked below 46rem. */
+      .cal-cols-wrap{container-type:inline-size;width:100%;min-width:0}
+      .cal-cols{display:flex;flex-direction:column;gap:14px;min-width:0}
+      @container (min-width: 46rem){.cal-cols{display:grid;grid-template-columns:minmax(17rem,360px) minmax(0,1fr);align-items:start}}
+      @supports not (container-type:inline-size){@media (min-width:1000px){.cal-cols{display:grid;grid-template-columns:minmax(17rem,360px) minmax(0,1fr);align-items:start}}}`;
     document.head.appendChild(st);
   }
   const draw = () => {
@@ -71,7 +77,10 @@ window.FY_RENDER_CALENDAR = async function (B, card) {
   // ---- Create / edit event (any member; their own only, admins any) ----
   const boxCss = card.getAttribute('style');
   const form = document.createElement('div'); form.id = 'cal-form-card'; form.setAttribute('style', boxCss); form.style.maxWidth = '720px';
-  card.after(form);
+  // Card and form share one two-column grid on wide screens (stacked when narrow).
+  const wrap = document.createElement('div'); wrap.className = 'cal-cols-wrap';
+  const cols = document.createElement('div'); cols.className = 'cal-cols'; wrap.appendChild(cols);
+  card.before(wrap); cols.append(card, form);
   const drawForm = () => {
     const e = editing && mine.find(x => x.id === editing);
     form.innerHTML = `<span class="t-module">${e ? 'Edit event' : 'Create event'}</span>

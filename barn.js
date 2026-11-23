@@ -315,6 +315,24 @@
       }, 0);
     },
 
+    /* Page header picture (RAY, 23 Nov): uploaded in Admin > Pages, stored in fy.page_header. Call it AFTER the
+       page has drawn main. With no row (or any error) it does nothing: no element, no gap. With one, it inserts a
+       .fy-pagehdr card directly after the page's heading block (Poker's sign hangs off .pk-head, so it stays clear). */
+    async pageHeader(main, pageId) {
+      try {
+        if (!main || !pageId) return;
+        const { data, error } = await FY.q('page_header').select('url').eq('page_id', pageId).maybeSingle();
+        if (error || !data || !data.url || !main.isConnected) return;
+        const fig = document.createElement('div');
+        fig.className = 'fy-pagehdr';
+        const img = document.createElement('img'); img.src = data.url; img.alt = ''; img.decoding = 'async';
+        fig.appendChild(img);
+        let head = main.querySelector('.hm-head, .pk-head, .fy-pagehead');
+        while (head && head.parentElement !== main) head = head.parentElement;   // the block that sits in main itself
+        if (head) head.after(fig); else main.prepend(fig);
+      } catch (e) { /* never block the page */ }
+    },
+
     /* 2.0 Room Template: hang the UNDER CONSTRUCTION sign off the main content panel.
        .fy-sign is absolute (right:22px, top:-6px, tilted); the zero-height wrapper spans the panel
        edge-to-edge so those offsets measure from the teal frame, and the extra top padding keeps the

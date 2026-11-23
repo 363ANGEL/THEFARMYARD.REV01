@@ -2,7 +2,7 @@
 
 -- Page visibility (RAY, 17 Nov): each room is 'admin' (leaders only) or 'members'. Set from Admin > Pages.
 -- Adds the column if missing, seeds the three Home sub-pages that were synthesised in barn.js,
--- and moves Football and What's Next under Home (The Humidor went to BETA TESTING, 23 Nov). Safe to re-run.
+-- and moves What's Next under Home (The Humidor and Football went to BETA TESTING, 23 Nov). Safe to re-run.
 do $$
 declare fresh boolean := not exists (select 1 from information_schema.columns where table_schema = 'fy' and table_name = 'room' and column_name = 'visibility');
 begin
@@ -17,9 +17,8 @@ begin
     ('whats-next', 'What''s Next?',  'whats-next.html', 'ph ph-thought-bubble', 'ship', 'home', 'dashboard', 17)
   on conflict (id) do nothing;
   if fresh then update fy.room set visibility = 'members' where id in ('dashboard', 'poker'); end if;
-  update fy.room set grp = 'home', parent_id = 'dashboard', sort = 15 where id = 'football' and parent_id is distinct from 'dashboard';
+  update fy.room set grp = 'beta', parent_id = null where id = 'football' and (grp is distinct from 'beta' or parent_id is not null);   -- BETA TESTING (RAY, 23 Nov)
   update fy.room set grp = 'beta', parent_id = null where id = 'humidor' and (grp is distinct from 'beta' or parent_id is not null);   -- BETA TESTING (RAY, 23 Nov)
-  update fy.room set grp = 'home' where parent_id = 'football' and grp is distinct from 'home';
 end $$;
 
 -- Admin > Pages: the leader sets a page to admin-only or members. A page's own sub-pages follow it.

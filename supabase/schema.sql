@@ -1467,9 +1467,8 @@ begin
     ('whats-next', 'What''s Next?',  'whats-next.html', 'ph ph-thought-bubble', 'ship', 'home', 'dashboard', 17)
   on conflict (id) do nothing;
   if fresh then update fy.room set visibility = 'members' where id in ('dashboard', 'poker'); end if;
-  update fy.room set grp = 'home', parent_id = 'dashboard', sort = 15 where id = 'football' and parent_id is distinct from 'dashboard';
+  update fy.room set grp = 'beta', parent_id = null where id = 'football' and (grp is distinct from 'beta' or parent_id is not null);   -- BETA TESTING (RAY, 23 Nov)
   update fy.room set grp = 'beta', parent_id = null where id = 'humidor' and (grp is distinct from 'beta' or parent_id is not null);   -- BETA TESTING (RAY, 23 Nov)
-  update fy.room set grp = 'home' where parent_id = 'football' and grp is distinct from 'home';
 end $$;
 
 -- Yard Wall (1.2): text-only posts, one reaction per member, Hank (the leader) pins.

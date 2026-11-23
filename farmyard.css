@@ -343,6 +343,11 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 .phdr-name{font-size:var(--fs-xs);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fy-text-label)}
 .phdr-img{aspect-ratio:16/5;border-radius:8px;border:1px dashed rgba(95,211,207,.45);display:grid;place-items:center;background:linear-gradient(135deg,color-mix(in srgb,var(--neon-pink) 14%,transparent),color-mix(in srgb,var(--neon-teal) 12%,transparent)) center/cover no-repeat}
 .phdr-img span{font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;color:var(--fy-text-label)}
+/* Admin > Pages: a row that has a header shows it as the preview (no dashed placeholder). */
+.phdr-img.has{border-style:solid;border-color:var(--neon-teal);background-size:cover;background-position:center}
+/* Page header picture (RAY, 23 Nov): only on pages that have one uploaded; Barn.pageHeader inserts it after the heading. */
+.fy-pagehdr{flex:none;width:100%;box-sizing:border-box;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);overflow:hidden;background:var(--fy-bg)}
+.fy-pagehdr img{display:block;width:100%;height:clamp(7.5rem,18vw,13rem);object-fit:cover}
 
 /* The IOU coin artwork (RAY's own art, real transparency, so it sits on any background and needs no
    blending). Four files in assets/: iou.coin.pink (neutral, watermark), .green (credit / won),

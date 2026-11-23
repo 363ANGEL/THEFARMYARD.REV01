@@ -69,6 +69,7 @@
     <div class="pk-row solo" id="tablerow" hidden><div id="tablecol" hidden></div><div class="pk-docketcol" id="docketcol" hidden></div></div>
     <div class="pk-row2"><div class="pk-debts pk-thin" id="debts"></div></div>
   </div>`;
+  Barn.pageHeader(main, 'poker');   // header picture from Admin > Pages, after .pk-head so the sign stays clear
 
   // ---- checklist --------------------------------------------------------------
   const FLAME = '<path d="M50 6 C40 24 8 40 8 64 C8 78 19 87 31 87 C39 87 45 83 48 78 C47 89 42 97 34 102 L66 102 C58 97 53 89 52 78 C55 83 61 87 69 87 C81 87 92 78 92 64 C92 40 60 24 50 6 Z" transform="translate(16 18) scale(.68)" vector-effect="non-scaling-stroke"';

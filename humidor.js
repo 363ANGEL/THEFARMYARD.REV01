@@ -131,6 +131,7 @@
         </header><div class="hm-body" id="hm-body"></div>`;
       head = B.main.querySelector('.hm-head');
       const main = B.main.querySelector('#hm-body');
+      if (tab === 'home') Barn.pageHeader(B.main, 'humidor');   // header picture on the Humidor home only (RAY, 23 Nov)
       if (tab === 'admin' && !leader) { location.replace('dashboard.html'); return null; }   // admin page: leaders only
       let data, members;
       try {

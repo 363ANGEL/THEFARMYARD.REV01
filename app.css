@@ -18,9 +18,9 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 /* One scale for all text (RAY, 16 Nov): every font size on the site is in rem, and rem follows the screen.
-   Phone widths shrink in step with the screen (14.4px at 430px wide, 10.8px floor); wider screens grow gently to 17.1px.
-   Whole site scaled to 90% (RAY, 23 Nov); was 16px at 430px, 12px floor, 19px cap. */
-html{font-size:clamp(10.8px,min(3.348vw,13.248px + .2673vw),17.1px)}
+   Phone widths shrink in step with the screen (12.96px at 430px wide, 9.72px floor); wider screens grow gently to 15.39px.
+   Whole site scaled to 90% twice (RAY, 23 Nov), 81% of the original 16px at 430px, 12px floor, 19px cap. */
+html{font-size:clamp(9.72px,min(3.0132vw,11.9232px + .24057vw),15.39px)}
 html,body{margin:0;background:var(--fy-bg);color:var(--fy-text-body);font-family:var(--font-body);line-height:1.5}
 body{font-size:1rem}
 .wrap{max-width:900px;margin:0 auto;padding:16px}

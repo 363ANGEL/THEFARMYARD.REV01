@@ -6,15 +6,15 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-<link rel="stylesheet" href="app.css?v=20261123c">
-<link rel="stylesheet" href="farmyard.css?v=20261123b">
+<link rel="stylesheet" href="app.css?v=20261123d">
+<link rel="stylesheet" href="farmyard.css?v=20261123c">
 <link rel="stylesheet" href="barn.css?v=20261119b">
 <script src="fy-clucks.js?v=20261119b"></script>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123b"></script><script src="presence.js?v=20261119b"></script><script src="sidebar-subs.js?v=20261119b"></script><script src="calendar-room.js?v=20261123b"></script>
+<script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script><script src="presence.js?v=20261119b"></script><script src="sidebar-subs.js?v=20261119b"></script><script src="calendar-room.js?v=20261123c"></script>
 <script>
 /* 1.2 Yard Wall (REV C03): composer (<=280), feed pinned-first then newest, one heart per member,
    delete own (leader deletes and pins anything). Live via realtime on fy.post / fy.post_like. */
@@ -83,6 +83,7 @@
       <div style="display:flex; align-items:center; gap:8px;"><span class="t-module" style="font-size:var(--fs-sm); letter-spacing:.14em;">Calendar</span></div>
       <div id="cal-card" style="display:flex; flex-direction:column; gap:10px; padding:16px 18px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); min-width:0; max-width:720px;"></div>
     </section>`;
+  Barn.pageHeader(main, 'wall');   // header picture from Admin > Pages, if one was uploaded
 
   const feed = main.querySelector('#feed'), draft = main.querySelector('#draft');
   const postBtn = main.querySelector('#post-btn'), remaining = main.querySelector('#remaining');

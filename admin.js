@@ -59,17 +59,68 @@
   const roleLabel = r => r === 'leader' ? 'Admin' : r ? r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g, ' ') : 'Member';
   const roleTag = r => `<span style="font-size:0.625rem;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:999px;border:1px solid ${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'};color:${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'}">${esc(roleLabel(r))}</span>`;
   const roleOpts = cur => [...new Set(['member', 'leader', cur || 'member'])].map(r => `<option value="${esc(r)}" ${r === (cur || 'member') ? 'selected' : ''}>${esc(roleLabel(r))}</option>`).join('');
-  /* Page headers card: one cell per page that carries a header band. The list comes from the room
-     registry (top-level rooms outside "what's next", so a new league appears by itself), plus the two
-     pages that are not top-level rooms: the wall and the profile. The buttons do nothing yet (.soon). */
+  /* Page headers card (RAY, 23 Nov): the five pages that can show a header picture, keyed by page id.
+     Upload resizes to at most 1600px wide (JPEG .85), stores headers/<id>.jpg and records it with
+     fy.admin_set_page_header; Remove clears the row first, then deletes the file (page-headers.sql). */
+  const HDR_PAGES = [['dashboard', 'Home'], ['poker', 'Poker'], ['humidor', 'Humidor'], ['wall', 'Yard wall'], ['profile', 'Profile']];
+  const HDR_BUCKET = 'headers';
   async function pageHeadersCard() {
-    let rooms = []; try { rooms = await Barn.rooms(); } catch (e) {}
-    const pages = rooms.filter(r => !r.parent_id && r.grp !== 'next' && r.status !== 'hidden' && r.status !== 'later').map(r => r.label);
-    ['Yard wall', 'User profile'].forEach(n => { if (!pages.includes(n)) pages.push(n); });
-    return `<div class="acard"><div style="display:flex;flex-direction:column;gap:3px">
-        <span class="t-module">Page headers</span><span class="t-tagline">One image across the top of each page.</span></div>
-      <div class="phdr">${pages.map(n => `<div class="phdr-row"><span class="phdr-name">${esc(n)}</span><div class="phdr-img"><span>No image</span></div><button type="button" class="rowbtn soon">Upload image</button></div>`).join('')}</div></div>`;
+    let rows = [];
+    try { rows = (await FY.q('page_header').select('page_id,url')).data || []; } catch (e) { rows = []; }
+    const byId = Object.fromEntries(rows.map(r => [r.page_id, r.url]));
+    return `<div class="acard" id="phdr-card"><div style="display:flex;flex-direction:column;gap:3px">
+        <span class="t-module">Page headers</span><span class="t-tagline">One image across the top of each page. A page with none shows none.</span></div>
+      <div class="phdr">${HDR_PAGES.map(([id, label]) => `<div class="phdr-row" data-hdr="${id}"><span class="phdr-name">${esc(label)}</span>
+        ${byId[id] ? `<div class="phdr-img has" style="background-image:url('${esc(byId[id])}')"></div>` : '<div class="phdr-img"><span>No image</span></div>'}
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <label class="rowbtn" style="display:inline-flex;align-items:center;cursor:pointer">${byId[id] ? 'Replace image' : 'Upload image'}<input type="file" accept="image/*" data-hdrfile="${id}" style="display:none"></label>
+          ${byId[id] ? `<button type="button" class="rowbtn warn" data-hdrrm="${id}">Remove</button>` : ''}</div></div>`).join('')}</div></div>`;
   }
+  // Decode (phone photos keep their orientation), shrink to <= 1600px wide, JPEG at .85.
+  const headerJpeg = async file => {
+    let src, w, h;
+    try { src = await createImageBitmap(file, { imageOrientation: 'from-image' }); w = src.width; h = src.height; }
+    catch (e) {
+      src = await new Promise((res, rej) => { const u = URL.createObjectURL(file), im = new Image();
+        im.onload = () => { URL.revokeObjectURL(u); res(im); }; im.onerror = () => { URL.revokeObjectURL(u); rej(new Error("That picture format isn't supported. Use JPG or PNG.")); }; im.src = u; });
+      w = src.naturalWidth; h = src.naturalHeight;
+    }
+    const k = Math.min(1, 1600 / w), c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+    c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+    return new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error("That picture format isn't supported. Use JPG or PNG.")), 'image/jpeg', .85));
+  };
+  // Wired once per Pages draw (each draw gets a fresh pane, so listeners never double up).
+  const wireHeaders = () => {
+    const card = pane.querySelector('#phdr-card'); if (!card) return;
+    let busy = false;
+    const redraw = async () => { const fresh = document.createElement('div'); fresh.innerHTML = await pageHeadersCard(); card.replaceWith(fresh.firstElementChild); wireHeaders(); };
+    card.addEventListener('change', async ev => {
+      const inp = ev.target.closest('[data-hdrfile]'); if (!inp) return;
+      const id = inp.dataset.hdrfile, f = inp.files && inp.files[0]; inp.value = ''; if (!f) return;
+      if (busy) return FY.toast('Upload still running.');
+      busy = true; card.querySelectorAll('input[data-hdrfile],[data-hdrrm]').forEach(x => { x.disabled = true; });
+      try {
+        const blob = await headerJpeg(f);
+        const { error } = await FY.sb.storage.from(HDR_BUCKET).upload(`${id}.jpg`, blob, { contentType: 'image/jpeg', upsert: true, cacheControl: '3600' });
+        if (error) throw new Error(error.message);
+        const url = FY.sb.storage.from(HDR_BUCKET).getPublicUrl(`${id}.jpg`).data.publicUrl + '?v=' + Date.now();
+        await FY.rpc('admin_set_page_header', { p_page: id, p_url: url });
+        FY.toast(`Header saved (${Math.round(blob.size / 1024)} KB).`);
+      } catch (e) { FY.toast(e.message); }
+      finally { busy = false; redraw(); }
+    });
+    card.addEventListener('click', ev => {
+      const b = ev.target.closest('[data-hdrrm]'); if (!b) return;
+      if (busy) return FY.toast('Upload still running.');
+      const id = b.dataset.hdrrm;
+      twoTap(b, 'Remove', async () => {
+        await FY.rpc('admin_clear_page_header', { p_page: id });
+        const { error } = await FY.sb.storage.from(HDR_BUCKET).remove([`${id}.jpg`]);
+        FY.toast(error ? 'Removed, but the file could not be deleted: ' + error.message : 'Header removed.');
+        redraw();
+      });
+    });
+  };
   async function tabMembers() {
     await loadMembers();
     // Animals (characters.sql): the Add member dropdown uses the same list, taken ones greyed. Falls back to the stock list if absent.
@@ -665,6 +716,7 @@
       ${fixed('Admin', 'Always admin only')}
       </tbody></table></div>
       ${await pageHeadersCard()}`;
+    wireHeaders();
     pane.addEventListener('change', async ev => {
       const el = ev.target.closest('select[data-vis]'); if (!el) return;
       const id = el.dataset.vis, v = el.value, label = byId[id]?.label || id;
