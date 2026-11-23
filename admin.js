@@ -318,6 +318,7 @@
     // a click sets the icon of whoever holds it (icons-per-character.sql).
     const ICON_BUCKET = 'icons';
     let palette = [];
+    let picked = null;   // the slot clicked but not yet saved (RAY, 23 Nov: pick, then Save selection)
     const holderOf = id => A.members.find(m => m.character_id === id) || null;
     const drawIcons = async () => {
       if (!chars0 || !chars0.length) { pane.querySelector('#ip').innerHTML = '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Add an animal below first — the icon slots belong to the animal.</span>'; return; }
@@ -328,16 +329,22 @@
       const holder = holderOf(sel);
       const hEl = pane.querySelector('#lg-holder');
       if (hEl) hEl.innerHTML = holder
-        ? `Held by <strong style="color:var(--neon-teal)">${esc(holder.nickname)}</strong> · clicking a picture makes it theirs`
+        ? `Held by <strong style="color:var(--neon-teal)">${esc(holder.nickname)}</strong> · pick a picture, then Save selection to make it theirs`
         : 'Nobody holds this animal, so a picture cannot be anyone&rsquo;s icon yet. Give it to a member in the Members table.';
       const cur = (holder || {}).avatar_url;
       const full = palette.length >= 20;
+      if (picked && !bySlot[picked]) picked = null;
+      const pickedUrl = picked && bySlot[picked].url;
+      const canSave = !!(holder && picked && pickedUrl !== cur);
+      const saveWhy = !holder ? 'No one holds this animal yet. Give it to a member in the Members table first.'
+        : !picked ? 'Pick a picture first.' : pickedUrl === cur ? 'That picture is already their icon.' : 'Make the picked picture ' + holder.nickname + "'s icon";
       const slot = n => {
         const r = bySlot[n];
         if (!r) return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="width:4rem;height:4rem;border-radius:50%;border:2px dashed rgba(95,211,207,.35);display:grid;place-items:center;color:var(--fy-text-label);font-size:var(--fs-sm)">${n}</span></div>`;
-        const on = cur && cur === r.url;
+        const on = cur && cur === r.url, chosen = picked === n;
+        // Green ring = the icon in use; dashed bright teal ring = picked, waiting for Save selection.
         return `<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:4px">
-          <button type="button" data-ipick="${n}" aria-label="Set icon ${n}" aria-pressed="${on ? 'true' : 'false'}" style="width:4rem;height:4rem;border-radius:50%;padding:0.1875rem;box-sizing:border-box;cursor:pointer;border:2px solid ${on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)'};box-shadow:${on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/contain no-repeat;background-origin:content-box"></button>
+          <button type="button" data-ipick="${n}" aria-label="Pick icon ${n}" aria-pressed="${chosen ? 'true' : 'false'}" style="width:4rem;height:4rem;border-radius:50%;padding:0.1875rem;box-sizing:border-box;cursor:pointer;border:${chosen ? '3px dashed var(--neon-teal)' : '2px solid ' + (on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)')};box-shadow:${chosen ? 'var(--glow-teal)' : on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/contain no-repeat;background-origin:content-box"></button>
           <button type="button" data-irm="${n}" aria-label="Remove icon ${n}" style="position:absolute;top:-4px;right:-4px;width:1.375rem;height:1.375rem;border-radius:50%;padding:0;cursor:pointer;border:1px solid var(--neon-pink-tube);background:#0a1a1a;color:var(--neon-pink-text);font-size:0.75rem;line-height:1">&#10005;</button>
           <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${n}</span></div>`;
       };
@@ -350,7 +357,8 @@
           <input type="file" id="ip-file" accept="image/*" ${full ? 'disabled' : ''} style="display:none"></label>
         <label style="min-height:34px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;padding:0 14px;border:1.5px dashed var(--neon-teal);border-radius:8px;color:var(--fy-text);font-size:var(--fs-xs);white-space:nowrap;cursor:${full ? 'not-allowed' : 'pointer'};opacity:${full ? '.45' : '1'}">
           <span>Batch upload</span><span style="color:var(--fy-text-label)">${full ? 'Palette full' : 'PNG or JPG, several'}</span>
-          <input type="file" id="ip-batch" accept="image/*" multiple ${full ? 'disabled' : ''} style="display:none"></label></div>`;
+          <input type="file" id="ip-batch" accept="image/*" multiple ${full ? 'disabled' : ''} style="display:none"></label>
+        <button type="button" class="btn btn-primary" id="ip-save" ${canSave ? '' : 'disabled'} title="${esc(saveWhy)}" style="min-height:34px;padding:0 14px;font-size:var(--fs-xs)">Save selection</button></div>`;
     };
     await drawIcons();
     // Characters: list, rename, free, remove, add. The server (fy.admin_character_*) is leader-only and keeps names unique per yard.
@@ -386,7 +394,7 @@
     });
     await drawChars();
     const lgc = pane.querySelector('#lg-c');
-    if (lgc) { lgc.value = A._logoChar || ''; lgc.addEventListener('change', ev => { A._logoChar = Number(ev.target.value); drawIcons(); }); }
+    if (lgc) { lgc.value = A._logoChar || ''; lgc.addEventListener('change', ev => { A._logoChar = Number(ev.target.value); picked = null; drawIcons(); }); }
     // Square-crop to 256px PNG, upload to icons/<member>/slot-N.png, then record it (the RPC is leader-only and checks the URL).
     const squarePng = file => new Promise((res, rej) => {
       const url = URL.createObjectURL(file), img = new Image();
@@ -431,17 +439,25 @@
           FY.toast(`${done} of ${list.length} added.` + (skipped ? ` Only ${free} free slot${free === 1 ? '' : 's'}, ${skipped} skipped.` : '') + (why ? ' Stopped: ' + why : ''));
         }
       } catch (e) { FY.toast(e.message); }
-      finally { setBusy(false); drawIcons(); }
+      finally { setBusy(false); picked = null; drawIcons(); }
     });
     pane.querySelector('#ip').addEventListener('click', async ev => {
-      const pick = ev.target.closest('[data-ipick]'), rm = ev.target.closest('[data-irm]');
+      const pick = ev.target.closest('[data-ipick]'), rm = ev.target.closest('[data-irm]'), save = ev.target.closest('#ip-save');
       try {
         if (pick) {
-          const m = holderOf(A._logoChar);
-          if (!m) return FY.toast('No one holds this animal yet. Give it to a member in the Members table first.');
-          await FY.rpc('admin_icon_set', { p_member: m.id, p_slot: Number(pick.dataset.ipick) });
-          const r = palette.find(p => p.slot === Number(pick.dataset.ipick)); if (r) m.avatar_url = r.url;
-          FY.toast(`Icon set for ${m.nickname}.`); drawIcons();
+          // A click only picks (or un-picks); nothing is written until Save selection.
+          const n = Number(pick.dataset.ipick);
+          picked = picked === n ? null : n; drawIcons();
+        } else if (save) {
+          const m = holderOf(A._logoChar), n = picked;
+          if (!m || !n) return;
+          if (iconBusy) return FY.toast('Upload still running.');
+          setBusy(true); save.disabled = true;
+          try {
+            await FY.rpc('admin_icon_set', { p_member: m.id, p_slot: n });
+            const r = palette.find(p => p.slot === n); if (r) m.avatar_url = r.url;
+            FY.toast(`Icon saved for ${m.nickname}.`);
+          } finally { setBusy(false); picked = null; drawIcons(); }
         } else if (rm) {
           const n = Number(rm.dataset.irm);
           const who = A._logoChar, wm = holderOf(who);
@@ -450,6 +466,7 @@
             await FY.rpc('admin_icon_remove', { p_character: who, p_slot: n });
             if (wm && r && wm.avatar_url === r.url) wm.avatar_url = null;
             const { error } = await FY.sb.storage.from(ICON_BUCKET).remove([`${who}/slot-${n}.png`]);
+            picked = null;
             FY.toast(error ? 'Removed, but the file could not be deleted: ' + error.message : 'Removed.'); drawIcons();
           });
         }
@@ -565,11 +582,34 @@
       FY.q('claim').select('*').eq('state', 'pending').order('created_at').then(r => r.data || []),
     ]);
     const live = (ious || []).filter(i => ['open', 'marked_paid', 'disputed'].includes(i.state));
+    // Dockets (RAY, 23 Nov): one read-only card per member, built from the SAME netted rows as Net positions,
+    // so the two cards can never disagree. net > 0 means member_a owes member_b.
+    const dk = Object.fromEntries(A.members.map(m => [m.id, { m, owes: [], owed: [] }]));
+    (net || []).filter(n => n.net !== 0).forEach(n => {
+      const [debtor, creditor] = n.net > 0 ? [n.member_a, n.member_b] : [n.member_b, n.member_a], amt = Math.abs(n.net);
+      if (dk[debtor]) dk[debtor].owes.push({ who: creditor, amt });
+      if (dk[creditor]) dk[creditor].owed.push({ who: debtor, amt });
+    });
+    const sum = l => l.reduce((t, x) => t + x.amt, 0);
+    const dockets = Object.values(dk).map(d => ({ ...d, net: sum(d.owed) - sum(d.owes) }))
+      .sort((a, b) => (b.net - a.net) || a.m.nickname.localeCompare(b.m.nickname));
+    const dkCol = (head, list) => `<div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:2px">
+        <span style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--fy-text-label)">${head}</span>
+        ${list.sort((a, b) => b.amt - a.amt).map(x => `<div style="display:flex;gap:6px;font-size:var(--fs-sm)"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(nick(x.who))}</span><span style="font-variant-numeric:tabular-nums">${x.amt} tk</span></div>`).join('') || '<span style="font-size:var(--fs-sm);color:var(--fy-text-label)">—</span>'}
+        <div style="display:flex;gap:6px;border-top:1px solid rgba(95,211,207,.22);padding-top:3px;font-size:var(--fs-xs);color:var(--fy-text-label)"><span style="flex:1">Total</span><span style="font-variant-numeric:tabular-nums">${sum(list)} tk</span></div></div>`;
+    const docket = d => `<div style="display:flex;flex-direction:column;gap:8px;padding:10px 12px;border:1px solid var(--rule-teal);border-radius:8px;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px">${FY.faceRing(d.m, 24, d.m.nickname)}<span class="t-module" style="font-size:var(--fs-sm)">${esc(d.m.nickname)}</span></div>
+        ${d.owes.length || d.owed.length ? `<div style="display:flex;gap:14px">${dkCol('Owes', d.owes)}${dkCol('Is owed by', d.owed)}</div>
+        <div style="display:flex;justify-content:space-between;font-size:var(--fs-sm);font-weight:700"><span>Net</span><span style="font-variant-numeric:tabular-nums;color:${d.net > 0 ? 'var(--neon-green-text)' : d.net < 0 ? 'var(--neon-pink-text)' : 'var(--fy-text)'}">${d.net > 0 ? '+' + d.net + ' tk' : d.net < 0 ? '−' + Math.abs(d.net) + ' tk' : '0'}</span></div>`
+        : '<span style="font-size:var(--fs-sm);color:var(--fy-text-label)">All square · Net 0</span>'}</div>`;
     pane.innerHTML = `
       <div class="acard"><span class="t-module">Net positions</span>
       ${(net || []).filter(n => n.net !== 0).map(n => { const [a, b] = n.net > 0 ? [n.member_a, n.member_b] : [n.member_b, n.member_a];
         return `<div style="display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid rgba(95,211,207,.22);font-size:var(--fs-sm)"><span style="flex:1">${esc(nick(a))} owes ${esc(nick(b))} <strong>${Math.abs(n.net)}</strong> net</span>
         <button class="rowbtn" data-square-a="${a}" data-square-b="${b}">Squared up</button></div>`; }).join('') || '<span style="font-size:var(--fs-sm);color:var(--fy-text-label)">Everyone is square.</span>'}</div>
+      <div class="acard"><span class="t-module">Dockets</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Each player's docket: who they owe and who owes them, netted per pair from Net positions. Read only.</span>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:10px">${dockets.map(docket).join('')}</div></div>
       <div class="acard"><span class="t-module">IOU entries</span>
       <table><thead><tr><th>From</th><th>To</th><th>Amount (buy-ins on poker nights, tk otherwise)</th><th>State</th><th></th></tr></thead><tbody>
       ${live.map(i => `<tr data-iou="${i.id}"><td>${esc(nick(i.payer_id))}</td><td>${esc(nick(i.payee_id))}</td>
