@@ -204,10 +204,9 @@ CHARACTER ART SPEC (baked into each PNG)
 */
 
 
-/* A sub-page is indented under its parent, with a rule down the left so the group reads
-   as one (RAY, 16 Nov: School did not look like a child of Poker). */
+/* A sub-page is indented under its parent. The rule down the left came off (RAY, 23 Nov); it had been
+   added 16 Nov so School read as a child of Poker, and the indent alone now does that. */
 .fy-side .nav-sub, nav[aria-label="The Barn"] .nav-sub { position: relative; }
-.fy-side .nav-sub::before, nav[aria-label="The Barn"] .nav-sub::before { content: ""; position: absolute; left: 10px; top: 0; bottom: 0; width: 1px; background: color-mix(in srgb, var(--neon-teal) 38%, transparent); }
 /* TEMP MIRROR of design system .nav-sub (compact). Delete this block once _ds/ serves base/components.css with .nav-sub. */
 .nav-sub { display: flex; gap: 10px; align-items: center; width: 100%; padding: 1px 6px 1px 22px; box-sizing: border-box; border: 1px solid transparent; border-radius: 6px; font-size: var(--fs-sm); color: var(--fy-text-label); text-decoration: none; background: transparent; transition: box-shadow .25s ease, background .25s ease, border-color .25s ease; }
 .nav-sub:hover { border-color: var(--neon-teal); box-shadow: inset 0 0 0 .5px var(--neon-teal), 0 0 10px rgba(95,211,207,.55); background: color-mix(in srgb, var(--neon-teal) 8%, transparent); }
