@@ -17,7 +17,7 @@
 <script>
 /* 0.3 About — public (no session needed). Room Template layout with room=About.
    COPY TBD: placeholder until Hank writes the About copy (HANDOFF: copy added during the build). */
-const ABOUT = { title: 'About', tag: 'The Farmyard, in a few lines.', head: 'About copy to come.', body: 'Hank is writing this page. Placeholder until the copy lands.' };
+const ABOUT = { title: 'About', heading: 'WELCOME!', tag: 'The Farmyard, in a few lines.', head: 'About copy to come.', body: 'Hank is writing this page. Placeholder until the copy lands.' };
 const SIGN = `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--neon-teal);--sg-glow:var(--neon-teal);--sg-rgb:95,211,207;--sg-text:#c8f4f2">
   <span class="fy-sign-wire is-l"></span><span class="fy-sign-wire is-r"></span>
   <div class="fy-sign-plate"><span class="fy-sign-edge" aria-hidden="true"></span>
@@ -26,7 +26,7 @@ const SIGN = `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--ne
   </div></div>`;
 const block = esc => `
   <div class="fy0-head" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start; gap:8px 16px;">
-    <div class="fy-pagehead"><h1 class="t-title-b" style="margin:0;">${esc(ABOUT.title)}</h1></div>
+    <div class="fy-pagehead"><h1 class="t-title-b" style="margin:0;">${esc(ABOUT.heading)}</h1></div>
   </div>
   <div style="display:flex; flex-direction:column; gap:10px; padding:16px 18px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); min-width:0; max-width:720px;">
     <span class="kicker">Current concept</span>
