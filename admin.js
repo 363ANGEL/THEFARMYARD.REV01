@@ -77,12 +77,12 @@
     const chars0 = cr0.error ? null : (cr0.data || []);
     const held0 = {};
     if (chars0) A.members.forEach(m => { if (m.character_id) held0[m.character_id] = m.nickname; });
-    // THU 12TH NOV, with the time dimmed after it (RAY, 23 Nov). Fixed arrays, so no locale surprises.
+    // THU 12TH NOV, date only (RAY, 23 Nov: no time). Fixed arrays, so no locale surprises.
     const ord = n => n + (n % 100 >= 11 && n % 100 <= 13 ? 'TH' : ['TH', 'ST', 'ND', 'RD'][n % 10 < 4 ? n % 10 : 0]);
     const lastLoginCell = m => { if (!m.last_login) return '<span style="color:var(--fy-text-label)">Never</span>';
-      const d = new Date(m.last_login), p2 = n => String(n).padStart(2, '0');
+      const d = new Date(m.last_login);
       const date = `${['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][d.getDay()]} ${ord(d.getDate())} ${['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'][d.getMonth()]}`;
-      return `<span style="font-variant-numeric:tabular-nums;white-space:nowrap">${date} <span style="color:var(--fy-text-label)">${p2(d.getHours())}:${p2(d.getMinutes())}</span></span>`; };
+      return `<span style="font-variant-numeric:tabular-nums;white-space:nowrap">${date}</span>`; };
     // Per-row Character dropdown: every animal is listed; one held by someone else is shown with the holder and disabled.
     const charCell = m => !chars0
       ? '<span style="color:var(--fy-text-label)">—</span>'
@@ -104,7 +104,7 @@
     pane.innerHTML = `<div class="acard"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <span class="t-module">Members</span></div>
       <div class="tscroll"><table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th class="wrap">Last login</th><th>Status</th><th>Email</th><th><span style="position:absolute;left:-9999px">Delete</span></th></tr></thead><tbody>
-      ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}" data-mid="${m.id}"><td data-nmcell="${m.id}" style="display:flex;align-items:center;gap:8px;white-space:nowrap">${FY.faceRing(m, 28, m.nickname)}<span data-nm>${esc(m.nickname)}</span><button type="button" class="rowbtn" data-rename="${m.id}" aria-label="Rename ${esc(m.nickname)}" style="min-height:26px;padding:0 8px">Edit</button></td>
+      ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}" data-mid="${m.id}"><td data-nmcell="${m.id}" style="display:flex;align-items:center;gap:8px;white-space:nowrap">${FY.faceRing(m, 28, m.nickname)}<span data-nm>${esc(m.nickname)}</span><button type="button" class="rowbtn" data-rename="${m.id}" aria-label="Rename ${esc(m.nickname)}" style="min-height:26px;padding:0 8px;margin-left:auto">Edit</button></td>
         <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:0.75rem;width:auto">${roleOpts(m.role)}</select></td>
         <td data-online="${m.id}">${onlineCell(live[m.id])}</td>
         <td>${charCell(m)}</td>
