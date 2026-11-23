@@ -37,7 +37,8 @@
        { id: 'whats-next', label: "What's Next?", path: 'whats-next.html', icon: 'ph ph-thought-bubble', sort: 17 }].forEach(x => {
         if (!rows.some(r => r.id === x.id)) rows.push({ ...x, status: 'ship', grp: 'home', parent_id: 'dashboard' });
       });
-      rows.forEach(r => { if (r.id === 'admin') r.sort = 10.5; });   // Admin is the first row under Home (RAY, 17 Nov)
+      rows.forEach(r => { if (r.id === 'admin') r.sort = 10.5; });   // Admin under Home, right after About (RAY, 17 Nov)
+      rows.forEach(r => { if (r.id === 'about') r.sort = 10.4; });   // About is the first row under Home (RAY, 23 Nov)
       rows.sort((a, b) => (a.sort || 0) - (b.sort || 0));
       // Pages folded into another page drop out of the sidebar, Admin > Pages and the dashboard (no SQL needed).
       return (Barn._rooms = rows.filter(r => !Barn.MERGED.includes(r.id)));
