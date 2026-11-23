@@ -86,7 +86,7 @@
     // Per-row Character dropdown: every animal is listed; one held by someone else is shown with the holder and disabled.
     const charCell = m => !chars0
       ? '<span style="color:var(--fy-text-label)">—</span>'
-      : `<select class="input" data-char="${m.id}" aria-label="Character for ${esc(m.nickname)}" style="min-height:32px;font-size:0.75rem;width:auto;max-width:12em">
+      : `<select class="input" data-char="${m.id}" aria-label="Character for ${esc(m.nickname)}" style="min-height:32px;font-size:0.75rem;width:7em;max-width:7em;padding-left:6px;padding-right:2px">
           <option value="">None</option>
           ${chars0.map(c => { const by = held0[c.id], mine = c.id === m.character_id, gone = by && !mine;
             return `<option value="${c.id}" ${mine ? 'selected' : ''} ${gone ? 'disabled' : ''}>${esc(c.name)}${gone ? ' · ' + esc(by) : ''}</option>`; }).join('')}
@@ -110,7 +110,7 @@
         <td>${charCell(m)}</td>
         <td style="white-space:normal">${lastLoginCell(m)}</td>
         <td data-st="${m.id}">${statusCell(m)}</td>
-        <td style="white-space:nowrap"><span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${m.invite_email ? esc(m.invite_email) : '—'}</span></td>
+        <td style="white-space:nowrap">${m.invite_email ? `<span title="${esc(m.invite_email)}" style="font-size:var(--fs-xs);color:var(--fy-text-label)">${esc(m.invite_email.slice(0, 6))}${m.invite_email.length > 6 ? '…' : ''}</span>` : '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">—</span>'}</td>
         <td style="white-space:nowrap">${!m.user_id && m.role !== 'leader' ? `<button type="button" class="rowbtn warn" data-rowdel="${m.id}" aria-label="Delete ${esc(m.nickname)}" style="min-height:26px;padding:0 8px">Delete</button>` : ''}</td></tr>`).join('')}
       </tbody></table></div></div>
       <div class="acard" id="mdetail" hidden></div>
