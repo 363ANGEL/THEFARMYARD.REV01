@@ -84,9 +84,9 @@
     const sizeFacts = c => `${c.size} · ${frac(c.len)}″ × ${c.ring} · ${c.shape === 'culebra' ? 'Culebra' : SHMAP[c.shape] || c.shape} · about ${c.mins} min`;
 
     function pSizes(W, H) {
-      const n = sizes.length || 1, cw = (W - pad * 2) / n, labH = Math.min(160, H * 0.45), area = Math.max(20, H - top - labH - 8);
+      const n = sizes.length || 1, cw = (W - pad * 2) / n, labH = Math.min(160, H * 0.45), area = Math.max(20, H - top - labH - 26);
       const s = Math.max(2, Math.min(area / 9.25, cw * 0.9 / (60 / 64))), yb = top + area, fine = cw < 14;
-      const leg = W >= 520 ? SHAPES.map(([nm], i) => `<text class="hc-t hc-leg sh-${nm.toLowerCase()}" x="${f(W - pad - (SHAPES.length - 1 - i) * 74)}" y="${f(-2)}" text-anchor="end">${esc(nm)}</text>`).join('') : '';
+      const leg = W >= 520 ? SHAPES.map(([nm], i) => `<text class="hc-t hc-leg sh-${nm.toLowerCase()}" x="${f(W / 2 + (i - (SHAPES.length - 1) / 2) * 74)}" y="${f(H - 6)}" text-anchor="middle">${esc(nm)}</text>`).join('') : '';
       return leg + sizes.map((c, i) => { const cx = pad + cw * (i + 0.5);
         return item('size:' + c.size, sizeFacts(c), upright(c, cx, yb, s) + `<text class="hc-t${fine ? ' hc-tf' : ''}" dominant-baseline="middle" transform="translate(${f(cx)} ${f(yb + 6)}) rotate(90)">${esc(c.size)} ${frac(c.len)}″ × ${c.ring}</text>`,
           { size: c.size, cls: shc(c), hit: `<rect class="hc-hit" x="${f(cx - cw / 2)}" y="${top}" width="${f(cw)}" height="${f(H - top)}"/>` }); }).join('');
