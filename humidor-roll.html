@@ -46,7 +46,7 @@
 #hr-kicker{width:100%;font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)}
 #hr-headline{width:100%}
 .hr-h1{width:100%;margin:0;font-size:clamp(1.75rem,4.4vw,3.375rem);line-height:var(--text-hero-lh);font-weight:500;letter-spacing:var(--text-hero-ls);text-wrap:balance;color:var(--neon-pink-text);animation:hcRise .5s ease-out both}
-.hr.ws .hr-h1{font-size:1.75rem}
+.hroll.ws .hr-h1{font-size:1.75rem}
 #hr-tip{width:100%;max-width:720px;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:4px}
 .hr-tiptitle{font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--hint-text);min-height:14px}
 .hr-tiptext{margin:0;font-size:.9375rem;line-height:1.5;text-wrap:pretty}
@@ -89,8 +89,8 @@
 .hr-sil path{fill:transparent;stroke:var(--neon-teal)}
 .hr-opt:hover .hr-sil path,.hr-opt:focus-visible .hr-sil path{fill:rgba(95,211,207,.16)}
 .hr-opt.sel .hr-sil path{fill:rgba(224,21,127,.18);stroke:var(--neon-pink-tube)}
-.hr-olabel{font-size:clamp(1.0625rem,2.3vw,1.75rem);font-weight:500;white-space:nowrap;color:var(--fy-text);transition:color .2s,text-shadow .2s}
-.hr.ws .hr-olabel{font-size:1.0625rem;white-space:normal}
+.hr-olabel{font-size:clamp(1.0625rem,2.3vw,1.75rem);font-weight:500;white-space:normal;text-wrap:balance;text-align:center;line-height:1.15;color:var(--fy-text);transition:color .2s,text-shadow .2s}
+.hroll.ws .hr-olabel{font-size:1.0625rem;white-space:normal}
 .hr-opt.sel .hr-olabel{color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
 .hr-oline{align-self:stretch;height:2px;border-radius:1px;background:var(--rule-teal);transition:background .2s}
 .hr-opt.sel .hr-oline{background:var(--neon-pink-tube);box-shadow:var(--glow-pink)}
@@ -103,7 +103,7 @@
 .hr-foot .btn,.hr-foot .neon-btn{min-height:44px}
 #hr-change{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
 #hr-rail{display:flex;gap:clamp(8px,2vw,22px);align-items:flex-start;justify-content:center;min-width:0}
-.hr.mob #hr-rail{gap:0;flex-basis:100%;order:-1}
+.hroll.mob #hr-rail{gap:0;flex-basis:100%;order:-1}
 .hr-rstep{all:unset;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
 .hr-rstep:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
 .hr-rdot{width:8px;height:8px;box-sizing:border-box;border-radius:50%}
