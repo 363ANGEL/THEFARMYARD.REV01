@@ -63,26 +63,28 @@
 
     // ---- Drawing ----
     const item = (id, facts, inner, o) => { o = o || {}; FACTS[id] = facts;
-      return `<g class="hc-it${o.nz ? ' nz' : ''}" data-id="${esc(id)}"${o.size ? ` data-size="${esc(o.size)}"` : ''} tabindex="-1" role="img" aria-label="${esc(facts)}">${o.hit || ''}<g class="hc-z">${inner}</g></g>`; };
+      return `<g class="hc-it${o.nz ? ' nz' : ''}${o.cls ? ' ' + o.cls : ''}" data-id="${esc(id)}"${o.size ? ` data-size="${esc(o.size)}"` : ''} tabindex="-1" role="img" aria-label="${esc(facts)}">${o.hit || ''}<g class="hc-z">${inner}</g></g>`; };
     const txt = (x, y, s, cls, anchor, extra) => `<text class="${cls || 'hc-t'}" x="${f(x)}" y="${f(y)}"${anchor ? ` text-anchor="${anchor}"` : ''}${extra || ''}>${esc(s)}</text>`;
     const pad = 12, top = 32, TAG = 22;
     const upright = (c, cx, yb, s) => { const lp = c.len * s, rp = Math.max(1.5, c.ring / 64 * s);
       return `<g transform="translate(${f(cx + rp / 2)} ${f(yb - lp)}) rotate(90)"><path class="hc-ln" d="${profile(SHMAP[c.shape] || 'Parejo', lp, rp)}"/></g>`; };
+    const shc = c => 'sh-' + (SHMAP[c.shape] || 'Parejo').toLowerCase();   // shape colour group (RAY, 24 Nov)
     const sizeFacts = c => `${c.size} · ${frac(c.len)}″ × ${c.ring} · ${c.shape === 'culebra' ? 'Culebra' : SHMAP[c.shape] || c.shape} · about ${c.mins} min`;
 
     function pSizes(W, H) {
       const n = sizes.length || 1, cw = (W - pad * 2) / n, labH = Math.min(160, H * 0.45), area = Math.max(20, H - top - labH - 8);
       const s = Math.max(2, Math.min(area / 9.25, cw * 0.9 / (60 / 64))), yb = top + area, fine = cw < 14;
-      return sizes.map((c, i) => { const cx = pad + cw * (i + 0.5);
+      const leg = W >= 520 ? SHAPES.map(([nm], i) => `<text class="hc-t hc-leg sh-${nm.toLowerCase()}" x="${f(W - pad - (SHAPES.length - 1 - i) * 74)}" y="${f(-2)}" text-anchor="end">${esc(nm)}</text>`).join('') : '';
+      return leg + sizes.map((c, i) => { const cx = pad + cw * (i + 0.5);
         return item('size:' + c.size, sizeFacts(c), upright(c, cx, yb, s) + `<text class="hc-t${fine ? ' hc-tf' : ''}" dominant-baseline="middle" transform="translate(${f(cx)} ${f(yb + 6)}) rotate(90)">${esc(c.size)} ${frac(c.len)}″ × ${c.ring}</text>`,
-          { size: c.size, hit: `<rect class="hc-hit" x="${f(cx - cw / 2)}" y="${top}" width="${f(cw)}" height="${f(H - top)}"/>` }); }).join('');
+          { size: c.size, cls: shc(c), hit: `<rect class="hc-hit" x="${f(cx - cw / 2)}" y="${top}" width="${f(cw)}" height="${f(H - top)}"/>` }); }).join('');
     }
     function pShapes(W, H) {
       const cols = W >= 520 ? 3 : 2, rows = 6 / cols, cellW = (W - pad * 2) / cols, cellH = (H - top - 6) / rows;
       const pw = cellW * 0.78, ph = Math.max(8, Math.min(cellH * 0.34, pw * 0.17));
       return SHAPES.map(([nm, d], i) => { const cx = pad + cellW * (i % cols + 0.5), cy = top + cellH * (Math.floor(i / cols) + 0.42);
         return item('shape:' + nm, nm + ' · ' + d, `<g transform="translate(${f(cx - pw / 2)} ${f(cy - ph / 2)})"><path class="hc-ln" d="${profile(nm, pw, ph)}"/></g>` + txt(cx, cy + ph / 2 + 16, nm, 'hc-t hc-tb', 'middle'),
-          { hit: `<rect class="hc-hit" x="${f(cx - cellW / 2)}" y="${f(cy - cellH * 0.42)}" width="${f(cellW)}" height="${f(cellH)}"/>` }); }).join('');
+          { cls: 'sh-' + nm.toLowerCase(), hit: `<rect class="hc-hit" x="${f(cx - cellW / 2)}" y="${f(cy - cellH * 0.42)}" width="${f(cellW)}" height="${f(cellH)}"/>` }); }).join('');
     }
     function pWrapper(W, H) {
       const n = WRAPS.length, slot = (W - pad * 2) / n, bw = slot - Math.min(10, slot * 0.18), y0 = top + 34, bh = Math.max(24, Math.min(90, (H - y0) * 0.45)), fine = slot < 60;
@@ -133,7 +135,7 @@
           `<rect class="hc-ln hc-band" x="${f(x1)}" y="${f(bt)}" width="${f(Math.max(4, x2 - x1))}" height="${f(bb - bt)}" rx="6"/>` + txt((x1 + x2) / 2, bt + 16, lab, 'hc-t hc-tb', 'middle') + txt((x1 + x2) / 2, bt + 29, n + (n === 1 ? ' size' : ' sizes'), 'hc-t hc-tf', 'middle'), { nz: true }); }).join('');
       const seen = {};
       out += sizes.map(c => { const k = seen[c.mins] = (seen[c.mins] || 0) + 1, rp = Math.max(1.5, c.ring / 64 * s), cx = X(c.mins) + (k % 2 ? 1 : -1) * Math.ceil((k - 1) / 2) * (rp + 2);   // same burn time: fan out left and right
-        return item('bsize:' + c.size, sizeFacts(c), upright(c, cx, bb - 2, s), { size: c.size, hit: `<rect class="hc-hit" x="${f(cx - Math.max(4, rp))}" y="${f(bb - 2 - c.len * s)}" width="${f(Math.max(8, rp * 2))}" height="${f(c.len * s)}"/>` }); }).join('');
+        return item('bsize:' + c.size, sizeFacts(c), upright(c, cx, bb - 2, s), { size: c.size, cls: shc(c), hit: `<rect class="hc-hit" x="${f(cx - Math.max(4, rp))}" y="${f(bb - 2 - c.len * s)}" width="${f(Math.max(8, rp * 2))}" height="${f(c.len * s)}"/>` }); }).join('');
       return out;
     }
     const DRAW = [pSizes, pShapes, pWrapper, pFiller, pAnatomy, pBurn];
@@ -159,6 +161,7 @@
       if (instant) { void track.offsetWidth; track.classList.remove('drag'); }
       panels.forEach((p, k) => { p.setAttribute('aria-hidden', k === cur ? 'false' : 'true'); p.querySelectorAll('.hc-it').forEach(g => g.setAttribute('tabindex', k === cur ? '0' : '-1')); });
       dots.forEach((d, k) => { d.classList.toggle('cur', k === cur); d.setAttribute('aria-current', k === cur ? 'true' : 'false'); });
+      if (S.on && !panels[cur].querySelector(`[data-id="${CSS.escape(S.on)}"]`)) { S.on = null; apply(); }   // a lit item on another panel must not caption this one
       if (!S.on) detail.textContent = PANELS[cur].cap;
     }
     const setOn = id => { if (id === S.on) return; S.on = id; apply(); if (opt.onHover) opt.onHover(id); };

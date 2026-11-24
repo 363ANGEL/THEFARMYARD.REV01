@@ -89,6 +89,15 @@
 .hc-z{transform-box:fill-box;transform-origin:center;transition:transform .25s ease}
 .hc-it.on .hc-z{transform:scale(1.6)}
 .hc-it.nz.on .hc-z{transform:none}
+/* Shape colour groups, DS colours (RAY, 24 Nov): one colour per shape in Sizes, Shapes, Burn and the key */
+.sh-parejo .hc-ln,.hc-leg.sh-parejo{stroke:var(--neon-teal);fill:var(--neon-teal)}
+.sh-belicoso .hc-ln,.hc-leg.sh-belicoso{stroke:var(--neon-green-tube);fill:var(--neon-green-tube)}
+.sh-torpedo .hc-ln,.hc-leg.sh-torpedo{stroke:var(--neon-amber);fill:var(--neon-amber)}
+.sh-pyramid .hc-ln,.hc-leg.sh-pyramid{stroke:var(--neon-red-tube);fill:var(--neon-red-tube)}
+.sh-perfecto .hc-ln,.hc-leg.sh-perfecto{stroke:var(--art-cream);fill:var(--art-cream)}
+.sh-chisel .hc-ln,.hc-leg.sh-chisel{stroke:var(--color-accent-2,#a7a1db);fill:var(--color-accent-2,#a7a1db)}
+.hc-it[class*="sh-"] .hc-ln{fill:none}
+.hc-leg{stroke:none}
 .hc-it.on .hc-ln,.hc-it.on .hc-sw{stroke:var(--neon-pink-tube)}
 .hc-it.on .hc-t{fill:var(--neon-pink-text)}
 .hc-it.on{filter:drop-shadow(0 0 3px var(--neon-pink-tube))}
@@ -197,7 +206,7 @@
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-chart.js?v=20261124j"></script><script src="humidor-roll.js?v=20261124j"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-chart.js?v=20261124k"></script><script src="humidor-roll.js?v=20261124j"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */
