@@ -21,12 +21,12 @@
 /* The stage fills the panel, not the viewport: .fy-frame>.main has 18px padding top and bottom and a
    100vh - 34px min-height, so 100dvh - 70px is the panel's inner height. The page may scroll on short
    screens. The clip lets the cigar's smoke bleed up into the panel padding but never past the panel. */
-.hr{position:relative;display:flex;flex-direction:column;min-height:calc(100dvh - 70px);color-scheme:dark;font-family:var(--font-body,Inter,sans-serif);color:var(--fy-text);clip-path:inset(-18px -100vw -100vh -100vw)}
-@media (max-width:860px){.hr{min-height:calc(100dvh - 62px);clip-path:inset(-14px -100vw -100vh -100vw)}}
-.hr a{color:var(--neon-teal);text-decoration:none}
-.hr a:hover{color:var(--hint-text)}
-.hr button{font-family:inherit}
-.hr [hidden]{display:none !important}
+.hroll{position:relative;display:flex;flex-direction:column;min-height:calc(100dvh - 70px);color-scheme:dark;font-family:var(--font-body,Inter,sans-serif);color:var(--fy-text);clip-path:inset(-18px -100vw -100vh -100vw)}
+@media (max-width:860px){.hroll{min-height:calc(100dvh - 62px);clip-path:inset(-14px -100vw -100vh -100vw)}}
+.hroll a{color:var(--neon-teal);text-decoration:none}
+.hroll a:hover{color:var(--hint-text)}
+.hroll button{font-family:inherit}
+.hroll [hidden]{display:none !important}
 .hr-cap{font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--hint-text);white-space:nowrap}
 
 /* Header: the sign centred, round label and pips right. The design's "← The Barn" link is gone (the
@@ -116,14 +116,14 @@
 .hr-hember{position:absolute;right:-6%;width:12%;top:0;bottom:0;border-radius:50%;background:#ff6a2a;box-shadow:0 0 6px #ff4b1f;animation:hkEmber 2.4s ease-in-out infinite}
 .hr-hsmoke{position:absolute;right:0;top:50%}
 .hr-puff{position:absolute;left:0;top:0;width:4px;height:4px;margin-left:-2px;margin-top:-2px;border-radius:50%;background:rgba(214,220,232,.75);opacity:0;animation:hkSmoke 3.6s ease-out infinite}
-@media (prefers-reduced-motion:reduce){.hr *{animation:none !important}}
+@media (prefers-reduced-motion:reduce){.hroll *{animation:none !important}}
 </style>
 <script src="fy-clucks.js?v=20261119b"></script>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <template id="hr-tpl">
-  <div class="hr" id="hr">
+  <div class="hroll" id="hr">
     <header class="hr-head">
       <span></span>
       <div class="hr-sign">The Humid<span class="flicker-letter">o</span>r</div>
