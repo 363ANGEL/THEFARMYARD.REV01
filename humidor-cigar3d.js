@@ -204,7 +204,7 @@
         this._raf = requestAnimationFrame(loop); fit();
         const nowT = performance.now(), dt = Math.min((nowT - last) / 1000, 0.05), t = (nowT - t0) / 1000; last = nowT; const e = 1 - Math.exp(-dt * 5);
         for (const k in cur) cur[k] += (tgt[k] - cur[k]) * e;
-        leaf.color.lerp(leaf.userData.target, e); camFit(cur.tilt); mixU.value.lerp(mixT, e); mixOn.value = cur.mix; plant.position.x = -1.2 * (1 - cur.mix) + 0.1 * cur.mix;
+        leaf.color.lerp(leaf.userData.target, e); camFit(cur.tilt); mixU.value.lerp(mixT, e); mixOn.value = cur.mix; plant.position.x = -1.2 * (1 - cur.mix) + 0.9 * cur.mix; /* strength step: plant sits further from the cigar (RAY, 24 Nov) */
         binder.visible = ribbon.visible = cur.peel > 0.01; peelU.value.x = cur.peel > 0.005 ? cur.len / 2 + 0.4 - cur.peel * (cur.len * (0.55 + 0.25 * cur.mix) + 0.4) : 1e3;
         if (ribbon.visible) { ribMat.color.copy(leaf.color); const X = peelU.value.x, p = peelU.value.y, P = ribGeo.attributes.position.array, cl = cur.peel;
           for (let i = 0; i <= RU; i++) { const u = i / RU, a = Math.PI + u * 2.4 * Math.PI, xc = X + (a / TAU) * p, lift = 1.015 + cl * 1.5 * Math.pow(u, 1.6), sway = still ? 0 : Math.sin(t * 1.3 + u * 3) * 0.04 * u;
