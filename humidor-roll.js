@@ -95,7 +95,7 @@
     // Two columns at every panel width of 700px and up, whatever the height (RAY via PLAN, 24 Nov; the
     // design tied the grid to wide AND short windows). The compact sizes still follow the design's
     // wide-and-short rule: smaller headline, labels and emblems only when the window is short.
-    const twoCol = !mob;
+    const twoCol = !mob && vw / vh > 1.4 && vh < 760;   // the design's rule again (RAY, 24 Nov): tall screens stack, question top centre, cigar centred between
     const wideShort = !mob && vw / vh > 1.4 && vh < 760;
     small = wideShort;
     root.classList.toggle('mob', mob); root.classList.toggle('ws', wideShort);

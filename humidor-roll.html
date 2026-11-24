@@ -32,7 +32,7 @@
 /* Header: the sign centred, round label and pips right. The design's "← The Barn" link is gone (the
    sidebar does that); an empty cell on the left keeps the sign centred. */
 .hr-head{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;padding:14px clamp(16px,3vw,32px) 0}
-.hr-sign{font-size:.9375rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--hint-text);text-shadow:0 0 6px var(--neon-teal),0 0 14px rgba(95,211,207,.45);white-space:nowrap}
+.hr-sign{grid-column:1;grid-row:1;justify-self:start;font-size:.9375rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--hint-text);text-shadow:0 0 6px var(--neon-teal),0 0 14px rgba(95,211,207,.45);white-space:nowrap}
 .hr-headr{display:flex;align-items:center;justify-content:flex-end;gap:10px}
 #hr-round{font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label);white-space:nowrap}
 #hr-pips{display:flex;gap:4px}
@@ -159,7 +159,7 @@
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-roll.js?v=20261124a"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-roll.js?v=20261124b"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */
