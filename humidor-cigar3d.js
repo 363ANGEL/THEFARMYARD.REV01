@@ -199,7 +199,8 @@
 
       let W = 0, H = 0, aspect = 1;
       const padEl = this.closest('[data-cigar-pad]'), pad = padEl ? +padEl.dataset.cigarPad || 0 : 0;
-      const camFit = tl => { const L = 9.4, t = Math.tan(cam.fov * Math.PI / 360), hw = L / 2 * Math.abs(Math.cos(tl)) + 0.9, hh = L / 2 * Math.sin(tl) + 1.1; cam.position.set(0, 0.3, Math.max(hh / t, hw / (t * aspect))); cam.lookAt(0, 0.3, 0); };
+      const camFit = tl => { const L = 9.4, t = Math.tan(cam.fov * Math.PI / 360), hw = L / 2 * Math.abs(Math.cos(tl)) + 0.9, hh = L / 2 * Math.sin(tl) + 1.1; const m = cur.mix || 0; let d = Math.max(hh / t, hw / (t * aspect)); if (m > 0) { const dv = Math.max(3.6 / t, 4.4 / (t * aspect)); d = d * (1 - m) + dv * m; }   /* strength step: plant and cigar fill about 80% (RAY, 24 Nov) */
+        cam.position.set(1.2 * m, 0.3, d); cam.lookAt(1.2 * m, 0.3, 0); };
       const fit = () => { const w = this.clientWidth, h = this.clientHeight; if (!w || !h || (w === W && h === H)) return; W = w; H = h; const gh = Math.max(h - pad, 40); aspect = w / gh; renderer.setSize(w, h, false); cam.aspect = aspect; cam.setViewOffset(w, gh, 0, -pad, w, h); cam.updateProjectionMatrix();
         baseTilt = aspect < 0.95 ? 0.95 : aspect < 1.5 ? 0.45 : 0.14; tgt.tilt = vert ? Math.PI / 2 : baseTilt; camFit(cur.tilt); };
       this._ro = new ResizeObserver(fit); this._ro.observe(this); fit();
