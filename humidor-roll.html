@@ -185,6 +185,9 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 .hc-dots{flex:none;display:flex}
 .hc-dot{all:unset;box-sizing:border-box;width:40px;height:32px;display:grid;place-items:center;cursor:pointer}
 .hc-dot::after{content:"";width:26px;height:8px;box-sizing:border-box;border-radius:2px;border:2px solid rgba(95,211,207,.5)}
+.hc-dot::after{transition:border-color .15s,box-shadow .15s}
+.hc-dot:hover::after{border-color:var(--neon-teal);box-shadow:var(--glow-teal)}   /* mouse-over glow (RAY, 24 Nov) */
+.hc-dot.cur:hover::after{border-color:var(--neon-pink-tube);box-shadow:var(--glow-pink)}
 .hc-dot.cur::after{background:var(--neon-pink-tube);border-color:var(--neon-pink-tube);box-shadow:var(--glow-pink)}
 .hc-dot:focus-visible{outline:2px solid var(--color-accent);outline-offset:-2px}
 .hc.rm .hc-track,.hc.rm .hc-z,.hc.rm .hc-it,.hc.rm .hc-ln{transition:none}
@@ -224,7 +227,7 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 .hr-ocount{font-size:var(--fs-sm);color:var(--neon-teal);font-variant-numeric:tabular-nums;white-space:nowrap}
 
 /* Footer: Back · rail · NEXT. On narrow panels the rail moves above the buttons. */
-.hr-foot{flex:none;width:100%;max-width:980px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;background:linear-gradient(transparent,color-mix(in srgb,var(--neon-teal) 16%,var(--fy-bg)) 30%)}   /* footer fade in cyan (RAY, 24 Nov) */
+.hr-foot{flex:none;width:100%;max-width:980px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;background:none}   /* no gradient fill behind the footer (RAY, 24 Nov) */
 .hr-footl{min-width:76px;display:flex}
 .hr-footr{min-width:76px;display:flex;justify-content:flex-end;align-items:center}
 .hr-foot .btn,.hr-foot .neon-btn{min-height:44px}
