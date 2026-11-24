@@ -164,14 +164,15 @@
       const HC = [[0.25, 0.88, 0.5], [1, 0.85, 0.29], [1, 0.03, 0.05]]; let volNow = 3, angNow = 0.75, stageNow = -1, sp = {};
       const cur = Object.assign({ mix: 0, plant: 0, peel: 0, burn: 0, len: 5.6, r: 0.36, band: 0, bandW: 0.5, ember: 0, smoke: 0, wire: 1, tilt: 0.12, draw: 0, focus: 0.12 }, Z, SH.Parejo);
       const tgt = Object.assign({}, cur);
-      let baseTilt = 0.45, vert = false, mixT = new T.Vector3(0.33, 0.34, 0.33), profileOn = false, footX = 2.8, clipX = 1e3, burnDur = 4, burnT0 = 0, burnWas = false, burnShape = null, bpCur = 0, heatK = 0.6, kick = 0, spinOn = true, smokeOn = true, lastKey = '';
+      let realT = 0, realNow = 0, baseTilt = 0.45, vert = false, mixT = new T.Vector3(0.33, 0.34, 0.33), profileOn = false, footX = 2.8, clipX = 1e3, burnDur = 4, burnT0 = 0, burnWas = false, burnShape = null, bpCur = 0, heatK = 0.6, kick = 0, spinOn = true, smokeOn = true, lastKey = '';
       const apply = () => {
         const s = window.__cigarSpec || {}; sp = s;
         Object.assign(tgt, Z, SH[s.shape] || SH.Parejo);
         tgt.draw = s.draw ? 1 : 0; tgt.focus = s.focus || 0.12; tgt.len = s.len || 5.6; tgt.r = (s.ring || 46) / 128;
         const b = BANDS[s.budget]; tgt.band = b ? 1 : 0;
         if (b) { tgt.bandW = b[2]; bandMat.map = bandTex[s.budget]; bandMat.metalness = b[3]; }
-        let tone = leafTone(T, s.wrapper, s.strength); (s.flavour || []).forEach(f => { const c = FLAV_HUE[f]; if (c == null) return; tone = tone ? tone.lerp(new T.Color(c), 0.4) : new T.Color(c); }); leaf.userData.target = tone || new T.Color(0x1d2030); tgt.wire = tone ? 0 : Math.max(0.15, 1 - (s.progress || 0) * 0.85);
+        let tone = leafTone(T, s.wrapper, s.strength); (s.flavour || []).forEach(f => { const c = FLAV_HUE[f]; if (c == null) return; tone = tone ? tone.lerp(new T.Color(c), 0.4) : new T.Color(c); }); { const r = Math.max(0, Math.min(1, s.progress || 0)); realT = r;   /* each answer makes it more real: net fades, leaf colour and texture build (RAY, 24 Nov) */
+          leaf.userData.target = new T.Color(0x1d2030).lerp(tone || new T.Color(0x7a5a3c), r); tgt.wire = Math.max(0.06, 1 - r * 0.94); }
         tgt.smoke = SMOKE[s.strength || ''] || 0; tgt.ember = tgt.smoke ? 0.6 + tgt.smoke * 1.6 : 0;
         vert = !!s.vertical; tgt.tilt = vert ? Math.PI / 2 : baseTilt; tgt.mix = vert ? 1 : 0; { const m = MIX[s.plant] || [0.33, 0.34, 0.33]; mixT.set(m[0], m[1], m[2]); }
         tgt.plant = s.plant != null ? 1 : 0; tgt.peel = s.unwrap || vert ? 1 : 0; tgt.burn = s.burn ? 1 : 0; if (s.burn) { if (!burnWas || s.burn !== burnDur || (s.burnKey !== undefined ? s.burnKey : s.shape) !== burnShape) burnT0 = performance.now(); burnShape = s.burnKey !== undefined ? s.burnKey : s.shape;   // a new shape starts burning again from the foot (RAY, 24 Nov)
@@ -234,7 +235,7 @@
         const nowT = performance.now(), dt = Math.min((nowT - last) / 1000, 0.05), t = (nowT - t0) / 1000; last = nowT; const e = 1 - Math.exp(-dt * 5);
         for (const k in cur) cur[k] += (tgt[k] - cur[k]) * e;
         if (still) cur.peel = tgt.peel;   /* reduced motion: no peel animation, the end state at once (plan 40) */
-        leaf.color.lerp(leaf.userData.target, e); camFit(cur.tilt); mixU.value.lerp(mixT, e); mixOn.value = cur.mix; plant.position.x = -1.2 * (1 - cur.mix) + 0.9 * cur.mix; /* strength step: plant sits further from the cigar (RAY, 24 Nov) */
+        leaf.color.lerp(leaf.userData.target, e); realNow += (realT - realNow) * e; leaf.bumpScale = 0.05 + 0.85 * realNow; leaf.roughness = 0.95 - 0.25 * realNow; camFit(cur.tilt); mixU.value.lerp(mixT, e); mixOn.value = cur.mix; plant.position.x = -1.2 * (1 - cur.mix) + 0.9 * cur.mix; /* strength step: plant sits further from the cigar (RAY, 24 Nov) */
         binder.visible = ribbon.visible = cur.peel > 0.01; { const gl = cur.mix > 0.5; binder.material = gl ? glassMat : binderMat; binder.renderOrder = gl ? 2 : 0; glassMat.opacity = 0.22 * cur.mix; } peelU.value.x = cur.peel > 0.005 ? cur.len / 2 + 0.4 - cur.peel * (cur.len * (0.55 + 0.25 * cur.mix) + 0.4) : 1e3;
         if (ribbon.visible) { ribMat.color.copy(leaf.color); const X = peelU.value.x, p = peelU.value.y, P = ribGeo.attributes.position.array, cl = cur.peel;
           for (let i = 0; i <= RU; i++) { const u = i / RU, a = Math.PI + u * 2.4 * Math.PI, xc = X + (a / TAU) * p, lift = 1.015 + cl * (1.5 + 1.3 * cur.mix) * Math.pow(u, 1.6), sway = still ? 0 : Math.sin(t * 1.3 + u * 3) * 0.04 * u;
