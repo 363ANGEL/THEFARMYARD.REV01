@@ -269,7 +269,7 @@
     const pickBand = g => { const id = g && g.dataset.id; if (!id || id.indexOf('burn:') !== 0 || !opt.onBand) return;   // a time band opens its sizes (RAY, 24 Nov)
       const B = BANDS.find(b => 'burn:' + b[0] === id); if (!B) return;
       opt.onBand({ name: B[0], lo: B[2], hi: B[3], rows: sizes.filter(c => c.mins > B[2] && c.mins <= B[3]).sort((x, y) => x.len - y.len || x.ring - y.ring) }); };
-    track.addEventListener('click', e => { if (swallow) return; const g = itemOf(e.target), id = g ? g.dataset.id : null; S.pin = id && S.pin !== id ? id : null; setOn(S.pin); pick(g); pickBand(g); });
+    track.addEventListener('click', e => { if (swallow) return; const g = itemOf(e.target), id = g ? g.dataset.id : null; S.pin = id && S.pin !== id ? id : null; setOn(S.pin); pick(g); pickBand(g); if (g && g.classList.contains('flv') && opt.onNote) opt.onNote((FACTS[g.dataset.id] || '').split(' · ').pop()); });   /* a wheel note picks its broad flavour (RAY, 24 Nov) */
     track.addEventListener('keydown', e => { const g = itemOf(e.target); if (!g || (e.key !== 'Enter' && e.key !== ' ')) return; e.preventDefault(); S.pin = S.pin === g.dataset.id ? null : g.dataset.id; setOn(S.pin || g.dataset.id); pick(g); pickBand(g); });
     root.querySelector('.hc-dots').addEventListener('click', e => { const d = e.target.closest('.hc-dot'); if (!d) return; stopOv(); go(+d.dataset.p); armIdle(); });
 

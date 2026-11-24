@@ -76,7 +76,8 @@
   const S = { step: 0, answers: {}, flav: [], hover: null, stage: undefined, shown: null };
   let target = null, raf = 0, reach = 0, nextOff = true, opts = [], root, chart = null, wheel = null;
   // flavour step answers → the wheel notes they match (RAY, 24 Nov)
-  const FLAV_WHEEL = [['Creamy', ['Cream']], ['Nutty', ['Nuts', 'Almond']], ['Woody', ['Cedar', 'Toast']], ['Spicy', ['Spice', 'Black pepper']], ['Sweet', ['Honey', 'Molasses', 'Dried fruit']], ['Earthy', ['Earth', 'Leather', 'Charcoal']]];
+  const FLAV_WHEEL = [['Creamy', ['Cream']], ['Nutty', ['Nuts', 'Almond']], ['Woody', ['Cedar', 'Toast']], ['Spicy', ['Spice', 'Black pepper']], ['Sweet', ['Honey', 'Molasses', 'Dried fruit', 'Cocoa', 'Dark chocolate']], ['Earthy', ['Earth', 'Leather', 'Charcoal', 'Grass', 'Green tea', 'Hay', 'Coffee', 'Espresso']]];   // every wheel note belongs to one of the six
+  const noteCat = w => (FLAV_WHEEL.find(([, v]) => v.includes(w)) || [])[0];
   const set = p => { Object.assign(S, typeof p === 'function' ? p(S) : p); render(); };
   const prefill = n => {
     const a = {};
@@ -337,7 +338,7 @@
       main.innerHTML = document.getElementById('hr-tpl').innerHTML;
       root = main.querySelector('#hr');
       if (window.HumidorChart) chart = window.HumidorChart.mount($('hr-chart'), { sizes: sizes(), onPick: openPhoto, onBand: openBand });
-      if (window.HumidorChart && $('hr-wheel')) wheel = window.HumidorChart.mount($('hr-wheel'), { sizes: sizes(), only: 4 });   // the overview's flavour wheel beside the cigar on the flavour step (RAY, 24 Nov)
+      if (window.HumidorChart && $('hr-wheel')) wheel = window.HumidorChart.mount($('hr-wheel'), { sizes: sizes(), only: 4, onNote: w => { const c = noteCat(w); if (c && S.step === 6) pick(qs()[6], c, 6); } });   // the overview's flavour wheel beside the cigar on the flavour step (RAY, 24 Nov)
       wire(); wirePhoto();
       const m = /step=(\d)/.exec(location.hash);
       if (m) prefill(+m[1]); else render();
