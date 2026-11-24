@@ -127,9 +127,9 @@
         ['Seco', 'Lower middle · shade', 'Mild, aromatic, burns easily. Most of a mild cigar is seco.', 46, 24, 'Filler and binder', 'var(--neon-green-tube)', '63,224,127', 'var(--neon-green-text)', [25, 75]],
         ['Volado', 'Bottom · least sun', 'Barely any strength. It is there to make the thing burn.', 70, 24, 'Outer filler and binder', 'var(--medal-silver,#e4ecf0)', '228,236,240', '#e4ecf0', [14, 86]]
       ];
-      const ah = H - top - 6, ih = ah, iw = Math.min(ih * 0.59, W * 0.32), ix = pad, iy = top, lblW = W < 560 ? 104 : 140, lx = ix + iw + 10;
+      const ah = H - top - 6, ih = ah, iw = Math.min(ih * 0.59, W * 0.32), ix = pad, iy = top, lblW = W < 560 ? 104 : W < 720 ? 124 : 140, lx = ix + iw + 10;
       const cw = Math.max(26, Math.min(46, ah * 0.12)), ch = Math.min(ah * 0.86, 340), cxl = lx + lblW, cyt = top + (ah - ch) / 2, r = cw / 2;
-      const kx = cxl + cw + 10, fx = kx + 88, fw = W - pad - fx, box = fw >= 150;
+      const kx = cxl + cw + 10, fx = kx + (W < 720 ? 68 : 88), fw = W - pad - fx, box = fw >= 120;
       const outline = `M${f(cxl)} ${f(cyt + ch)}V${f(cyt + r)}A${f(r)} ${f(r)} 0 0 1 ${f(cxl + cw)} ${f(cyt + r)}V${f(cyt + ch)}Z`;
       const rowY = k => cyt + 8 + (ch - 16) * k / 8;
       const keyRow = (k, label, col, line) => (line ? `<path d="M${f(kx)} ${f(rowY(k))}h12" stroke="${col}" stroke-width="2"/>` : '') + `<text class="hc-t hc-tf hc-key" x="${f(kx + (line ? 18 : 0))}" y="${f(rowY(k))}" dominant-baseline="middle"${line ? '' : ` style="fill:${col}"`}>${esc(label.toUpperCase())}</text>`;
@@ -140,7 +140,7 @@
       out += FL.map(([nm, pos, d, tp, hp, use, col, rgb, tx, xs], i) => {
         const by = top + ah * tp / 100, bh = ah * hp / 100, my = by + bh / 2;
         const lines = xs.map(x => `<path class="hc-lf" d="M${f(cxl + cw * x / 100)} ${f(cyt + ch * 0.09)}V${f(cyt + ch * 0.99)}" stroke="${col}" stroke-width="2" clip-path="url(#hc-cgc)"/>`).join('');
-        const info = box ? `<foreignObject class="hc-info${i === 2 ? ' def' : ''}" x="${f(fx)}" y="${f(top + ah / 2 - 50)}" width="${f(fw)}" height="140"><div xmlns="http://www.w3.org/1999/xhtml" class="hc-infobox"><span class="hc-infoh">${esc(nm)}</span><p>${esc(d)}</p><p class="hc-infou">${esc(use)}</p></div></foreignObject>` : '';
+        const info = box ? `<foreignObject class="hc-info${i === 2 ? ' def' : ''}" x="${f(fx)}" y="${f(top + ah / 2 - 90)}" width="${f(fw)}" height="220"><div xmlns="http://www.w3.org/1999/xhtml" class="hc-infobox"><span class="hc-infoh">${esc(nm)}</span><p>${esc(d)}</p><p class="hc-infou">${esc(use)}</p></div></foreignObject>` : '';
         return item('leaf:' + nm, nm + ' · ' + pos + ' · ' + d + ' ' + use + '.',
           `<rect class="hc-lband" x="${f(ix)}" y="${f(by)}" width="${f(iw)}" height="${f(bh)}" fill="rgb(${rgb})"/><path d="M${f(ix)} ${f(by)}H${f(ix + iw)}" stroke="${col}" stroke-opacity=".6" stroke-dasharray="4 3" fill="none"/>`
           + `<path class="hc-lf" d="M${f(lx)} ${f(my)}h18" stroke="${col}" stroke-width="2"/>` + txt(lx + 24, my - 2, nm, 'hc-t hc-tb hc-lname') + txt(lx + 24, my + 12, pos, 'hc-t hc-tf')
