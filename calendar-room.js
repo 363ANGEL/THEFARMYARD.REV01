@@ -64,7 +64,7 @@ window.FY_RENDER_CALENDAR = async function (B, card) {
       <span style="font-size:var(--fs-xs);letter-spacing:.1em;text-transform:uppercase;color:var(--fy-text-label)">${new Date(picked + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
       ${(items[picked] || []).map(x => `<div class="cal-row"><i class="${KIND[x.kind].icon} ${x.kind}" style="font-size:1.2rem"></i><span style="flex:1;min-width:8rem"><strong>${esc(x.text)}</strong>${x.ev && x.ev.event_time ? ` <span style="color:var(--fy-text-label)">${hhmm(x.ev.event_time)}</span>` : ''}${x.ev && x.ev.note ? `<br><span style="color:var(--fy-text-secondary);font-size:var(--fs-sm)">${esc(x.ev.note)}</span>` : ''}</span>
         ${canEdit(x) ? `<button type="button" class="rowbtn" data-edit="${x.ev.id}">Edit</button><button type="button" class="rowbtn warn" data-del="${x.ev.id}">Delete</button>` : ''}</div>`).join('') || '<span style="font-size:var(--fs-sm);color:var(--fy-text-label)">Nothing on this day. Use Create event below.</span>'}</div>` : '';
-    card.style.maxWidth = '360px';   // the month card at half size (RAY, 23 Nov); the Create event card keeps 720px
+    card.style.maxWidth = 'none';   // stacked: fills the page width; two columns: the grid track caps it at 360px (RAY, 24 Nov)
     card.innerHTML = `<div style="display:flex;align-items:center;gap:8px">
         <button type="button" class="btn btn-ghost cal-nav" data-nav="-1" aria-label="Previous month"><span aria-hidden="true" style="font-size:1.25rem;line-height:1">&#8249;</span></button>
         <span class="t-module" style="flex:1;text-align:center">${first.toLocaleString('en-GB', { month: 'long', year: 'numeric' })}</span>
@@ -76,7 +76,7 @@ window.FY_RENDER_CALENDAR = async function (B, card) {
 
   // ---- Create / edit event (any member; their own only, admins any) ----
   const boxCss = card.getAttribute('style');
-  const form = document.createElement('div'); form.id = 'cal-form-card'; form.setAttribute('style', boxCss); form.style.maxWidth = '720px';
+  const form = document.createElement('div'); form.id = 'cal-form-card'; form.setAttribute('style', boxCss); form.style.maxWidth = 'none';
   // Card and form share one two-column grid on wide screens (stacked when narrow).
   const wrap = document.createElement('div'); wrap.className = 'cal-cols-wrap';
   const cols = document.createElement('div'); cols.className = 'cal-cols'; wrap.appendChild(cols);
