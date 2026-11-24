@@ -32,7 +32,7 @@
 /* Header: the sign centred, round label and pips right. The design's "← The Barn" link is gone (the
    sidebar does that); an empty cell on the left keeps the sign centred. */
 .hr-head{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;padding:14px clamp(16px,3vw,32px) 0}
-.hr-sign{grid-column:1;grid-row:1;justify-self:start;font-size:var(--fs-body);font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--hint-text);text-shadow:0 0 6px var(--neon-teal),0 0 14px rgba(95,211,207,.45);white-space:nowrap}
+.hr-sign{grid-column:1;grid-row:1;justify-self:start;font-size:calc(var(--fs-body) * 1.25);font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--hint-text);text-shadow:0 0 6px var(--neon-teal),0 0 14px rgba(95,211,207,.45);white-space:nowrap}
 .hr-headr{display:none}   /* step progress removed on every step (RAY, 24 Nov) */
 #hr-round{font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label);white-space:nowrap}
 #hr-pips{display:flex;gap:3px}
