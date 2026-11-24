@@ -118,6 +118,23 @@
 .hc-sw{stroke:var(--neon-teal);stroke-width:1.5;vector-effect:non-scaling-stroke}
 .hc-band{fill:rgba(95,211,207,.04)}
 .hc-hit{fill:transparent}
+/* Anatomy slide (RAY, 24 Nov): line weight and DS colour per part. The pink highlight still wins on rollover. */
+svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-width:2.6}
+[data-id="part:cap"] .hc-ln{stroke:var(--neon-red-tube);stroke-width:2.4}
+[data-id="part:cap"] .hc-t{fill:var(--neon-red-text)}
+[data-id="part:head"] .hc-ln,[data-id="part:shoulder"] .hc-ln{stroke:var(--neon-green-tube)}
+[data-id="part:head"] .hc-t,[data-id="part:shoulder"] .hc-t{fill:var(--neon-green-text)}
+[data-id="part:band"] .hc-ln{stroke:var(--neon-amber);stroke-width:2.2}
+[data-id="part:band"] .hc-occ{fill:color-mix(in srgb,var(--neon-amber) 22%,var(--fy-bg))}
+[data-id="part:band"] .hc-t{fill:var(--neon-amber-text)}
+[data-id="part:body"] .hc-ln{stroke:var(--neon-teal);stroke-width:1.6;opacity:1}
+[data-id="part:foot"] .hc-ln{stroke:var(--neon-amber-tube);stroke-width:2.2}
+[data-id="part:foot"] ellipse.hc-ln{fill:color-mix(in srgb,var(--neon-red-tube) 30%,transparent)}
+[data-id="part:foot"] .hc-t{fill:var(--neon-amber-text)}
+[data-id^="dim:"] .hc-ln{stroke:var(--color-accent-2,#a7a1db);stroke-width:1.2;stroke-dasharray:4 3;opacity:1}
+[data-id^="dim:"] .hc-t{fill:var(--color-accent-2,#a7a1db)}
+[data-id^="cut:"] .hc-thin{stroke:var(--art-cream);stroke-width:1.4;opacity:.8}
+[data-id^="cut:"] .hc-ln:not(.hc-thin){stroke:var(--neon-amber);stroke-width:2.6;fill:color-mix(in srgb,var(--neon-amber) 18%,transparent)}
 .hc-deco{pointer-events:none}   /* burn-time cigars: drawing only (RAY, 24 Nov) */
 .hc-it{cursor:pointer;outline:none;transition:opacity .25s}
 .hc-z{transform-box:fill-box;transform-origin:center;transition:transform .25s ease}
