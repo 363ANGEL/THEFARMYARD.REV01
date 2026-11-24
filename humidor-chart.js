@@ -102,20 +102,22 @@
       const cx = W / 2, R2 = Math.max(40, Math.min(W / 2 - pad, (H - top - 10) / 2)), cy = top + 4 + R2, R = R2 * 0.66, r0 = R2 * 0.18, r1 = R2 * 0.38, n = WRAPS.length, step = 2 * Math.PI / n, A0 = -Math.PI / 2;
       const pt = (r, a) => f(cx + r * Math.cos(a)) + ' ' + f(cy + r * Math.sin(a));
       const wedge = (ri, ro, a0, a1) => { const big = a1 - a0 > Math.PI ? 1 : 0; return `M${pt(ri, a0)}L${pt(ro, a0)}A${f(ro)} ${f(ro)} 0 ${big} 1 ${pt(ro, a1)}L${pt(ri, a1)}A${f(ri)} ${f(ri)} 0 ${big} 0 ${pt(ri, a0)}Z`; };
-      const lab = (r, a, s, cls) => { let deg = a * 180 / Math.PI; const flip = Math.cos(a) < 0; if (flip) deg += 180;
-        return `<text class="${cls}" text-anchor="middle" dominant-baseline="middle" transform="translate(${pt(r, a)}) rotate(${f(deg)})">${esc(s)}</text>`; };
+      // Each label is sized to fit its own cell (RAY, 24 Nov): long along the cell, thin across it.
+      const fit = (s, along, across) => f(Math.max(4, Math.min(11, along / (String(s).length * 0.58), across * 0.7)));
+      const lab = (r, a, s, cls, fs) => { let deg = a * 180 / Math.PI; if (Math.sin(a) > 0) deg += 180;   /* runs around the ring, kept upright */
+        return `<text class="${cls}" text-anchor="middle" dominant-baseline="middle"${fs ? ` style="font-size:${fs}px !important"` : ''} transform="translate(${pt(r, a)}) rotate(${f(deg + 90)})">${esc(s)}</text>`; };
       const push = a => `--dx:${f(Math.cos(a) * R2 * 0.04)}px;--dy:${f(Math.sin(a) * R2 * 0.04)}px`;
-      const radial = (r, a, s2, cls) => { let deg = a * 180 / Math.PI; if (Math.cos(a) < 0) deg += 180; return `<text class="${cls}" text-anchor="middle" dominant-baseline="middle" transform="translate(${pt(r, a)}) rotate(${f(deg)})">${esc(s2)}</text>`; };
+      const radial = (r, a, s2, cls, fs) => { let deg = a * 180 / Math.PI; if (Math.cos(a) < 0) deg += 180; return `<text class="${cls}" text-anchor="middle" dominant-baseline="middle"${fs ? ` style="font-size:${fs}px !important"` : ''} transform="translate(${pt(r, a)}) rotate(${f(deg)})">${esc(s2)}</text>`; };
       const fine = R < 110 ? ' hc-tf' : '';
       let k = 0;
       const groups = ['Light', 'Medium', 'Dark'].map(g => { const ix = WRAPS.map((w, i) => w[2] === g ? i : -1).filter(i => i >= 0), a0 = A0 + step * ix[0], a1 = A0 + step * (ix[ix.length - 1] + 1), am = (a0 + a1) / 2;
-        return item('wgrp:' + g, g + ' leaf · ' + ix.map(i => WRAPS[i][0]).join(', '), `<path class="hc-ln hc-band" d="${wedge(r0, r1, a0, a1)}"/>` + lab((r0 + r1) / 2, am, g.toUpperCase(), 'hc-t hc-tb' + fine), { cls: 'wedge', style: push(am) }); }).join('');
+        return item('wgrp:' + g, g + ' leaf · ' + ix.map(i => WRAPS[i][0]).join(', '), `<path class="hc-ln hc-band" d="${wedge(r0, r1, a0, a1)}"/>` + lab((r0 + r1) / 2, am, g.toUpperCase(), 'hc-t hc-tb', fit(g, (r0 + r1) / 2 * (a1 - a0) * 0.85, r1 - r0)), { cls: 'wedge', style: push(am) }); }).join('');
       const shades = WRAPS.map(([nm, hex, g, d], i) => { const a0 = A0 + step * i, a1 = a0 + step, am = (a0 + a1) / 2, short = nm.replace(' (Candela)', '');
-        return item('wrap:' + i, nm + ' · ' + d + ' · in our ' + g.toLowerCase() + ' answer', `<path class="hc-sw" d="${wedge(r1, R, a0, a1)}" fill="${hex}"/>` + lab((r1 + R) / 2, am, short, 'hc-t hc-wl' + fine), { cls: 'wedge', style: push(am) }); }).join('');
+        return item('wrap:' + i, nm + ' · ' + d + ' · in our ' + g.toLowerCase() + ' answer', `<path class="hc-sw" d="${wedge(r1, R, a0, a1)}" fill="${hex}"/>` + lab((r1 + R) / 2, am, short, 'hc-t hc-wl', fit(short, (r1 + R) / 2 * step * 0.88, R - r1)), { cls: 'wedge', style: push(am) }); }).join('');
       // Outer ring (RAY, 24 Nov): the flavours each shade is known for, like a flavour wheel. General guidance, not a promise.
       const notes = WRAPS.map(([nm, hex], i) => { const list = WFLAV[nm] || [], a0 = A0 + step * i, sub = step / Math.max(1, list.length);
         return list.map((fl, k) => { const b0 = a0 + sub * k, b1 = b0 + sub, bm = (b0 + b1) / 2;
-          return item('wflav:' + i + ':' + k, nm + ' · ' + fl, `<path class="hc-sw hc-fl" d="${wedge(R, R2, b0, b1)}" fill="${hex}"/>` + radial((R + R2) / 2, bm, fl, 'hc-t hc-fll' + (R2 - R < 70 ? ' hc-tf' : '')), { cls: 'wedge flv flv-' + fl.toLowerCase().replace(/[^a-z]+/g, '-'), style: push(bm) }); }).join(''); }).join('');
+          return item('wflav:' + i + ':' + k, nm + ' · ' + fl, `<path class="hc-sw hc-fl" d="${wedge(R, R2, b0, b1)}" fill="${hex}"/>` + radial((R + R2) / 2, bm, fl, 'hc-t hc-fll', fit(fl, (R2 - R) * 0.9, (R + R2) / 2 * sub * 0.9)), { cls: 'wedge flv flv-' + fl.toLowerCase().replace(/[^a-z]+/g, '-'), style: push(bm) }); }).join(''); }).join('');
       return groups + shades + notes + `<circle class="hc-ln" cx="${f(cx)}" cy="${f(cy)}" r="${f(r0)}"/>` + txt(cx, cy, 'LEAF', 'hc-title', 'middle', ' dominant-baseline="middle"');
     }
     // Filler (RAY, 24 Nov): the same picture and details as the original Humidor's "Pick your strength":
