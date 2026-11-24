@@ -30,13 +30,14 @@
   if (!window.HumidorCigarProfile) window.HumidorCigarProfile = profile;   // the shape options' silhouettes use it
 
   // ---- Content (our own words) ----
+  // Panel order follows the questions (RAY, 24 Nov): budget, burn time, shape, strength, wrapper, flavour.
   const PANELS = [
     { t: 'Sizes', cap: 'Every size on the shelf, shortest to longest. Roll over one.' },
+    { t: 'Burn time', cap: 'Every size by how long it lasts.' },
     { t: 'Shapes', cap: 'The head and foot change how the smoke reaches you.' },
-    { t: 'Wrapper', cap: 'The outside leaf, from light to dark.' },
     { t: 'Filler', cap: 'Where the leaf grows sets the strength.' },
-    { t: 'Anatomy', cap: 'The parts of a cigar, and the flavours you may find.' },
-    { t: 'Burn time', cap: 'Every size by how long it lasts.' }
+    { t: 'Wrapper', cap: 'The outside leaf, from light to dark.' },
+    { t: 'Anatomy', cap: 'The parts of a cigar, and the flavours you may find.' }
   ];
   const SHAPES = [['Parejo', 'straight sides and a rounded head'], ['Belicoso', 'a short taper at the head'], ['Torpedo', 'a long pointed head'], ['Pyramid', 'narrows all the way from foot to head'], ['Perfecto', 'tapered at both ends, fat in the middle'], ['Chisel', 'a flattened wedge at the head']];
   const SHMAP = { parejo: 'Parejo', belicoso: 'Belicoso', torpedo: 'Torpedo', pyramid: 'Pyramid', perfecto: 'Perfecto', chisel: 'Chisel', culebra: 'Parejo' };
@@ -139,7 +140,7 @@
         return item('bsize:' + c.size, sizeFacts(c), upright(c, cx, bb - 2, s), { size: c.size, cls: shc(c), hit: `<rect class="hc-hit" x="${f(cx - Math.max(4, rp))}" y="${f(bb - 2 - c.len * s)}" width="${f(Math.max(8, rp * 2))}" height="${f(c.len * s)}"/>` }); }).join('');
       return out;
     }
-    const DRAW = [pSizes, pShapes, pWrapper, pFiller, pAnatomy, pBurn];
+    const DRAW = [pSizes, pBurn, pShapes, pFiller, pWrapper, pAnatomy];
 
     function build() {
       const W = Math.round(view.clientWidth), H = Math.round(view.clientHeight);
