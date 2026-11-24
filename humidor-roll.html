@@ -77,7 +77,8 @@
    panels on one track that auto-scrolls, pauses under the pointer, swipes on touch. An item lights pink
    and zooms 1.6x on rollover; the rest of its panel dims to 40%. Bottom room is left for #hr-spec. */
 #hr-chart{position:absolute;left:0;right:0;top:0;bottom:1.6em;display:flex}
-.hroll.s0 #hr-chart{bottom:0}   /* the spec line is empty on the landing step: no room kept for it (RAY, 24 Nov) */
+.hroll.s0 #hr-chart{bottom:0}
+.hroll.s0 #hr-spec{display:none}   /* the cigar's summary line belongs to the question steps, not the overview (RAY, 24 Nov) */   /* the spec line is empty on the landing step: no room kept for it (RAY, 24 Nov) */
 /* Photo window (plan 39): a size picked in the chart, in the site's module style. Native <dialog>. */
 .hr-dlg{padding:0;border:0;background:transparent;width:min(560px,calc(100vw - 24px));max-width:none;max-height:none;color:var(--fy-text)}
 .hr-dlg::backdrop{background:rgba(8,9,16,.72)}
