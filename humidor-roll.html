@@ -228,7 +228,8 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 .hroll.s0 .hr-opt.sel .hr-emb{animation:none}
 .hr-opt:hover .hr-emb,.hr-opt:focus-visible .hr-emb{animation:none;opacity:1 !important;filter:drop-shadow(0 0 5px var(--gc,var(--neon-teal))) drop-shadow(0 0 10px var(--gc,var(--neon-teal)))}   /* lights up on mouse-over (RAY, 24 Nov) */
 .hroll.s0 .hr-emb{zoom:1.25}
-.hroll:not(.s0) .hr-emb{zoom:.6}   /* level icons 40% smaller on the question steps (RAY, 24 Nov) */   /* landing-step level icons 25% bigger (RAY, 24 Nov) */
+.hroll:not(.s0) .hr-emb{zoom:.6}
+.hr-opt:has(.hr-sil) .hr-sil,.hr-opt:has(.hr-sil) .hr-olabel,.hr-opt:has(.hr-sil) .hr-ocount{zoom:.75}   /* shape step: outlines and their text 25% smaller (RAY, 24 Nov) */   /* level icons 40% smaller on the question steps (RAY, 24 Nov) */   /* landing-step level icons 25% bigger (RAY, 24 Nov) */
 .hr-emb{flex:none;box-sizing:border-box;border-radius:50%;display:flex;align-items:flex-end;justify-content:center;gap:2px}
 .hr-sil{display:block;overflow:visible}
 .hr-sil path{fill:transparent;stroke:var(--sc,var(--neon-teal))}
