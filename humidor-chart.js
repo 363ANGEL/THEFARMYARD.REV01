@@ -170,15 +170,15 @@
         `<path class="hc-ln hc-thin" d="M${f(x0)} ${f(ly)}H${f(x0 + len)}M${f(x0)} ${f(ly - 4)}v8M${f(x0 + len)} ${f(ly - 4)}v8"/>` + txt(x0 + len / 2, ly + 14, 'Length', 'hc-t hc-tb', 'middle'),
         { nz: true, hit: `<rect class="hc-hit" x="${f(x0)}" y="${f(ly - 8)}" width="${f(len)}" height="28"/>` });
       const CUTS = [
-        ['Straight cut', 'the whole cap comes off with a guillotine. The most open draw; suits any shape', r0 => `<circle class="hc-ln" cx="0" cy="0" r="${f(r0 * 0.72)}"/>`],
-        ['V-cut', 'a wedge notched across the cap. A focused draw that keeps the head together', r0 => `<path class="hc-ln" d="M${f(-r0 * 0.8)} 0Q0 ${f(-r0 * 0.5)} ${f(r0 * 0.8)} 0Q0 ${f(r0 * 0.5)} ${f(-r0 * 0.8)} 0Z"/>`],
-        ['Punch', 'a small round hole in the cap. A tighter draw; not for pointed heads', r0 => `<circle class="hc-ln" cx="0" cy="0" r="${f(r0 * 0.32)}"/>`]
+        ['Straight cut', 'the whole cap comes off with a guillotine. Draw: the most open and easy, with plenty of smoke. Suits: every shape, and the only cut for a torpedo, pyramid or perfecto', 'Draw: open and easy', 'Suits: every shape', r0 => `<circle class="hc-ln" cx="0" cy="0" r="${f(r0 * 0.72)}"/>`],
+        ['V-cut', 'a wedge notched across the cap. Draw: focused and concentrated, a little firmer. Suits: parejos and belicosos, best on a 46 ring or wider; too deep for thin or sharply pointed heads', 'Draw: focused, a little firmer', 'Suits: parejo, belicoso · 46 ring up', r0 => `<path class="hc-ln" d="M${f(-r0 * 0.8)} 0Q0 ${f(-r0 * 0.5)} ${f(r0 * 0.8)} 0Q0 ${f(r0 * 0.5)} ${f(-r0 * 0.8)} 0Z"/>`],
+        ['Punch', 'a small round hole in the cap. Draw: the tightest and slowest, cooler smoke, can build tar. Suits: round-headed parejos of 48 ring or wider; not for torpedo, pyramid, belicoso or perfecto heads', 'Draw: tight, slow and cool', 'Suits: round heads · 48 ring up', r0 => `<circle class="hc-ln" cx="0" cy="0" r="${f(r0 * 0.32)}"/>`]
       ];
-      const cyq = ly + 34, avail = H - cyq - 26, cr = Math.max(9, Math.min(20, avail / 2)), cyc = cyq + cr + 4, cell = Math.min(150, (W - pad * 2) / 3), cx0 = W / 2 - cell;
-      out += txt(pad, cyq - 6, 'CUTS · HOW THE HEAD IS OPENED', 'hc-title');
-      out += CUTS.map(([nm, d, draw], i) => { const cx = cx0 + cell * i;
-        return item('cut:' + nm, nm + ' · ' + d, `<g transform="translate(${f(cx)} ${f(cyc)})"><circle class="hc-ln hc-thin" cx="0" cy="0" r="${f(cr)}"/>${draw(cr)}</g>` + txt(cx, cyc + cr + 14, nm, 'hc-t hc-tb', 'middle'),
-          { hit: `<rect class="hc-hit" x="${f(cx - cell / 2)}" y="${f(cyc - cr - 4)}" width="${f(cell)}" height="${f(cr * 2 + 24)}"/>` }); }).join('');
+      const cyq = ly + 34, avail = H - cyq - 52, cr = Math.max(9, Math.min(20, avail / 2)), cyc = cyq + cr + 4, cell = Math.min(200, (W - pad * 2) / 3), cx0 = W / 2 - cell;
+      out += txt(pad, cyq - 6, 'CUTS · HOW THE HEAD IS OPENED, AND WHAT IT DOES TO THE DRAW', 'hc-title');
+      out += CUTS.map(([nm, d, l1, l2, draw], i) => { const cx = cx0 + cell * i;
+        return item('cut:' + nm, nm + ' · ' + d, `<g transform="translate(${f(cx)} ${f(cyc)})"><circle class="hc-ln hc-thin" cx="0" cy="0" r="${f(cr)}"/>${draw(cr)}</g>` + txt(cx, cyc + cr + 14, nm, 'hc-t hc-tb', 'middle') + txt(cx, cyc + cr + 27, l1, 'hc-t hc-tf', 'middle') + txt(cx, cyc + cr + 39, l2, 'hc-t hc-tf', 'middle'),
+          { nz: true, hit: `<rect class="hc-hit" x="${f(cx - cell / 2)}" y="${f(cyc - cr - 4)}" width="${f(cell)}" height="${f(cr * 2 + 48)}"/>` }); }).join('');
       return out;
     }
     function pBurn(W, H) {
