@@ -86,6 +86,13 @@
    and zooms 1.6x on rollover; the rest of its panel dims to 40%. Bottom room is left for #hr-spec. */
 #hr-chart{position:absolute;left:0;right:0;top:0;bottom:1.6em;display:flex}
 .hroll.s0 #hr-chart{bottom:0}
+/* Flavour step: the overview's flavour wheel to the left of the cigar (RAY, 24 Nov) */
+#hr-wheel{position:absolute;left:0;top:0;bottom:0;width:min(42%,340px);z-index:1}
+#hr-wheel .hc,#hr-wheel .hc-view{height:100%}
+#hr-wheel .hc.only .hc-bar,#hr-wheel .hc.only .hc-detail,#hr-wheel .hc.only .hc-title{display:none}
+#hr-wheel .hc.marking .hc-it.flv:not(.lit),#hr-wheel .hc.marking .hc-it:not(.flv){opacity:.35}
+#hr-wheel .hc-it.flv.lit .hc-sw{stroke:var(--neon-pink-tube);fill-opacity:.8}
+#hr-wheel .hc-it.flv.lit .hc-fll{fill:var(--neon-pink-text)}
 .hroll:not([data-step="7"]):not([data-step="8"]) #hr-spec{display:none}   /* the running summary only on Last look and Done (RAY, 24 Nov) */   /* the cigar's summary line belongs to the question steps, not the overview (RAY, 24 Nov) */   /* the spec line is empty on the landing step: no room kept for it (RAY, 24 Nov) */
 /* Photo window (plan 39): a size picked in the chart, in the site's module style. Native <dialog>. */
 .hr-dlg{padding:0;border:0;background:transparent;width:min(560px,calc(100vw - 24px));max-width:none;max-height:none;color:var(--fy-text)}
@@ -309,7 +316,7 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
         </section>
         <div id="hr-gap">
           <div class="hr-canvas" data-cigar-pad="150"><cigar-3d></cigar-3d></div>
-          <div id="hr-notes" aria-hidden="true"></div>
+          <div id="hr-notes" aria-hidden="true"></div><div id="hr-wheel" hidden></div>
           <div id="hr-chart" hidden></div>
           <div id="hr-strnote" hidden></div>
           <div id="hr-distip" role="status" aria-live="polite"></div>
@@ -342,7 +349,7 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261125i"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261125c"></script><script src="humidor-roll.js?v=20261125j"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261125i"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261125j"></script><script src="humidor-roll.js?v=20261125j"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */

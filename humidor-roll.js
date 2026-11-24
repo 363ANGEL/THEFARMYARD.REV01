@@ -74,7 +74,9 @@
 
   // ---- State ----
   const S = { step: 0, answers: {}, flav: [], hover: null, stage: undefined, shown: null };
-  let target = null, raf = 0, reach = 0, nextOff = true, opts = [], root, chart = null;
+  let target = null, raf = 0, reach = 0, nextOff = true, opts = [], root, chart = null, wheel = null;
+  // flavour step answers → the wheel notes they match (RAY, 24 Nov)
+  const FLAV_WHEEL = [['Creamy', ['Cream']], ['Nutty', ['Nuts', 'Almond']], ['Woody', ['Cedar', 'Toast']], ['Spicy', ['Spice', 'Black pepper']], ['Sweet', ['Honey', 'Molasses', 'Dried fruit']], ['Earthy', ['Earth', 'Leather', 'Charcoal']]];
   const set = p => { Object.assign(S, typeof p === 'function' ? p(S) : p); render(); };
   const prefill = n => {
     const a = {};
@@ -148,6 +150,7 @@
     gap.style.minHeight = landing ? (twoCol ? '240px' : mob ? '200px' : '220px') : twoCol ? '0px' : step === 2 || step === 3 ? '150px' : '60px';
     gap.querySelector('.hr-canvas').hidden = landing; $('hr-notes').hidden = landing; $('hr-chart').hidden = !landing;
     if (chart) chart.show(landing);
+    { const fl = S.step === 6, w = $('hr-wheel'); if (w) w.hidden = !fl; if (wheel) { wheel.show(fl); if (fl) wheel.mark(FLAV_WHEEL.flatMap(([k, v]) => (S.flav || []).includes(k) ? v : [])); } }
     drawNotes(q.key === 'flavour' ? fShow : [], flav);
     // Strength step (plan 40): what each lit floor does, in the Filler slide's words. Hover previews, click commits.
     { const HS = window.HumidorStrength, sn = $('hr-strnote'), lit = HS && q.key === 'strength' ? HS.LIT[window.__cigarSpec.plant || ''] : null;
@@ -334,6 +337,7 @@
       main.innerHTML = document.getElementById('hr-tpl').innerHTML;
       root = main.querySelector('#hr');
       if (window.HumidorChart) chart = window.HumidorChart.mount($('hr-chart'), { sizes: sizes(), onPick: openPhoto, onBand: openBand });
+      if (window.HumidorChart && $('hr-wheel')) wheel = window.HumidorChart.mount($('hr-wheel'), { sizes: sizes(), only: 4 });   // the overview's flavour wheel beside the cigar on the flavour step (RAY, 24 Nov)
       wire(); wirePhoto();
       const m = /step=(\d)/.exec(location.hash);
       if (m) prefill(+m[1]); else render();

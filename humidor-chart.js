@@ -115,7 +115,7 @@
       // Outer ring (RAY, 24 Nov): the flavours each shade is known for, like a flavour wheel. General guidance, not a promise.
       const notes = WRAPS.map(([nm, hex], i) => { const list = WFLAV[nm] || [], a0 = A0 + step * i, sub = step / Math.max(1, list.length);
         return list.map((fl, k) => { const b0 = a0 + sub * k, b1 = b0 + sub, bm = (b0 + b1) / 2;
-          return item('wflav:' + i + ':' + k, nm + ' · ' + fl, `<path class="hc-sw hc-fl" d="${wedge(R, R2, b0, b1)}" fill="${hex}"/>` + radial((R + R2) / 2, bm, fl, 'hc-t hc-fll' + (R2 - R < 70 ? ' hc-tf' : '')), { cls: 'wedge', style: push(bm) }); }).join(''); }).join('');
+          return item('wflav:' + i + ':' + k, nm + ' · ' + fl, `<path class="hc-sw hc-fl" d="${wedge(R, R2, b0, b1)}" fill="${hex}"/>` + radial((R + R2) / 2, bm, fl, 'hc-t hc-fll' + (R2 - R < 70 ? ' hc-tf' : '')), { cls: 'wedge flv flv-' + fl.toLowerCase().replace(/[^a-z]+/g, '-'), style: push(bm) }); }).join(''); }).join('');
       return groups + shades + notes + `<circle class="hc-ln" cx="${f(cx)}" cy="${f(cy)}" r="${f(r0)}"/>` + txt(cx, cy, 'LEAF', 'hc-title', 'middle', ' dominant-baseline="middle"');
     }
     // Filler (RAY, 24 Nov): the same picture and details as the original Humidor's "Pick your strength":
@@ -245,7 +245,7 @@
     const setOn = id => { if (id === S.on) return; S.on = id; apply(); if (opt.onHover) opt.onHover(id); };
 
     // ---- Motion: the overview loop. Hold: Sizes 4s, every other panel 8s (RAY, 24 Nov); none under reduced motion ----
-    function tickOv() { clearTimeout(ovT); if (!live || RM()) return; ovT = setTimeout(() => { if (live && !paused && !hold && !(S.on && S.on !== S.pin)) go((cur + 1) % PANELS.length); tickOv(); }, cur === 0 ? 4000 : 8000); }   // a pinned item no longer stops the loop (RAY, 24 Nov)
+    function tickOv() { clearTimeout(ovT); if (!live || RM() || opt.only != null) return; /* a single-panel copy never pans */ ovT = setTimeout(() => { if (live && !paused && !hold && !(S.on && S.on !== S.pin)) go((cur + 1) % PANELS.length); tickOv(); }, cur === 0 ? 4000 : 8000); }   // a pinned item no longer stops the loop (RAY, 24 Nov)
     const stopOv = () => clearTimeout(ovT), armIdle = tickOv;   // a swipe or dot click restarts the wait
 
     // ---- Pointer, focus, touch ----
@@ -273,15 +273,16 @@
     track.addEventListener('keydown', e => { const g = itemOf(e.target); if (!g || (e.key !== 'Enter' && e.key !== ' ')) return; e.preventDefault(); S.pin = S.pin === g.dataset.id ? null : g.dataset.id; setOn(S.pin || g.dataset.id); pick(g); pickBand(g); });
     root.querySelector('.hc-dots').addEventListener('click', e => { const d = e.target.closest('.hc-dot'); if (!d) return; stopOv(); go(+d.dataset.p); armIdle(); });
 
-    root.classList.toggle('rm', RM());
+    root.classList.toggle('rm', RM()); if (opt.only != null) root.classList.add('only');
     if (window.ResizeObserver) new ResizeObserver(build).observe(view); else window.addEventListener('resize', build);
     build();
 
     return {
       hold(on) { hold = !!on; },
+      mark(words) { const set = new Set((words || []).map(w => w.toLowerCase().replace(/[^a-z]+/g, '-'))); root.querySelectorAll('.flv').forEach(g => g.classList.toggle('lit', [...g.classList].some(c => c.indexOf('flv-') === 0 && set.has(c.slice(4))))); root.classList.toggle('marking', set.size > 0); },   // light the wheel notes that match the picks (RAY, 24 Nov)
       release() { S.pin = null; S.on = null; paused = false; hold = false; const a = document.activeElement; if (a && root.contains(a)) a.blur(); apply(); tickOv(); },   // after the photo window: resume the loop
       show(on) { on = !!on; if (on === live) return; live = on;
-        if (on) { build(); tickOv(); } else { stopOv(); S.pin = null; S.on = null; paused = false; apply(); } }
+        if (on) { build(); if (opt.only != null) go(opt.only, true); tickOv(); } else { stopOv(); S.pin = null; S.on = null; paused = false; apply(); } }
     };
   }
 
