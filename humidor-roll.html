@@ -64,6 +64,42 @@
 .hr-note{position:absolute;transform:translate(-50%,-50%);font-size:var(--fs-h3);font-weight:500;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;color:var(--hint-text);text-shadow:0 0 6px var(--neon-teal);opacity:.7}
 .hr-note.on{color:var(--neon-pink-text);text-shadow:var(--text-glow-pink);opacity:1}
 #hr-spec{position:absolute;left:0;right:0;bottom:0;font-size:var(--fs-sm);color:var(--fy-text-label);font-variant-numeric:tabular-nums}
+/* Landing step only (plan 38 CORRECTION): the cigar knowledge chart, humidor-chart.js. Six neon line-art
+   panels on one track that auto-scrolls, pauses under the pointer, swipes on touch. An item lights pink
+   and zooms 1.6x on rollover; the rest of its panel dims to 40%. Bottom room is left for #hr-spec. */
+#hr-chart{position:absolute;left:0;right:0;top:0;bottom:1.6em;display:flex}
+.hc{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.hc-view{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:pan-y}
+.hc-track{display:flex;width:600%;height:100%;transition:transform .8s ease}
+.hc-track.drag{transition:none}
+.hc-p{flex:0 0 calc(100% / 6);height:100%}
+.hc-svg{display:block;width:100%;height:100%;overflow:visible}
+.hc-title{fill:var(--neon-teal);font-size:var(--fs-xs);letter-spacing:.08em}
+.hc-t{fill:var(--fy-text-label);font-size:var(--fs-xs)}
+.hc-tf{font-size:var(--fs-fine)}
+.hc-tb{fill:var(--fy-text-secondary)}
+.hc-ln{fill:none;stroke:var(--neon-teal);stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;transition:stroke .2s}
+.hc-thin{stroke-width:1;opacity:.6}
+.hc-occ{fill:var(--fy-bg)}
+.hc-sw{stroke:var(--neon-teal);stroke-width:1.5;vector-effect:non-scaling-stroke}
+.hc-band{fill:rgba(95,211,207,.04)}
+.hc-hit{fill:transparent}
+.hc-it{cursor:pointer;outline:none;transition:opacity .25s}
+.hc-z{transform-box:fill-box;transform-origin:center;transition:transform .25s ease}
+.hc-it.on .hc-z{transform:scale(1.6)}
+.hc-it.nz.on .hc-z{transform:none}
+.hc-it.on .hc-ln,.hc-it.on .hc-sw{stroke:var(--neon-pink-tube)}
+.hc-it.on .hc-t{fill:var(--neon-pink-text)}
+.hc-it.on{filter:drop-shadow(0 0 3px var(--neon-pink-tube))}
+.hc-p.hov .hc-it:not(.on){opacity:.4}
+.hc-bar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hc-detail{min-width:0;min-height:1.4em;font-size:var(--fs-sm);color:var(--fy-text);text-align:left;overflow-wrap:anywhere}
+.hc-dots{flex:none;display:flex}
+.hc-dot{all:unset;box-sizing:border-box;width:20px;height:24px;display:grid;place-items:center;cursor:pointer}
+.hc-dot::after{content:"";width:7px;height:7px;box-sizing:border-box;border-radius:50%;border:1.5px solid rgba(95,211,207,.5)}
+.hc-dot.cur::after{background:var(--neon-pink-tube);border-color:var(--neon-pink-tube);box-shadow:var(--glow-pink)}
+.hc-dot:focus-visible{outline:2px solid var(--color-accent);outline-offset:-2px}
+.hc.rm .hc-track,.hc.rm .hc-z,.hc.rm .hc-it,.hc.rm .hc-ln{transition:none}
 #hr-key{grid-column:1;grid-row:1;justify-self:start;position:relative;z-index:2;flex-shrink:0}
 .hr-keybox{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 18px;font-size:var(--fs-sm);color:var(--fy-text-label);text-align:left;width:max-content;max-width:100%;box-sizing:border-box;margin:6px 0;border:1px solid var(--neon-teal);border-radius:var(--radius-module);box-shadow:var(--glow-teal);background:rgba(22,24,38,.7)}
 .hr-sw{display:inline-flex;align-items:center;gap:4px}
@@ -140,6 +176,7 @@
         <div id="hr-gap">
           <div class="hr-canvas" data-cigar-pad="150"><cigar-3d></cigar-3d></div>
           <div id="hr-notes" aria-hidden="true"></div>
+          <div id="hr-chart" hidden></div>
           <div id="hr-spec"></div>
         </div>
         <div id="hr-key" hidden></div>
@@ -159,7 +196,7 @@
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-roll.js?v=20261124h"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-chart.js?v=20261124i"></script><script src="humidor-roll.js?v=20261124i"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */

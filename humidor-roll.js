@@ -1,6 +1,7 @@
 /* The Humidor · Roll your own v2.0 (RAY, 24 Nov). Vanilla port of the Claude Design handoff
    "Humidor Concept C - Roll your own.dc.html" (Concept 2a): one question at a time, a live 3D cigar
-   (humidor-cigar3d.js) and a size counter over the 38 SAMPLE sizes in humidor-shelf.js.
+   (humidor-cigar3d.js) and a size counter over the 38 SAMPLE sizes in humidor-shelf.js. On the landing
+   step the cigar gives way to the "cigar knowledge" chart (humidor-chart.js, plan 38).
    The logic class, its tables and every line of copy are the design's, verbatim (qs, STEER, SUITS, REC,
    LFIT, SIZE). What changed in the port:
    - React/<sc-if>/<sc-for> became one render() that writes each region; the option buttons are rebuilt
@@ -71,7 +72,7 @@
 
   // ---- State ----
   const S = { step: 0, answers: {}, flav: [], hover: null, stage: undefined, shown: null };
-  let target = null, raf = 0, reach = 0, nextOff = true, opts = [], root;
+  let target = null, raf = 0, reach = 0, nextOff = true, opts = [], root, chart = null;
   const set = p => { Object.assign(S, typeof p === 'function' ? p(S) : p); render(); };
   const prefill = n => {
     const a = {};
@@ -139,7 +140,12 @@
 
     // Cigar region
     const gap = $('hr-gap');
-    gap.style.minHeight = twoCol ? '0px' : step === 2 || step === 3 ? '150px' : '60px';
+    // Landing step only: the knowledge chart stands in for the cigar (plan 38 CORRECTION, RAY 24 Nov). The
+    // cigar is hidden, not torn down, so its three.js scene is ready when step 1 opens.
+    const landing = step === 0;
+    gap.style.minHeight = landing ? (twoCol ? '240px' : mob ? '200px' : '220px') : twoCol ? '0px' : step === 2 || step === 3 ? '150px' : '60px';
+    gap.querySelector('.hr-canvas').hidden = landing; $('hr-notes').hidden = landing; $('hr-chart').hidden = !landing;
+    if (chart) chart.show(landing);
     drawNotes(q.key === 'flavour' ? fShow : [], flav);
     const spec = [];
     if (sz) spec.push(String(sz[0]).replace('.2', '⅛').replace('.6', '⅝') + '" × ' + sz[1] + ' ring');
@@ -263,6 +269,7 @@
     mount(main) {
       main.innerHTML = document.getElementById('hr-tpl').innerHTML;
       root = main.querySelector('#hr');
+      if (window.HumidorChart) chart = window.HumidorChart.mount($('hr-chart'), { sizes: sizes() });
       wire();
       const m = /step=(\d)/.exec(location.hash);
       if (m) prefill(+m[1]); else render();
