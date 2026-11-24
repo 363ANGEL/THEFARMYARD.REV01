@@ -117,7 +117,7 @@
     const row = m => {
       const hasNet = typeof m.net === 'number', nd = hasNet ? dirOf(m.net) : 'flat', cd = typeof m.change === 'number' ? dirOf(m.change) : 'flat';
       const ctitle = cd === 'up' ? 'Up since last week' : cd === 'down' ? 'Down since last week' : 'No change';
-      return `<tr><td><span class="who">${FY.faceRing(m, 45, m.nickname)}<span class="ynm">${esc(m.nickname)}</span></span></td>
+      return `<tr><td><a class="who" href="${profHref(m)}" aria-label="Open ${esc(m.nickname)}'s profile" style="color:inherit;text-decoration:none">${FY.faceRing(m, 45, m.nickname)}<span class="ynm">${esc(m.nickname)}</span></a></td>
         <td>${hasNet ? `<span class="fy-iou fy-iou-${nd}">${money(m.net)}</span>` : '<span class="lpos-none">—</span>'}</td>
         <td>${hasNet ? `<span class="fy-iou fy-iou-${cd} trendcoin" title="${ctitle}" aria-label="${ctitle}"><span class="tri" aria-hidden="true">${arrow[cd]}</span></span>` : ''}</td>
         ${leagues.map(l => `<td>${lcell(m, l)}</td>`).join('')}</tr>`;
