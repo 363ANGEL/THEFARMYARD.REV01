@@ -153,7 +153,7 @@
         let tone = leafTone(T, s.wrapper, s.strength); (s.flavour || []).forEach(f => { const c = FLAV_HUE[f]; if (c == null) return; tone = tone ? tone.lerp(new T.Color(c), 0.4) : new T.Color(c); }); leaf.userData.target = tone || new T.Color(0x1d2030); tgt.wire = tone ? 0 : Math.max(0.15, 1 - (s.progress || 0) * 0.85);
         tgt.smoke = SMOKE[s.strength || ''] || 0; tgt.ember = tgt.smoke ? 0.6 + tgt.smoke * 1.6 : 0;
         vert = !!s.vertical; tgt.tilt = vert ? Math.PI / 2 : baseTilt; tgt.mix = vert ? 1 : 0; { const m = MIX[s.plant] || [0.33, 0.34, 0.33]; mixT.set(m[0], m[1], m[2]); }
-        tgt.plant = s.plant != null ? 1 : 0; tgt.peel = s.unwrap || vert ? 1 : 0; tgt.burn = s.burn ? 1 : 0; if (s.burn) { if (!burnWas || s.burn !== burnDur || s.shape !== burnShape) burnT0 = performance.now(); burnShape = s.shape;   // a new shape starts burning again from the foot (RAY, 24 Nov)
+        tgt.plant = s.plant != null ? 1 : 0; tgt.peel = s.unwrap || vert ? 1 : 0; tgt.burn = s.burn ? 1 : 0; if (s.burn) { if (!burnWas || s.burn !== burnDur || (s.burnKey !== undefined ? s.burnKey : s.shape) !== burnShape) burnT0 = performance.now(); burnShape = s.burnKey !== undefined ? s.burnKey : s.shape;   // a new shape starts burning again from the foot (RAY, 24 Nov)
         burnDur = s.burn; tgt.smoke = Math.max(tgt.smoke, 0.6); } burnWas = !!s.burn;
         profileOn = !!s.profile; spinOn = s.spin !== false && !profileOn; smokeOn = s.smoke !== false;
         const k = [s.shape, s.len, s.ring, s.budget, s.wrapper, s.strength, (s.flavour || []).join('+')].join('|'); if (!s.preview) { if (lastKey && k !== lastKey && !still && !profileOn) kick = 5.5; lastKey = k; }
