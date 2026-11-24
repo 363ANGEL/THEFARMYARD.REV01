@@ -170,13 +170,13 @@
       if (instant) { void track.offsetWidth; track.classList.remove('drag'); }
       panels.forEach((p, k) => { p.setAttribute('aria-hidden', k === cur ? 'false' : 'true'); p.querySelectorAll('.hc-it').forEach(g => g.setAttribute('tabindex', k === cur ? '0' : '-1')); });
       dots.forEach((d, k) => { d.classList.toggle('cur', k === cur); d.setAttribute('aria-current', k === cur ? 'true' : 'false'); });
-      if (S.on && !panels[cur].querySelector(`[data-id="${CSS.escape(S.on)}"]`)) { S.on = null; apply(); }   // a lit item on another panel must not caption this one
+      if (S.on && !panels[cur].querySelector(`[data-id="${CSS.escape(S.on)}"]`)) { S.on = null; S.pin = null; apply(); }   // a lit item on another panel must not caption this one
       if (!S.on) detail.textContent = PANELS[cur].cap;
     }
     const setOn = id => { if (id === S.on) return; S.on = id; apply(); if (opt.onHover) opt.onHover(id); };
 
     // ---- Motion: the overview loop. Hold: Sizes 4s, every other panel 8s (RAY, 24 Nov); none under reduced motion ----
-    function tickOv() { clearTimeout(ovT); if (!live || RM()) return; ovT = setTimeout(() => { if (live && !paused && !hold && !S.on) go((cur + 1) % PANELS.length); tickOv(); }, cur === 0 ? 4000 : 8000); }
+    function tickOv() { clearTimeout(ovT); if (!live || RM()) return; ovT = setTimeout(() => { if (live && !paused && !hold) go((cur + 1) % PANELS.length); tickOv(); }, cur === 0 ? 4000 : 8000); }   // a pinned item no longer stops the loop (RAY, 24 Nov)
     const stopOv = () => clearTimeout(ovT), armIdle = tickOv;   // a swipe or dot click restarts the wait
 
     // ---- Pointer, focus, touch ----
@@ -185,7 +185,7 @@
     root.addEventListener('pointerleave', () => { paused = false; });
     track.addEventListener('pointerover', e => { if (e.pointerType !== 'mouse') return; const g = itemOf(e.target); if (!g || g.dataset.id === S.on) return; if (g.parentNode.lastElementChild !== g) g.parentNode.appendChild(g); setOn(g.dataset.id); });
     track.addEventListener('pointerout', e => { if (e.pointerType !== 'mouse') return; const a = itemOf(e.target), b = itemOf(e.relatedTarget); if (a && a !== b && !b) setOn(S.pin); });
-    track.addEventListener('focusin', e => { const g = itemOf(e.target); if (g) setOn(g.dataset.id); paused = true; });
+    track.addEventListener('focusin', e => { const g = itemOf(e.target); if (!g || !g.matches(':focus-visible')) return; setOn(g.dataset.id); paused = true; });   // keyboard focus only: focus handed back by the photo window must not freeze the loop
     track.addEventListener('focusout', e => { if (!itemOf(e.relatedTarget)) { setOn(S.pin); paused = false; } });
     let drag = null, swallow = false;
     view.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse') return; drag = { x: e.clientX, y: e.clientY, dx: 0, moved: false }; });
@@ -207,6 +207,7 @@
 
     return {
       hold(on) { hold = !!on; },
+      release() { S.pin = null; S.on = null; paused = false; hold = false; const a = document.activeElement; if (a && root.contains(a)) a.blur(); apply(); tickOv(); },   // after the photo window: resume the loop
       show(on) { on = !!on; if (on === live) return; live = on;
         if (on) { build(); tickOv(); } else { stopOv(); S.pin = null; S.on = null; paused = false; apply(); } }
     };

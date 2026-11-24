@@ -263,7 +263,7 @@
     const d = $('hr-dlg'); if (!d) return;
     $('hr-dlg-x').addEventListener('click', () => d.close());
     d.addEventListener('click', e => { if (e.target === d) d.close(); });   // the backdrop: outside the box
-    d.addEventListener('close', () => { photoSeq++; if (chart) chart.hold(false); });
+    d.addEventListener('close', () => { photoSeq++; if (chart) chart.release(); });
   }
 
   // Hank smoking (step 8): the PNG with the design's CSS overlay cigar.
