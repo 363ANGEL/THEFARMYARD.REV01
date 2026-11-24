@@ -12,7 +12,7 @@
   const BANDS = [ ['#efe6cf', '#8f1f2c', 0.5, 0.15], ['#8f1f2c', '#e2b455', 0.6, 0.35], ['#17181f', '#e2b455', 0.7, 0.45], ['#e2b455', '#17181f', 0.8, 0.6] ];
   // each flavour pulls the wrapper 40% toward its hue
   const FLAV_HUE = { Creamy: 0xe2c896, Nutty: 0xa8743e, Woody: 0x8c4f2e, Spicy: 0xa43c22, Sweet: 0xc28838, Earthy: 0x5c5230 };
-  const BURN_SLOW = 8; // burn plays 8× slower; 2.5s whole-cigar pause before each loop
+  const BURN_SLOW = 8 / 1.3; // burn plays ~6× slower (30% quicker than the design's 8×, RAY 24 Nov); 2.5s whole-cigar pause before each loop
   const SMOKE = { '': 0, Mild: 0.35, Medium: 0.65, Full: 1 };
   // head/foot profile per shape: hR (head length in radii) + hIn (inches) + hL (fraction of length), tip radius, k (0 dome → 1 straight cone), footT taper, flat wedge
   const Z = { hR: 0, hIn: 0, hL: 0, tip: 0, k: 0, footT: 0, flat: 0 };
@@ -132,11 +132,11 @@
         const drawL = col => { lx.clearRect(0, 0, 512, 128); lx.textBaseline = 'middle'; lx.shadowColor = col; lx.shadowBlur = 14; lx.fillStyle = col; lx.font = '500 50px Inter, sans-serif'; lx.fillText(name, 8, 40); lx.shadowBlur = 0; lx.fillStyle = '#e4e8f0'; lx.font = '500 40px Inter, sans-serif'; lx.fillText(sub, 8, 96); lt.needsUpdate = true; };
         const lt = new T.CanvasTexture(lc); lt.colorSpace = T.SRGBColorSpace; const lm = new T.SpriteMaterial({ map: lt, transparent: true, opacity: 0, depthWrite: false, depthTest: false }), lab = new T.Sprite(lm); lab.scale.set(4.2, 1.05, 1); lab.center.set(0, 0.5); lab.position.set(0, (ys[0] + ys[1]) / 2 + 0.2, 0); labels.add(lab); drawL('#bdf3f0');
         return { key, fillM, edgeM, lm, drawL, lit: false }; });
-      const NLN = 14, NPT = 30, flow = []; for (let i = 0; i < NLN; i++) { const g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(new Float32Array(NPT * 3), 3)); g.setAttribute('color', new T.BufferAttribute(new Float32Array(NPT * 3), 3)); const l = new T.Points(g, new T.PointsMaterial({ size: 7 * Math.min(devicePixelRatio, 2), sizeAttenuation: false, map: smokeTex, vertexColors: true, transparent: true, blending: T.AdditiveBlending, depthWrite: false })); l.frustumCulled = false; l.visible = false; scene.add(l); flow.push(l); }
+      const NLN = 14, NPT = 30, flow = []; for (let i = 0; i < NLN; i++) { const g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(new Float32Array(NPT * 3), 3)); g.setAttribute('color', new T.BufferAttribute(new Float32Array(NPT * 3), 3)); const l = new T.Points(g, new T.PointsMaterial({ size: 7 * Math.min(devicePixelRatio, 2), sizeAttenuation: false, map: smokeTex, vertexColors: true, transparent: true, blending: T.NormalBlending, depthWrite: false })); l.frustumCulled = false; l.visible = false; scene.add(l); flow.push(l); /* normal blending keeps the key's colours (RAY, 24 Nov) */ }
       const HC = [[0.25, 0.88, 0.5], [1, 0.85, 0.29], [1, 0.03, 0.05]]; let volNow = 3, angNow = 0.75, stageNow = -1, sp = {};
       const cur = Object.assign({ mix: 0, plant: 0, peel: 0, burn: 0, len: 5.6, r: 0.36, band: 0, bandW: 0.5, ember: 0, smoke: 0, wire: 1, tilt: 0.12, draw: 0, focus: 0.12 }, Z, SH.Parejo);
       const tgt = Object.assign({}, cur);
-      let baseTilt = 0.45, vert = false, mixT = new T.Vector3(0.33, 0.34, 0.33), profileOn = false, footX = 2.8, clipX = 1e3, burnDur = 4, burnT0 = 0, burnWas = false, bpCur = 0, heatK = 0.6, kick = 0, spinOn = true, smokeOn = true, lastKey = '';
+      let baseTilt = 0.45, vert = false, mixT = new T.Vector3(0.33, 0.34, 0.33), profileOn = false, footX = 2.8, clipX = 1e3, burnDur = 4, burnT0 = 0, burnWas = false, burnShape = null, bpCur = 0, heatK = 0.6, kick = 0, spinOn = true, smokeOn = true, lastKey = '';
       const apply = () => {
         const s = window.__cigarSpec || {}; sp = s;
         Object.assign(tgt, Z, SH[s.shape] || SH.Parejo);
@@ -146,7 +146,8 @@
         let tone = leafTone(T, s.wrapper, s.strength); (s.flavour || []).forEach(f => { const c = FLAV_HUE[f]; if (c == null) return; tone = tone ? tone.lerp(new T.Color(c), 0.4) : new T.Color(c); }); leaf.userData.target = tone || new T.Color(0x1d2030); tgt.wire = tone ? 0 : Math.max(0.15, 1 - (s.progress || 0) * 0.85);
         tgt.smoke = SMOKE[s.strength || ''] || 0; tgt.ember = tgt.smoke ? 0.6 + tgt.smoke * 1.6 : 0;
         vert = !!s.vertical; tgt.tilt = vert ? Math.PI / 2 : baseTilt; tgt.mix = vert ? 1 : 0; { const m = MIX[s.plant] || [0.33, 0.34, 0.33]; mixT.set(m[0], m[1], m[2]); }
-        tgt.plant = s.plant != null ? 1 : 0; tgt.peel = s.unwrap || vert ? 1 : 0; tgt.burn = s.burn ? 1 : 0; if (s.burn) { if (!burnWas || s.burn !== burnDur) burnT0 = performance.now(); burnDur = s.burn; tgt.smoke = Math.max(tgt.smoke, 0.6); } burnWas = !!s.burn;
+        tgt.plant = s.plant != null ? 1 : 0; tgt.peel = s.unwrap || vert ? 1 : 0; tgt.burn = s.burn ? 1 : 0; if (s.burn) { if (!burnWas || s.burn !== burnDur || s.shape !== burnShape) burnT0 = performance.now(); burnShape = s.shape;   // a new shape starts burning again from the foot (RAY, 24 Nov)
+        burnDur = s.burn; tgt.smoke = Math.max(tgt.smoke, 0.6); } burnWas = !!s.burn;
         profileOn = !!s.profile; spinOn = s.spin !== false && !profileOn; smokeOn = s.smoke !== false;
         const k = [s.shape, s.len, s.ring, s.budget, s.wrapper, s.strength, (s.flavour || []).join('+')].join('|'); if (!s.preview) { if (lastKey && k !== lastKey && !still && !profileOn) kick = 5.5; lastKey = k; }
       };
