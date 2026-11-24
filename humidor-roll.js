@@ -27,7 +27,8 @@
     'Some experience': { budget: ['Up to £18', 'Up to £30'], time: ['About an hour', 'An hour and a half'], shape: ['Belicoso', 'Torpedo', 'Pyramid'], strength: ['Medium'], wrapper: ['Medium', 'Dark'] },
     'Knowledgeable': { budget: ['Up to £30', 'No ceiling'], time: ['An hour and a half', 'All night'], shape: ['Torpedo', 'Pyramid', 'Perfecto', 'Chisel'], strength: ['Full'], wrapper: ['Dark'] }
   };
-  const TONES = [['var(--neon-teal)', 'rgba(95,211,207,.7)'], ['var(--medal-bronze)', 'var(--medal-bronze-glow)'], ['var(--medal-silver)', 'var(--medal-silver-glow)'], ['var(--medal-gold)', 'var(--medal-gold-glow)']];
+  const TONES = [['var(--neon-green-tube)', 'rgba(63,224,127,.6)'], ['var(--neon-green)', 'rgba(10,158,67,.6)'],   // Beginner light green, Fairly new darker green (RAY, 24 Nov)
+    ['var(--medal-silver)', 'var(--medal-silver-glow)'], ['var(--medal-gold)', 'var(--medal-gold-glow)']];
   const NOTE_POS = { Creamy: [14, 18], Nutty: [70, 10], Woody: [84, 46], Spicy: [8, 58], Sweet: [56, 80], Earthy: [24, 86] };
 
   let _sz, _qs, small = false;
