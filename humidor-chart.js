@@ -35,7 +35,7 @@
     { t: 'Sizes', cap: 'Every size on the shelf, shortest to longest. Roll over one.' },
     { t: 'Shapes', cap: 'The head and foot change how the smoke reaches you.' },
     { t: 'Burn time', cap: 'Every size by how long it lasts.' },
-    { t: 'Filler', cap: 'Where the leaf grows sets the strength.' },
+    { t: 'Filler', cap: 'One plant, four floors. The higher the leaf, the more sun it got and the harder it hits. Roll over a leaf.' },
     { t: 'Wrapper', cap: 'The outside leaf, from light to dark.' },
     { t: 'Anatomy', cap: 'The parts of a cigar, and the flavours you may find.' }
   ];
@@ -118,19 +118,36 @@
           return item('wflav:' + i + ':' + k, nm + ' · ' + fl, `<path class="hc-sw hc-fl" d="${wedge(R, R2, b0, b1)}" fill="${hex}"/>` + radial((R + R2) / 2, bm, fl, 'hc-t hc-fll' + (R2 - R < 70 ? ' hc-tf' : '')), { cls: 'wedge', style: push(bm) }); }).join(''); }).join('');
       return groups + shades + notes + `<circle class="hc-ln" cx="${f(cx)}" cy="${f(cy)}" r="${f(r0)}"/>` + txt(cx, cy, 'LEAF', 'hc-title', 'middle', ' dominant-baseline="middle"');
     }
+    // Filler (RAY, 24 Nov): the same picture and details as the original Humidor's "Pick your strength":
+    // the plant photo with its four floors, the upright cigar showing where each leaf sits, the key and the note.
     function pFiller(W, H) {
-      const lw = Math.min(W * 0.55, Math.max(W * 0.45, 190)), sx = pad + lw * 0.3, pt = top + 8, pb = H - 10, span = pb - pt;
-      let out = `<path class="hc-ln" d="M${f(sx)} ${f(pb)}C${f(sx - 3)} ${f(pt + span * 0.6)} ${f(sx + 3)} ${f(pt + span * 0.3)} ${f(sx)} ${f(pt)}"/>`;   // stalk
-      const leaf = (x, y, dx, len, h) => { const tx = x + dx * len, ty = y - len * 0.3;
-        return `<path class="hc-ln" d="M${f(x)} ${f(y)}Q${f(x + dx * len * 0.45)} ${f(ty - h)} ${f(tx)} ${f(ty)}Q${f(x + dx * len * 0.55)} ${f(y + h * 0.5)} ${f(x)} ${f(y)}Z"/><path class="hc-ln hc-thin" d="M${f(x)} ${f(y)}Q${f(x + dx * len * 0.5)} ${f(ty - h * 0.2)} ${f(tx)} ${f(ty)}"/>`; };
-      out += LEAVES.map(([nm, where, st, d], i) => { const y = pt + span * (0.24 + i * 0.28), len = Math.min(lw * (0.24 + i * 0.04), span * 0.4), h = len * 0.3;
-        return item('leaf:' + nm, nm + ' · ' + where + ' of the plant · ' + st + ' · ' + d, leaf(sx, y, -1, len * 0.9, h * 0.9) + leaf(sx, y, 1, len, h) + txt(sx + len + 8, y - 8, nm, 'hc-t hc-tb') + txt(sx + len + 8, y + 6, where + ' · ' + st, 'hc-t hc-tf')); }).join('');
-      // Cut-away cigar: filler, then binder, then the wrapper peeled back over them.
-      const x0 = pad + lw + 16, len = Math.max(60, W - pad - x0), t = Math.max(12, Math.min((H - top) * 0.2, len * 0.2, 40)), cy = top + (H - top) * 0.45;
-      const fl = [-0.3, -0.1, 0.1, 0.3].map(k => `<path class="hc-ln" d="M${f(x0 + len * 0.78)} ${f(cy + k * t)}Q${f(x0 + len * 0.9)} ${f(cy + k * t - 2)} ${f(x0 + len)} ${f(cy + k * t + 1)}"/>`).join('');
-      out += item('layer:filler', LAYERS.filler, fl + `<path class="hc-ln hc-thin" d="M${f(x0 + len * 0.95)} ${f(cy + t * 0.4)}V${f(cy + t / 2 + 14)}"/>` + txt(x0 + len, cy + t / 2 + 26, 'Filler', 'hc-t hc-tb', 'end'));
-      out += item('layer:binder', LAYERS.binder, `<rect class="hc-ln hc-occ" x="${f(x0 + len * 0.5)}" y="${f(cy - t * 0.43)}" width="${f(len * 0.32)}" height="${f(t * 0.86)}" rx="2"/><path class="hc-ln hc-thin" d="M${f(x0 + len * 0.74)} ${f(cy - t * 0.43)}V${f(cy - t / 2 - 14)}"/>` + txt(x0 + len * 0.74, cy - t / 2 - 18, 'Binder', 'hc-t hc-tb', 'middle'));
-      out += item('layer:wrapper', LAYERS.wrapper, `<g transform="translate(${f(x0)} ${f(cy - t / 2)})"><path class="hc-ln hc-occ" d="${profile('Parejo', len * 0.66, t)}"/></g><path class="hc-ln hc-thin" d="M${f(x0 + len * 0.3)} ${f(cy + t / 2)}V${f(cy + t / 2 + 14)}"/>` + txt(x0 + len * 0.3, cy + t / 2 + 26, 'Wrapper', 'hc-t hc-tb', 'middle'));
+      const FL = [
+        ['Ligero', 'Top of the plant · most sun', 'Thick, oily, slow-burning. The punch. A little goes in the middle of the filler.', 6, 20, 'Sits in the core of the filler', 'var(--neon-red-tube)', '232,38,58', 'var(--neon-red-text)', [50]],
+        ['Viso', 'Upper middle', 'Flavour and some strength. The bit that makes it taste of something.', 26, 20, 'Filler, around the ligero', 'var(--color-accent-2,#a7a1db)', '167,161,219', '#cfcbee', [38, 62]],
+        ['Seco', 'Lower middle · shade', 'Mild, aromatic, burns easily. Most of a mild cigar is seco.', 46, 24, 'Filler and binder', 'var(--neon-green-tube)', '63,224,127', 'var(--neon-green-text)', [25, 75]],
+        ['Volado', 'Bottom · least sun', 'Barely any strength. It is there to make the thing burn.', 70, 24, 'Outer filler and binder', 'var(--medal-silver,#e4ecf0)', '228,236,240', '#e4ecf0', [14, 86]]
+      ];
+      const ah = H - top - 6, ih = ah, iw = Math.min(ih * 0.59, W * 0.32), ix = pad, iy = top, lblW = W < 560 ? 104 : 140, lx = ix + iw + 10;
+      const cw = Math.max(26, Math.min(46, ah * 0.12)), ch = Math.min(ah * 0.86, 340), cxl = lx + lblW, cyt = top + (ah - ch) / 2, r = cw / 2;
+      const kx = cxl + cw + 10, fx = kx + 88, fw = W - pad - fx, box = fw >= 150;
+      const outline = `M${f(cxl)} ${f(cyt + ch)}V${f(cyt + r)}A${f(r)} ${f(r)} 0 0 1 ${f(cxl + cw)} ${f(cyt + r)}V${f(cyt + ch)}Z`;
+      const rowY = k => cyt + 8 + (ch - 16) * k / 8;
+      const keyRow = (k, label, col, line) => (line ? `<path d="M${f(kx)} ${f(rowY(k))}h12" stroke="${col}" stroke-width="2"/>` : '') + `<text class="hc-t hc-tf hc-key" x="${f(kx + (line ? 18 : 0))}" y="${f(rowY(k))}" dominant-baseline="middle"${line ? '' : ` style="fill:${col}"`}>${esc(label.toUpperCase())}</text>`;
+      let out = `<defs><linearGradient id="hc-fadeg"><stop offset=".7" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="hc-fadem"><rect x="${f(ix)}" y="${f(iy)}" width="${f(iw)}" height="${f(ih)}" fill="url(#hc-fadeg)"/></mask><clipPath id="hc-cgc"><path d="${outline}"/></clipPath></defs>`;
+      out += `<image href="assets/humidor/plant-primings.jpg" x="${f(ix)}" y="${f(iy)}" width="${f(iw)}" height="${f(ih)}" preserveAspectRatio="xMinYMid slice" mask="url(#hc-fadem)" style="filter:saturate(.85) contrast(1.05)"/>`;
+      // the cigar: outline, dashed binder, cap line and band
+      out += `<path d="${outline}" fill="var(--fy-surface)" stroke="var(--fy-text)" stroke-opacity=".7" stroke-width="2"/><path d="M${f(cxl + 5)} ${f(cyt + ch)}V${f(cyt + r)}A${f(r - 5)} ${f(r - 5)} 0 0 1 ${f(cxl + cw - 5)} ${f(cyt + r)}V${f(cyt + ch)}" fill="none" stroke="var(--neon-teal)" stroke-opacity=".55" stroke-dasharray="3 3"/>`;
+      out += FL.map(([nm, pos, d, tp, hp, use, col, rgb, tx, xs], i) => {
+        const by = top + ah * tp / 100, bh = ah * hp / 100, my = by + bh / 2;
+        const lines = xs.map(x => `<path class="hc-lf" d="M${f(cxl + cw * x / 100)} ${f(cyt + ch * 0.09)}V${f(cyt + ch * 0.99)}" stroke="${col}" stroke-width="2" clip-path="url(#hc-cgc)"/>`).join('');
+        const info = box ? `<foreignObject class="hc-info${i === 2 ? ' def' : ''}" x="${f(fx)}" y="${f(top + ah / 2 - 50)}" width="${f(fw)}" height="140"><div xmlns="http://www.w3.org/1999/xhtml" class="hc-infobox"><span class="hc-infoh">${esc(nm)}</span><p>${esc(d)}</p><p class="hc-infou">${esc(use)}</p></div></foreignObject>` : '';
+        return item('leaf:' + nm, nm + ' · ' + pos + ' · ' + d + ' ' + use + '.',
+          `<rect class="hc-lband" x="${f(ix)}" y="${f(by)}" width="${f(iw)}" height="${f(bh)}" fill="rgb(${rgb})"/><path d="M${f(ix)} ${f(by)}H${f(ix + iw)}" stroke="${col}" stroke-opacity=".6" stroke-dasharray="4 3" fill="none"/>`
+          + `<path class="hc-lf" d="M${f(lx)} ${f(my)}h18" stroke="${col}" stroke-width="2"/>` + txt(lx + 24, my - 2, nm, 'hc-t hc-tb hc-lname') + txt(lx + 24, my + 12, pos, 'hc-t hc-tf')
+          + lines + keyRow(2 + i, nm, col, true) + info,
+          { nz: true, cls: 'leaf', style: `--lc:${tx}`, hit: `<rect class="hc-hit" x="${f(ix)}" y="${f(by)}" width="${f(cxl - ix - 6)}" height="${f(bh)}"/>` }); }).join('');
+      out += `<g clip-path="url(#hc-cgc)"><path d="M${f(cxl)} ${f(cyt + ch * 0.05)}h${f(cw)}" stroke="var(--neon-amber-tube)"/><rect x="${f(cxl)}" y="${f(cyt + ch * 0.16)}" width="${f(cw)}" height="7" fill="var(--fy-text)"/></g>`;
+      out += keyRow(0, 'Cap', 'var(--neon-amber-tube)') + keyRow(1, 'Band', 'var(--fy-text)') + keyRow(6, 'Binder', 'var(--neon-teal)', true) + keyRow(7, 'Wrapper', 'var(--fy-text)', true) + keyRow(8, 'Foot', 'var(--fy-text-label)');
       return out;
     }
     function pAnatomy(W, H) {

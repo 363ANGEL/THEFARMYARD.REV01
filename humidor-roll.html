@@ -126,6 +126,20 @@
 .hc-fl{fill-opacity:.35}   /* flavour ring: the shade's colour, lighter (RAY, 24 Nov) */
 .hc-fll{fill:var(--fy-text-secondary);paint-order:stroke;stroke:rgba(0,0,0,.5);stroke-width:3px;stroke-linejoin:round}
 .hc-it.on .hc-fll{fill:var(--neon-pink-text)}
+/* Filler slide (RAY, 24 Nov): the original Humidor's plant, upright cigar, key and note */
+.hc-lband{fill-opacity:0;transition:fill-opacity .2s}
+.hc-it.leaf.on .hc-lband{fill-opacity:.18}
+.hc-lf{opacity:.35;transition:opacity .2s}
+.hc-it.leaf.on .hc-lf{opacity:1}
+.hc-it.leaf.on{filter:none}
+.hc-it.leaf.on .hc-t{fill:var(--lc)}
+.hc-key{letter-spacing:.05em}
+.hc-info{display:none}
+.hc-it.leaf.on .hc-info,.hc-p:not(.hov) .hc-info.def{display:block}
+.hc-infobox{box-sizing:border-box;margin:4px;padding:10px 12px;border:1px solid var(--hint-border,#9eeae6);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg);text-align:left;display:flex;flex-direction:column;gap:4px}
+.hc-infoh{font-size:var(--fs-body);font-weight:500;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
+.hc-infobox p{margin:0;font-size:var(--fs-sm);line-height:1.45;color:var(--hint-text)}
+.hc-infobox .hc-infou{font-size:var(--fs-xs);color:var(--fy-text-label)}
 .hc-it.wedge.on .hc-band{fill:rgba(224,21,127,.12)}
 /* Shape colour groups, DS colours (RAY, 24 Nov): one colour per shape in Sizes, Shapes, Burn and the key */
 .sh-parejo .hc-ln,.hc-leg.sh-parejo{stroke:var(--neon-teal);fill:var(--neon-teal)}
@@ -256,7 +270,7 @@
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261124w"></script><script src="humidor-roll.js?v=20261124s"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261124x"></script><script src="humidor-roll.js?v=20261124s"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */
