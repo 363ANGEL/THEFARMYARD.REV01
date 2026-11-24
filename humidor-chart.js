@@ -65,7 +65,7 @@
 
     // ---- Drawing ----
     const item = (id, facts, inner, o) => { o = o || {}; FACTS[id] = facts;
-      return `<g class="hc-it${o.nz ? ' nz' : ''}${o.cls ? ' ' + o.cls : ''}" data-id="${esc(id)}"${o.size ? ` data-size="${esc(o.size)}"` : ''} tabindex="-1" role="img" aria-label="${esc(facts)}">${o.hit || ''}<g class="hc-z">${inner}</g></g>`; };
+      return `<g class="hc-it${o.nz ? ' nz' : ''}${o.cls ? ' ' + o.cls : ''}"${o.style ? ` style="${o.style}"` : ''} data-id="${esc(id)}"${o.size ? ` data-size="${esc(o.size)}"` : ''} tabindex="-1" role="img" aria-label="${esc(facts)}">${o.hit || ''}<g class="hc-z">${inner}</g></g>`; };
     const txt = (x, y, s, cls, anchor, extra) => `<text class="${cls || 'hc-t'}" x="${f(x)}" y="${f(y)}"${anchor ? ` text-anchor="${anchor}"` : ''}${extra || ''}>${esc(s)}</text>`;
     const pad = 12, top = 32, TAG = 22;
     const upright = (c, cx, yb, s) => { const lp = c.len * s, rp = Math.max(1.5, c.ring / 64 * s);
@@ -88,13 +88,20 @@
         return item('shape:' + nm, nm + ' · ' + d, `<g transform="translate(${f(cx - pw / 2)} ${f(cy - ph / 2)})"><path class="hc-ln" d="${profile(nm, pw, ph)}"/></g>` + txt(cx, cy + ph / 2 + 16, nm, 'hc-t hc-tb', 'middle'),
           { cls: 'sh-' + nm.toLowerCase(), hit: `<rect class="hc-hit" x="${f(cx - cellW / 2)}" y="${f(cy - cellH * 0.42)}" width="${f(cellW)}" height="${f(cellH)}"/>` }); }).join('');
     }
-    function pWrapper(W, H) {
-      const n = WRAPS.length, slot = (W - pad * 2) / n, bw = slot - Math.min(10, slot * 0.18), y0 = top + 34, bh = Math.max(24, Math.min(90, (H - y0) * 0.45)), fine = slot < 60;
-      const x = i => pad + slot * i + (slot - bw) / 2;
-      const groups = ['Light', 'Medium', 'Dark'].map(g => { const ix = WRAPS.map((w, i) => w[2] === g ? i : -1).filter(i => i >= 0), a = x(ix[0]), b = x(ix[ix.length - 1]) + bw, yb = top + 20;
-        return item('wgrp:' + g, g + ' leaf · ' + ix.map(i => WRAPS[i][0]).join(', '), `<path class="hc-ln" d="M${f(a)} ${f(yb + 6)}V${f(yb)}H${f(b)}V${f(yb + 6)}"/>` + txt((a + b) / 2, yb - 4, g, 'hc-t hc-tb', 'middle'), { nz: true }); }).join('');
-      return groups + WRAPS.map(([nm, hex, g, d], i) => item('wrap:' + i, nm + ' · ' + d + ' · in our ' + g.toLowerCase() + ' answer',
-        `<rect class="hc-sw" x="${f(x(i))}" y="${f(y0)}" width="${f(bw)}" height="${f(bh)}" rx="4" fill="${hex}"/>` + nm.split(' ').map((w, k) => txt(x(i) + bw / 2, y0 + bh + 14 + k * 13, w, 'hc-t' + (fine ? ' hc-tf' : ''), 'middle')).join(''))).join('');
+    function pWrapper(W, H) {   // a wheel (RAY, 24 Nov): inner ring Light / Medium / Dark, outer ring the seven wrapper shades
+      const cx = W / 2, R = Math.max(40, Math.min(W / 2 - pad, (H - top - 10) / 2)), cy = top + 4 + R, r0 = R * 0.3, r1 = R * 0.58, n = WRAPS.length, step = 2 * Math.PI / n, A0 = -Math.PI / 2;
+      const pt = (r, a) => f(cx + r * Math.cos(a)) + ' ' + f(cy + r * Math.sin(a));
+      const wedge = (ri, ro, a0, a1) => { const big = a1 - a0 > Math.PI ? 1 : 0; return `M${pt(ri, a0)}L${pt(ro, a0)}A${f(ro)} ${f(ro)} 0 ${big} 1 ${pt(ro, a1)}L${pt(ri, a1)}A${f(ri)} ${f(ri)} 0 ${big} 0 ${pt(ri, a0)}Z`; };
+      const lab = (r, a, s, cls) => { let deg = a * 180 / Math.PI; const flip = Math.cos(a) < 0; if (flip) deg += 180;
+        return `<text class="${cls}" text-anchor="middle" dominant-baseline="middle" transform="translate(${pt(r, a)}) rotate(${f(deg)})">${esc(s)}</text>`; };
+      const push = a => `--dx:${f(Math.cos(a) * R * 0.06)}px;--dy:${f(Math.sin(a) * R * 0.06)}px`;
+      const fine = R < 150 ? ' hc-tf' : '';
+      let k = 0;
+      const groups = ['Light', 'Medium', 'Dark'].map(g => { const ix = WRAPS.map((w, i) => w[2] === g ? i : -1).filter(i => i >= 0), a0 = A0 + step * ix[0], a1 = A0 + step * (ix[ix.length - 1] + 1), am = (a0 + a1) / 2;
+        return item('wgrp:' + g, g + ' leaf · ' + ix.map(i => WRAPS[i][0]).join(', '), `<path class="hc-ln hc-band" d="${wedge(r0, r1, a0, a1)}"/>` + lab((r0 + r1) / 2, am, g.toUpperCase(), 'hc-t hc-tb' + fine), { cls: 'wedge', style: push(am) }); }).join('');
+      const shades = WRAPS.map(([nm, hex, g, d], i) => { const a0 = A0 + step * i, a1 = a0 + step, am = (a0 + a1) / 2, short = nm.replace(' (Candela)', '');
+        return item('wrap:' + i, nm + ' · ' + d + ' · in our ' + g.toLowerCase() + ' answer', `<path class="hc-sw" d="${wedge(r1, R, a0, a1)}" fill="${hex}"/>` + lab((r1 + R) / 2, am, short, 'hc-t hc-wl' + fine), { cls: 'wedge', style: push(am) }); }).join('');
+      return groups + shades + `<circle class="hc-ln" cx="${f(cx)}" cy="${f(cy)}" r="${f(r0)}"/>` + txt(cx, cy, 'LEAF', 'hc-title', 'middle', ' dominant-baseline="middle"');
     }
     function pFiller(W, H) {
       const lw = Math.min(W * 0.55, Math.max(W * 0.45, 190)), sx = pad + lw * 0.3, pt = top + 8, pb = H - 10, span = pb - pt;
