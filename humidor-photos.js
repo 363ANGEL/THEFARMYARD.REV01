@@ -31,7 +31,10 @@
     'Lancero': 'Near match: the photo is a 38 ring, not 39.'
   };
   const cache = {};
-  async function url(name) {
+  // RAY, 24 Nov: the site's own copies in assets/humidor/cigars/ stay public, so the window uses them directly.
+  // The private bucket path below stays for reference but is no longer called.
+  async function url(name) { const file = FILES[name]; return file ? 'assets/humidor/cigars/' + file : null; }
+  async function bucketUrl(name) {
     const file = FILES[name]; if (!file || !window.FY || !FY.sb) return null;
     const c = cache[file]; if (c && c.until > Date.now()) return c.url;
     const { data, error } = await FY.sb.storage.from(BUCKET).createSignedUrl(file, 3600);
