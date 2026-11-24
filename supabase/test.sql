@@ -904,7 +904,7 @@ begin
   select count(*) into n from fy.room where status = 'stub'; assert n >= 4, 'at least 4 stub rooms, got ' || n;
   select count(*) into n from fy.room where id = 'humidor' and status = 'live' and path = 'humidor.html'; assert n = 1, 'humidor is live in the registry';
   select count(*) into n from fy.room where grp = 'next'; assert n = 5, 'five holding rooms, got ' || n;
-  select count(*) into n from fy.room where parent_id = 'humidor'; assert n = 5, 'humidor has five sub-pages (vote, results, archive, admin, roll your own v2.0), got ' || n;
+  select count(*) into n from fy.room where parent_id = 'humidor'; assert n = 4, 'humidor has four sub-pages (vote, results, archive, admin; v2.0 is its own item), got ' || n;
   begin
     insert into fy.room (id, label, path, icon, status, grp, sort) values ('hack', 'Hack', 'x.html', 'ph-x', 'stub', 'home', 99);
     raise exception 'should have failed: member wrote fy.room';
