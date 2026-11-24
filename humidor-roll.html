@@ -52,7 +52,11 @@
 .hroll.s0 #hr-headline{display:none}   /* landing step: the question goes; "Overview" sits under THE HUMIDOR as its tagline (RAY, 24 Nov) */
 .hroll.s0 .hr-sign{text-align:left}
 .hroll.s0 .hr-sign::after{content:"Overview";display:block;margin-top:3px;font-size:var(--fs-sm);font-weight:400;letter-spacing:normal;text-transform:none;color:color-mix(in srgb,var(--neon-teal) 60%,transparent);text-shadow:none}
-.hroll.s0 .hr-optwrap::before{content:"So.. How well do you know cigars?";align-self:stretch;text-align:left;font-size:var(--fs-h3);font-weight:500;margin-bottom:14px;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}   /* the question, as a title over the answers (RAY, 24 Nov) */
+/* Landing step: the question and its tagline over the answers (RAY, 24 Nov) */
+.hr-s0q{display:none;align-self:stretch;text-align:left;margin-bottom:14px}
+.hroll.s0 .hr-s0q{display:block}
+.hr-s0q h2{margin:0;font-size:var(--fs-h3);font-weight:500;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
+.hr-s0q p{margin:3px 0 0;font-size:var(--fs-sm);color:color-mix(in srgb,var(--neon-teal) 60%,transparent)}
 .hroll.s0 #hr-tip{display:none}   /* no tip line or Hank's steer on the landing step (RAY, 24 Nov) */
 .hr-tiptext{align-self:stretch;text-align:left;margin:0;font-size:var(--fs-body);line-height:1.5;text-wrap:pretty}
 .hr-unsaved{margin:6px 0 0;font-size:var(--fs-sm);color:var(--fy-text-label)}
@@ -271,7 +275,7 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
           <div id="hr-ticks" aria-hidden="true"></div>
           <div class="hr-cline"><span id="hr-shown"></span> <span id="hr-cnote"></span></div>
         </div>
-        <section class="hr-optwrap"><div id="hr-opts"></div></section>
+        <section class="hr-optwrap"><div class="hr-s0q"><h2>So.. How well do you know cigars?</h2><p>Select below and let's size your preference up.</p></div><div id="hr-opts"></div></section>
       </div>
       <footer class="hr-foot">
         <div class="hr-footl"><button type="button" class="btn btn-ghost" id="hr-back" hidden>Back</button></div>
