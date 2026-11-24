@@ -138,7 +138,7 @@
       const dimLine = op => { const l = new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(), new T.Vector3()]), new T.LineBasicMaterial({ color: 0x5fd3cf, transparent: true, opacity: op, depthTest: false, depthWrite: false })); l.renderOrder = 5; dimG.add(l); return l; };
       const dimSeg = [0, 1, 2].map(() => dimLine(0.3)), dimTick = [0, 1, 2, 3].map(() => dimLine(0.6));
       const dimLab = ['FIRST THIRD', 'MIDDLE', 'LAST THIRD'].map(tx => { const tex = canvasTex(512, 96, (g, w, h) => { g.font = '600 40px Inter, Arial, sans-serif'; g.fillStyle = '#bdf3f0'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(tx, w / 2, h / 2); });
-        const sp2 = new T.Sprite(new T.SpriteMaterial({ map: tex, transparent: true, opacity: 0.45, depthTest: false, depthWrite: false })); sp2.scale.set(1.5, 0.28, 1); sp2.renderOrder = 6; dimG.add(sp2); return sp2; });
+        const sp2 = new T.Sprite(new T.SpriteMaterial({ map: tex, transparent: true, opacity: 0.45, depthTest: false, depthWrite: false })); sp2.scale.set(2.6, 0.49, 1);   /* bigger thirds labels (RAY, 24 Nov) */ sp2.renderOrder = 6; dimG.add(sp2); return sp2; });
       const dA = new T.Vector3(), dB = new T.Vector3(), dN = new T.Vector3();
       const HC = [[0.25, 0.88, 0.5], [1, 0.85, 0.29], [1, 0.03, 0.05]]; let volNow = 3, angNow = 0.75, stageNow = -1, sp = {};
       const cur = Object.assign({ mix: 0, plant: 0, peel: 0, burn: 0, len: 5.6, r: 0.36, band: 0, bandW: 0.5, ember: 0, smoke: 0, wire: 1, tilt: 0.12, draw: 0, focus: 0.12 }, Z, SH.Parejo);
@@ -249,7 +249,7 @@
             const P = k => dB.clone().lerp(dA, k).addScaledVector(dN, off);   // k = 0 at the foot, 1 at the head
             dimSeg.forEach((l, i) => { l.geometry.setFromPoints([P(i / 3), P((i + 1) / 3)]); l.material.opacity = i === stageNow ? 1 : 0.3; });
             dimTick.forEach((l, i) => { const q = P(i / 3); l.geometry.setFromPoints([q.clone().addScaledVector(dN, -0.12), q.clone().addScaledVector(dN, 0.12)]); });
-            dimLab.forEach((sp2, i) => { sp2.position.copy(P((i + 0.5) / 3)).addScaledVector(dN, 0.3); sp2.material.opacity = i === stageNow ? 1 : 0.45; }); } }
+            dimLab.forEach((sp2, i) => { sp2.position.copy(P((i + 0.5) / 3)).addScaledVector(dN, 0.42); sp2.material.opacity = i === stageNow ? 1 : 0.45; }); } }
         draws.forEach(s => { const u = s.userData; u.life += dt * u.speed * (still ? 0 : 1); if (u.life > 1) { u.life = 0; u.on = cur.draw > 0.05 && ph < 0.5; u.sx = Math.random() - 0.5; u.sy = Math.random() - 0.5; u.f = cur.focus; }
           const p = u.life, f = u.f || 0, sp = (1 - f) * 1.3 + 0.08; s.position.set(head.x + hdir.x * p * 2.2 + (u.sx || 0) * sp * p, head.y + hdir.y * p * 2.2 + (u.sy || 0) * sp * p + p * p * 0.5, head.z + hdir.z * p * 2.2); const sz = 0.12 + p * (0.35 + (1 - f) * 0.9); s.scale.set(sz, sz, 1); s.material.opacity = u.on ? Math.sin(p * Math.PI) * (0.3 + f * 0.35) : 0; });
         if (cur.burn > 0.02 && sp.lines) { uV.set(hdir.y, -hdir.x, 0); if (uV.lengthSq() < 1e-6) uV.set(0, 1, 0); uV.normalize(); vV.crossVectors(hdir, uV); const ts = still ? 0 : t;
