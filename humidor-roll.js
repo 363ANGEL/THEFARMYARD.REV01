@@ -100,7 +100,7 @@
     const twoCol = !mob && vw / vh > 1.4 && vh < 760;   // the design's rule again (RAY, 24 Nov): tall screens stack, question top centre, cigar centred between
     const wideShort = !mob && vw / vh > 1.4 && vh < 760;
     small = wideShort;
-    root.classList.toggle('mob', mob); root.classList.toggle('ws', wideShort);
+    root.classList.toggle('mob', mob); root.classList.toggle('ws', wideShort); root.classList.toggle('s0', S.step === 0);
     const { step, answers, flav } = S, Q = qs(), total = sizes().length;
     const qi = Math.min(step, 6), q = Q[qi];
     const before = filt(answers, qi), now = filt(answers);
