@@ -133,7 +133,7 @@
     tipEl.style.height = step === 2 ? (mob ? '11.875rem' : '6.25rem') : step === 0 || step === 3 ? (mob ? '9.375rem' : '4.125rem') : 'auto';
     const meters = to ? [{ label: 'Heat', pips: pips(to.heat, 'rgb(255,8,13)'), note: to.heatNote }, { label: 'Draw', pips: pips(to.draw, 'var(--neon-teal)'), note: to.drawNote }] : [];
     put(tipEl, (step === 0 || step === 2 || step === 3 ? `<div class="hr-tiptitle">${esc(tipTitle)}</div>` : '')
-      + `<p class="hr-tiptext" style="color:${cardOn ? 'var(--fy-text-body)' : 'var(--fy-text-secondary)'}">${esc(tip)}</p>`
+      + `<p class="hr-tiptext" style="color:var(--neon-teal)">${esc(tip)}</p>`
       + (meters.length ? `<div class="hr-meters">${meters.map(m => `<div class="hr-meter"><span class="hr-cap">${esc(m.label)}</span><span class="hr-mpips">${m.pips.map(p => `<span style="background:${p.bg};border:1.5px solid ${p.bd}"></span>`).join('')}</span><span class="hr-mnote">${esc(m.note)}</span></div>`).join('')}</div>` : '')
       + (step === 8 ? '<p class="hr-unsaved">Preview: your picks aren\'t saved yet.</p>' : ''));
 

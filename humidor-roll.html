@@ -49,7 +49,7 @@
 .hroll.ws .hr-h1{font-size:1.75rem}
 #hr-tip{width:100%;max-width:720px;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:4px}
 .hr-tiptitle{font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--hint-text);min-height:14px}
-.hr-tiptext{margin:0;font-size:.9375rem;line-height:1.5;text-wrap:pretty}
+.hr-tiptext{align-self:stretch;text-align:left;margin:0;font-size:.9375rem;line-height:1.5;text-wrap:pretty}
 .hr-unsaved{margin:6px 0 0;font-size:.75rem;color:var(--fy-text-label)}
 .hr-meters{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 28px;margin-top:6px}
 .hr-meter{display:flex;align-items:center;gap:8px}
@@ -159,7 +159,7 @@
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-roll.js?v=20261124e"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-roll.js?v=20261124f"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */
