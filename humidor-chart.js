@@ -55,9 +55,9 @@
     opt = opt || {};
     const sizes = (opt.sizes || []).slice().sort((a, b) => a.len - b.len || a.ring - b.ring);
     const RM = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-    el.innerHTML = `<div class="hc"><div class="hc-view"><div class="hc-track">${PANELS.map((p, i) => `<div class="hc-p" data-p="${i}"><svg class="hc-svg" role="group" aria-label="${esc(p.t)}"></svg></div>`).join('')}</div><div class="hc-detail" aria-live="polite"></div></div>
+    el.innerHTML = `<div class="hc"><div class="hc-view"><div class="hc-track">${PANELS.map((p, i) => `<div class="hc-p" data-p="${i}"><svg class="hc-svg" role="group" aria-label="${esc(p.t)}"></svg></div>`).join('')}</div><div class="hc-detail" aria-live="polite"></div><div class="hc-tip" hidden></div></div>
       <div class="hc-bar"><div class="hc-dots">${PANELS.map((p, i) => `<button type="button" class="hc-dot" data-p="${i}" aria-label="${esc(p.t)}"></button>`).join('')}</div></div></div>`;
-    const root = el.firstElementChild, view = root.querySelector('.hc-view'), track = root.querySelector('.hc-track'), detail = root.querySelector('.hc-detail');
+    const root = el.firstElementChild, tipEl = root.querySelector('.hc-tip'), view = root.querySelector('.hc-view'), track = root.querySelector('.hc-track'), detail = root.querySelector('.hc-detail');
     const panels = [...root.querySelectorAll('.hc-p')], dots = [...root.querySelectorAll('.hc-dot')];
     const FACTS = {};
     const S = { on: null, pin: null };
@@ -86,7 +86,7 @@
       const pw = cellW * 0.78, ph = Math.max(8, Math.min(cellH * 0.34, pw * 0.17));
       return SHAPES.map(([nm, d], i) => { const cx = pad + cellW * (i % cols + 0.5), cy = top + cellH * (Math.floor(i / cols) + 0.42);
         return item('shape:' + nm, nm + ' · ' + d, `<g transform="translate(${f(cx - pw / 2)} ${f(cy - ph / 2)})"><path class="hc-ln" d="${profile(nm, pw, ph)}"/></g>` + txt(cx, cy + ph / 2 + 16, nm, 'hc-t hc-tb', 'middle'),
-          { cls: 'sh-' + nm.toLowerCase(), hit: `<rect class="hc-hit" x="${f(cx - cellW / 2)}" y="${f(cy - cellH * 0.42)}" width="${f(cellW)}" height="${f(cellH)}"/>` }); }).join('');
+          { nz: true, cls: 'sh-' + nm.toLowerCase(), hit: `<rect class="hc-hit" x="${f(cx - cellW / 2)}" y="${f(cy - cellH * 0.42)}" width="${f(cellW)}" height="${f(cellH)}"/>` }); }).join('');
     }
     function pWrapper(W, H) {   // a wheel (RAY, 24 Nov): inner ring Light / Medium / Dark, outer ring the seven wrapper shades
       const cx = W / 2, R = Math.max(40, Math.min(W / 2 - pad, (H - top - 10) / 2)), cy = top + 4 + R, r0 = R * 0.3, r1 = R * 0.58, n = WRAPS.length, step = 2 * Math.PI / n, A0 = -Math.PI / 2;
@@ -158,10 +158,32 @@
     }
 
     // ---- State onto the drawing ----
+    // Shape tooltip (RAY, 24 Nov): the cigar side-on with dimension lines, and what each third does to draw and strength.
+    const THIRDS = {
+      Parejo: ['Foot · lights easily, opens mild', 'Middle · steady draw, the body settles', 'Head · straight sides, so it only warms a little as it shortens'],
+      Belicoso: ['Foot · full open draw, a gentle start', 'Middle · steady, the body builds', 'Head · the short taper focuses the smoke: richer in the last inch'],
+      Torpedo: ['Foot · open draw, a gentle start', 'Middle · body builds as the leaf heats', 'Head · the long point concentrates the smoke: the strongest third'],
+      Pyramid: ['Foot · widest end, loose and cool', 'Middle · narrows all the way, flavour tightens', 'Head · narrowest: the tightest draw and the most intense finish'],
+      Perfecto: ['Foot · narrow tip lights fast: a quick, mild start', 'Middle · the fat belly gives the fullest, coolest draw', 'Head · narrows again: focused and stronger to the end'],
+      Chisel: ['Foot · ordinary open draw', 'Middle · steady body', 'Head · the flat wedge keeps the draw open while the smoke focuses']
+    };
+    const rep = nm => { const k = nm.toLowerCase(), list = sizes.filter(c => (SHMAP[c.shape] || 'Parejo') === nm).sort((a, b) => a.len - b.len); return list[Math.floor(list.length / 2)] || { len: 6, ring: 50, size: nm }; };
+    function shapeTip(nm) {
+      const c = rep(nm), w = 340, h = Math.max(18, Math.min(46, w * c.ring / 64 / c.len)), x0 = 20, y0 = 26, col = `sh-${nm.toLowerCase()}`;
+      const third = [0, 1, 2].map(i => `<path class="hc-ln hc-thin" d="M${f(x0 + w * i / 3)} ${f(y0 - 6)}V${f(y0 + h + 6)}"/>` + txt(x0 + w * (i + 0.5) / 3, y0 - 10, ['FOOT', 'MIDDLE', 'HEAD'][i], 'hc-t hc-tf', 'middle')).join('');
+      const dims = `<path class="hc-ln hc-thin" d="M${f(x0)} ${f(y0 + h + 16)}H${f(x0 + w)}M${f(x0)} ${f(y0 + h + 12)}v8M${f(x0 + w)} ${f(y0 + h + 12)}v8"/>` + txt(x0 + w / 2, y0 + h + 30, frac(c.len) + '″ long', 'hc-t', 'middle')
+        + `<path class="hc-ln hc-thin" d="M${f(x0 - 10)} ${f(y0)}V${f(y0 + h)}M${f(x0 - 14)} ${f(y0)}h8M${f(x0 - 14)} ${f(y0 + h)}h8"/>` + `<text class="hc-t" text-anchor="middle" transform="translate(${f(x0 - 15)} ${f(y0 + h / 2)}) rotate(-90)">${c.ring} ring</text>`;
+      // drawn foot on the left, head on the right: the profile path has its head at x=0, so mirror it
+      const body = `<g class="${col}" transform="translate(${f(x0 + w)} ${f(y0)}) scale(-1 1)"><path class="hc-ln" d="${profile(nm, w, h)}"/></g>`;
+      tipEl.innerHTML = `<div class="hc-tiph">${esc(nm)} · ${esc(c.size)} ${frac(c.len)}″ × ${c.ring}</div><svg viewBox="0 0 ${w + 30} ${f(y0 + h + 40)}" class="hc-tipsvg">${third}${body}${dims}</svg>`
+        + `<ul class="hc-tipl">${THIRDS[nm].map(t => `<li>${esc(t)}</li>`).join('')}</ul>`;
+      tipEl.hidden = false;
+    }
     function apply() {
       root.querySelectorAll('.hc-it').forEach(g => g.classList.toggle('on', g.dataset.id === S.on));
       panels.forEach(p => p.classList.toggle('hov', !!p.querySelector('.hc-it.on')));
       detail.textContent = S.on && FACTS[S.on] ? FACTS[S.on] : PANELS[cur].cap;
+      if (S.on && S.on.indexOf('shape:') === 0) shapeTip(S.on.slice(6)); else tipEl.hidden = true;
     }
     function go(i, instant) {
       cur = Math.max(0, Math.min(PANELS.length - 1, i));
