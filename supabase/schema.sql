@@ -1443,7 +1443,7 @@ insert into fy.room (id, label, path, icon, status, grp, parent_id, sort) values
   ('humidor-results', 'Results',     'humidor-results.html',    'ph ph-ranking',         'live', 'beta',    'humidor',   42),
   ('humidor-archive', 'Archive',     'humidor-archive.html',    'ph ph-archive',         'live', 'beta',    'humidor',   43),
   ('humidor-admin',   'Admin',       'humidor-admin.html',      'ph ph-gear-six',        'live', 'beta',    'humidor',   44),
-  ('humidor-roll',    'The Humidor v2.0', 'humidor-roll.html', 'ph ph-cube',           'live', 'beta',    null,        50),
+  ('humidor-roll',    'The Humidor v2.0', 'humidor-roll.html', 'ph ph-cigarette',           'live', 'beta',    null,        50),
   ('arcade',          'Arcade',      'room.html?room=arcade',   'ph ph-game-controller', 'stub', 'next',    null,        50),
   ('movies',          'Movie night', 'room.html?room=movies',   'ph ph-film-slate',      'stub', 'next',    null,        51),
   ('jukebox',         'Jukebox',     'room.html?room=jukebox',  'ph ph-music-notes',     'stub', 'next',    null,        52),
