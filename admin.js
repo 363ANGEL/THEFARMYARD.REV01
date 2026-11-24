@@ -154,7 +154,7 @@
     const live = (Presence && Presence.map) ? Presence.map() : {};   // paint the current state, don't wait for the next sync
     pane.innerHTML = `<div class="acard"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <span class="t-module">Members</span></div>
-      <div class="tscroll"><table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th class="wrap">Last login</th><th>Status</th><th>Email</th><th><span style="position:absolute;left:-9999px">Delete</span></th></tr></thead><tbody>
+      <div class="tscroll"><table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th class="wrap">Last login</th><th>Status</th><th>Email</th><th>Invite</th><th><span style="position:absolute;left:-9999px">Delete</span></th></tr></thead><tbody>
       ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}" data-mid="${m.id}"><td data-nmcell="${m.id}" style="display:flex;align-items:center;gap:8px;white-space:nowrap">${FY.faceRing(m, 28, m.nickname)}<span data-nm>${esc(m.nickname)}</span><button type="button" class="rowbtn" data-rename="${m.id}" aria-label="Rename ${esc(m.nickname)}" style="min-height:26px;padding:0 8px;margin-left:auto">Edit</button></td>
         <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:var(--fs-sm);width:auto">${roleOpts(m.role)}</select></td>
         <td data-online="${m.id}">${onlineCell(live[m.id])}</td>
@@ -162,6 +162,7 @@
         <td style="white-space:normal">${lastLoginCell(m)}</td>
         <td data-st="${m.id}">${statusCell(m)}</td>
         <td style="white-space:nowrap">${m.invite_email ? `<span title="${esc(m.invite_email)}" style="font-size:var(--fs-xs);color:var(--fy-text-label)">${esc(m.invite_email.slice(0, 6))}${m.invite_email.length > 6 ? '…' : ''}</span>` : '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">—</span>'}</td>
+        <td style="white-space:nowrap">${!m.user_id ? `<button type="button" class="rowbtn" data-invcopy="${m.id}" aria-label="Copy ${esc(m.nickname)}'s invite link" style="min-height:26px;padding:0 8px">Copy</button>` : '<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">—</span>'}</td>
         <td style="white-space:nowrap">${!m.user_id && m.role !== 'leader' ? `<button type="button" class="rowbtn warn" data-rowdel="${m.id}" aria-label="Delete ${esc(m.nickname)}" style="min-height:26px;padding:0 8px">Delete</button>` : ''}</td></tr>`).join('')}
       </tbody></table></div></div>
       <div class="acard" id="mdetail" hidden></div>
@@ -174,7 +175,7 @@
         <input class="input" id="nm-mob" type="tel" placeholder="Mobile (contact only)" maxlength="20" style="min-height:40px;flex:1 1 150px;min-width:0;max-width:100%;box-sizing:border-box">
         <button class="btn btn-primary" style="min-height:2.5rem">Add member</button></form>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Email and Discord username are optional. Copy the invite link from the member's row and send it on WhatsApp or Messenger. Mobile is contact only, never used for login.</span>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An invite link works once and expires after 7 days. Copy invite link reuses an unused one; New link voids it and makes a fresh one.</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An invite link works once and lasts 72 hours. Copy in the member's row reuses the live one, or makes a fresh one when it has run out. New link voids it and makes a fresh one.</span>
       <div id="linkbox" hidden style="display:flex;gap:8px"><input class="input" id="linkout" readonly style="flex:1;min-height:40px"><button class="rowbtn" id="copylink">Copy</button></div></div>
       <div class="acard"><span class="t-module">Icon palette</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Each animal has its own 20 slots: pick a character, then upload an image (it takes that animal's lowest free number). Click a picture to set it as the icon of whoever holds the animal; the cross removes it.</span>
@@ -190,6 +191,18 @@
     pane.addEventListener('click', ev => {
       const tr = ev.target.closest('tr[data-mid]');
       if (tr && !ev.target.closest('button,input,select')) showDetail(tr.dataset.mid);
+    });
+    // Invite link from the row (RAY, 24 Nov): one per member, good for 72 hours. Copy reuses the live link;
+    // once it has expired or been used, the next Copy issues a fresh one, so links renew every 72 hours.
+    pane.addEventListener('click', async ev => {
+      const b = ev.target.closest('[data-invcopy]'); if (!b) return;
+      ev.stopPropagation();
+      try {
+        const tok = await FY.rpc('issue_claim_link', { p_member_id: b.dataset.invcopy, p_new: false, p_days: 3 });
+        const url = `${location.origin}/claim.html?claim=${tok}`;
+        try { await navigator.clipboard.writeText(url); b.textContent = 'Copied'; setTimeout(() => { b.textContent = 'Copy'; }, 2000); }
+        catch (e) { window.prompt('Copy this invite link (valid 72 hours):', url); }
+      } catch (e) { FY.toast(e.message); }
     });
     // Delete from the row: only unclaimed non-admins get the button; the server still refuses anyone with history.
     pane.addEventListener('click', ev => {
@@ -342,7 +355,7 @@
       // Invite link and delete live here now, so they are wired here.
       box.querySelectorAll('button[data-link]').forEach(b => b.onclick = async () => {
         try {
-          const tok = await FY.rpc('issue_claim_link', { p_member_id: b.dataset.link, p_new: !!b.dataset.new });
+          const tok = await FY.rpc('issue_claim_link', { p_member_id: b.dataset.link, p_new: !!b.dataset.new, p_days: 3 });
           const url = `${location.origin}/claim.html?claim=${tok}`;
           const lab = b.textContent;
           try { await navigator.clipboard.writeText(url); b.textContent = 'Link copied'; setTimeout(() => { b.textContent = lab; }, 2000); }
