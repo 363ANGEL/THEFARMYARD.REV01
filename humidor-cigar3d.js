@@ -34,7 +34,7 @@
     init(T) {
       const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
       const renderer = this.renderer = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
-      renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.localClippingEnabled = true;
+      renderer.setPixelRatio(2);   /* always 2x: the surface lines draw at half a CSS pixel, so they read thinner (RAY, 24 Nov) */ renderer.localClippingEnabled = true;
       renderer.domElement.style.cssText = 'width:100%;height:100%;display:block;';
       this.appendChild(renderer.domElement);
       const scene = new T.Scene(), cam = new T.PerspectiveCamera(28, 1, 0.1, 100);
@@ -229,7 +229,7 @@
           volNow = Math.max(0.6, Math.min(5, vol)); heatK = (Math.max(1, Math.min(5, heat)) - 1) / 4; }
         const hb = cur.burn * heatK; frontMat.color.setRGB(1, 0.48 + 0.45 * hb, 0.16 + 0.5 * hb); footMat.emissive.setRGB(1, 0.35 + 0.45 * hb, 0.1 + 0.45 * hb); ashMat.opacity = cur.burn; frontMat.opacity = cur.burn * (0.75 + Math.sin(t * 9) * 0.25);
         bandMat.opacity = cur.band; band.visible = cur.band > 0.02;
-        lineMat.opacity = cur.wire * (0.5 + Math.sin(t * 2.1) * 0.05); wire.visible = cur.wire > 0.03;
+        lineMat.opacity = cur.wire * (0.85 + Math.sin(t * 2.1) * 0.05);   /* surface lines more opaque (RAY, 24 Nov) */ wire.visible = cur.wire > 0.03;
         seamMat.opacity = (1 - cur.wire) * 0.42 * (1 - cur.peel); detail.visible = cur.wire < 0.97;
         const fl = still ? 1 : 0.85 + Math.sin(t * 7) * 0.08 + Math.sin(t * 13.3) * 0.07;
         const ph = (t % 2.6) / 2.6, pull = still ? cur.draw * 0.6 : cur.draw * (ph < 0.45 ? Math.sin(ph / 0.45 * Math.PI) : 0), em = Math.max(cur.ember * fl, pull * 2.4, cur.burn * (1 + heatK * 2.6) * fl);
