@@ -167,8 +167,8 @@
     }
     const setOn = id => { if (id === S.on) return; S.on = id; apply(); if (opt.onHover) opt.onHover(id); };
 
-    // ---- Motion: the overview loop, one panel every 3.2s (none under reduced motion) ----
-    function tickOv() { clearTimeout(ovT); if (!live || RM()) return; ovT = setTimeout(() => { if (live && !paused && !hold && !S.on) go((cur + 1) % PANELS.length); tickOv(); }, 3200); }
+    // ---- Motion: the overview loop. Hold: Sizes 4s, every other panel 8s (RAY, 24 Nov); none under reduced motion ----
+    function tickOv() { clearTimeout(ovT); if (!live || RM()) return; ovT = setTimeout(() => { if (live && !paused && !hold && !S.on) go((cur + 1) % PANELS.length); tickOv(); }, cur === 0 ? 4000 : 8000); }
     const stopOv = () => clearTimeout(ovT), armIdle = tickOv;   // a swipe or dot click restarts the wait
 
     // ---- Pointer, focus, touch ----
