@@ -10,27 +10,27 @@
 <link rel="stylesheet" href="app.css?v=20261123d">
 <link rel="stylesheet" href="farmyard.css?v=20261123e">
 <link rel="stylesheet" href="barn.css?v=20261119b">
-<link rel="stylesheet" href="humidor.css?v=20261119b">
+<link rel="stylesheet" href="humidor.css?v=20261124h">
 <style>
 /* 4.0 The Humidor · Admin (leader), ported from P15.003 HUMIDOR ADMIN.dc.html.
-   No page-local tokens: the design's --text-*, --hint-text and --color-neutral-100 come from humidor.css,
+   No page-local tokens: --hint-text and --color-neutral-100 come from humidor.css,
    --color-neutral-600 from barn.css. */
 .ha{display:flex;flex-direction:column;gap:18px;min-width:0}
 .ha section{display:flex;flex-direction:column;gap:10px;min-width:0}
 .ha section[hidden],.ha [hidden]{display:none}
-.ha h2.ha-h{margin:0;font-size:var(--text-card-title);font-weight:500;line-height:1.12;color:var(--fy-text);text-wrap:balance}
-.ha-k{font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)}
-.ha-meta{font-size:var(--text-meta);color:var(--fy-text-label)}
+.ha h2.ha-h{margin:0;font-size:var(--fs-h3);font-weight:500;line-height:1.12;color:var(--fy-text);text-wrap:balance}
+.ha-k{font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)}
+.ha-meta{font-size:var(--fs-sm);color:var(--fy-text-label)}
 .ha-num{font-variant-numeric:tabular-nums}
 .ha-hd{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 14px}
 
 /* Notices: pending payments */
 .ha-notes{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:2px solid var(--neon-pink-tube);border-radius:10px;box-shadow:var(--glow-pink);background:var(--fy-bg)}
-.ha-notes .t{font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
+.ha-notes .t{font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
 .ha-note{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;min-height:44px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 20%,transparent)}
-.ha-note .x{flex:1 1 220px;min-width:0;font-size:var(--text-ui);color:var(--fy-text-body);overflow-wrap:anywhere}
-.ha-note .x span{color:var(--fy-text-label);font-size:var(--text-meta);white-space:nowrap}
-.ha-ok{min-height:44px;padding:0 14px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--text-kicker);letter-spacing:.08em;font-weight:600;border:1px solid var(--neon-green-text);color:var(--neon-green-text);white-space:nowrap}
+.ha-note .x{flex:1 1 220px;min-width:0;font-size:var(--fs-body);color:var(--fy-text-body);overflow-wrap:anywhere}
+.ha-note .x span{color:var(--fy-text-label);font-size:var(--fs-sm);white-space:nowrap}
+.ha-ok{min-height:44px;padding:0 14px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--fs-xs);letter-spacing:.08em;font-weight:600;border:1px solid var(--neon-green-text);color:var(--neon-green-text);white-space:nowrap}
 
 /* Landing page stage: radio cards (R6, league-wide pin) */
 .ha-stages{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px}
@@ -38,29 +38,29 @@
 .ha-st.lit{background:color-mix(in srgb,var(--neon-teal) 8%,transparent)}
 .ha-st[aria-checked="true"]{border:2px solid var(--neon-teal);box-shadow:var(--glow-teal)}
 .ha-st:hover{border-color:var(--hint-text)}
-.ha-st .n{font-size:var(--text-kicker);letter-spacing:.08em;font-weight:600;color:var(--neon-teal);font-variant-numeric:tabular-nums}
-.ha-st .l{font-size:var(--text-ui);font-weight:500;color:var(--fy-text-secondary)}
+.ha-st .n{font-size:var(--fs-xs);letter-spacing:.08em;font-weight:600;color:var(--neon-teal);font-variant-numeric:tabular-nums}
+.ha-st .l{font-size:var(--fs-body);font-weight:500;color:var(--fy-text-secondary)}
 .ha-st.lit .l,.ha-st[aria-checked="true"] .l{color:var(--color-neutral-100)}
 
 /* 1 · Round: action buttons */
 .ha-acts{display:flex;flex-wrap:wrap;gap:8px}
-.ha-act{min-height:44px;padding:0 18px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--text-meta);letter-spacing:.08em;font-weight:600;border:2px solid var(--neon-teal);color:var(--hint-text);box-shadow:none}
+.ha-act{min-height:44px;padding:0 18px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--fs-sm);letter-spacing:.08em;font-weight:600;border:2px solid var(--neon-teal);color:var(--hint-text);box-shadow:none}
 .ha-act.ha-pink{border-color:var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink)}
 .ha button[data-a]:disabled{opacity:.5;cursor:default}
-.ha-moved{margin:0;font-size:var(--text-small);line-height:1.45;color:var(--neon-amber-text)}
+.ha-moved{margin:0;font-size:var(--fs-sm);line-height:1.45;color:var(--neon-amber-text)}
 
 /* Who's voted: scrolls sideways below 640px with the member column fixed */
 .ha-voted{display:flex;flex-direction:column;gap:8px;margin-top:4px;min-width:0}
-.ha-empty{font-size:var(--text-small);color:var(--fy-text-label);padding:12px 14px;border:1px dashed color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px}
+.ha-empty{font-size:var(--fs-sm);color:var(--fy-text-label);padding:12px 14px;border:1px dashed color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px}
 .ha-scroll{overflow-x:auto;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px;background:var(--fy-bg)}
 .ha-scroll:focus-visible{outline:2px solid var(--neon-teal);outline-offset:2px}
 .ha-vt{width:100%;border-collapse:collapse;min-width:640px}
-.ha-vt thead th{text-align:left;padding:8px 12px;font-size:0.625rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal);border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);white-space:nowrap}
+.ha-vt thead th{text-align:left;padding:8px 12px;font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal);border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);white-space:nowrap}
 .ha-vt .stick{position:sticky;left:0;z-index:1;background:var(--fy-bg)}
 .ha-vt tbody th{text-align:left;padding:9px 12px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 15%,transparent);font-weight:400;white-space:nowrap}
-.ha-vt tbody th .nm{display:block;font-size:var(--text-ui);font-weight:500;color:var(--color-neutral-100)}
-.ha-vt tbody th .ago{display:block;font-size:var(--text-kicker);color:var(--fy-text-label)}
-.ha-vt td{padding:9px 12px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 15%,transparent);font-size:var(--text-small);line-height:1.35;color:var(--neon-pink-text);vertical-align:top}
+.ha-vt tbody th .nm{display:block;font-size:var(--fs-body);font-weight:500;color:var(--color-neutral-100)}
+.ha-vt tbody th .ago{display:block;font-size:var(--fs-xs);color:var(--fy-text-label)}
+.ha-vt td{padding:9px 12px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 15%,transparent);font-size:var(--fs-sm);line-height:1.35;color:var(--neon-pink-text);vertical-align:top}
 .ha-vt td.none{color:var(--color-neutral-600)}
 
 /* 2 · Tally board */
@@ -68,34 +68,34 @@
 .ha-tbx{overflow-x:auto}
 .ha-tt{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;min-width:520px}
 .ha-tt thead th{text-align:center;padding:6px 8px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent)}
-.ha-tt thead th:first-child{text-align:left;font-size:0.625rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--fy-text-label)}
-.ha-tt .cn{display:block;font-size:var(--text-small);font-weight:500;color:var(--fy-text-body)}
+.ha-tt thead th:first-child{text-align:left;font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--fy-text-label)}
+.ha-tt .cn{display:block;font-size:var(--fs-sm);font-weight:500;color:var(--fy-text-body)}
 .ha-tt .cn.top{color:var(--neon-pink-text)}
-.ha-tt .sm{display:block;font-size:var(--text-kicker);font-weight:400;color:var(--fy-text-label)}
+.ha-tt .sm{display:block;font-size:var(--fs-xs);font-weight:400;color:var(--fy-text-label)}
 .ha-tt tbody th{text-align:left;padding:7px 8px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 15%,transparent);font-weight:400}
-.ha-tt tbody th .nm{display:block;font-size:var(--text-small);color:var(--color-neutral-100)}
+.ha-tt tbody th .nm{display:block;font-size:var(--fs-sm);color:var(--color-neutral-100)}
 .ha-tt tbody td{text-align:center;padding:7px 8px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 15%,transparent)}
-.ha-tt .mk{display:block;font-size:var(--text-ui);font-weight:600;color:var(--neon-red-text)}
+.ha-tt .mk{display:block;font-size:var(--fs-body);font-weight:600;color:var(--neon-red-text)}
 .ha-tt .mk.ok{color:var(--neon-green-text)}
-.ha-tt tfoot th{text-align:left;padding:8px;font-size:0.625rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal)}
+.ha-tt tfoot th{text-align:left;padding:8px;font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal)}
 .ha-tt tfoot td{text-align:center;padding:8px}
-.ha-tt .fit{display:block;font-size:var(--text-card-title);font-weight:500;color:var(--color-neutral-100)}
+.ha-tt .fit{display:block;font-size:var(--fs-h3);font-weight:500;color:var(--color-neutral-100)}
 .ha-tt .fit.top{color:var(--neon-pink-text)}
 
 /* 2 · Vote summary */
 .ha-ws{display:flex;flex-direction:column;gap:12px}
 .ha-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px}
 .ha-stat{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px;background:var(--fy-bg)}
-.ha-stat .k{font-size:0.625rem;letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)}
-.ha-stat .v{font-size:1.5rem;font-weight:500;line-height:1.1;color:var(--color-neutral-100);font-variant-numeric:tabular-nums}
+.ha-stat .k{font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)}
+.ha-stat .v{font-size:var(--fs-h2);font-weight:500;line-height:1.1;color:var(--color-neutral-100);font-variant-numeric:tabular-nums}
 .ha-dims{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:10px}
 .ha-dim{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);border-radius:10px;background:var(--fy-bg);min-width:0}
 .ha-dim .dh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.ha-dim .dh .s{font-size:var(--text-kicker);color:var(--fy-text-label);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ha-dim .dh .s{font-size:var(--fs-xs);color:var(--fy-text-label);font-variant-numeric:tabular-nums;white-space:nowrap}
 .ha-bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;align-items:baseline}
-.ha-bar .v{font-size:var(--text-small);color:var(--fy-text-body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ha-bar .v{font-size:var(--fs-sm);color:var(--fy-text-body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ha-bar.top .v{color:var(--neon-pink-text)}
-.ha-bar .c{font-size:var(--text-meta);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ha-bar .c{font-size:var(--fs-sm);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums;white-space:nowrap}
 .ha-bar .trk{grid-column:1/-1;height:4px;border-radius:2px;background:color-mix(in srgb,var(--neon-teal) 15%,transparent);overflow:hidden}
 .ha-bar .fl{height:100%;background:color-mix(in srgb,var(--neon-teal) 60%,transparent)}
 .ha-bar.top .fl{background:var(--neon-pink-tube)}
@@ -103,26 +103,26 @@
 /* 2 · Likely selection */
 .ha-lk{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border:2px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg)}
 .ha-lk .nmrow{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
-.ha-lk .nm{font-size:1.5rem;font-weight:500;line-height:1.15;color:var(--neon-pink-text)}
-.ha-lk .spec{font-size:var(--text-ui);color:var(--fy-text-body);font-variant-numeric:tabular-nums}
-.ha-lk .pf{font-size:var(--text-ui);line-height:1.5;color:var(--fy-text-body)}
+.ha-lk .nm{font-size:var(--fs-h2);font-weight:500;line-height:1.15;color:var(--neon-pink-text)}
+.ha-lk .spec{font-size:var(--fs-body);color:var(--fy-text-body);font-variant-numeric:tabular-nums}
+.ha-lk .pf{font-size:var(--fs-body);line-height:1.5;color:var(--fy-text-body)}
 .ha-lk .alt{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;padding-top:8px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 20%,transparent)}
-.ha-lk .alt .k{font-size:0.625rem;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)}
-.ha-lk .alt .x{font-size:var(--text-small);color:var(--hint-text);font-variant-numeric:tabular-nums}
+.ha-lk .alt .k{font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)}
+.ha-lk .alt .x{font-size:var(--fs-sm);color:var(--hint-text);font-variant-numeric:tabular-nums}
 
 /* 3 · Prompt sheet */
-.ha-copy{min-height:44px;padding:0 18px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--text-meta);letter-spacing:.08em;font-weight:600;border:2px solid var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink);text-shadow:var(--text-glow-pink)}
+.ha-copy{min-height:44px;padding:0 18px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--fs-sm);letter-spacing:.08em;font-weight:600;border:2px solid var(--neon-pink-tube);color:var(--neon-pink-text);box-shadow:var(--glow-pink);text-shadow:var(--text-glow-pink)}
 .ha-brief{display:grid;grid-template-columns:minmax(90px,auto) minmax(0,1fr) auto;gap:8px 14px;align-items:baseline;padding:14px 16px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal)}
-.ha-brief .l{font-size:var(--text-kicker);letter-spacing:.06em;text-transform:uppercase;color:var(--neon-teal)}
-.ha-brief .v{font-size:var(--text-ui);color:var(--neon-pink-text);overflow-wrap:anywhere}
+.ha-brief .l{font-size:var(--fs-xs);letter-spacing:.06em;text-transform:uppercase;color:var(--neon-teal)}
+.ha-brief .v{font-size:var(--fs-body);color:var(--neon-pink-text);overflow-wrap:anywhere}
 .ha-brief .v.none{color:var(--fy-text-label)}
-.ha-brief .c{font-size:var(--text-meta);color:var(--fy-text-label);font-variant-numeric:tabular-nums;white-space:nowrap}
-.ha-prompt{display:block;width:100%;box-sizing:border-box;min-height:260px;padding:14px;border-radius:10px;border:1px solid var(--neon-teal);background:var(--fy-surface);color:var(--fy-text-body);font-size:var(--text-ui);line-height:1.55;resize:vertical}
+.ha-brief .c{font-size:var(--fs-sm);color:var(--fy-text-label);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ha-prompt{display:block;width:100%;box-sizing:border-box;min-height:260px;padding:14px;border-radius:10px;border:1px solid var(--neon-teal);background:var(--fy-surface);color:var(--fy-text-body);font-size:var(--fs-body);line-height:1.55;resize:vertical}
 
 /* 4 · The three options (a draft kept apart from polled data, R8) */
 .ha-forms{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
 .ha-form{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px;background:var(--fy-bg);min-width:0}
-.ha-in{display:block;width:100%;box-sizing:border-box;min-height:44px;padding:0 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);background:var(--fy-surface);color:var(--fy-text-body);font-size:var(--text-small);outline:none}
+.ha-in{display:block;width:100%;box-sizing:border-box;min-height:44px;padding:0 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);background:var(--fy-surface);color:var(--fy-text-body);font-size:var(--fs-sm);outline:none}
 .ha-in:focus-visible{outline:2px solid var(--neon-teal);outline-offset:1px}
 
 /* 5 · Paying up */
@@ -132,23 +132,23 @@
 .ha-pins .ha-in{width:auto;min-width:0}
 .ha-pins .s{flex:0 1 200px}
 .ha-pins .u{flex:1 1 260px}
-.ha-lstat{flex-basis:100%;font-size:var(--text-small);line-height:1.45;color:var(--neon-amber-text)}
+.ha-lstat{flex-basis:100%;font-size:var(--fs-sm);line-height:1.45;color:var(--neon-amber-text)}
 .ha-lstat.ok{color:var(--neon-green-text)}
-.ha-save{min-height:44px;padding:0 16px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--text-meta);letter-spacing:.08em;font-weight:600;border:1px solid var(--neon-teal);color:var(--hint-text)}
+.ha-save{min-height:44px;padding:0 16px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--fs-sm);letter-spacing:.08em;font-weight:600;border:1px solid var(--neon-teal);color:var(--hint-text)}
 .ha-pbar{height:8px;border-radius:4px;background:color-mix(in srgb,var(--neon-teal) 20%,transparent);overflow:hidden}
 .ha-pbar div{height:100%;width:0;background:var(--neon-pink-tube);box-shadow:var(--glow-pink)}
-.ha-ptxt{font-size:var(--text-small);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
+.ha-ptxt{font-size:var(--fs-sm);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
 .ha-prows{display:flex;flex-direction:column;gap:6px}
 .ha-prow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;min-height:44px;border-bottom:1px solid color-mix(in srgb,var(--neon-teal) 20%,transparent)}
-.ha-prow .nm{font-size:var(--text-ui);color:var(--fy-text-body);overflow-wrap:anywhere}
-.ha-prow .st{font-size:var(--text-meta);color:var(--neon-red-text)}
+.ha-prow .nm{font-size:var(--fs-body);color:var(--fy-text-body);overflow-wrap:anywhere}
+.ha-prow .st{font-size:var(--fs-sm);color:var(--neon-red-text)}
 .ha-prow .st.ok{color:var(--neon-green-text)}
 .ha-prow .st.pend{color:var(--neon-pink-text)}
-.ha-tick{min-height:44px;padding:0 12px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--text-kicker);letter-spacing:.06em;font-weight:600;border:1px solid var(--neon-teal);color:var(--hint-text);white-space:nowrap}
+.ha-tick{min-height:44px;padding:0 12px;border-radius:19px;background:transparent;cursor:pointer;font-size:var(--fs-xs);letter-spacing:.06em;font-weight:600;border:1px solid var(--neon-teal);color:var(--hint-text);white-space:nowrap}
 
 /* Members (from v_members_public; no add / remove here, R10) */
 .ha-mems{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
-.ha-mems li{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border-radius:19px;font-size:var(--text-meta);border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);color:var(--hint-text);white-space:nowrap}
+.ha-mems li{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border-radius:19px;font-size:var(--fs-sm);border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);color:var(--hint-text);white-space:nowrap}
 
 @media (prefers-reduced-motion:no-preference){
   .ha-pbar div{transition:width .4s ease-out}

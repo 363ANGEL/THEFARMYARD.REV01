@@ -158,7 +158,7 @@
       const swW = wideShort ? '10px' : '20px', sw = (rgb, l) => `<span class="hr-sw"><span style="width:${swW};background:${rgb};box-shadow:0 0 6px ${rgb}"></span><span style="color:var(--fy-text-secondary)">${l}</span></span>`;
       put(key, `<div role="group" aria-label="Draw lines key" class="hr-keybox" style="flex-direction:${wideShort ? 'column' : 'row'};padding:${wideShort ? '6px 8px' : '6px 10px'}">
         <span class="hr-cap" style="display:${wideShort ? 'none' : 'block'}">Draw lines</span>
-        <span style="display:flex;gap:6px">${stages.map(g => `<span style="display:flex;flex-direction:column;gap:3px"><span style="height:3px;border-radius:2px;background:${g.bg}"></span><span style="font-size:.6875rem;white-space:nowrap;color:${g.col}">${g.l}</span></span>`).join('')}</span>
+        <span style="display:flex;gap:6px">${stages.map(g => `<span style="display:flex;flex-direction:column;gap:3px"><span style="height:3px;border-radius:2px;background:${g.bg}"></span><span style="font-size:var(--fs-xs);white-space:nowrap;color:${g.col}">${g.l}</span></span>`).join('')}</span>
         <span style="display:flex;flex-wrap:wrap;justify-content:flex-start;gap:${wideShort ? '4px 8px' : '4px 14px'}">${sw('rgb(64,224,128)', 'Cool')}${sw('rgb(255,217,74)', 'Warm')}${sw('rgb(255,8,13)', 'Hot')}</span>
         <span style="display:grid;grid-template-columns:${wideShort ? 'auto' : 'auto auto'};gap:3px 14px"><span>Few Lines = Light Draw</span><span>Many Lines = Full Draw</span><span>Narrow = Tight Draw</span><span>Wide = Open Draw</span></span>
       </div>`);

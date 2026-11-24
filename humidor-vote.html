@@ -9,29 +9,20 @@
 <link rel="stylesheet" href="app.css?v=20261123d">
 <link rel="stylesheet" href="farmyard.css?v=20261123e">
 <link rel="stylesheet" href="barn.css?v=20261119b">
-<link rel="stylesheet" href="humidor.css?v=20261119b">
+<link rel="stylesheet" href="humidor.css?v=20261124h">
 <style>
 /* 4.0 The Humidor · Vote (taste), ported from P15.003 HUMIDOR CHOOSE REV.05.dc.html.
    DS tokens the design reads that the site does not define yet (FARMYARD DS REV P01 values; bronze and the
    hint/popover edge are the site's own #cd7f32-like copper and #9eeae6 tube). */
 :root{--color-accent-2:#a7a1db;--color-neutral-500:#9397ab;--medal-silver:#e4ecf0;--medal-bronze:#cd7f32;--hint-border:#9eeae6}
 .main{gap:18px}   /* the design's 18px between the Humidor header and the sections, as on Home (the Barn default is 14px) */
-/* README §2: text x0.73 on tablet, x0.77 on mobile, never under 10px. The header title stays the shared 28px. */
-.hv{--ts:1;display:flex;flex-direction:column;min-width:0}
-@media (max-width:1099px){.hv{--ts:.73}}
-@media (max-width:699px){.hv{--ts:.77}}
-.t-k{font-size:max(10px,calc(var(--text-kicker) * var(--ts,1)))}
-.t-m{font-size:max(10px,calc(var(--text-meta) * var(--ts,1)))}
-.t-s{font-size:max(10px,calc(var(--text-small) * var(--ts,1)))}
-.t-u{font-size:max(10px,calc(var(--text-ui) * var(--ts,1)))}
-.t-b{font-size:max(10px,calc(var(--text-body-size) * var(--ts,1)))}
-.t-c{font-size:max(10px,calc(var(--text-card-title) * var(--ts,1)))}
-.t-br{font-size:max(10px,calc(var(--text-brand) * var(--ts,1)))}
-.t-pt{font-size:max(10px,calc(var(--text-page-title) * var(--ts,1)))}
-.t10{font-size:max(10px,calc(10px * var(--ts,1)))}
-.t16{font-size:max(10px,calc(16px * var(--ts,1)))}
-.t22{font-size:max(10px,calc(22px * var(--ts,1)))}
-.t24{font-size:max(10px,calc(24px * var(--ts,1)))}
+/* Text sizes are the design system tokens (--fs-*, farmyard.css), which scale with the panel; no page multiplier (plan 37, 24 Nov). */
+.hv{display:flex;flex-direction:column;min-width:0}
+.fs-xs{font-size:var(--fs-xs)}
+.fs-sm{font-size:var(--fs-sm)}
+.fs-body{font-size:var(--fs-body)}
+.fs-h3{font-size:var(--fs-h3)}
+.fs-h2{font-size:var(--fs-h2)}
 .hv .up{letter-spacing:.08em;text-transform:uppercase}
 .hv .up6{letter-spacing:.06em;text-transform:uppercase}
 .hv button,.hv select{font-family:inherit}
@@ -71,14 +62,14 @@
 .hv-sh.locked{border-color:color-mix(in srgb,var(--fy-text-label) 25%,transparent);box-shadow:none;opacity:.45;cursor:not-allowed}
 .hv-sh.voted{border-color:color-mix(in srgb,var(--neon-teal) 45%,transparent);box-shadow:none;cursor:default;pointer-events:none}
 .hv-shrow{display:flex;flex-wrap:nowrap;align-items:baseline;justify-content:space-between;gap:10px}
-.hv-sh h2{margin:0;font-size:max(10px,calc(clamp(22px,2.6vw,28px) * var(--ts,1)));font-weight:700;letter-spacing:-.01em;white-space:nowrap;color:var(--color-neutral-100);text-shadow:0 0 4px color-mix(in srgb,var(--color-neutral-100) 80%,transparent),0 0 14px color-mix(in srgb,var(--fy-text) 45%,transparent)}
+.hv-sh h2{margin:0;font-size:var(--fs-h2);font-weight:700;letter-spacing:-.01em;white-space:nowrap;color:var(--color-neutral-100);text-shadow:0 0 4px color-mix(in srgb,var(--color-neutral-100) 80%,transparent),0 0 14px color-mix(in srgb,var(--fy-text) 45%,transparent)}
 .hv-sh .verb{color:var(--fy-text-label);text-align:right}
 .hv-sh .st{display:flex;align-items:center;gap:10px;margin-left:auto;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text);white-space:nowrap}
 .hv-sh.locked .st{color:var(--fy-text-label)}
 .hv-sh.voted .st{color:var(--neon-green-text)}
 .hv-sh .arr{display:inline-block;line-height:1}
 .hv-sh.open .arr{transform:rotate(180deg)}
-@media (max-width:699px){.hv-shrow{flex-wrap:wrap;gap:4px 10px}.hv-sh h2{font-size:max(10px,calc(22px * var(--ts,1)));white-space:normal;text-wrap:balance}}
+@media (max-width:699px){.hv-shrow{flex-wrap:wrap;gap:4px 10px}.hv-sh h2{font-size:var(--fs-h2);white-space:normal;text-wrap:balance}}
 .hv-sb{display:grid;grid-template-rows:0fr;opacity:0}
 .hv-sb.open{grid-template-rows:1fr;opacity:1}
 .hv-sbi{min-height:0;overflow:hidden;margin:0 -12px;padding:0 12px}
@@ -460,7 +451,6 @@
     if (fk) { const n = el.querySelector('[data-k="' + fk + '"]'); if (n) n.focus({ preventScroll: true }); }
   }
   function css(el, text) { if (el && el.__css !== text) { el.style.cssText = text; el.__css = text; } }
-  const fsx = x => 'font-size:max(10px,calc(' + x + ' * var(--ts,1)))';
 
   // Cigar silhouette layers, shared by the poster cards and the close-up (zoom: thicker lines, wider band).
   function cigar(v, zoom) {
@@ -474,23 +464,23 @@
 
   function prefPanel(V) {
     const p = V.prefBar;
-    const sel = (f, lab, val, opts) => `<label><span class="lt t10">${lab}</span><select class="hv-sel t-s" data-f="${f}" data-k="${f}" aria-label="${lab}">${opts.map(o => `<option value="${esc(o.v)}"${o.v === val ? ' selected' : ''}>${esc(o.l)}</option>`).join('')}</select></label>`;
+    const sel = (f, lab, val, opts) => `<label><span class="lt fs-xs">${lab}</span><select class="hv-sel fs-sm" data-f="${f}" data-k="${f}" aria-label="${lab}">${opts.map(o => `<option value="${esc(o.v)}"${o.v === val ? ' selected' : ''}>${esc(o.l)}</option>`).join('')}</select></label>`;
     return `<div class="hv-pref${p.same ? ' same' : ''}" role="group" aria-label="My preferences">
       ${sel('girth', 'Ring gauge', p.girth, p.girthOpts)}${sel('maxT', 'Max smoke time', p.maxT, p.timeOpts)}${sel('shape', 'Preferred shape', p.shape, p.shapeOpts)}
-      <button type="button" class="hv-tube t-k" data-a="prefsub" data-k="prefsub">${p.label}</button>
-      <span class="note t-m">${esc(p.note)}</span></div>`;
+      <button type="button" class="hv-tube fs-xs" data-a="prefsub" data-k="prefsub">${p.label}</button>
+      <span class="note fs-sm">${esc(p.note)}</span></div>`;
   }
 
   function draw(roundOnly) {
     const V = model(); const LY = V.LY;
     // Round-dependent parts (the only ones a poll touches)
     put('roundLabel', esc(V.vote.roundLabel));
-    put('voteStatus', `<span class="t-s" style="line-height:1.45;color:${V.vote.statusCol}">${esc(V.vote.status)}</span>`);
-    put('submit', movedOn ? '<p class="t-s" role="status" style="margin:0;color:var(--neon-amber-text);line-height:1.45">The round moved on. Reload to continue.</p>'
-      : `<button type="button" class="hv-submit t-s" data-a="submit" data-k="submit"${V.vote.cant ? ' disabled' : ''}>${V.vote.label}</button>`);
-    put('voted', !V.voted.on ? '' : `<section class="hv-voted hm-pop" aria-live="polite"><span class="t-k up" style="color:var(--neon-green-text)">${esc(V.voted.kicker)}</span>
-      <span class="t-br" style="line-height:1.35;font-weight:500;color:var(--neon-pink-text)">${esc(V.voted.sum)}</span>
-      ${V.voted.gone ? '<p class="t-s" role="status" style="margin:0;color:var(--neon-amber-text);line-height:1.45">The round moved on. Reload to continue.</p>' : V.voted.canEdit ? '<button type="button" class="hv-edit t-u" data-flash="edit" data-a="edit" data-k="edit">EDIT MY TASTE</button>' : ''}</section>`);
+    put('voteStatus', `<span class="fs-sm" style="line-height:1.45;color:${V.vote.statusCol}">${esc(V.vote.status)}</span>`);
+    put('submit', movedOn ? '<p class="fs-sm" role="status" style="margin:0;color:var(--neon-amber-text);line-height:1.45">The round moved on. Reload to continue.</p>'
+      : `<button type="button" class="hv-submit fs-sm" data-a="submit" data-k="submit"${V.vote.cant ? ' disabled' : ''}>${V.vote.label}</button>`);
+    put('voted', !V.voted.on ? '' : `<section class="hv-voted hm-pop" aria-live="polite"><span class="fs-xs up" style="color:var(--neon-green-text)">${esc(V.voted.kicker)}</span>
+      <span class="fs-h3" style="line-height:1.35;font-weight:500;color:var(--neon-pink-text)">${esc(V.voted.sum)}</span>
+      ${V.voted.gone ? '<p class="fs-sm" role="status" style="margin:0;color:var(--neon-amber-text);line-height:1.45">The round moved on. Reload to continue.</p>' : V.voted.canEdit ? '<button type="button" class="hv-edit fs-body" data-flash="edit" data-a="edit" data-k="edit">EDIT MY TASTE</button>' : ''}</section>`);
     if (roundOnly) return;
 
     // Section headers and bodies
@@ -514,11 +504,11 @@
       css(el, `position:absolute;left:0;right:0;top:${LY.k25};height:${LY.k26};margin-top:${V.arw.mt};display:${LY.k28};flex-direction:${LY.k29};align-items:center;justify-content:${LY.k30};gap:${LY.k31};padding:${LY.k32};grid-template-columns:${LY.k33};justify-items:${LY.k34};align-content:${cl.ac};box-sizing:border-box;background:transparent;border:0;cursor:pointer;pointer-events:${v.pe};transform-origin:0 50%;transform:${v.tf};opacity:${v.op};z-index:${v.z};transform-style:preserve-3d;will-change:transform;color:inherit`);
       el.setAttribute('aria-label', v.name); el.tabIndex = v.pe === 'auto' ? 0 : -1; el.setAttribute('aria-hidden', String(v.pe !== 'auto'));
       put('card' + i, `<span class="lab" style="position:${LY.k35};left:${LY.k36};top:${LY.k37};right:${LY.k38};display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:${cl.pad};justify-self:${cl.js};grid-column:${cl.gc};grid-row:${cl.gr};margin-bottom:${cl.mb};max-width:${LY.k41};box-sizing:border-box;opacity:${v.labOp};transition-delay:${v.labDelay}">
-          <span class="t-s up6" style="color:var(--neon-teal)">${esc(v.prefixShape)}</span>
-          <span class="t-c" style="font-weight:500;line-height:1.15;letter-spacing:.05em;text-transform:uppercase;color:${v.lc};text-shadow:${v.ts};text-wrap:balance">${esc(v.sizeName)}</span>
-          <span class="t-m" style="letter-spacing:.05em;text-transform:uppercase;line-height:1.3;color:var(--fy-text-label);text-wrap:balance">${esc(v.kindShort)} · ${esc(v.burnWord)}</span></span>
+          <span class="fs-sm up6" style="color:var(--neon-teal)">${esc(v.prefixShape)}</span>
+          <span class="fs-h3" style="font-weight:500;line-height:1.15;letter-spacing:.05em;text-transform:uppercase;color:${v.lc};text-shadow:${v.ts};text-wrap:balance">${esc(v.sizeName)}</span>
+          <span class="fs-sm" style="letter-spacing:.05em;text-transform:uppercase;line-height:1.3;color:var(--fy-text-label);text-wrap:balance">${esc(v.kindShort)} · ${esc(v.burnWord)}</span></span>
         <div class="img" style="opacity:${v.nmOp};filter:${v.nmF};width:${V.slot}px;height:70px;position:relative;flex:none;grid-column:${cl.igc};grid-row:${cl.igr};justify-self:${cl.ijs};margin-left:${cl.iml}">
-          <span class="len t-s" style="position:absolute;left:0;right:0;top:${v.lenTop};margin-top:${v.lenGap};display:flex;justify-content:${v.lj};align-items:center;gap:10px;color:var(--fy-text-body);font-variant-numeric:tabular-nums;white-space:nowrap;opacity:${v.labOp};transition-delay:${v.labDelay}"><span>${esc(v.lenTxt)}</span></span>
+          <span class="len fs-sm" style="position:absolute;left:0;right:0;top:${v.lenTop};margin-top:${v.lenGap};display:flex;justify-content:${v.lj};align-items:center;gap:10px;color:var(--fy-text-body);font-variant-numeric:tabular-nums;white-space:nowrap;opacity:${v.labOp};transition-delay:${v.labDelay}"><span>${esc(v.lenTxt)}</span></span>
           <div style="position:absolute;left:${v.cl};top:50%;width:${v.h}px;height:${v.w}px;margin-top:${v.nhw}px;margin-left:0">
             <div style="position:absolute;left:50%;top:50%;width:${v.w}px;height:${v.h}px;margin-left:${v.nhw}px;margin-top:${v.nhh}px;transform:rotate(-90deg);filter:drop-shadow(0 0 ${v.glowPx}px ${v.glowCol})">${cigar(v, false)}</div>
           </div></div>`);
@@ -527,97 +517,97 @@
     const L = V.ladder, A = V.arw;
     put('ring', `<div style="position:absolute;left:${LY.k42};right:${LY.k43};bottom:${LY.k44};display:flex;flex-direction:column;justify-content:${LY.k45};align-items:center;gap:${LY.k46};z-index:15;pointer-events:none;width:${LY.k47};top:${LY.k48};transform:${LY.k49};margin-top:${A.dm}">
         <div style="position:relative;align-self:stretch;display:flex;justify-content:center">
-          <span aria-label="Cuts for this shape" style="position:absolute;left:16px;bottom:0;display:flex;flex-direction:column;gap:7px;align-items:center">${V.focusCuts.map(cc => `<span class="t-c" title="${esc(cc.name)}" aria-label="${esc(cc.name)} cut" style="width:2.125rem;height:2.125rem;border-radius:50%;border:1.5px solid var(--neon-amber-tube);box-sizing:border-box;display:grid;place-items:center;color:var(--neon-amber-text);font-weight:600;line-height:1;box-shadow:${cc.sh};opacity:${cc.op}">${cc.g}</span>`).join('')}<span class="t-m" style="position:absolute;top:100%;left:0;right:0;margin-top:5px;text-align:center;letter-spacing:.1em;text-transform:uppercase;color:var(--neon-amber-text)">Cut</span></span>
-          <div style="position:relative;width:${L.ringBox}px;height:${L.ringBox}px">${L.refs.map(r => `<span style="position:absolute;left:50%;bottom:0;width:${r.px}px;height:${r.px}px;margin-left:${r.ml}px;border-radius:50%;border:1px dashed color-mix(in srgb,var(--neon-teal) 60%,transparent);box-sizing:border-box"></span><span class="t-s" style="position:absolute;left:50%;top:${r.top}px;transform:translateX(-50%);line-height:1;color:var(--fy-text-secondary);font-variant-numeric:tabular-nums">${r.label}</span>`).join('')}<span class="hv-ring" style="position:absolute;left:50%;bottom:0;width:${L.ringPx}px;height:${L.ringPx}px;margin-left:${L.ringML}px;border-radius:50%;border:2px solid var(--neon-pink-tube);box-shadow:var(--glow-pink);box-sizing:border-box"></span></div>
+          <span aria-label="Cuts for this shape" style="position:absolute;left:16px;bottom:0;display:flex;flex-direction:column;gap:7px;align-items:center">${V.focusCuts.map(cc => `<span class="fs-h3" title="${esc(cc.name)}" aria-label="${esc(cc.name)} cut" style="width:2.125rem;height:2.125rem;border-radius:50%;border:1.5px solid var(--neon-amber-tube);box-sizing:border-box;display:grid;place-items:center;color:var(--neon-amber-text);font-weight:600;line-height:1;box-shadow:${cc.sh};opacity:${cc.op}">${cc.g}</span>`).join('')}<span class="fs-sm" style="position:absolute;top:100%;left:0;right:0;margin-top:5px;text-align:center;letter-spacing:.1em;text-transform:uppercase;color:var(--neon-amber-text)">Cut</span></span>
+          <div style="position:relative;width:${L.ringBox}px;height:${L.ringBox}px">${L.refs.map(r => `<span style="position:absolute;left:50%;bottom:0;width:${r.px}px;height:${r.px}px;margin-left:${r.ml}px;border-radius:50%;border:1px dashed color-mix(in srgb,var(--neon-teal) 60%,transparent);box-sizing:border-box"></span><span class="fs-sm" style="position:absolute;left:50%;top:${r.top}px;transform:translateX(-50%);line-height:1;color:var(--fy-text-secondary);font-variant-numeric:tabular-nums">${r.label}</span>`).join('')}<span class="hv-ring" style="position:absolute;left:50%;bottom:0;width:${L.ringPx}px;height:${L.ringPx}px;margin-left:${L.ringML}px;border-radius:50%;border:2px solid var(--neon-pink-tube);box-shadow:var(--glow-pink);box-sizing:border-box"></span></div>
         </div>
-        <span class="t-s" style="color:var(--fy-text-body);font-variant-numeric:tabular-nums;text-align:center;line-height:1.4">${esc(L.dia)}</span></div>`);
+        <span class="fs-sm" style="color:var(--fy-text-body);font-variant-numeric:tabular-nums;text-align:center;line-height:1.4">${esc(L.dia)}</span></div>`);
     put('nav', `<div role="tablist" aria-label="Shape position" style="position:absolute;right:${A.dr};top:${A.dt};bottom:${A.db};width:20px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;z-index:20">${V.dots.map(d => `<button type="button" role="tab" aria-selected="${d.on}" aria-label="${esc(d.name)}" data-a="dot" data-i="${d.i}" data-k="dot${d.i}" style="width:1.25rem;height:${d.on ? 22 : 6}px;padding:0;border:0;background:transparent;cursor:pointer;display:grid;place-items:center"><span style="display:block;width:4px;height:${d.on ? 22 : 6}px;border-radius:2px;background:${d.on ? 'var(--neon-pink-tube)' : 'color-mix(in srgb,var(--neon-teal) 50%,transparent)'};box-shadow:${d.on ? 'var(--glow-pink)' : 'none'}"></span></button>`).join('')}</div>
       <button type="button" class="hv-arrow" data-a="rot" data-i="-1" data-k="prev" aria-label="Previous shape" style="right:${A.r};top:${A.tp};width:${A.bx};height:${A.bx}"><span data-arrow-breath="" style="display:block;line-height:0"><svg viewBox="0 0 24 24" width="${A.sv}" height="${A.sv}" aria-hidden="true" style="display:block;overflow:visible;filter:drop-shadow(0 0 2px color-mix(in srgb,var(--color-neutral-100) 60%,transparent)) drop-shadow(0 0 5px color-mix(in srgb,var(--fy-text) 30%,transparent))"><polyline points="5,15.5 12,8.5 19,15.5" fill="none" style="stroke:var(--color-neutral-100)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></span></button>
       <button type="button" class="hv-arrow" data-a="rot" data-i="1" data-k="next" aria-label="Next shape" style="right:${A.r};bottom:${A.bt};width:${A.bx};height:${A.bx}"><span data-arrow-breath="" class="late" style="display:block;line-height:0"><svg viewBox="0 0 24 24" width="${A.sv}" height="${A.sv}" aria-hidden="true" style="display:block;overflow:visible;filter:drop-shadow(0 0 2px color-mix(in srgb,var(--color-neutral-100) 60%,transparent)) drop-shadow(0 0 5px color-mix(in srgb,var(--fy-text) 30%,transparent))"><polyline points="5,8.5 12,15.5 19,8.5" fill="none" style="stroke:var(--color-neutral-100)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></span></button>`);
     // Size slider
-    put('hint', `<div style="display:flex;justify-content:center;padding-right:${V.MD === 'm' ? '38px' : '0'}"><span class="t-k up6" style="color:var(--neon-teal)">${esc(L.hint)}</span></div>`);
+    put('hint', `<div style="display:flex;justify-content:center;padding-right:${V.MD === 'm' ? '38px' : '0'}"><span class="fs-xs up6" style="color:var(--neon-teal)">${esc(L.hint)}</span></div>`);
     put('ants', `<div style="position:absolute;left:11px;right:11px;top:50%;height:0;pointer-events:none;display:${L.antsShow};opacity:${L.antsOp}"><span data-ants="" style="position:absolute;top:-4px;width:0.5rem;height:0.5rem;margin-left:-4px;border-radius:50%;background:var(--fy-text);filter:blur(1px)"></span><span data-ants="" class="late" style="position:absolute;top:-4px;width:0.5rem;height:0.5rem;margin-left:-4px;border-radius:50%;background:var(--fy-text);filter:blur(1px)"></span></div>`);
     put('ticks', L.ticks.map(on => `<span style="width:2px;height:10px;border-radius:1px;background:${on ? 'var(--fy-text)' : 'color-mix(in srgb,var(--fy-text) 55%,transparent)'}"></span>`).join(''));
     const rg = R.range; rg.max = String(L.maxR); if (String(rg.value) !== String(L.idx)) rg.value = String(L.idx); rg.disabled = L.locked; rg.style.cursor = L.locked ? 'not-allowed' : 'pointer';
-    put('bands', L.bands.map(b => `<span class="hv-band" style="flex:${b.grow} 1 0;min-width:0;display:flex;align-items:center;justify-content:center;border-radius:4px;background:${b.bg};border:1px solid ${b.bc};box-shadow:${b.sh};${fsx('10px')};font-variant-numeric:tabular-nums;color:${b.col};white-space:nowrap;overflow:hidden" title="${esc(b.full)}">${esc(b.label)}</span>`).join(''));
+    put('bands', L.bands.map(b => `<span class="hv-band" style="flex:${b.grow} 1 0;min-width:0;display:flex;align-items:center;justify-content:center;border-radius:4px;background:${b.bg};border:1px solid ${b.bc};box-shadow:${b.sh};font-size:var(--fs-xs);font-variant-numeric:tabular-nums;color:${b.col};white-space:nowrap;overflow:hidden" title="${esc(b.full)}">${esc(b.label)}</span>`).join(''));
     put('fl', `<span>${esc(L.first)}</span><span>${esc(L.last)}</span>`);
     // This size, photo, more information, brands
     const si = V.sizeInfo, sh = V.sh, mob = V.MD === 'm';
     const photoBox = `<div style="display:flex;min-height:150px${mob ? '' : ';height:100%'}"><div class="hv-photo">${V.photo ? `<img src="${esc(V.photo)}" alt="${esc(sh.name + ' · ' + si.name)}" loading="lazy">` : ''}</div></div>`;
-    const dl = (k, v) => `<div class="hv-dl"><span class="k t-k">${k}</span><span class="v t-s">${v}</span></div>`;
+    const dl = (k, v) => `<div class="hv-dl"><span class="k fs-xs">${k}</span><span class="v fs-sm">${v}</span></div>`;
     put('thisSize', `<div aria-label="This size" style="padding:12px 14px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text) 35%,transparent);background:color-mix(in srgb,var(--fy-surface) 45%,var(--fy-bg));display:grid;grid-template-columns:${mob ? 'minmax(0,1fr)' : 'minmax(0,1fr) minmax(200px,40%)'};gap:14px;align-items:stretch"><div style="display:flex;flex-direction:column;gap:8px;min-width:0">
-        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:6px 14px;padding-bottom:8px;border-bottom:1px solid color-mix(in srgb,var(--fy-text) 15%,transparent)"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px"><span class="neon-pink t24" style="font-weight:500;line-height:1.2">${esc(sh.name)}</span><span class="t-pt" style="font-weight:500;font-style:italic;line-height:1.2;color:var(--fy-text)">· ${esc(si.name)}</span></span><span class="t-m" style="line-height:1.4;color:var(--fy-text-label)">${esc(sh.kind)}</span></span><span class="t-c" style="font-weight:700;color:var(--color-neutral-100);font-variant-numeric:tabular-nums;white-space:nowrap;text-shadow:0 0 4px color-mix(in srgb,var(--fy-text) 90%,transparent),0 0 12px color-mix(in srgb,var(--neon-teal) 70%,transparent),0 0 22px color-mix(in srgb,var(--neon-teal) 40%,transparent)">${esc(si.spec)}</span></div>
-        <div style="display:grid;grid-template-columns:minmax(96px,auto) 1fr;gap:4px 10px;align-items:center"><span class="t-k up6" style="color:var(--neon-teal);white-space:nowrap">Beginner friendly</span><div style="display:flex;align-items:center;gap:10px;min-width:0"><div aria-hidden="true" style="display:flex;gap:3px;flex:0 1 140px">${si.bfBar.map(on => `<span style="flex:1;height:8px;border-radius:2px;background:${on ? 'var(--fy-text)' : 'color-mix(in srgb,var(--fy-text) 14%,transparent)'};box-shadow:${on ? '0 0 4px color-mix(in srgb,var(--fy-text) 50%,transparent)' : 'none'}"></span>`).join('')}</div><span class="t-b" style="font-weight:500;color:var(--fy-text);font-variant-numeric:tabular-nums;white-space:nowrap">${si.bf}</span></div><span></span><span class="t-m" style="line-height:1.4;color:var(--fy-text-label)">${esc(si.bfWhy)}</span></div>
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:6px 14px;padding-bottom:8px;border-bottom:1px solid color-mix(in srgb,var(--fy-text) 15%,transparent)"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px"><span class="neon-pink fs-h2" style="font-weight:500;line-height:1.2">${esc(sh.name)}</span><span class="fs-h2" style="font-weight:500;font-style:italic;line-height:1.2;color:var(--fy-text)">· ${esc(si.name)}</span></span><span class="fs-sm" style="line-height:1.4;color:var(--fy-text-label)">${esc(sh.kind)}</span></span><span class="fs-h3" style="font-weight:700;color:var(--color-neutral-100);font-variant-numeric:tabular-nums;white-space:nowrap;text-shadow:0 0 4px color-mix(in srgb,var(--fy-text) 90%,transparent),0 0 12px color-mix(in srgb,var(--neon-teal) 70%,transparent),0 0 22px color-mix(in srgb,var(--neon-teal) 40%,transparent)">${esc(si.spec)}</span></div>
+        <div style="display:grid;grid-template-columns:minmax(96px,auto) 1fr;gap:4px 10px;align-items:center"><span class="fs-xs up6" style="color:var(--neon-teal);white-space:nowrap">Beginner friendly</span><div style="display:flex;align-items:center;gap:10px;min-width:0"><div aria-hidden="true" style="display:flex;gap:3px;flex:0 1 140px">${si.bfBar.map(on => `<span style="flex:1;height:8px;border-radius:2px;background:${on ? 'var(--fy-text)' : 'color-mix(in srgb,var(--fy-text) 14%,transparent)'};box-shadow:${on ? '0 0 4px color-mix(in srgb,var(--fy-text) 50%,transparent)' : 'none'}"></span>`).join('')}</div><span class="fs-body" style="font-weight:500;color:var(--fy-text);font-variant-numeric:tabular-nums;white-space:nowrap">${si.bf}</span></div><span></span><span class="fs-sm" style="line-height:1.4;color:var(--fy-text-label)">${esc(si.bfWhy)}</span></div>
         ${dl('Smoke time', esc(si.time))}${dl('Burn', esc(si.burn))}${dl('Flavour from', esc(si.flav))}${dl('Best for', esc(si.best))}${si.hasAlt ? dl('Also called', esc(si.alt)) : ''}${dl('Shape range', esc(sh.lens) + ' · ring ' + esc(sh.rings))}
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px 14px;padding-top:6px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 20%,transparent)"><div style="display:flex;flex-direction:column;gap:2px"><span class="t-k up6" style="font-weight:700;color:var(--neon-green-text)">For</span><span class="t-s" style="line-height:1.45;color:var(--fy-text-secondary)">${esc(si.pro)}</span></div><div style="display:flex;flex-direction:column;gap:2px"><span class="t-k up6" style="font-weight:700;color:var(--neon-red-text)">Against</span><span class="t-s" style="line-height:1.45;color:var(--fy-text-secondary)">${esc(si.con)}</span></div></div>
-        ${si.note ? `<span class="t-m" style="line-height:1.45;color:var(--fy-text-label)">${esc(si.note)}</span>` : ''}
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px 14px;padding-top:6px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 20%,transparent)"><div style="display:flex;flex-direction:column;gap:2px"><span class="fs-xs up6" style="font-weight:700;color:var(--neon-green-text)">For</span><span class="fs-sm" style="line-height:1.45;color:var(--fy-text-secondary)">${esc(si.pro)}</span></div><div style="display:flex;flex-direction:column;gap:2px"><span class="fs-xs up6" style="font-weight:700;color:var(--neon-red-text)">Against</span><span class="fs-sm" style="line-height:1.45;color:var(--fy-text-secondary)">${esc(si.con)}</span></div></div>
+        ${si.note ? `<span class="fs-sm" style="line-height:1.45;color:var(--fy-text-label)">${esc(si.note)}</span>` : ''}
       </div>${mob ? '' : photoBox}</div>`);
     put('mobPhoto', mob ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;align-items:stretch">${photoBox}</div>` : '');
     put('moreLbl', S.moreInfo ? 'Less information ↑' : 'More information →'); R.moreBtn.setAttribute('aria-expanded', String(S.moreInfo));
-    const cell = (k, v) => `<div class="hv-cell"><span class="hv-pinkk t-s">${k}</span><span class="t-s" style="line-height:1.45;color:var(--fy-text)">${esc(v)}</span></div>`;
+    const cell = (k, v) => `<div class="hv-cell"><span class="hv-pinkk fs-sm">${k}</span><span class="fs-sm" style="line-height:1.45;color:var(--fy-text)">${esc(v)}</span></div>`;
     put('moreBody', !S.moreInfo ? '' : `<div style="display:flex;flex-direction:column;gap:14px"><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border:1px solid color-mix(in srgb,var(--fy-text-label) 30%,transparent);background:color-mix(in srgb,var(--fy-surface) 45%,var(--fy-bg));border-radius:8px;overflow:hidden;align-content:stretch">${cell('The draw', sh.draw)}${cell('How it changes', sh.arc)}${cell('Sizes made', sh.range)}${cell('Famous for', sh.fame)}</div>
-      <div style="display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:8px;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);background:var(--fy-bg)"><span class="hv-pinkk t-k">Why it exists</span><p class="t-u" style="margin:0;line-height:1.55;color:var(--fy-text-body);text-wrap:pretty">${esc(sh.why)}</p><div style="height:1px;margin:6px 0;background:color-mix(in srgb,var(--neon-teal) 25%,transparent)"></div><span class="hv-pinkk t-k">What it does to the smoke</span><p class="t-u" style="margin:0;line-height:1.55;color:var(--fy-text-body);text-wrap:pretty">${esc(sh.smoke)}</p></div>
+      <div style="display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:8px;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);background:var(--fy-bg)"><span class="hv-pinkk fs-xs">Why it exists</span><p class="fs-body" style="margin:0;line-height:1.55;color:var(--fy-text-body);text-wrap:pretty">${esc(sh.why)}</p><div style="height:1px;margin:6px 0;background:color-mix(in srgb,var(--neon-teal) 25%,transparent)"></div><span class="hv-pinkk fs-xs">What it does to the smoke</span><p class="fs-body" style="margin:0;line-height:1.55;color:var(--fy-text-body);text-wrap:pretty">${esc(sh.smoke)}</p></div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px 12px">
-        <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text-label) 30%,transparent);background:var(--fy-bg)"><span class="t-k up6" style="font-weight:700;color:var(--fy-text)">Cap · ${esc(sh.cap)}</span><span class="t-k up6" style="color:var(--fy-text-label)">${(sh.cuts || []).length > 1 ? 'Recommended cuts · in red' : 'Recommended cut · in red'}</span><div style="display:flex;gap:6px 12px;flex-wrap:wrap">${V.recCuts.map(cc => `<span style="display:flex;align-items:center;gap:6px;white-space:nowrap"><span class="t-k" style="width:1.375rem;height:1.375rem;border-radius:50%;border:1.5px solid ${cc.y ? 'var(--neon-red-tube)' : 'color-mix(in srgb,var(--color-neutral-600) 60%,var(--fy-bg))'};box-sizing:border-box;display:grid;place-items:center;color:${cc.y ? 'var(--neon-red-text)' : 'var(--color-neutral-600)'};font-weight:600;line-height:1;box-shadow:${cc.y ? '0 0 5px color-mix(in srgb,var(--neon-red-tube) 60%,transparent)' : 'none'}">${cc.g}</span><span class="t-m up6" style="color:${cc.y ? 'var(--neon-red-text)' : 'var(--color-neutral-600)'}">${esc(cc.name)}</span></span>`).join('')}</div><span class="t-m" style="line-height:1.45;color:var(--color-neutral-500)">${esc(sh.tip)}</span></div>
-        <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text-label) 30%,transparent);background:var(--fy-bg)"><span class="t-k up6" style="color:var(--fy-text)">Where it's rolled · see 2 below</span><div style="display:flex;gap:8px;flex-wrap:wrap">${V.rolled.map(cc => `<span class="t-u" style="flex:1 1 0;min-width:max-content;text-align:center;padding:8px 14px;border-radius:19px;border:${cc.on ? '2px' : '1px'} solid ${cc.on ? 'var(--neon-red-tube)' : 'color-mix(in srgb,var(--fy-text) 45%,transparent)'};color:${cc.on ? 'var(--neon-red-text)' : 'var(--fy-text-secondary)'};box-shadow:${cc.on ? '0 0 6px var(--neon-red-tube),0 0 14px color-mix(in srgb,var(--neon-red-tube) 50%,transparent)' : 'none'};white-space:nowrap">${esc(cc.name)}</span>`).join('')}</div></div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text-label) 30%,transparent);background:var(--fy-bg)"><span class="fs-xs up6" style="font-weight:700;color:var(--fy-text)">Cap · ${esc(sh.cap)}</span><span class="fs-xs up6" style="color:var(--fy-text-label)">${(sh.cuts || []).length > 1 ? 'Recommended cuts · in red' : 'Recommended cut · in red'}</span><div style="display:flex;gap:6px 12px;flex-wrap:wrap">${V.recCuts.map(cc => `<span style="display:flex;align-items:center;gap:6px;white-space:nowrap"><span class="fs-xs" style="width:1.375rem;height:1.375rem;border-radius:50%;border:1.5px solid ${cc.y ? 'var(--neon-red-tube)' : 'color-mix(in srgb,var(--color-neutral-600) 60%,var(--fy-bg))'};box-sizing:border-box;display:grid;place-items:center;color:${cc.y ? 'var(--neon-red-text)' : 'var(--color-neutral-600)'};font-weight:600;line-height:1;box-shadow:${cc.y ? '0 0 5px color-mix(in srgb,var(--neon-red-tube) 60%,transparent)' : 'none'}">${cc.g}</span><span class="fs-sm up6" style="color:${cc.y ? 'var(--neon-red-text)' : 'var(--color-neutral-600)'}">${esc(cc.name)}</span></span>`).join('')}</div><span class="fs-sm" style="line-height:1.45;color:var(--color-neutral-500)">${esc(sh.tip)}</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text-label) 30%,transparent);background:var(--fy-bg)"><span class="fs-xs up6" style="color:var(--fy-text)">Where it's rolled · see 2 below</span><div style="display:flex;gap:8px;flex-wrap:wrap">${V.rolled.map(cc => `<span class="fs-body" style="flex:1 1 0;min-width:max-content;text-align:center;padding:8px 14px;border-radius:19px;border:${cc.on ? '2px' : '1px'} solid ${cc.on ? 'var(--neon-red-tube)' : 'color-mix(in srgb,var(--fy-text) 45%,transparent)'};color:${cc.on ? 'var(--neon-red-text)' : 'var(--fy-text-secondary)'};box-shadow:${cc.on ? '0 0 6px var(--neon-red-tube),0 0 14px color-mix(in srgb,var(--neon-red-tube) 50%,transparent)' : 'none'};white-space:nowrap">${esc(cc.name)}</span>`).join('')}</div></div>
       </div></div>`);
     put('brandsLbl', S.brandsInfo ? 'The brands &amp; heritage ↑' : 'The brands &amp; heritage →'); R.brandsBtn.setAttribute('aria-expanded', String(S.brandsInfo));
-    put('brandsBody', !S.brandsInfo ? '' : `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;padding:10px 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text-label) 30%,transparent);background:color-mix(in srgb,var(--fy-surface) 45%,var(--fy-bg))"><div style="display:flex;flex-direction:column;gap:6px;min-width:0"><span class="t-u up6" style="font-weight:600;color:var(--fy-text)">Names to look for</span>
-      <ol style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px">${V.brands.map(b => `<li class="t-s" style="display:grid;grid-template-columns:20px 1fr;gap:8px;align-items:baseline"><span style="color:var(--color-neutral-600);opacity:.85;font-variant-numeric:tabular-nums">${b.n}</span><span style="color:var(--fy-text-label);opacity:.85"><span style="color:var(--fy-text-label)">${esc(b.name)}</span> <span style="color:var(--color-neutral-500)">· ${esc(b.note)}</span></span></li>`).join('')}</ol></div>
+    put('brandsBody', !S.brandsInfo ? '' : `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;padding:10px 12px;border-radius:8px;border:1px solid color-mix(in srgb,var(--fy-text-label) 30%,transparent);background:color-mix(in srgb,var(--fy-surface) 45%,var(--fy-bg))"><div style="display:flex;flex-direction:column;gap:6px;min-width:0"><span class="fs-body up6" style="font-weight:600;color:var(--fy-text)">Names to look for</span>
+      <ol style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px">${V.brands.map(b => `<li class="fs-sm" style="display:grid;grid-template-columns:20px 1fr;gap:8px;align-items:baseline"><span style="color:var(--color-neutral-600);opacity:.85;font-variant-numeric:tabular-nums">${b.n}</span><span style="color:var(--fy-text-label);opacity:.85"><span style="color:var(--fy-text-label)">${esc(b.name)}</span> <span style="color:var(--color-neutral-500)">· ${esc(b.note)}</span></span></li>`).join('')}</ol></div>
       <div aria-label="Brand logos" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start">${V.logos.map(lg => `<div style="position:relative;aspect-ratio:2/1;border-radius:6px;overflow:hidden;border:1px solid color-mix(in srgb,var(--fy-text-label) 22%,transparent)">${lg.src ? `<img src="${esc(lg.src)}" alt="${esc(lg.alt)}" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:${lg.inv ? 'invert(1)' : 'none'}">` : ''}</div>`).join('')}</div></div>`);
 
     // 2 · About the plant
     put('originHelp', `${esc(LY.verb)} to select 2 preferences <span style="color:var(--fy-text-label)">(optional)</span>`);
     put('origins', V.origins.map(o => `<button type="button" class="hv-orig" data-a="origin" data-v="${esc(o.key)}" data-k="o-${esc(o.key)}" data-card="${o.card}" aria-pressed="${o.on}" style="cursor:${o.cur};border:${o.bw} solid ${o.bc};box-shadow:${o.sh};opacity:${o.op}">
-        <span style="display:${o.rolls ? 'flex' : 'none'};align-self:flex-start;padding:3px 9px;border-radius:19px;border:1px solid color-mix(in srgb,var(--fy-text) 60%,transparent);color:var(--fy-text);box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 30%,transparent);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap" class="t10">${esc(o.rollTag)}</span>
-        <span class="t-b" style="font-weight:500;color:${o.lc}">${esc(o.name)}</span><span class="t-k up6" style="color:var(--neon-teal)">${esc(o.region)}</span>
-        <span class="t-s" style="line-height:1.45;color:var(--fy-text-secondary)">${esc(o.blurb)}</span><span class="t-k" style="color:${o.ctaCol};margin-top:2px">${esc(o.cta)}</span></button>`).join(''));
+        <span style="display:${o.rolls ? 'flex' : 'none'};align-self:flex-start;padding:3px 9px;border-radius:19px;border:1px solid color-mix(in srgb,var(--fy-text) 60%,transparent);color:var(--fy-text);box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 30%,transparent);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap" class="fs-xs">${esc(o.rollTag)}</span>
+        <span class="fs-body" style="font-weight:500;color:${o.lc}">${esc(o.name)}</span><span class="fs-xs up6" style="color:var(--neon-teal)">${esc(o.region)}</span>
+        <span class="fs-sm" style="line-height:1.45;color:var(--fy-text-secondary)">${esc(o.blurb)}</span><span class="fs-xs" style="color:${o.ctaCol};margin-top:2px">${esc(o.cta)}</span></button>`).join(''));
     put('originNote', `Four countries make most of what you'll see in a UK shop. Soil and sun change the smoke more than the brand does. The countries that roll the ${esc(V.focusShapeName)} you're looking at come first. Leaning towards one is optional and only nudges the picks.`);
     put('leaves', V.leaves.map(l => `<span style="position:absolute;left:0;width:62%;top:${l.top};height:${l.h};background:${l.band};border-top:1px dashed ${l.line};pointer-events:none"></span>
         <button type="button" data-learn="1" data-a="leaf" data-i="${l.i}" data-k="leaf${l.i}" title="Learn about ${esc(l.name)}" style="position:absolute;right:6px;top:${l.top};transform:translateY(calc(${l.h} / 2 - 50%));margin-top:6px;display:flex;align-items:center;gap:0.5rem;min-height:2.75rem;padding:0.25rem 0.375rem;border-radius:0;background:transparent;cursor:help;text-align:left;border:0;box-shadow:none;color:inherit">
-          <span style="width:18px;height:2px;background:${l.bc};box-shadow:${l.sh};flex:none"></span><span style="display:flex;flex-direction:column"><span class="t-u" style="color:${l.lc}">${esc(l.name)}</span><span class="t10" style="color:var(--fy-text-label);white-space:nowrap">${esc(l.pos)}</span></span></button>`).join(''));
+          <span style="width:18px;height:2px;background:${l.bc};box-shadow:${l.sh};flex:none"></span><span style="display:flex;flex-direction:column"><span class="fs-body" style="color:${l.lc}">${esc(l.name)}</span><span class="fs-xs" style="color:var(--fy-text-label);white-space:nowrap">${esc(l.pos)}</span></span></button>`).join(''));
     put('pc', `<div style="display:flex;align-items:stretch;gap:12px"><div aria-label="Where the leaf sits in a cigar" style="position:relative;width:46px;height:340px;flex:none">
         <span style="position:absolute;inset:0;border:2px solid color-mix(in srgb,var(--fy-text) 70%,transparent);border-radius:23px 23px 4px 4px;box-shadow:0 0 6px color-mix(in srgb,var(--fy-text) 25%,transparent);box-sizing:border-box;background:var(--fy-surface)"></span>
         <span style="position:absolute;inset:5px 5px 0;border:1px dashed color-mix(in srgb,var(--neon-teal) 55%,transparent);border-bottom:0;border-radius:18px 18px 0 0;box-sizing:border-box"></span>
         <span style="position:absolute;inset:0;border-radius:23px 23px 4px 4px;overflow:hidden">${V.pcLines.map(ln => `<span style="position:absolute;left:${ln.x};top:9%;bottom:1%;width:2px;margin-left:-1px;background:${ln.c};opacity:${ln.op};box-shadow:${ln.sh}"></span>`).join('')}<span style="position:absolute;left:0;right:0;top:5%;height:1px;background:var(--neon-amber-tube);box-shadow:0 0 3px var(--neon-amber)"></span><span style="position:absolute;left:0;right:0;top:16%;height:7px;background:var(--fy-text);box-shadow:0 0 4px color-mix(in srgb,var(--fy-text) 80%,transparent)"></span></span></div>
-      <div class="t-k" style="display:flex;flex-direction:column;justify-content:space-between;padding:4px 0;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap"><span style="color:var(--neon-amber-tube)">Cap</span><span style="color:var(--fy-text)">Band</span>${V.pcKey.map(k => `<span style="display:flex;align-items:center;gap:6px;color:${k.tc};opacity:${k.op}"><span style="width:12px;height:2px;background:${k.c}"></span>${esc(k.label)}</span>`).join('')}<span style="color:var(--color-neutral-500)">Foot</span></div></div>
-      <span class="t-m" style="color:var(--hint-text);text-align:center;line-height:1.4;text-shadow:0 0 6px color-mix(in srgb,var(--neon-teal) 60%,transparent)">${esc(V.leaf[4])}</span>`);
-    put('leafInfo', `<div style="border:1px solid var(--hint-border);border-radius:10px;padding:12px 14px;box-shadow:var(--glow-teal);display:flex;flex-direction:column;gap:4px;background:var(--fy-bg)"><span class="neon-pink t-b" style="font-weight:500">${esc(V.leaf[0])}</span><p class="t-u" style="margin:0;line-height:1.5;color:var(--hint-text)">${esc(V.leaf[2])}</p></div>`);
-    put('strengths', `<span class="t-m" style="font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink);flex:none">Strength</span>${V.strengths.map(s => `<button type="button" class="hv-str t-s" data-str="1" data-a="str" data-v="${s.x}" data-k="str-${s.x}" aria-pressed="${s.label.startsWith('★')}" style="border:${s.bw} solid ${s.bc};color:${s.lc};box-shadow:${s.sh};text-shadow:${s.ts}"><span style="display:block">${esc(s.label)}</span><span class="t10" style="display:${s.typ ? 'block' : 'none'};letter-spacing:.06em;text-transform:uppercase;color:var(--neon-green-text);margin-top:2px">${esc(s.typ)}</span></button>`).join('')}`);
+      <div class="fs-xs" style="display:flex;flex-direction:column;justify-content:space-between;padding:4px 0;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap"><span style="color:var(--neon-amber-tube)">Cap</span><span style="color:var(--fy-text)">Band</span>${V.pcKey.map(k => `<span style="display:flex;align-items:center;gap:6px;color:${k.tc};opacity:${k.op}"><span style="width:12px;height:2px;background:${k.c}"></span>${esc(k.label)}</span>`).join('')}<span style="color:var(--color-neutral-500)">Foot</span></div></div>
+      <span class="fs-sm" style="color:var(--hint-text);text-align:center;line-height:1.4;text-shadow:0 0 6px color-mix(in srgb,var(--neon-teal) 60%,transparent)">${esc(V.leaf[4])}</span>`);
+    put('leafInfo', `<div style="border:1px solid var(--hint-border);border-radius:10px;padding:12px 14px;box-shadow:var(--glow-teal);display:flex;flex-direction:column;gap:4px;background:var(--fy-bg)"><span class="neon-pink fs-body" style="font-weight:500">${esc(V.leaf[0])}</span><p class="fs-body" style="margin:0;line-height:1.5;color:var(--hint-text)">${esc(V.leaf[2])}</p></div>`);
+    put('strengths', `<span class="fs-sm" style="font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink);flex:none">Strength</span>${V.strengths.map(s => `<button type="button" class="hv-str fs-sm" data-str="1" data-a="str" data-v="${s.x}" data-k="str-${s.x}" aria-pressed="${s.label.startsWith('★')}" style="border:${s.bw} solid ${s.bc};color:${s.lc};box-shadow:${s.sh};text-shadow:${s.ts}"><span style="display:block">${esc(s.label)}</span><span class="fs-xs" style="display:${s.typ ? 'block' : 'none'};letter-spacing:.06em;text-transform:uppercase;color:var(--neon-green-text);margin-top:2px">${esc(s.typ)}</span></button>`).join('')}`);
 
     // 3 · Wrapper and flavour
     put('wrapHelp', `${esc(LY.verb)} two colours to set a range. The picks only use wrappers inside it.`);
     put('swatches', V.swatches.map(w => `<button type="button" data-a="sw" data-i="${w.i}" data-k="sw${w.i}" aria-label="${esc(w.name)}" aria-pressed="${w.bc === 'var(--neon-pink-tube)'}" style="position:relative;flex:1;min-width:0;height:3.5rem;border-radius:8px;cursor:pointer;background:${w.hex};border:${w.bw} solid ${w.bc};box-shadow:${w.sh};padding:0"><span style="display:${w.mark ? 'block' : 'none'};position:absolute;left:50%;bottom:6px;width:0.5rem;height:0.5rem;margin-left:-4px;border-radius:50%;background:var(--color-neutral-100);box-shadow:0 0 6px var(--color-neutral-100),0 0 10px color-mix(in srgb,var(--color-neutral-100) 60%,transparent)"></span></button>`).join(''));
-    const kk = t => `<span class="t-k up6" style="color:var(--neon-teal)">${t}</span>`;
-    put('swatchInfo', `<div style="border:1px solid var(--hint-border);border-radius:10px;padding:12px 14px;box-shadow:var(--glow-teal);display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:baseline;background:var(--fy-bg)"><span class="neon-pink t-b" style="font-weight:500;grid-column:1/-1">${esc(V.W[0])}</span>${kk('Looks')}<span class="t-s" style="color:var(--hint-text)">${esc(V.W[2])}</span>${kk('Tastes')}<span class="t-s" style="color:var(--hint-text)">${esc(V.W[3])}</span>${kk('Why')}<span class="t-s" style="color:var(--hint-text)">${esc(V.W[4])}</span></div>`);
+    const kk = t => `<span class="fs-xs up6" style="color:var(--neon-teal)">${t}</span>`;
+    put('swatchInfo', `<div style="border:1px solid var(--hint-border);border-radius:10px;padding:12px 14px;box-shadow:var(--glow-teal);display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:baseline;background:var(--fy-bg)"><span class="neon-pink fs-body" style="font-weight:500;grid-column:1/-1">${esc(V.W[0])}</span>${kk('Looks')}<span class="fs-sm" style="color:var(--hint-text)">${esc(V.W[2])}</span>${kk('Tastes')}<span class="fs-sm" style="color:var(--hint-text)">${esc(V.W[3])}</span>${kk('Why')}<span class="fs-sm" style="color:var(--hint-text)">${esc(V.W[4])}</span></div>`);
     const wb = lit(V.wOn);
-    put('wrapBtn', `<button type="button" class="t-s" data-a="wrapclear" data-k="wrapclear" style="align-self:flex-start;min-height:2.75rem;padding:0 1.125rem;border-radius:19px;background:transparent;cursor:pointer;border:${wb.bw} solid ${wb.bc};color:${wb.lc};box-shadow:${wb.sh};text-shadow:${wb.ts}">${esc(V.wOn ? '★ RANGE · ' + V.wrLabel.toUpperCase() + ' · CLEAR' : 'TAP TWO COLOURS TO SET A RANGE')}</button>`);
+    put('wrapBtn', `<button type="button" class="fs-sm" data-a="wrapclear" data-k="wrapclear" style="align-self:flex-start;min-height:2.75rem;padding:0 1.125rem;border-radius:19px;background:transparent;cursor:pointer;border:${wb.bw} solid ${wb.bc};color:${wb.lc};box-shadow:${wb.sh};text-shadow:${wb.ts}">${esc(V.wOn ? '★ RANGE · ' + V.wrLabel.toUpperCase() + ' · CLEAR' : 'TAP TWO COLOURS TO SET A RANGE')}</button>`);
     put('flavHelp', `Lit families are typical of your wrapper colour. ${esc(LY.verb)} up to three · nice-to-have.`);
     put('tasteLead', `${esc(V.tasteLead)} · dots show which wrapper carries each taste`);
     put('tasteRows', V.tasteRows.map(t => `<div class="hv-taste"><button type="button" data-a="fam" data-v="${esc(t.f)}" data-k="fam-${esc(t.f)}" aria-pressed="${t.fam.startsWith('★')}" style="justify-self:start;display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:0.3125rem 0.625rem;min-height:2.75rem;justify-content:center;border-radius:8px;background:transparent;border:${t.bw} solid ${t.bc};box-shadow:${t.sh};cursor:${t.cur};opacity:${t.op};text-align:left">
-        <span style="display:flex;align-items:center;gap:6px"><span class="t-k up6" style="font-weight:700;color:${t.fc};white-space:nowrap">${esc(t.fam)}</span><span style="display:flex;gap:2px">${t.dots.map(d => `<span title="${esc(d.name)}" style="width:0.625rem;height:0.625rem;border-radius:50%;background:${d.hex};border:1px solid color-mix(in srgb,var(--fy-text) 50%,transparent)"></span>`).join('')}</span></span>
-        <span style="display:${t.warn ? 'block' : 'none'};font-size:max(9px,calc(9px * var(--ts,1)));letter-spacing:.04em;text-transform:uppercase;color:var(--fy-text-label);white-space:nowrap">Not typical · tap to clear</span></button>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">${t.words.map(w => `<span class="t-m" style="padding:2px 9px;border-radius:19px;border:1px solid ${w.bc};color:${w.c}">${esc(w.t)}</span>`).join('')}</div></div>`).join(''));
+        <span style="display:flex;align-items:center;gap:6px"><span class="fs-xs up6" style="font-weight:700;color:${t.fc};white-space:nowrap">${esc(t.fam)}</span><span style="display:flex;gap:2px">${t.dots.map(d => `<span title="${esc(d.name)}" style="width:0.625rem;height:0.625rem;border-radius:50%;background:${d.hex};border:1px solid color-mix(in srgb,var(--fy-text) 50%,transparent)"></span>`).join('')}</span></span>
+        <span style="display:${t.warn ? 'block' : 'none'};font-size:var(--fs-fine);letter-spacing:.04em;text-transform:uppercase;color:var(--fy-text-label);white-space:nowrap">Not typical · tap to clear</span></button>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${t.words.map(w => `<span class="fs-sm" style="padding:2px 9px;border-radius:19px;border:1px solid ${w.bc};color:${w.c}">${esc(w.t)}</span>`).join('')}</div></div>`).join(''));
 
     // 4 · Budget
-    put('budgets', BUDGETS.map(b => { const on = S.profile.budget === b, l = lit(on); return `<button type="button" class="hv-pill t-u" role="radio" aria-checked="${on}" data-a="budget" data-v="${esc(b)}" data-k="b-${esc(b)}" style="border:${l.bw} solid ${l.bc};color:${l.lc};box-shadow:${l.sh};text-shadow:${l.ts}">${esc((on ? '★ ' : '') + b)}</button>`; }).join(''));
+    put('budgets', BUDGETS.map(b => { const on = S.profile.budget === b, l = lit(on); return `<button type="button" class="hv-pill fs-body" role="radio" aria-checked="${on}" data-a="budget" data-v="${esc(b)}" data-k="b-${esc(b)}" style="border:${l.bw} solid ${l.bc};color:${l.lc};box-shadow:${l.sh};text-shadow:${l.ts}">${esc((on ? '★ ' : '') + b)}</button>`; }).join(''));
 
     // Your vote
     const vb = R.vote;
     if (V.vote.show && vb.hidden) { vb.hidden = false; vb.classList.remove('hm-pop'); void vb.offsetWidth; vb.classList.add('hm-pop'); }
     else if (!V.vote.show) vb.hidden = true;
     put('voteCount', esc(V.vote.count));
-    put('voteRows', V.vote.rows.map(r => `<span class="t-k up6" style="color:var(--neon-teal)">${esc(r.label)}</span><button type="button" class="t-u" data-a="go" data-i="${r.go}" data-k="vr-${esc(r.label)}" style="color:${r.col};text-shadow:${r.ts}">${esc(r.val)}</button>`).join(''));
+    put('voteRows', V.vote.rows.map(r => `<span class="fs-xs up6" style="color:var(--neon-teal)">${esc(r.label)}</span><button type="button" class="fs-body" data-a="go" data-i="${r.go}" data-k="vr-${esc(r.label)}" style="color:${r.col};text-shadow:${r.ts}">${esc(r.val)}</button>`).join(''));
 
     // Close-up
     const z = R.zoom;
     if (S.zoom) {
       const zc = V.cards[S.focus], zm = V.zm;
       put('zoom', `<div data-a="zstop" style="display:flex;flex-direction:column;gap:20px;align-items:center;cursor:default;max-width:100%">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;width:${zm.L}px;max-width:100%"><span class="neon-pink t-pt" style="font-weight:500">${esc(zm.title)}</span><span style="display:flex;align-items:center;gap:16px"><span class="t-br" style="font-weight:600;color:var(--fy-text);font-variant-numeric:tabular-nums">${esc(zm.spec)}</span><button type="button" class="hv-close t-br" data-a="zclose" data-k="zclose" aria-label="Close">×</button></span></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;width:${zm.L}px;max-width:100%"><span class="neon-pink fs-h2" style="font-weight:500">${esc(zm.title)}</span><span style="display:flex;align-items:center;gap:16px"><span class="fs-h3" style="font-weight:600;color:var(--fy-text);font-variant-numeric:tabular-nums">${esc(zm.spec)}</span><button type="button" class="hv-close fs-h3" data-a="zclose" data-k="zclose" aria-label="Close">×</button></span></div>
           <div style="position:relative;width:${zm.L}px;height:${zm.D}px"><div style="position:absolute;left:50%;top:50%;width:${zm.D}px;height:${zm.L}px;margin-left:${-zm.D / 2}px;margin-top:${-zm.L / 2}px;transform:rotate(-90deg);filter:drop-shadow(0 0 8px color-mix(in srgb,var(--neon-pink) 60%,transparent))">${cigar(zc, true)}</div></div>
-          <div class="t-s" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;letter-spacing:.06em;text-transform:uppercase;color:var(--fy-text)"><span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:2px;background:var(--neon-red-tube)"></span><span>Ligero · strength</span></span><span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:2px;background:var(--neon-green-tube)"></span><span>Seco · aroma</span></span><span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:2px;background:var(--neon-amber-tube)"></span><span>Cap line</span></span></div>
-          <span class="t-m" style="color:var(--color-neutral-500)">Cap on the left. Lines show where each leaf sits in the filler. Click anywhere to close.</span></div>`);
+          <div class="fs-sm" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;letter-spacing:.06em;text-transform:uppercase;color:var(--fy-text)"><span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:2px;background:var(--neon-red-tube)"></span><span>Ligero · strength</span></span><span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:2px;background:var(--neon-green-tube)"></span><span>Seco · aroma</span></span><span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:2px;background:var(--neon-amber-tube)"></span><span>Cap line</span></span></div>
+          <span class="fs-sm" style="color:var(--color-neutral-500)">Cap on the left. Lines show where each leaf sits in the filler. Click anywhere to close.</span></div>`);
       if (z.hidden) { z.hidden = false; const cb = z.querySelector('[data-a="zclose"]'); if (cb) cb.focus({ preventScroll: true }); }
     } else if (!z.hidden) { z.hidden = true; const card = R['card' + S.focus]; if (card) card.focus({ preventScroll: true }); }
   }
@@ -625,11 +615,11 @@
   // ---------- skeleton (drawn once) ----------
   function head(k, title, blurb, verbKey) {
     return `<div class="hv-sh" id="sh${k}" role="button" tabindex="0" data-a="sec" data-i="${k}" aria-controls="sb${k}">
-        <div class="hv-shrow"><h2>${title}</h2>${verbKey ? `<span class="verb t-s" data-r="${verbKey}"></span>` : ''}<span class="st t-k"><span data-r="st${k}"></span><span class="arr t16" aria-hidden="true">▾</span></span></div>
-        <p class="hv-p t-s">${blurb}</p></div>`;
+        <div class="hv-shrow"><h2>${title}</h2>${verbKey ? `<span class="verb fs-sm" data-r="${verbKey}"></span>` : ''}<span class="st fs-xs"><span data-r="st${k}"></span><span class="arr fs-h3" aria-hidden="true">▾</span></span></div>
+        <p class="hv-p fs-sm">${blurb}</p></div>`;
   }
   function body(k, inner) { return `<div class="hv-sb" id="sb${k}" inert><div class="hv-sbi"><div class="hv-sbc">${inner}</div></div></div>`; }
-  const change = html => `<div class="hv-change"><span class="t-k up hv-teal">What this changes</span><span class="t-s" style="line-height:1.45;color:var(--fy-text-body)">${html}</span></div>`;
+  const change = html => `<div class="hv-change"><span class="fs-xs up hv-teal">What this changes</span><span class="fs-sm" style="line-height:1.45;color:var(--fy-text-body)">${html}</span></div>`;
 
   function skeleton(main) {
     main.innerHTML = `<div class="hv" id="hv">
@@ -652,15 +642,15 @@
                 <input type="range" class="hv-range" data-r0="range" min="0" max="2" step="1" value="1" aria-label="Size">
               </div>
               <div data-r="bands" aria-label="Estimated smoke time" style="display:flex;gap:2px;margin:10px 11px 0;height:22px"></div>
-              <div data-r="fl" class="t-m" style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;color:var(--fy-text-secondary);white-space:nowrap"></div>
+              <div data-r="fl" class="fs-sm" style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;color:var(--fy-text-secondary);white-space:nowrap"></div>
             </div></div></div>
             <div class="hv-rule"></div>
             <div style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px">
               <div data-r="thisSize"></div>
               <div data-r="mobPhoto"></div>
-              <button type="button" class="hv-more t-m" data-a="more" data-k="more" data-r0="moreBtn"><span data-r="moreLbl"></span></button>
+              <button type="button" class="hv-more fs-sm" data-a="more" data-k="more" data-r0="moreBtn"><span data-r="moreLbl"></span></button>
               <div data-r="moreBody"></div>
-              <button type="button" class="hv-more t-m" data-a="brands" data-k="brands" data-r0="brandsBtn"><span data-r="brandsLbl"></span></button>
+              <button type="button" class="hv-more fs-sm" data-a="brands" data-k="brands" data-r0="brandsBtn"><span data-r="brandsLbl"></span></button>
               <div data-r="brandsBody"></div>
             </div>
             <div class="hv-rule"></div>
@@ -668,11 +658,11 @@
           </div>`)}</section>
         <section class="hv-sec" id="m2" aria-label="2 About the plant">${head(2, '2. ABOUT THE PLANT', 'Where it grows and which leaf it comes from. Together they decide how it tastes and how hard it hits.')}
           ${body(2, `<div class="hv-box" style="background:linear-gradient(color-mix(in srgb,var(--medal-bronze) 9%,transparent),color-mix(in srgb,var(--medal-bronze) 9%,transparent)),var(--fy-bg)">
-            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px"><h3 class="hv-pinkh t-c">Where on the planet</h3><span class="t16" style="color:var(--fy-text);text-align:left" data-r="originHelp"></span></div>
+            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px"><h3 class="hv-pinkh fs-h3">Where on the planet</h3><span class="fs-h3" style="color:var(--fy-text);text-align:left" data-r="originHelp"></span></div>
             <div class="hv-origins" data-r="origins"></div>
-            <p class="hv-p t-s" data-r="originNote"></p>
+            <p class="hv-p fs-sm" data-r="originNote"></p>
             <div class="hv-rule in"></div>
-            <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 14px"><h3 class="hv-pinkh t-c">Pick your strength</h3><span class="t16" style="color:var(--fy-text-label);text-align:right">The plant shows why it hits harder or softer</span></div><p class="hv-p t-s">One plant, four floors. The higher the leaf, the more sun it got and the harder it hits. Pick a strength and the leaves it leans on light up; tap any leaf to see what it does.</p></div>
+            <div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 14px"><h3 class="hv-pinkh fs-h3">Pick your strength</h3><span class="fs-h3" style="color:var(--fy-text-label);text-align:right">The plant shows why it hits harder or softer</span></div><p class="hv-p fs-sm">One plant, four floors. The higher the leaf, the more sun it got and the harder it hits. Pick a strength and the leaves it leans on light up; tap any leaf to see what it does.</p></div>
             <div class="hv-plant"><div class="hv-plantg">
               <div class="hv-plantg2">
                 <div class="hv-plantimg"><img src="assets/humidor/plant-primings.jpg" alt="Tobacco plant, bottom to top: volado, seco, viso, ligero"><div data-r="leaves" style="position:absolute;inset:0"></div></div>
@@ -686,14 +676,14 @@
           ${body(3, `<div class="hv-box" style="background:linear-gradient(color-mix(in srgb,var(--color-accent-2) 8%,transparent),color-mix(in srgb,var(--color-accent-2) 8%,transparent)),var(--fy-bg)">
             <div class="hv-m3g">
               <div style="display:flex;flex-direction:column;gap:12px">
-                <div style="display:flex;flex-direction:column;gap:2px"><h3 class="hv-pinkh t-c">3.1 · Pick your wrapper colour</h3><span class="t-s" style="color:var(--fy-text-label)" data-r="wrapHelp"></span></div>
+                <div style="display:flex;flex-direction:column;gap:2px"><h3 class="hv-pinkh fs-h3">3.1 · Pick your wrapper colour</h3><span class="fs-sm" style="color:var(--fy-text-label)" data-r="wrapHelp"></span></div>
                 <div style="display:flex;gap:6px" data-r="swatches"></div>
                 <div data-r="swatchInfo"></div>
                 <div data-r="wrapBtn" style="display:flex"></div>
               </div>
               <div style="display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid color-mix(in srgb,var(--neon-teal) 50%,transparent);border-radius:10px;background:var(--fy-bg)">
-                <div style="display:flex;flex-direction:column;gap:2px"><h3 class="hv-pinkh t-c">3.2 · Pick your flavours</h3><span class="t-s" style="color:var(--fy-text-label)" data-r="flavHelp"></span></div>
-                <span class="t-k up6" style="color:var(--fy-text-label)" data-r="tasteLead"></span>
+                <div style="display:flex;flex-direction:column;gap:2px"><h3 class="hv-pinkh fs-h3">3.2 · Pick your flavours</h3><span class="fs-sm" style="color:var(--fy-text-label)" data-r="flavHelp"></span></div>
+                <span class="fs-xs up6" style="color:var(--fy-text-label)" data-r="tasteLead"></span>
                 <div style="display:flex;flex-direction:column;gap:6px" data-r="tasteRows"></div>
               </div>
             </div>
@@ -701,14 +691,14 @@
           </div>`)}</section>
         <section class="hv-sec" id="m4" aria-label="4 Price range">${head(4, '4. PRICE RANGE', 'What you\'d pay for one cigar. Everyone chips in the same share, so the yard\'s most common answer sets the ceiling.', 'h4verb')}
           ${body(4, `<div style="display:flex;flex-direction:column;gap:12px;padding:14px 16px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg)">
-            <span class="t-k up6 hv-teal">Budget per cigar</span>
+            <span class="fs-xs up6 hv-teal">Budget per cigar</span>
             <div class="hv-budgets" role="radiogroup" aria-label="Budget per cigar" data-r="budgets"></div></div>
             ${change('<b>Budget</b> · Hank only looks at cigars in this price band.')}`)}</section>
         <div data-r="voted"></div>
         <section class="hv-vote" id="vote" data-r0="vote" aria-label="Your vote" hidden>
-          <div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px"><h2 class="t22" style="margin:0;font-weight:500;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)">Your vote</h2><span class="t-m up6 hv-teal" data-r="roundLabel"></span></div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-top:2px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 25%,transparent)"><span class="t-k up" style="color:var(--fy-text-label);padding-top:10px">Your selections · tap one to change it</span><span class="t-k" style="color:var(--fy-text-label);font-variant-numeric:tabular-nums" data-r="voteCount"></span></div>
-          <p class="t-u" style="margin:0;line-height:1.5;color:var(--fy-text-body);text-wrap:pretty">Everyone's answers go into one brief. Hank takes the most common answer at each stop, finds three cigars that fit, and the yard votes on which one we buy.</p>
+          <div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px"><h2 class="fs-h2" style="margin:0;font-weight:500;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)">Your vote</h2><span class="fs-sm up6 hv-teal" data-r="roundLabel"></span></div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-top:2px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 25%,transparent)"><span class="fs-xs up" style="color:var(--fy-text-label);padding-top:10px">Your selections · tap one to change it</span><span class="fs-xs" style="color:var(--fy-text-label);font-variant-numeric:tabular-nums" data-r="voteCount"></span></div>
+          <p class="fs-body" style="margin:0;line-height:1.5;color:var(--fy-text-body);text-wrap:pretty">Everyone's answers go into one brief. Hank takes the most common answer at each stop, finds three cigars that fit, and the yard votes on which one we buy.</p>
           <div class="hv-vrows" data-r="voteRows"></div>
           <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center" data-r="submit"></div>
           <div data-r="voteStatus"></div>

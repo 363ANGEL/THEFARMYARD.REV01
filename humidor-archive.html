@@ -9,18 +9,18 @@
 <link rel="stylesheet" href="app.css?v=20261123d">
 <link rel="stylesheet" href="farmyard.css?v=20261123e">
 <link rel="stylesheet" href="barn.css?v=20261119b">
-<link rel="stylesheet" href="humidor.css?v=20261119b">
+<link rel="stylesheet" href="humidor.css?v=20261124h">
 <style>
 /* 4.0 The Humidor · Archive, ported from P15.003 HUMIDOR ARCHIVE.dc.html. Closed rounds, newest first:
    the last round large, earlier rounds in a grid. No page-local tokens. */
 .ha{display:flex;flex-direction:column;gap:18px;min-width:0}
-.ha-k{font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)}
+.ha-k{font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-teal)}
 
 /* Lede */
 .ha-lede{display:flex;flex-direction:column;gap:8px}
-.ha-lede h1{margin:0;font-size:clamp(1.625rem,4vw,2.5rem);line-height:1.05;font-weight:500;text-wrap:balance}
-.ha-lede p{margin:0;font-size:var(--text-body-size);line-height:1.5;color:var(--fy-text-body);max-width:62ch;text-wrap:pretty}
-.ha-err{margin:0;font-size:var(--text-small);line-height:1.45;color:var(--neon-red-text)}
+.ha-lede h1{margin:0;font-size:var(--fs-h1);line-height:1.05;font-weight:500;text-wrap:balance}
+.ha-lede p{margin:0;font-size:var(--fs-body);line-height:1.5;color:var(--fy-text-body);max-width:62ch;text-wrap:pretty}
+.ha-err{margin:0;font-size:var(--fs-sm);line-height:1.45;color:var(--neon-red-text)}
 
 /* Photo: the option's img, else a size photo, else a plain tile */
 .ha-photo{position:relative;border-radius:8px;overflow:hidden;border:1px solid color-mix(in srgb,var(--neon-teal) 35%,transparent);background:var(--fy-surface)}
@@ -31,28 +31,28 @@
 .ha-last{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px 24px;padding:18px;border:2px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg);min-width:0}
 .ha-last .ha-photo{min-height:220px;aspect-ratio:3 / 2}   /* the design's photo slot is 3:2 */
 .ha-info{display:flex;flex-direction:column;gap:10px;min-width:0}
-.ha-info .kk{font-size:var(--text-kicker);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-green-text)}
-.ha-info .w{font-size:var(--text-page-title);font-weight:500;line-height:1.15;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink);overflow-wrap:anywhere}
-.ha-info .meta{font-size:var(--text-ui);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
-.ha-info .brief{font-size:var(--text-meta);line-height:1.45;color:var(--fy-text-label)}
+.ha-info .kk{font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--neon-green-text)}
+.ha-info .w{font-size:var(--fs-h2);font-weight:500;line-height:1.15;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink);overflow-wrap:anywhere}
+.ha-info .meta{font-size:var(--fs-body);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
+.ha-info .brief{font-size:var(--fs-sm);line-height:1.45;color:var(--fy-text-label)}
 .ha-std{display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid color-mix(in srgb,var(--neon-teal) 25%,transparent)}
 .ha-opt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;align-items:baseline}
-.ha-opt .n{font-size:var(--text-small);color:var(--fy-text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ha-opt .n{font-size:var(--fs-sm);color:var(--fy-text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ha-opt.win .n{color:var(--neon-pink-text)}
-.ha-opt .v{font-size:var(--text-meta);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
+.ha-opt .v{font-size:var(--fs-sm);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
 .ha-opt .trk{grid-column:1/-1;height:4px;border-radius:2px;background:color-mix(in srgb,var(--neon-teal) 15%,transparent);overflow:hidden}
 .ha-opt .fl{height:100%;background:color-mix(in srgb,var(--neon-teal) 60%,transparent)}
 .ha-opt.win .fl{background:var(--neon-pink-tube)}
 
 /* Earlier rounds */
 .ha-earlier{display:flex;flex-direction:column;gap:12px}
-.ha-earlier h2{margin:0;font-size:var(--text-kicker);line-height:1.12;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal)}
+.ha-earlier h2{margin:0;font-size:var(--fs-xs);line-height:1.12;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--neon-teal)}
 .ha-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:12px}
 .ha-rd{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);background:var(--fy-bg);min-width:0}
 .ha-rd .ha-photo{height:130px}
-.ha-rd .w{font-size:var(--text-card-title);font-weight:500;line-height:1.2;color:var(--neon-pink-text);overflow-wrap:anywhere}
-.ha-rd .meta{font-size:var(--text-meta);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
-.ha-rd .run{font-size:var(--text-meta);color:var(--fy-text-label);overflow-wrap:anywhere}
+.ha-rd .w{font-size:var(--fs-h3);font-weight:500;line-height:1.2;color:var(--neon-pink-text);overflow-wrap:anywhere}
+.ha-rd .meta{font-size:var(--fs-sm);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
+.ha-rd .run{font-size:var(--fs-sm);color:var(--fy-text-label);overflow-wrap:anywhere}
 </style>
 <script src="fy-clucks.js?v=20261119b"></script>
 </head>

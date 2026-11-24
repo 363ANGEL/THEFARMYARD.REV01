@@ -2,20 +2,20 @@
    Colours are farmyard.css tokens; pink text is --neon-pink-text, --neon-pink is glow only. */
 :root{--hint-text:#c8f4f2}   /* README token; not yet in farmyard.css */
 /* README "Tokens": the DS type scale and neutral-100 (#f3f5fe, FARMYARD DS REV P01), used by all five Humidor designs */
-:root{--text-page-title:28px;--text-brand:20px;--text-card-title:17px;--text-body-size:15px;--text-ui:14px;--text-small:13px;--text-meta:12px;--text-kicker:11px;--color-neutral-100:#f3f5fe}
+:root{--color-neutral-100:#f3f5fe}
 
 /* Header: title + round chip, Home tagline, tab row (.switcher > .tab from app.css, hit target raised to 44px) */
 .hm-head{display:flex;flex-direction:column;gap:12px}
 .hm-titlerow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .hm-head .hd2{font-weight:600}   /* the Humidor designs set their page title at 600; the Barn heading token is 500 */
 .hm-chip:empty{display:none}
-.hm-tagline{margin:0;font-size:0.9375rem;line-height:1.5;color:var(--fy-text-secondary);text-wrap:pretty}
+.hm-tagline{margin:0;font-size:var(--fs-body);line-height:1.5;color:var(--fy-text-secondary);text-wrap:pretty}
 .hm-tabs.switcher{margin:0;gap:8px 6px}
-.hm-tabs .tab{position:relative;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;box-sizing:border-box;font-size:0.8125rem;text-decoration:none;white-space:nowrap}
+.hm-tabs .tab{position:relative;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;box-sizing:border-box;font-size:var(--fs-sm);text-decoration:none;white-space:nowrap}
 .hm-tabs .tab::before{content:"";position:absolute;inset:-5px 0}   /* 44px hit target around the designs' 36px tab; wrapped rows sit 8px apart so targets never overlap */
 .hm-tabs .tab:not([aria-selected="true"]):hover{border-color:var(--neon-teal);color:var(--hint-text)}
 .hm-tabs .tab[aria-selected="true"]{border-color:var(--neon-pink-tube);color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
-.hm-tabs .tab small{font-size:0.625rem;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label);white-space:nowrap}
+.hm-tabs .tab small{font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label);white-space:nowrap}
 .hm-body{display:flex;flex-direction:column;gap:14px;min-width:0}
 
 /* Live dot (This round kicker): grey when idle, green when a round is open */
