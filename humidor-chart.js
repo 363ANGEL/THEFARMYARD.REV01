@@ -30,11 +30,11 @@
   if (!window.HumidorCigarProfile) window.HumidorCigarProfile = profile;   // the shape options' silhouettes use it
 
   // ---- Content (our own words) ----
-  // Panel order follows the questions (RAY, 24 Nov): budget, burn time, shape, strength, wrapper, flavour.
+  // Panel order (RAY, 24 Nov): sizes, shapes, burn time, filler, wrapper, anatomy.
   const PANELS = [
     { t: 'Sizes', cap: 'Every size on the shelf, shortest to longest. Roll over one.' },
-    { t: 'Burn time', cap: 'Every size by how long it lasts.' },
     { t: 'Shapes', cap: 'The head and foot change how the smoke reaches you.' },
+    { t: 'Burn time', cap: 'Every size by how long it lasts.' },
     { t: 'Filler', cap: 'Where the leaf grows sets the strength.' },
     { t: 'Wrapper', cap: 'The outside leaf, from light to dark.' },
     { t: 'Anatomy', cap: 'The parts of a cigar, and the flavours you may find.' }
@@ -147,7 +147,7 @@
         return `<g class="hc-deco ${shc(c)}">${upright(c, cx, bb - 2, s)}</g>`; }).join('');   // burn-time cigars are drawing only; the time bands are what you pick (RAY, 24 Nov)
       return out;
     }
-    const DRAW = [pSizes, pBurn, pShapes, pFiller, pWrapper, pAnatomy];
+    const DRAW = [pSizes, pShapes, pBurn, pFiller, pWrapper, pAnatomy];
 
     function build() {
       const W = Math.round(view.clientWidth), H = Math.round(view.clientHeight);
