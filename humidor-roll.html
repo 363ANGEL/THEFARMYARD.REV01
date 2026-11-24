@@ -54,7 +54,8 @@
 .hroll.s0 .hr-sign::after{content:"Overview";display:block;margin-top:3px;font-size:var(--fs-sm);font-weight:400;letter-spacing:normal;text-transform:none;color:color-mix(in srgb,var(--neon-teal) 60%,transparent);text-shadow:none}
 /* Landing step: the question and its tagline over the answers (RAY, 24 Nov) */
 .hr-s0q{display:none;align-self:stretch;text-align:left;margin-bottom:14px}
-.hroll.s0 .hr-s0q{display:block}
+.hroll.s0 .hr-s0q:not(.hr-sq){display:block}
+.hroll[data-step="4"] .hr-sq[data-for="4"]{display:block}   /* strength step title (RAY, 24 Nov) */
 .hr-s0q h2{margin:0;font-size:var(--fs-h3);font-weight:500;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
 .hr-s0q p{margin:3px 0 0;font-size:var(--fs-sm);color:color-mix(in srgb,var(--neon-teal) 60%,transparent)}
 .hroll.s0 #hr-tip{display:none}   /* no tip line or Hank's steer on the landing step (RAY, 24 Nov) */
@@ -303,7 +304,7 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
           <div id="hr-ticks" aria-hidden="true"></div>
           <div class="hr-cline"><span id="hr-shown"></span> <span id="hr-cnote"></span></div>
         </div>
-        <section class="hr-optwrap"><div class="hr-s0q"><h2>So.. How well do you know cigars?</h2><p>Select below and let's size your preference up.</p></div><div id="hr-opts"></div></section>
+        <section class="hr-optwrap"><div class="hr-s0q"><h2>So.. How well do you know cigars?</h2><p>Select below and let's size your preference up.</p></div><div class="hr-s0q hr-sq" data-for="4"><h2>Strength</h2><p>The nicotine hit, not the draw or the flavour.</p></div><div id="hr-opts"></div></section>
       </div>
       <footer class="hr-foot">
         <div class="hr-footl"><button type="button" class="btn btn-ghost" id="hr-back" hidden>Back</button></div>
@@ -325,7 +326,7 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261125g"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261125c"></script><script src="humidor-roll.js?v=20261125e"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261125g"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261125c"></script><script src="humidor-roll.js?v=20261125h"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */
