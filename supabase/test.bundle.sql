@@ -40,6 +40,11 @@ alter table fy.member add column if not exists setup_at timestamptz;
 alter table fy.member add column if not exists birth_day smallint;
 alter table fy.member add column if not exists birth_month smallint;
 alter table fy.member add column if not exists tagline text;  -- before fy.me(), which selects it
+-- Invite-only gate (section 9). Lower-cased by the member_contact_norm trigger; matched at sign-in.
+alter table fy.member add column if not exists invite_email text;      -- lower(auth email) must equal this
+alter table fy.member add column if not exists discord_username text;  -- lower(Discord global_name / user_name / preferred_username)
+alter table fy.member add column if not exists mobile text;            -- contact only, never used for login
+alter table fy.member add column if not exists claimed boolean not null default false;
 -- Members claimed before New User Set-up existed are not sent through it.
 update fy.member set setup_at = coalesce(setup_at, created_at) where user_id is not null and setup_at is null;
 
@@ -223,7 +228,7 @@ grant select on fy.v_members_public, fy.v_standings, fy.v_overall, fy.v_badges t
 create or replace function fy.me() returns fy.member
 language sql stable security definer set search_path = fy, public as $$
   select id, league_id, nickname, avatar, user_id, null::text, role, chesscom_username, created_at, revolut_url, avatar_url, setup_at,
-         birth_day, birth_month, tagline
+         birth_day, birth_month, tagline, invite_email, discord_username, mobile, claimed
   from fy.member where user_id = auth.uid() limit 1;
 $$;
 
@@ -253,12 +258,23 @@ begin
   return m;
 end $$;
 
-create or replace function fy.create_member(p_nickname text, p_avatar text) returns uuid
+-- Invite-only: a new member carries the email and/or Discord username their sign-in must match.
+-- Drop the old 2-arg signature so the defaulted parameters never leave two overloads behind.
+drop function if exists fy.create_member(text, text);
+create or replace function fy.create_member(p_nickname text, p_avatar text,
+                                            p_invite_email text default null,
+                                            p_discord_username text default null,
+                                            p_mobile text default null) returns uuid
 language plpgsql security definer set search_path = fy, public as $$
 declare v_id uuid;
 begin
   perform fy._require_leader();
-  insert into fy.member (league_id, nickname, avatar) values (fy._league(), btrim(p_nickname), coalesce(p_avatar,'hen'))
+  if nullif(btrim(coalesce(p_invite_email, '')), '') is null
+     and nullif(btrim(coalesce(p_discord_username, '')), '') is null then
+    raise exception 'give an invite email or a Discord username (at least one)' using errcode = '23514';
+  end if;
+  insert into fy.member (league_id, nickname, avatar, invite_email, discord_username, mobile)
+  values (fy._league(), btrim(p_nickname), coalesce(p_avatar,'hen'), p_invite_email, p_discord_username, p_mobile)
   returning id into v_id;
   return v_id;
 end $$;
@@ -468,7 +484,8 @@ declare me fy.member; v_id uuid;
 begin
   select * into me from fy.member where user_id = auth.uid();
   if me.id is null then raise exception 'sign in first' using errcode = '42501'; end if;
-  if coalesce(p_payload->>'type', '') not in ('points','iou') then raise exception 'claim type must be points or iou'; end if;
+  if coalesce(p_payload->>'type', '') not in ('points','iou','bug') then raise exception 'claim type must be points, iou or bug'; end if;
+  if p_payload->>'type' = 'bug' and length(btrim(coalesce(p_payload->>'note', ''))) = 0 then raise exception 'say what went wrong'; end if;
   if p_payload->>'type' = 'points' and coalesce(p_payload->>'points', '') !~ '^[1-9][0-9]{0,3}$' then raise exception 'points must be a whole number, 1 to 9999'; end if;
   if p_payload->>'type' = 'iou' and coalesce(p_payload->>'amount', '') !~ '^[1-9][0-9]{0,3}$' then raise exception 'amount must be a whole number, 1 to 9999'; end if;
   insert into fy.claim (league_id, member_id, payload) values (fy._league(), me.id, p_payload) returning id into v_id;
@@ -488,10 +505,10 @@ begin
       values (fy._league(), c.payload->>'type_key', leader.id, 'claim ' || c.id) returning id into v_event;
       insert into fy.score_entry (league_id, event_id, member_id, points, reason)
       values (fy._league(), v_event, c.member_id, (c.payload->>'points')::int, 'claim');
-    else
+    elsif c.payload->>'type' = 'iou' then
       insert into fy.iou (league_id, payer_id, payee_id, amount)
       values (fy._league(), (c.payload->>'payer_id')::uuid, (c.payload->>'payee_id')::uuid, (c.payload->>'amount')::int);
-    end if;
+    end if;   -- a site bug report scores nothing: approving it just marks it done
   end if;
   update fy.claim set state = case when p_approve then 'approved' else 'rejected' end,
                       decided_by = leader.id, decided_at = now() where id = p_claim;
@@ -767,8 +784,9 @@ begin
   delete from fy.poker_seat where table_id = p_table and member_id = me.id;
 end $$;
 
--- One game at a time, and any member may CLOSE it. If anyone sat down, the docket must be filed first
--- (the leader may still close an unfiled table to unstick a night).
+-- One game at a time, and any member may CLOSE it. If two or more players sat down, the docket must be
+-- filed first (the leader may still close an unfiled table to unstick a night). A table with one player
+-- or none closes freely: there is no game to record (RAY, 17 Nov).
 create or replace function fy.poker_close(p_table uuid) returns void
 language plpgsql security definer set search_path = fy, public as $$
 declare me fy.member; t fy.poker_table; v_filed boolean;
@@ -778,7 +796,7 @@ begin
   if t.id is null then raise exception 'no such table' using errcode = 'P0002'; end if;
   if t.status = 'closed' then return; end if;
   select exists (select 1 from fy.event e where e.id = t.event_id and e.voided_at is null) into v_filed;
-  if not v_filed and me.role <> 'leader' and exists (select 1 from fy.poker_seat where table_id = p_table) then
+  if not v_filed and me.role <> 'leader' and (select count(*) from fy.poker_seat where table_id = p_table) > 1 then
     raise exception 'file the docket before closing the game';
   end if;
   -- Seat rows stay as the night's record; a closed table simply stops being the live one.
@@ -1420,20 +1438,42 @@ insert into fy.room (id, label, path, icon, status, grp, parent_id, sort) values
   ('calendar',        'Calendar',    'room.html?room=calendar', 'ph ph-calendar-blank',  'stub', 'home',    'dashboard', 11),
   ('wall',            'Yard wall',   'wall.html',               'ph ph-chats-circle',    'ship', 'home',    'dashboard', 12),
   ('poker',           'Poker',       'poker.html',              'ph ph-club',            'live', 'leagues', null,        20),  -- the old-rev poker room is live and maintained; 2.1 redesign lands in slice 2
-  ('football',        'Football',    'room.html?room=football', 'ph ph-soccer-ball',     'stub', 'beta',    null,        30),
-  ('football-results','Results',     'room.html?room=football', 'ph ph-ranking',         'stub', 'beta',    'football',  31),
-  ('football-news',   'News',        'room.html?room=football', 'ph ph-newspaper',       'stub', 'beta',    'football',  32),
-  ('humidor',         'The Humidor', 'humidor.html',            'ph ph-cigarette',       'live', 'beta',    null,        40),
+  ('football',        'Football v1.0','football.html',          'ph ph-soccer-ball',     'live', 'beta',    null,        30),
+  ('football-results','Results',     'football.html',           'ph ph-ranking',         'live', 'beta',    'football',  31),
+  ('football-news',   'News',        'football.html',           'ph ph-newspaper',       'live', 'beta',    'football',  32),
+  ('humidor',         'The Humidor v1.1', 'humidor.html',            'ph ph-cigarette',       'live', 'beta',    null,        40),
   ('humidor-vote',    'Vote',        'humidor-vote.html',       'ph ph-check-square',    'live', 'beta',    'humidor',   41),
   ('humidor-results', 'Results',     'humidor-results.html',    'ph ph-ranking',         'live', 'beta',    'humidor',   42),
   ('humidor-archive', 'Archive',     'humidor-archive.html',    'ph ph-archive',         'live', 'beta',    'humidor',   43),
   ('humidor-admin',   'Admin',       'humidor-admin.html',      'ph ph-gear-six',        'live', 'beta',    'humidor',   44),
+  ('humidor-roll',    'Roll your own v2.0', 'humidor-roll.html', 'ph ph-cube',           'live', 'beta',    'humidor',   45),
   ('arcade',          'Arcade',      'room.html?room=arcade',   'ph ph-game-controller', 'stub', 'next',    null,        50),
   ('movies',          'Movie night', 'room.html?room=movies',   'ph ph-film-slate',      'stub', 'next',    null,        51),
   ('jukebox',         'Jukebox',     'room.html?room=jukebox',  'ph ph-music-notes',     'stub', 'next',    null,        52),
   ('whisky',          'Whisky club', 'room.html?room=whisky',   'ph ph-brandy',          'stub', 'next',    null,        53),
   ('chess',           'Chess club',  'room.html?room=chess',    'ph ph-strategy',        'stub', 'next',    null,        54)
 on conflict (id) do nothing;
+
+-- Page visibility (RAY, 17 Nov): each room is 'admin' (leaders only) or 'members'. Set from Admin > Pages.
+-- Adds the column if missing, seeds the three Home sub-pages that were synthesised in barn.js,
+-- and moves Football, The Humidor and What's Next under Home. Safe to re-run.
+do $$
+declare fresh boolean := not exists (select 1 from information_schema.columns where table_schema = 'fy' and table_name = 'room' and column_name = 'visibility');
+begin
+  -- The column may already exist (the older rooms-visibility.sql adds it); everything below is safe either way.
+  alter table fy.room add column if not exists visibility text not null default 'admin';
+  if not exists (select 1 from pg_constraint where conname = 'room_visibility_check' and conrelid = 'fy.room'::regclass) then
+    alter table fy.room add constraint room_visibility_check check (visibility in ('admin','members'));
+  end if;
+  insert into fy.room (id, label, path, icon, status, grp, parent_id, sort) values
+    ('about',      'About',          'about.html',      'ph ph-question',       'ship', 'home', 'dashboard', 13),
+    ('admin',      'Admin',          'admin.html',      'ph ph-gear-six',       'ship', 'home', 'dashboard', 14),
+    ('whats-next', 'What''s Next?',  'whats-next.html', 'ph ph-thought-bubble', 'ship', 'home', 'dashboard', 17)
+  on conflict (id) do nothing;
+  if fresh then update fy.room set visibility = 'members' where id in ('dashboard', 'poker'); end if;
+  update fy.room set grp = 'beta', parent_id = null where id = 'football' and (grp is distinct from 'beta' or parent_id is not null);   -- BETA TESTING (RAY, 23 Nov)
+  update fy.room set grp = 'beta', parent_id = null where id = 'humidor' and (grp is distinct from 'beta' or parent_id is not null);   -- BETA TESTING (RAY, 23 Nov)
+end $$;
 
 -- Yard Wall (1.2): text-only posts, one reaction per member, Hank (the leader) pins.
 create table if not exists fy.post (
@@ -1590,11 +1630,11 @@ language plpgsql security definer set search_path = fy, public as $$
 declare leader fy.member; v_old text; v_new text;
 begin
   leader := fy._require_leader();
-  if p_field not in ('nickname','tagline','revolut_url','avatar_url','avatar','role') then
+  if p_field not in ('nickname','tagline','revolut_url','avatar_url','avatar','role','invite_email','discord_username','mobile') then
     raise exception 'field not allowed: %', p_field;
   end if;
   -- The nullable fields clear on an empty string (their checks accept null, never '').
-  v_new := case when p_field in ('tagline','revolut_url','avatar_url') then nullif(p_value, '') else p_value end;
+  v_new := case when p_field in ('tagline','revolut_url','avatar_url','invite_email','discord_username','mobile') then nullif(p_value, '') else p_value end;
   execute format('select %I::text from fy.member where id = $1', p_field) into v_old using p_member;
   if not exists (select 1 from fy.member where id = p_member) then raise exception 'unknown member' using errcode = 'P0002'; end if;
   update fy.member set
@@ -1604,7 +1644,10 @@ begin
     avatar      = case when p_field = 'avatar'      then v_new else avatar end,
     -- A stock-animal pick replaces any logo override, matching the member's own flow.
     avatar_url  = case when p_field = 'avatar_url' then v_new when p_field = 'avatar' then null else avatar_url end,
-    role        = case when p_field = 'role'        then v_new else role end
+    role        = case when p_field = 'role'        then v_new else role end,
+    invite_email     = case when p_field = 'invite_email'     then v_new else invite_email end,
+    discord_username = case when p_field = 'discord_username' then v_new else discord_username end,
+    mobile           = case when p_field = 'mobile'           then v_new else mobile end
   where id = p_member;
   perform fy._admin_log(leader.id, 'member', p_member::text, p_field, v_old, v_new);
 end $$;
@@ -1716,6 +1759,22 @@ grant execute on function fy.admin_set_member, fy.admin_add_iou, fy.admin_set_io
   fy.admin_edit_docket, fy.admin_delete_docket, fy.admin_set_pool, fy.admin_set_payout, fy.admin_delete_pool,
   fy.admin_set_room to authenticated;
 
+-- Admin > Pages: the leader sets a page to admin-only or members. A page's own sub-pages follow it.
+-- Home, Admin, Profile and Set-up are never switchable.
+create or replace function fy.admin_set_room_visibility(p_room text, p_visibility text) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_old text;
+begin
+  leader := fy._require_leader();
+  if p_visibility not in ('admin', 'members') then raise exception 'visibility must be admin or members' using errcode = '22023'; end if;
+  if p_room in ('dashboard', 'admin', 'profile', 'setup') then raise exception 'that page cannot be switched' using errcode = '22023'; end if;
+  select visibility into v_old from fy.room where id = p_room for update;
+  if v_old is null then raise exception 'no such room' using errcode = 'P0002'; end if;
+  update fy.room set visibility = p_visibility where id = p_room or parent_id = p_room;
+  perform fy._admin_log(leader.id, 'room', p_room, 'visibility', v_old, p_visibility);
+end $$;
+grant execute on function fy.admin_set_room_visibility to authenticated;
+
 -- Realtime for the wall, same guard style as the poker tables.
 do $$ begin
   if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
@@ -1727,6 +1786,233 @@ do $$ begin
     end if;
   end if;
 end $$;
+
+-- 9. Invite-only gate ---------------------------------------------------------
+-- Nobody signs in unless an admin created their member row first, matched on
+-- invite_email or discord_username at the moment auth.users gets the insert.
+
+-- Lower-case the contact columns on every write; a linked row is always claimed.
+create or replace function fy.member_contact_norm() returns trigger
+language plpgsql as $$
+begin
+  new.invite_email     := nullif(lower(btrim(coalesce(new.invite_email, ''))), '');
+  new.discord_username := nullif(lower(btrim(coalesce(new.discord_username, ''))), '');
+  new.mobile           := nullif(btrim(coalesce(new.mobile, '')), '');
+  if new.user_id is not null then new.claimed := true; end if;
+  return new;
+end $$;
+drop trigger if exists member_contact_norm on fy.member;
+create trigger member_contact_norm before insert or update on fy.member
+  for each row execute function fy.member_contact_norm();
+
+-- Backfill BEFORE the gate goes up: every already-claimed member (the leader included)
+-- keeps working, and their row carries the email their Discord sign-in uses.
+update fy.member set claimed = true where user_id is not null and not claimed;
+update fy.member m set invite_email = lower(u.email)
+from auth.users u
+where m.user_id = u.id and m.invite_email is null and u.email is not null;
+
+-- One member per invite address / username (per league), or the match is ambiguous.
+create unique index if not exists member_invite_email_uq
+  on fy.member (league_id, invite_email) where invite_email is not null;
+create unique index if not exists member_discord_username_uq
+  on fy.member (league_id, discord_username) where discord_username is not null;
+
+-- The gate. BEFORE INSERT on auth.users: no matching unclaimed member row, no account.
+-- Existing auth users are never inserts, so they are untouched. An email match outranks
+-- a username match when both hit. On match the member row is linked and claimed.
+create or replace function fy.gate_signup() returns trigger
+language plpgsql security definer set search_path = fy, public as $$
+declare
+  v_email  text;
+  v_name   text;
+  v_member uuid;
+begin
+  v_email := nullif(lower(coalesce(new.email, '')), '');
+  v_name  := nullif(lower(coalesce(
+               new.raw_user_meta_data #>> '{custom_claims,global_name}',
+               new.raw_user_meta_data ->> 'user_name',
+               new.raw_user_meta_data ->> 'preferred_username',
+               new.raw_user_meta_data ->> 'full_name',
+               new.raw_user_meta_data ->> 'name', '')), '');
+  select id into v_member from fy.member
+  where user_id is null
+    and ((invite_email is not null and invite_email = v_email)
+      or (discord_username is not null and discord_username = v_name))
+  order by (invite_email = v_email) desc nulls last
+  limit 1;
+  if v_member is null then
+    raise exception 'Members only. Hank checks the door.' using errcode = 'P0001';
+  end if;
+  update fy.member set user_id = new.id, claimed = true where id = v_member;
+  return new;
+end $$;
+drop trigger if exists fy_gate_signup on auth.users;
+create trigger fy_gate_signup before insert on auth.users
+  for each row execute function fy.gate_signup();
+
+-- Data lock: RLS on every fy.* table, present and future re-runs alike.
+do $$ declare r record; begin
+  for r in select tablename from pg_tables where schemaname = 'fy' loop
+    execute format('alter table fy.%I enable row level security', r.tablename);
+  end loop;
+end $$;
+
+-- Reads are members-only everywhere: tighten the four old "using (true)" policies
+-- and drop the anon grants (sections 2 and 5 recreate them on a full re-run, so
+-- this section must stay after them).
+drop policy if exists league_read on fy.league;
+create policy league_read on fy.league for select to authenticated using (fy.is_member() or fy.is_leader());
+drop policy if exists event_type_read on fy.event_type;
+create policy event_type_read on fy.event_type for select to authenticated using (fy.is_member() or fy.is_leader());
+drop policy if exists event_read on fy.event;
+create policy event_read on fy.event for select to authenticated using (fy.is_member() or fy.is_leader());
+drop policy if exists score_read on fy.score_entry;
+create policy score_read on fy.score_entry for select to authenticated using (fy.is_member() or fy.is_leader());
+revoke select on fy.league, fy.event_type from anon;
+revoke select on fy.v_members_public, fy.v_standings, fy.v_overall, fy.v_badges from anon;
+
+-- Members can read the contact columns (rows are already member-gated); writes stay
+-- with the leader through fy.create_member / fy.admin_set_member.
+grant select (invite_email, discord_username, mobile, claimed) on fy.member to authenticated;
+grant execute on function fy.create_member(text, text, text, text, text) to authenticated;
+
+-- Remove an UNCLAIMED member row (bad invite, typo, changed mind). Refuses a claimed
+-- member, a leader, or anyone with poker / token / league history: that row stays.
+create or replace function fy.admin_delete_member(p_member uuid) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; m fy.member;
+begin
+  leader := fy._require_leader();
+  select * into m from fy.member where id = p_member;
+  if m.id is null then raise exception 'unknown member' using errcode = 'P0002'; end if;
+  if m.user_id is not null or m.claimed then
+    raise exception '% has claimed their profile - keep the row', m.nickname using errcode = 'P0001';
+  end if;
+  if m.role = 'leader' then
+    raise exception 'a leader row cannot be deleted' using errcode = 'P0001';
+  end if;
+  if exists (select 1 from fy.iou where payer_id = p_member or payee_id = p_member)
+     or exists (select 1 from fy.score_entry where member_id = p_member)
+     or exists (select 1 from fy.settlement where member_a = p_member or member_b = p_member or recorded_by = p_member)
+     or exists (select 1 from fy.claim where member_id = p_member or decided_by = p_member)
+     or exists (select 1 from fy.event where entered_by = p_member)
+     or exists (select 1 from fy.poker_table where started_by = p_member)
+     or exists (select 1 from fy.poker_seat where member_id = p_member)
+     or exists (select 1 from fy.poker_hold where member_id = p_member)
+     or exists (select 1 from fy.pool_call where member_id = p_member)
+     or exists (select 1 from fy.humidor_pref where member_id = p_member)
+     or exists (select 1 from fy.humidor_ballot where member_id = p_member)
+     or exists (select 1 from fy.humidor_pay where member_id = p_member) then
+    raise exception '% has poker, token or league history - keep the row instead of deleting it', m.nickname using errcode = 'P0001';
+  end if;
+  delete from fy.claim_link where member_id = p_member;   -- member_logo cascades with the row
+  delete from fy.member where id = p_member;
+  perform fy._admin_log(leader.id, 'member', p_member::text, 'delete', m.nickname, null);
+end $$;
+grant execute on function fy.admin_delete_member(uuid) to authenticated;
+
+-- 7. Calendar events (calendar-events.sql) ----------------------------------------
+-- Calendar events: any member creates, edits and deletes their own (admins any), everyone sees all, and every other
+-- member gets a notice when one is created, changed or cancelled. A notice clears 5 days after its event date.
+-- RAY, 18 Nov. Run: node tools/db.mjs calendar-events.sql   (safe to run twice)
+create table if not exists fy.cal_event (
+  id uuid primary key default gen_random_uuid(),
+  league_id uuid not null references fy.league(id),
+  created_by uuid not null references fy.member(id) on delete cascade,
+  title text not null check (char_length(title) between 1 and 80),
+  event_date date not null,
+  event_time time,
+  note text check (note is null or char_length(note) <= 280),
+  icon text not null default 'other' check (icon in ('poker','birthday','football','party','other')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists cal_event_date_idx on fy.cal_event (event_date);
+
+-- A notice carries its own copy of the title and date, so a cancelled event can still be announced.
+create table if not exists fy.cal_notice (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid not null references fy.member(id) on delete cascade,
+  event_id uuid,
+  kind text not null check (kind in ('new','changed','cancelled')),
+  title text not null,
+  event_date date not null,
+  event_time time,
+  by_nickname text,
+  created_at timestamptz not null default now()
+);
+create index if not exists cal_notice_member_idx on fy.cal_notice (member_id, event_date);
+
+alter table fy.cal_event enable row level security;
+alter table fy.cal_notice enable row level security;
+grant select on fy.cal_event, fy.cal_notice to authenticated;
+drop policy if exists cal_event_read on fy.cal_event;
+create policy cal_event_read on fy.cal_event for select to authenticated using (fy.is_member() or fy.is_leader());
+drop policy if exists cal_notice_read on fy.cal_notice;
+create policy cal_notice_read on fy.cal_notice for select to authenticated
+  using (member_id in (select id from fy.member where user_id = auth.uid()));
+
+-- Internal: tell every other claimed member.
+create or replace function fy._cal_notify(p_actor fy.member, p_kind text, p_event_id uuid, p_title text, p_date date, p_time time) returns void
+language sql security definer set search_path = fy, public as $$
+  insert into fy.cal_notice (member_id, event_id, kind, title, event_date, event_time, by_nickname)
+  select m.id, p_event_id, p_kind, p_title, p_date, p_time, p_actor.nickname
+  from fy.member m where m.league_id = p_actor.league_id and m.user_id is not null and m.id <> p_actor.id;
+$$;
+
+create or replace function fy.cal_create(p_title text, p_date date, p_time time default null, p_note text default null, p_icon text default 'other') returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; v_id uuid; v_title text := btrim(coalesce(p_title, ''));
+begin
+  me := fy._require_member();
+  if char_length(v_title) not between 1 and 80 then raise exception 'give the event a title (up to 80 characters)'; end if;
+  if p_date is null then raise exception 'pick a date'; end if;
+  insert into fy.cal_event (league_id, created_by, title, event_date, event_time, note, icon)
+  values (me.league_id, me.id, v_title, p_date, p_time, nullif(btrim(coalesce(p_note, '')), ''), coalesce(p_icon, 'other')) returning id into v_id;
+  perform fy._cal_notify(me, 'new', v_id, v_title, p_date, p_time);
+  return v_id;
+end $$;
+
+create or replace function fy.cal_update(p_id uuid, p_title text, p_date date, p_time time default null, p_note text default null, p_icon text default 'other') returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; e fy.cal_event; v_title text := btrim(coalesce(p_title, ''));
+begin
+  me := fy._require_member();
+  select * into e from fy.cal_event where id = p_id for update;
+  if e.id is null then raise exception 'no such event' using errcode = 'P0002'; end if;
+  if e.created_by <> me.id and me.role <> 'leader' then raise exception 'not allowed' using errcode = '42501'; end if;
+  if char_length(v_title) not between 1 and 80 then raise exception 'give the event a title (up to 80 characters)'; end if;
+  if p_date is null then raise exception 'pick a date'; end if;
+  update fy.cal_event set title = v_title, event_date = p_date, event_time = p_time,
+    note = nullif(btrim(coalesce(p_note, '')), ''), icon = coalesce(p_icon, 'other'), updated_at = now() where id = p_id;
+  perform fy._cal_notify(me, 'changed', p_id, v_title, p_date, p_time);
+end $$;
+
+create or replace function fy.cal_delete(p_id uuid) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; e fy.cal_event;
+begin
+  me := fy._require_member();
+  select * into e from fy.cal_event where id = p_id for update;
+  if e.id is null then return; end if;
+  if e.created_by <> me.id and me.role <> 'leader' then raise exception 'not allowed' using errcode = '42501'; end if;
+  delete from fy.cal_event where id = p_id;
+  perform fy._cal_notify(me, 'cancelled', p_id, e.title, e.event_date, e.event_time);
+end $$;
+
+-- My notices. Clears every notice more than 5 days past its event first, so the list wipes itself.
+create or replace function fy.cal_notices() returns setof fy.cal_notice
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member;
+begin
+  me := fy._require_member();
+  delete from fy.cal_notice where member_id = me.id and event_date < current_date - 5;
+  return query select * from fy.cal_notice where member_id = me.id order by created_at desc;
+end $$;
+
+grant execute on function fy.cal_create, fy.cal_update, fy.cal_delete, fy.cal_notices to authenticated;
+revoke all on function fy._cal_notify from public;
 
 -- schema.sql again: every statement must be safe to re-run over itself (RAY re-applies it on live).
 create extension if not exists pg_cron with schema pg_catalog;
@@ -1768,6 +2054,11 @@ alter table fy.member add column if not exists setup_at timestamptz;
 alter table fy.member add column if not exists birth_day smallint;
 alter table fy.member add column if not exists birth_month smallint;
 alter table fy.member add column if not exists tagline text;  -- before fy.me(), which selects it
+-- Invite-only gate (section 9). Lower-cased by the member_contact_norm trigger; matched at sign-in.
+alter table fy.member add column if not exists invite_email text;      -- lower(auth email) must equal this
+alter table fy.member add column if not exists discord_username text;  -- lower(Discord global_name / user_name / preferred_username)
+alter table fy.member add column if not exists mobile text;            -- contact only, never used for login
+alter table fy.member add column if not exists claimed boolean not null default false;
 -- Members claimed before New User Set-up existed are not sent through it.
 update fy.member set setup_at = coalesce(setup_at, created_at) where user_id is not null and setup_at is null;
 
@@ -1951,7 +2242,7 @@ grant select on fy.v_members_public, fy.v_standings, fy.v_overall, fy.v_badges t
 create or replace function fy.me() returns fy.member
 language sql stable security definer set search_path = fy, public as $$
   select id, league_id, nickname, avatar, user_id, null::text, role, chesscom_username, created_at, revolut_url, avatar_url, setup_at,
-         birth_day, birth_month, tagline
+         birth_day, birth_month, tagline, invite_email, discord_username, mobile, claimed
   from fy.member where user_id = auth.uid() limit 1;
 $$;
 
@@ -1981,12 +2272,23 @@ begin
   return m;
 end $$;
 
-create or replace function fy.create_member(p_nickname text, p_avatar text) returns uuid
+-- Invite-only: a new member carries the email and/or Discord username their sign-in must match.
+-- Drop the old 2-arg signature so the defaulted parameters never leave two overloads behind.
+drop function if exists fy.create_member(text, text);
+create or replace function fy.create_member(p_nickname text, p_avatar text,
+                                            p_invite_email text default null,
+                                            p_discord_username text default null,
+                                            p_mobile text default null) returns uuid
 language plpgsql security definer set search_path = fy, public as $$
 declare v_id uuid;
 begin
   perform fy._require_leader();
-  insert into fy.member (league_id, nickname, avatar) values (fy._league(), btrim(p_nickname), coalesce(p_avatar,'hen'))
+  if nullif(btrim(coalesce(p_invite_email, '')), '') is null
+     and nullif(btrim(coalesce(p_discord_username, '')), '') is null then
+    raise exception 'give an invite email or a Discord username (at least one)' using errcode = '23514';
+  end if;
+  insert into fy.member (league_id, nickname, avatar, invite_email, discord_username, mobile)
+  values (fy._league(), btrim(p_nickname), coalesce(p_avatar,'hen'), p_invite_email, p_discord_username, p_mobile)
   returning id into v_id;
   return v_id;
 end $$;
@@ -2196,7 +2498,8 @@ declare me fy.member; v_id uuid;
 begin
   select * into me from fy.member where user_id = auth.uid();
   if me.id is null then raise exception 'sign in first' using errcode = '42501'; end if;
-  if coalesce(p_payload->>'type', '') not in ('points','iou') then raise exception 'claim type must be points or iou'; end if;
+  if coalesce(p_payload->>'type', '') not in ('points','iou','bug') then raise exception 'claim type must be points, iou or bug'; end if;
+  if p_payload->>'type' = 'bug' and length(btrim(coalesce(p_payload->>'note', ''))) = 0 then raise exception 'say what went wrong'; end if;
   if p_payload->>'type' = 'points' and coalesce(p_payload->>'points', '') !~ '^[1-9][0-9]{0,3}$' then raise exception 'points must be a whole number, 1 to 9999'; end if;
   if p_payload->>'type' = 'iou' and coalesce(p_payload->>'amount', '') !~ '^[1-9][0-9]{0,3}$' then raise exception 'amount must be a whole number, 1 to 9999'; end if;
   insert into fy.claim (league_id, member_id, payload) values (fy._league(), me.id, p_payload) returning id into v_id;
@@ -2216,10 +2519,10 @@ begin
       values (fy._league(), c.payload->>'type_key', leader.id, 'claim ' || c.id) returning id into v_event;
       insert into fy.score_entry (league_id, event_id, member_id, points, reason)
       values (fy._league(), v_event, c.member_id, (c.payload->>'points')::int, 'claim');
-    else
+    elsif c.payload->>'type' = 'iou' then
       insert into fy.iou (league_id, payer_id, payee_id, amount)
       values (fy._league(), (c.payload->>'payer_id')::uuid, (c.payload->>'payee_id')::uuid, (c.payload->>'amount')::int);
-    end if;
+    end if;   -- a site bug report scores nothing: approving it just marks it done
   end if;
   update fy.claim set state = case when p_approve then 'approved' else 'rejected' end,
                       decided_by = leader.id, decided_at = now() where id = p_claim;
@@ -2495,8 +2798,9 @@ begin
   delete from fy.poker_seat where table_id = p_table and member_id = me.id;
 end $$;
 
--- One game at a time, and any member may CLOSE it. If anyone sat down, the docket must be filed first
--- (the leader may still close an unfiled table to unstick a night).
+-- One game at a time, and any member may CLOSE it. If two or more players sat down, the docket must be
+-- filed first (the leader may still close an unfiled table to unstick a night). A table with one player
+-- or none closes freely: there is no game to record (RAY, 17 Nov).
 create or replace function fy.poker_close(p_table uuid) returns void
 language plpgsql security definer set search_path = fy, public as $$
 declare me fy.member; t fy.poker_table; v_filed boolean;
@@ -2506,7 +2810,7 @@ begin
   if t.id is null then raise exception 'no such table' using errcode = 'P0002'; end if;
   if t.status = 'closed' then return; end if;
   select exists (select 1 from fy.event e where e.id = t.event_id and e.voided_at is null) into v_filed;
-  if not v_filed and me.role <> 'leader' and exists (select 1 from fy.poker_seat where table_id = p_table) then
+  if not v_filed and me.role <> 'leader' and (select count(*) from fy.poker_seat where table_id = p_table) > 1 then
     raise exception 'file the docket before closing the game';
   end if;
   -- Seat rows stay as the night's record; a closed table simply stops being the live one.
@@ -3148,20 +3452,42 @@ insert into fy.room (id, label, path, icon, status, grp, parent_id, sort) values
   ('calendar',        'Calendar',    'room.html?room=calendar', 'ph ph-calendar-blank',  'stub', 'home',    'dashboard', 11),
   ('wall',            'Yard wall',   'wall.html',               'ph ph-chats-circle',    'ship', 'home',    'dashboard', 12),
   ('poker',           'Poker',       'poker.html',              'ph ph-club',            'live', 'leagues', null,        20),  -- the old-rev poker room is live and maintained; 2.1 redesign lands in slice 2
-  ('football',        'Football',    'room.html?room=football', 'ph ph-soccer-ball',     'stub', 'beta',    null,        30),
-  ('football-results','Results',     'room.html?room=football', 'ph ph-ranking',         'stub', 'beta',    'football',  31),
-  ('football-news',   'News',        'room.html?room=football', 'ph ph-newspaper',       'stub', 'beta',    'football',  32),
-  ('humidor',         'The Humidor', 'humidor.html',            'ph ph-cigarette',       'live', 'beta',    null,        40),
+  ('football',        'Football v1.0','football.html',          'ph ph-soccer-ball',     'live', 'beta',    null,        30),
+  ('football-results','Results',     'football.html',           'ph ph-ranking',         'live', 'beta',    'football',  31),
+  ('football-news',   'News',        'football.html',           'ph ph-newspaper',       'live', 'beta',    'football',  32),
+  ('humidor',         'The Humidor v1.1', 'humidor.html',            'ph ph-cigarette',       'live', 'beta',    null,        40),
   ('humidor-vote',    'Vote',        'humidor-vote.html',       'ph ph-check-square',    'live', 'beta',    'humidor',   41),
   ('humidor-results', 'Results',     'humidor-results.html',    'ph ph-ranking',         'live', 'beta',    'humidor',   42),
   ('humidor-archive', 'Archive',     'humidor-archive.html',    'ph ph-archive',         'live', 'beta',    'humidor',   43),
   ('humidor-admin',   'Admin',       'humidor-admin.html',      'ph ph-gear-six',        'live', 'beta',    'humidor',   44),
+  ('humidor-roll',    'Roll your own v2.0', 'humidor-roll.html', 'ph ph-cube',           'live', 'beta',    'humidor',   45),
   ('arcade',          'Arcade',      'room.html?room=arcade',   'ph ph-game-controller', 'stub', 'next',    null,        50),
   ('movies',          'Movie night', 'room.html?room=movies',   'ph ph-film-slate',      'stub', 'next',    null,        51),
   ('jukebox',         'Jukebox',     'room.html?room=jukebox',  'ph ph-music-notes',     'stub', 'next',    null,        52),
   ('whisky',          'Whisky club', 'room.html?room=whisky',   'ph ph-brandy',          'stub', 'next',    null,        53),
   ('chess',           'Chess club',  'room.html?room=chess',    'ph ph-strategy',        'stub', 'next',    null,        54)
 on conflict (id) do nothing;
+
+-- Page visibility (RAY, 17 Nov): each room is 'admin' (leaders only) or 'members'. Set from Admin > Pages.
+-- Adds the column if missing, seeds the three Home sub-pages that were synthesised in barn.js,
+-- and moves Football, The Humidor and What's Next under Home. Safe to re-run.
+do $$
+declare fresh boolean := not exists (select 1 from information_schema.columns where table_schema = 'fy' and table_name = 'room' and column_name = 'visibility');
+begin
+  -- The column may already exist (the older rooms-visibility.sql adds it); everything below is safe either way.
+  alter table fy.room add column if not exists visibility text not null default 'admin';
+  if not exists (select 1 from pg_constraint where conname = 'room_visibility_check' and conrelid = 'fy.room'::regclass) then
+    alter table fy.room add constraint room_visibility_check check (visibility in ('admin','members'));
+  end if;
+  insert into fy.room (id, label, path, icon, status, grp, parent_id, sort) values
+    ('about',      'About',          'about.html',      'ph ph-question',       'ship', 'home', 'dashboard', 13),
+    ('admin',      'Admin',          'admin.html',      'ph ph-gear-six',       'ship', 'home', 'dashboard', 14),
+    ('whats-next', 'What''s Next?',  'whats-next.html', 'ph ph-thought-bubble', 'ship', 'home', 'dashboard', 17)
+  on conflict (id) do nothing;
+  if fresh then update fy.room set visibility = 'members' where id in ('dashboard', 'poker'); end if;
+  update fy.room set grp = 'beta', parent_id = null where id = 'football' and (grp is distinct from 'beta' or parent_id is not null);   -- BETA TESTING (RAY, 23 Nov)
+  update fy.room set grp = 'beta', parent_id = null where id = 'humidor' and (grp is distinct from 'beta' or parent_id is not null);   -- BETA TESTING (RAY, 23 Nov)
+end $$;
 
 -- Yard Wall (1.2): text-only posts, one reaction per member, Hank (the leader) pins.
 create table if not exists fy.post (
@@ -3318,11 +3644,11 @@ language plpgsql security definer set search_path = fy, public as $$
 declare leader fy.member; v_old text; v_new text;
 begin
   leader := fy._require_leader();
-  if p_field not in ('nickname','tagline','revolut_url','avatar_url','avatar','role') then
+  if p_field not in ('nickname','tagline','revolut_url','avatar_url','avatar','role','invite_email','discord_username','mobile') then
     raise exception 'field not allowed: %', p_field;
   end if;
   -- The nullable fields clear on an empty string (their checks accept null, never '').
-  v_new := case when p_field in ('tagline','revolut_url','avatar_url') then nullif(p_value, '') else p_value end;
+  v_new := case when p_field in ('tagline','revolut_url','avatar_url','invite_email','discord_username','mobile') then nullif(p_value, '') else p_value end;
   execute format('select %I::text from fy.member where id = $1', p_field) into v_old using p_member;
   if not exists (select 1 from fy.member where id = p_member) then raise exception 'unknown member' using errcode = 'P0002'; end if;
   update fy.member set
@@ -3332,7 +3658,10 @@ begin
     avatar      = case when p_field = 'avatar'      then v_new else avatar end,
     -- A stock-animal pick replaces any logo override, matching the member's own flow.
     avatar_url  = case when p_field = 'avatar_url' then v_new when p_field = 'avatar' then null else avatar_url end,
-    role        = case when p_field = 'role'        then v_new else role end
+    role        = case when p_field = 'role'        then v_new else role end,
+    invite_email     = case when p_field = 'invite_email'     then v_new else invite_email end,
+    discord_username = case when p_field = 'discord_username' then v_new else discord_username end,
+    mobile           = case when p_field = 'mobile'           then v_new else mobile end
   where id = p_member;
   perform fy._admin_log(leader.id, 'member', p_member::text, p_field, v_old, v_new);
 end $$;
@@ -3444,6 +3773,22 @@ grant execute on function fy.admin_set_member, fy.admin_add_iou, fy.admin_set_io
   fy.admin_edit_docket, fy.admin_delete_docket, fy.admin_set_pool, fy.admin_set_payout, fy.admin_delete_pool,
   fy.admin_set_room to authenticated;
 
+-- Admin > Pages: the leader sets a page to admin-only or members. A page's own sub-pages follow it.
+-- Home, Admin, Profile and Set-up are never switchable.
+create or replace function fy.admin_set_room_visibility(p_room text, p_visibility text) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; v_old text;
+begin
+  leader := fy._require_leader();
+  if p_visibility not in ('admin', 'members') then raise exception 'visibility must be admin or members' using errcode = '22023'; end if;
+  if p_room in ('dashboard', 'admin', 'profile', 'setup') then raise exception 'that page cannot be switched' using errcode = '22023'; end if;
+  select visibility into v_old from fy.room where id = p_room for update;
+  if v_old is null then raise exception 'no such room' using errcode = 'P0002'; end if;
+  update fy.room set visibility = p_visibility where id = p_room or parent_id = p_room;
+  perform fy._admin_log(leader.id, 'room', p_room, 'visibility', v_old, p_visibility);
+end $$;
+grant execute on function fy.admin_set_room_visibility to authenticated;
+
 -- Realtime for the wall, same guard style as the poker tables.
 do $$ begin
   if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
@@ -3455,6 +3800,233 @@ do $$ begin
     end if;
   end if;
 end $$;
+
+-- 9. Invite-only gate ---------------------------------------------------------
+-- Nobody signs in unless an admin created their member row first, matched on
+-- invite_email or discord_username at the moment auth.users gets the insert.
+
+-- Lower-case the contact columns on every write; a linked row is always claimed.
+create or replace function fy.member_contact_norm() returns trigger
+language plpgsql as $$
+begin
+  new.invite_email     := nullif(lower(btrim(coalesce(new.invite_email, ''))), '');
+  new.discord_username := nullif(lower(btrim(coalesce(new.discord_username, ''))), '');
+  new.mobile           := nullif(btrim(coalesce(new.mobile, '')), '');
+  if new.user_id is not null then new.claimed := true; end if;
+  return new;
+end $$;
+drop trigger if exists member_contact_norm on fy.member;
+create trigger member_contact_norm before insert or update on fy.member
+  for each row execute function fy.member_contact_norm();
+
+-- Backfill BEFORE the gate goes up: every already-claimed member (the leader included)
+-- keeps working, and their row carries the email their Discord sign-in uses.
+update fy.member set claimed = true where user_id is not null and not claimed;
+update fy.member m set invite_email = lower(u.email)
+from auth.users u
+where m.user_id = u.id and m.invite_email is null and u.email is not null;
+
+-- One member per invite address / username (per league), or the match is ambiguous.
+create unique index if not exists member_invite_email_uq
+  on fy.member (league_id, invite_email) where invite_email is not null;
+create unique index if not exists member_discord_username_uq
+  on fy.member (league_id, discord_username) where discord_username is not null;
+
+-- The gate. BEFORE INSERT on auth.users: no matching unclaimed member row, no account.
+-- Existing auth users are never inserts, so they are untouched. An email match outranks
+-- a username match when both hit. On match the member row is linked and claimed.
+create or replace function fy.gate_signup() returns trigger
+language plpgsql security definer set search_path = fy, public as $$
+declare
+  v_email  text;
+  v_name   text;
+  v_member uuid;
+begin
+  v_email := nullif(lower(coalesce(new.email, '')), '');
+  v_name  := nullif(lower(coalesce(
+               new.raw_user_meta_data #>> '{custom_claims,global_name}',
+               new.raw_user_meta_data ->> 'user_name',
+               new.raw_user_meta_data ->> 'preferred_username',
+               new.raw_user_meta_data ->> 'full_name',
+               new.raw_user_meta_data ->> 'name', '')), '');
+  select id into v_member from fy.member
+  where user_id is null
+    and ((invite_email is not null and invite_email = v_email)
+      or (discord_username is not null and discord_username = v_name))
+  order by (invite_email = v_email) desc nulls last
+  limit 1;
+  if v_member is null then
+    raise exception 'Members only. Hank checks the door.' using errcode = 'P0001';
+  end if;
+  update fy.member set user_id = new.id, claimed = true where id = v_member;
+  return new;
+end $$;
+drop trigger if exists fy_gate_signup on auth.users;
+create trigger fy_gate_signup before insert on auth.users
+  for each row execute function fy.gate_signup();
+
+-- Data lock: RLS on every fy.* table, present and future re-runs alike.
+do $$ declare r record; begin
+  for r in select tablename from pg_tables where schemaname = 'fy' loop
+    execute format('alter table fy.%I enable row level security', r.tablename);
+  end loop;
+end $$;
+
+-- Reads are members-only everywhere: tighten the four old "using (true)" policies
+-- and drop the anon grants (sections 2 and 5 recreate them on a full re-run, so
+-- this section must stay after them).
+drop policy if exists league_read on fy.league;
+create policy league_read on fy.league for select to authenticated using (fy.is_member() or fy.is_leader());
+drop policy if exists event_type_read on fy.event_type;
+create policy event_type_read on fy.event_type for select to authenticated using (fy.is_member() or fy.is_leader());
+drop policy if exists event_read on fy.event;
+create policy event_read on fy.event for select to authenticated using (fy.is_member() or fy.is_leader());
+drop policy if exists score_read on fy.score_entry;
+create policy score_read on fy.score_entry for select to authenticated using (fy.is_member() or fy.is_leader());
+revoke select on fy.league, fy.event_type from anon;
+revoke select on fy.v_members_public, fy.v_standings, fy.v_overall, fy.v_badges from anon;
+
+-- Members can read the contact columns (rows are already member-gated); writes stay
+-- with the leader through fy.create_member / fy.admin_set_member.
+grant select (invite_email, discord_username, mobile, claimed) on fy.member to authenticated;
+grant execute on function fy.create_member(text, text, text, text, text) to authenticated;
+
+-- Remove an UNCLAIMED member row (bad invite, typo, changed mind). Refuses a claimed
+-- member, a leader, or anyone with poker / token / league history: that row stays.
+create or replace function fy.admin_delete_member(p_member uuid) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare leader fy.member; m fy.member;
+begin
+  leader := fy._require_leader();
+  select * into m from fy.member where id = p_member;
+  if m.id is null then raise exception 'unknown member' using errcode = 'P0002'; end if;
+  if m.user_id is not null or m.claimed then
+    raise exception '% has claimed their profile - keep the row', m.nickname using errcode = 'P0001';
+  end if;
+  if m.role = 'leader' then
+    raise exception 'a leader row cannot be deleted' using errcode = 'P0001';
+  end if;
+  if exists (select 1 from fy.iou where payer_id = p_member or payee_id = p_member)
+     or exists (select 1 from fy.score_entry where member_id = p_member)
+     or exists (select 1 from fy.settlement where member_a = p_member or member_b = p_member or recorded_by = p_member)
+     or exists (select 1 from fy.claim where member_id = p_member or decided_by = p_member)
+     or exists (select 1 from fy.event where entered_by = p_member)
+     or exists (select 1 from fy.poker_table where started_by = p_member)
+     or exists (select 1 from fy.poker_seat where member_id = p_member)
+     or exists (select 1 from fy.poker_hold where member_id = p_member)
+     or exists (select 1 from fy.pool_call where member_id = p_member)
+     or exists (select 1 from fy.humidor_pref where member_id = p_member)
+     or exists (select 1 from fy.humidor_ballot where member_id = p_member)
+     or exists (select 1 from fy.humidor_pay where member_id = p_member) then
+    raise exception '% has poker, token or league history - keep the row instead of deleting it', m.nickname using errcode = 'P0001';
+  end if;
+  delete from fy.claim_link where member_id = p_member;   -- member_logo cascades with the row
+  delete from fy.member where id = p_member;
+  perform fy._admin_log(leader.id, 'member', p_member::text, 'delete', m.nickname, null);
+end $$;
+grant execute on function fy.admin_delete_member(uuid) to authenticated;
+
+-- 7. Calendar events (calendar-events.sql) ----------------------------------------
+-- Calendar events: any member creates, edits and deletes their own (admins any), everyone sees all, and every other
+-- member gets a notice when one is created, changed or cancelled. A notice clears 5 days after its event date.
+-- RAY, 18 Nov. Run: node tools/db.mjs calendar-events.sql   (safe to run twice)
+create table if not exists fy.cal_event (
+  id uuid primary key default gen_random_uuid(),
+  league_id uuid not null references fy.league(id),
+  created_by uuid not null references fy.member(id) on delete cascade,
+  title text not null check (char_length(title) between 1 and 80),
+  event_date date not null,
+  event_time time,
+  note text check (note is null or char_length(note) <= 280),
+  icon text not null default 'other' check (icon in ('poker','birthday','football','party','other')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists cal_event_date_idx on fy.cal_event (event_date);
+
+-- A notice carries its own copy of the title and date, so a cancelled event can still be announced.
+create table if not exists fy.cal_notice (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid not null references fy.member(id) on delete cascade,
+  event_id uuid,
+  kind text not null check (kind in ('new','changed','cancelled')),
+  title text not null,
+  event_date date not null,
+  event_time time,
+  by_nickname text,
+  created_at timestamptz not null default now()
+);
+create index if not exists cal_notice_member_idx on fy.cal_notice (member_id, event_date);
+
+alter table fy.cal_event enable row level security;
+alter table fy.cal_notice enable row level security;
+grant select on fy.cal_event, fy.cal_notice to authenticated;
+drop policy if exists cal_event_read on fy.cal_event;
+create policy cal_event_read on fy.cal_event for select to authenticated using (fy.is_member() or fy.is_leader());
+drop policy if exists cal_notice_read on fy.cal_notice;
+create policy cal_notice_read on fy.cal_notice for select to authenticated
+  using (member_id in (select id from fy.member where user_id = auth.uid()));
+
+-- Internal: tell every other claimed member.
+create or replace function fy._cal_notify(p_actor fy.member, p_kind text, p_event_id uuid, p_title text, p_date date, p_time time) returns void
+language sql security definer set search_path = fy, public as $$
+  insert into fy.cal_notice (member_id, event_id, kind, title, event_date, event_time, by_nickname)
+  select m.id, p_event_id, p_kind, p_title, p_date, p_time, p_actor.nickname
+  from fy.member m where m.league_id = p_actor.league_id and m.user_id is not null and m.id <> p_actor.id;
+$$;
+
+create or replace function fy.cal_create(p_title text, p_date date, p_time time default null, p_note text default null, p_icon text default 'other') returns uuid
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; v_id uuid; v_title text := btrim(coalesce(p_title, ''));
+begin
+  me := fy._require_member();
+  if char_length(v_title) not between 1 and 80 then raise exception 'give the event a title (up to 80 characters)'; end if;
+  if p_date is null then raise exception 'pick a date'; end if;
+  insert into fy.cal_event (league_id, created_by, title, event_date, event_time, note, icon)
+  values (me.league_id, me.id, v_title, p_date, p_time, nullif(btrim(coalesce(p_note, '')), ''), coalesce(p_icon, 'other')) returning id into v_id;
+  perform fy._cal_notify(me, 'new', v_id, v_title, p_date, p_time);
+  return v_id;
+end $$;
+
+create or replace function fy.cal_update(p_id uuid, p_title text, p_date date, p_time time default null, p_note text default null, p_icon text default 'other') returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; e fy.cal_event; v_title text := btrim(coalesce(p_title, ''));
+begin
+  me := fy._require_member();
+  select * into e from fy.cal_event where id = p_id for update;
+  if e.id is null then raise exception 'no such event' using errcode = 'P0002'; end if;
+  if e.created_by <> me.id and me.role <> 'leader' then raise exception 'not allowed' using errcode = '42501'; end if;
+  if char_length(v_title) not between 1 and 80 then raise exception 'give the event a title (up to 80 characters)'; end if;
+  if p_date is null then raise exception 'pick a date'; end if;
+  update fy.cal_event set title = v_title, event_date = p_date, event_time = p_time,
+    note = nullif(btrim(coalesce(p_note, '')), ''), icon = coalesce(p_icon, 'other'), updated_at = now() where id = p_id;
+  perform fy._cal_notify(me, 'changed', p_id, v_title, p_date, p_time);
+end $$;
+
+create or replace function fy.cal_delete(p_id uuid) returns void
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member; e fy.cal_event;
+begin
+  me := fy._require_member();
+  select * into e from fy.cal_event where id = p_id for update;
+  if e.id is null then return; end if;
+  if e.created_by <> me.id and me.role <> 'leader' then raise exception 'not allowed' using errcode = '42501'; end if;
+  delete from fy.cal_event where id = p_id;
+  perform fy._cal_notify(me, 'cancelled', p_id, e.title, e.event_date, e.event_time);
+end $$;
+
+-- My notices. Clears every notice more than 5 days past its event first, so the list wipes itself.
+create or replace function fy.cal_notices() returns setof fy.cal_notice
+language plpgsql security definer set search_path = fy, public as $$
+declare me fy.member;
+begin
+  me := fy._require_member();
+  delete from fy.cal_notice where member_id = me.id and event_date < current_date - 5;
+  return query select * from fy.cal_notice where member_id = me.id order by created_at desc;
+end $$;
+
+grant execute on function fy.cal_create, fy.cal_update, fy.cal_delete, fy.cal_notices to authenticated;
+revoke all on function fy._cal_notify from public;
 
 -- Farmyard schema tests: the assertion body. Never run on its own. bundle_tests.py wraps it as
 --   begin; drop schema if exists fy cascade; <schema.sql>; <this file>; rollback;
@@ -4362,7 +4934,7 @@ begin
   select count(*) into n from fy.room where status = 'stub'; assert n >= 4, 'at least 4 stub rooms, got ' || n;
   select count(*) into n from fy.room where id = 'humidor' and status = 'live' and path = 'humidor.html'; assert n = 1, 'humidor is live in the registry';
   select count(*) into n from fy.room where grp = 'next'; assert n = 5, 'five holding rooms, got ' || n;
-  select count(*) into n from fy.room where parent_id = 'humidor'; assert n = 4, 'humidor has four sub-pages, got ' || n;
+  select count(*) into n from fy.room where parent_id = 'humidor'; assert n = 5, 'humidor has five sub-pages (vote, results, archive, admin, roll your own v2.0), got ' || n;
   begin
     insert into fy.room (id, label, path, icon, status, grp, sort) values ('hack', 'Hack', 'x.html', 'ph-x', 'stub', 'home', 99);
     raise exception 'should have failed: member wrote fy.room';
