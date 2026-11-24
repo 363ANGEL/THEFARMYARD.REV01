@@ -99,6 +99,7 @@
 .hc-sw{stroke:var(--neon-teal);stroke-width:1.5;vector-effect:non-scaling-stroke}
 .hc-band{fill:rgba(95,211,207,.04)}
 .hc-hit{fill:transparent}
+.hc-deco{pointer-events:none}   /* burn-time cigars: drawing only (RAY, 24 Nov) */
 .hc-it{cursor:pointer;outline:none;transition:opacity .25s}
 .hc-z{transform-box:fill-box;transform-origin:center;transition:transform .25s ease}
 .hc-it.on .hc-z{transform:scale(1.6)}
@@ -236,7 +237,7 @@
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261124q"></script><script src="humidor-roll.js?v=20261124q"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261124r"></script><script src="humidor-roll.js?v=20261124q"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */

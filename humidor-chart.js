@@ -144,7 +144,7 @@
           `<rect class="hc-ln hc-band" x="${f(x1)}" y="${f(bt)}" width="${f(Math.max(4, x2 - x1))}" height="${f(bb - bt)}" rx="6"/>` + txt((x1 + x2) / 2, bt + 16, lab, 'hc-t hc-tb', 'middle') + txt((x1 + x2) / 2, bt + 29, n + (n === 1 ? ' size' : ' sizes'), 'hc-t hc-tf', 'middle'), { nz: true }); }).join('');
       const seen = {};
       out += sizes.map(c => { const k = seen[c.mins] = (seen[c.mins] || 0) + 1, rp = Math.max(1.5, c.ring / 64 * s), cx = X(c.mins) + (k % 2 ? 1 : -1) * Math.ceil((k - 1) / 2) * (rp + 2);   // same burn time: fan out left and right
-        return item('bsize:' + c.size, sizeFacts(c), upright(c, cx, bb - 2, s), { size: c.size, cls: shc(c), hit: `<rect class="hc-hit" x="${f(cx - Math.max(4, rp))}" y="${f(bb - 2 - c.len * s)}" width="${f(Math.max(8, rp * 2))}" height="${f(c.len * s)}"/>` }); }).join('');
+        return `<g class="hc-deco ${shc(c)}">${upright(c, cx, bb - 2, s)}</g>`; }).join('');   // burn-time cigars are drawing only; the time bands are what you pick (RAY, 24 Nov)
       return out;
     }
     const DRAW = [pSizes, pBurn, pShapes, pFiller, pWrapper, pAnatomy];
