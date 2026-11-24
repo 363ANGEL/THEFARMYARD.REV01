@@ -11,7 +11,7 @@
   const leafTone = (T, w, st) => { const a = WT[w], b = ST[st]; if (a == null && b == null) return null; const t = a == null ? 0.15 + b * 0.7 : b == null ? a : a * 0.7 + b * 0.3; const x = Math.min(0.999, Math.max(0, t)) * (TONE.length - 1), i = Math.floor(x); return new T.Color(TONE[i]).lerp(new T.Color(TONE[i + 1]), x - i); };
   const BANDS = [ ['#efe6cf', '#8f1f2c', 0.5, 0.15], ['#8f1f2c', '#e2b455', 0.6, 0.35], ['#17181f', '#e2b455', 0.7, 0.45], ['#e2b455', '#17181f', 0.8, 0.6] ];
   // each flavour pulls the wrapper 40% toward its hue
-  const FLAV_HUE = { Creamy: 0xe2c896, Nutty: 0xa8743e, Woody: 0x8c4f2e, Spicy: 0xa43c22, Sweet: 0xc28838, Earthy: 0x5c5230 };
+  const FLAV_HUE = { Creamy: 0xf5ecc8, Nutty: 0xe0a040, Woody: 0x9a3e1a, Spicy: 0xe8301c, Sweet: 0xe8709e, Earthy: 0x6f8a2a };   // bold, clearly different hues so each blend shows (RAY, 24 Nov)
   const BURN_SLOW = 8 / 1.3; // burn plays ~6× slower (30% quicker than the design's 8×, RAY 24 Nov); 2.5s whole-cigar pause before each loop
   const SMOKE = { '': 0, Mild: 0.35, Medium: 0.65, Full: 1 };
   // head/foot profile per shape: hR (head length in radii) + hIn (inches) + hL (fraction of length), tip radius, k (0 dome → 1 straight cone), footT taper, flat wedge
@@ -171,7 +171,7 @@
         tgt.draw = s.draw ? 1 : 0; tgt.focus = s.focus || 0.12; tgt.len = s.len || 5.6; tgt.r = (s.ring || 46) / 128;
         const b = BANDS[s.budget]; tgt.band = b ? 1 : 0;
         if (b) { tgt.bandW = b[2]; bandMat.map = bandTex[s.budget]; bandMat.metalness = b[3]; }
-        let tone = leafTone(T, s.wrapper, s.strength); (s.flavour || []).forEach(f => { const c = FLAV_HUE[f]; if (c == null) return; tone = tone ? tone.lerp(new T.Color(c), 0.4) : new T.Color(c); }); { const r = Math.max(0, Math.min(1, s.progress || 0)); realT = r;   /* each answer makes it more real: net fades, leaf colour and texture build (RAY, 24 Nov) */
+        let tone = leafTone(T, s.wrapper, s.strength); (s.flavour || []).forEach(f => { const c = FLAV_HUE[f]; if (c == null) return; tone = tone ? tone.lerp(new T.Color(c), 0.65) : new T.Color(c); }); { const r = Math.max(0, Math.min(1, s.progress || 0)); realT = r;   /* each answer makes it more real: net fades, leaf colour and texture build (RAY, 24 Nov) */
           leaf.userData.target = new T.Color(0x1d2030).lerp(tone || new T.Color(0x7a5a3c), r); tgt.wire = Math.max(0.06, 1 - r * 0.94); }
         tgt.smoke = SMOKE[s.strength || ''] || 0; tgt.ember = tgt.smoke ? 0.6 + tgt.smoke * 1.6 : 0;
         vert = !!s.vertical; tgt.tilt = vert ? Math.PI / 2 : baseTilt; tgt.mix = vert ? 1 : 0; { const m = MIX[s.plant] || [0.33, 0.34, 0.33]; mixT.set(m[0], m[1], m[2]); }
