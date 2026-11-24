@@ -22,6 +22,8 @@
   const STEER = { 'Beginner': 'Start short and wide. A thicker cigar burns cooler and is easier to keep lit. Go mild, in a light leaf. No need to spend big yet.', 'Fairly new': 'Stay mild and on the shorter, wider side. Try a medium leaf for more flavour without more kick. A parejo is still the safe shape.', 'Some experience': 'Medium strength will suit. Try a darker leaf, or a pointed head for a tighter, more focused smoke.', 'Knowledgeable': 'You know what you like. Hank marks the bolder end of each choice, but everything is open.' };
   const LFIT = { 'Beginner': c => c.len <= 5.7 && c.ring >= 46 && (c.shape === 'parejo' || c.shape === 'belicoso'), 'Fairly new': c => c.len <= 6.2 && c.ring >= 42 && (c.shape === 'parejo' || c.shape === 'belicoso'), 'Some experience': c => c.len <= 7.3 && c.ring >= 38 && c.shape !== 'culebra' };
   const LEVELS = ['Beginner', 'Fairly new', 'Some experience', 'Knowledgeable'];
+  // Landing-step display words (RAY, 24 Nov); the stored answers keep the design's values.
+  const LEVEL_SHOW = { 'Beginner': 'BEGINNER', 'Fairly new': 'NOVICE', 'Some experience': 'EXPERIENCED', 'Knowledgeable': 'EXPERT' };
   const SUITS = {
     'Beginner': { budget: ['Up to £10'], time: ['Half an hour', 'About an hour'], shape: ['Parejo'], strength: ['Mild'], wrapper: ['Light'] },
     'Fairly new': { budget: ['Up to £10', 'Up to £18'], time: ['About an hour'], shape: ['Parejo', 'Belicoso'], strength: ['Mild', 'Medium'], wrapper: ['Light', 'Medium'] },
@@ -65,7 +67,7 @@
   // ---- Emblems (level rings), as HTML ----
   const emblem = (i, mine) => { const c = TONES[i] || TONES[0], sm = small;
     const bars = [0, 1, 2, 3].map(b => `<span style="${css({ width: sm ? '2px' : '3px', height: (sm ? 4 + b * 2 : 6 + b * 3) + 'px', 'border-radius': '1.5px', background: b <= i ? c[0] : 'rgba(255,255,255,.14)' })}"></span>`).join('');
-    return `<span title="${esc(LEVELS[i])}" class="hr-emb" style="${css({ width: sm ? '22px' : '32px', height: sm ? '22px' : '32px', border: '2px solid ' + c[0], 'box-shadow': mine ? '0 0 4px ' + c[1] + ', 0 0 12px ' + c[1] : 'none', opacity: mine ? 1 : 0.5, 'padding-bottom': sm ? '4px' : '6px' })}">${bars}</span>`; };
+    return `<span title="${esc(LEVEL_SHOW[LEVELS[i]] || LEVELS[i])}" class="hr-emb" style="${css({ width: sm ? '22px' : '32px', height: sm ? '22px' : '32px', border: '2px solid ' + c[0], 'box-shadow': mine ? '0 0 4px ' + c[1] + ', 0 0 12px ' + c[1] : 'none', opacity: mine ? 1 : 0.5, 'padding-bottom': sm ? '4px' : '6px' })}">${bars}</span>`; };
   const levelsFor = (q, v) => LEVELS.filter(l => ((SUITS[l] || {})[q.key] || []).includes(v));
   const suits = (q, qi, v, level) => qi > 0 && levelsFor(q, v).includes(level);
   const marks = (q, qi, v, level) => qi === 0 ? [emblem(LEVELS.indexOf(v), level === v)] : levelsFor(q, v).map(l => emblem(LEVELS.indexOf(l), l === level));
@@ -195,7 +197,7 @@
       return `<button type="button" class="hr-opt${x.sel ? ' sel' : ''}${x.dis ? ' dis' : ''}" data-i="${i}" aria-pressed="${x.sel}"${x.dis ? ' aria-disabled="true"' : ''} style="flex:0 0 ${basis}">
         <span class="hr-marks" style="min-height:${anyMark ? (wideShort ? '22px' : '32px') : '0px'}">${x.mk.join('')}<span class="hr-cap">${x.rec}</span></span>
         ${x.sil ? `<svg viewBox="0 0 96 22" width="96" height="22" class="hr-sil" aria-hidden="true"><path d="${x.sil}" stroke-width="1.5" stroke-linejoin="round"></path></svg>` : ''}
-        <span class="hr-olabel">${esc(o.v)}</span>
+        <span class="hr-olabel">${esc(qi === 0 ? LEVEL_SHOW[o.v] || o.v : o.v)}</span>
         <span class="hr-oline"></span>
         <span class="hr-ocount">${esc(count)}</span>
       </button>`;
@@ -231,6 +233,37 @@
       if (!n) { const p = NOTE_POS[v] || [50, 50]; n = document.createElement('span'); n.dataset.v = v; n.textContent = v; n.className = 'hr-note'; n.style.left = p[0] + '%'; n.style.top = p[1] + '%'; n.style.animation = 'hcRise .5s ease-out both, flNote ' + (5 + (v.length % 3)) + 's ease-in-out .5s infinite'; box.appendChild(n); }
       n.classList.toggle('on', picked.includes(v));
     });
+  }
+
+  // Photo window (plan 39): a size picked in the chart opens its catalogue photo. Photos are in the
+  // private 'cigars' bucket, read through a signed URL (humidor-photos.js). A native <dialog> opened with
+  // showModal(): the page behind is inert, Esc closes, a tap on the backdrop closes. The chart's overview
+  // loop holds while it is open.
+  const SHAPE_COL = { parejo: 'var(--neon-teal)', belicoso: 'var(--neon-green-tube)', torpedo: 'var(--neon-amber)', pyramid: 'var(--neon-red-tube)', perfecto: 'var(--art-cream)', chisel: 'var(--color-accent-2,#a7a1db)', culebra: 'var(--neon-teal)' };   // the chart's shape colours
+  const inch = n => { const w = Math.floor(n), r = Math.round((n - w) * 8); return w + (['', '⅛', '¼', '⅜', '½', '⅝', '¾', '⅞'][r] || ''); };
+  let photoSeq = 0;
+  async function openPhoto(c) {
+    const d = $('hr-dlg'), P = window.HumidorPhotos; if (!d || !c) return;
+    const seq = ++photoSeq, box = $('hr-dlg-img'), near = P && P.NEAR[c.size];
+    $('hr-dlg-h').textContent = c.size;
+    $('hr-dlg-f').innerHTML = `${inch(c.len)}″ × ${c.ring} · <span style="color:${SHAPE_COL[c.shape] || 'inherit'}">${esc(c.shape[0].toUpperCase() + c.shape.slice(1))}</span> · about ${c.mins} min`;
+    $('hr-dlg-n').textContent = near || ''; $('hr-dlg-n').hidden = !near;
+    $('hr-dlg-c').hidden = true; box.textContent = 'Loading…';
+    if (!d.open) d.showModal();
+    if (chart) chart.hold(true);
+    const u = P ? await P.url(c.size).catch(() => null) : null;
+    if (seq !== photoSeq || !d.open) return;
+    if (!u) { box.textContent = 'No photo yet.'; return; }
+    const img = new Image(); img.alt = c.size + ' cigar';
+    img.onload = () => { if (seq !== photoSeq) return; box.replaceChildren(img); $('hr-dlg-c').hidden = false; };
+    img.onerror = () => { if (seq === photoSeq) box.textContent = 'No photo yet.'; };
+    img.src = u;
+  }
+  function wirePhoto() {
+    const d = $('hr-dlg'); if (!d) return;
+    $('hr-dlg-x').addEventListener('click', () => d.close());
+    d.addEventListener('click', e => { if (e.target === d) d.close(); });   // the backdrop: outside the box
+    d.addEventListener('close', () => { photoSeq++; if (chart) chart.hold(false); });
   }
 
   // Hank smoking (step 8): the PNG with the design's CSS overlay cigar.
@@ -269,8 +302,8 @@
     mount(main) {
       main.innerHTML = document.getElementById('hr-tpl').innerHTML;
       root = main.querySelector('#hr');
-      if (window.HumidorChart) chart = window.HumidorChart.mount($('hr-chart'), { sizes: sizes() });
-      wire();
+      if (window.HumidorChart) chart = window.HumidorChart.mount($('hr-chart'), { sizes: sizes(), onPick: openPhoto });
+      wire(); wirePhoto();
       const m = /step=(\d)/.exec(location.hash);
       if (m) prefill(+m[1]); else render();
     }

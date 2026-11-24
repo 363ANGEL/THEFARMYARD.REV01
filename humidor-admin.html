@@ -159,7 +159,7 @@
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script><script src="humidor.js?v=20261123c"></script>
+<script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script><script src="humidor.js?v=20261123c"></script><script src="humidor-photos.js?v=20261124l"></script>
 <script>
 /* 4.0 The Humidor · Admin (leader). Pending-payment notices, the landing page stage (league-wide pin, R6),
    round actions, Who's voted, the Tally board and Likely selection (the design's lk, verbatim), the Prompt sheet
@@ -543,7 +543,66 @@
       </section>
       <section aria-labelledby="ha-mem-h"><h2 class="ha-h" id="ha-mem-h">Members</h2>
         <ul class="ha-mems">${members.map(m => `<li>${esc(m.nickname)}</li>`).join('')}</ul></section>
+      <section aria-labelledby="ha-ph-h">
+        <div class="ha-hd"><h2 class="ha-h" id="ha-ph-h">Cigar photos</h2><span class="ha-meta" id="ha-phn"></span></div>
+        <p class="ha-meta" style="margin:0">For the v2.0 chart's photo window. Members only: a private store, never the public site. Pick the 38 files from P15.003 HUMIDOR images › 02 Cigar sizes in one go; the filenames are the slot names, so there is no renaming. Each is shrunk to 1200px on its long side.</p>
+        <div class="ha-acts"><label class="ha-save" style="display:inline-flex;align-items:center;cursor:pointer">UPLOAD PHOTOS<input type="file" id="ha-phfile" accept="image/*" multiple style="display:none"></label><span class="ha-lstat" id="ha-phstat" aria-live="polite"></span></div>
+        <ul class="ha-mems" id="ha-phlist"></ul>
+      </section>
     </div>`;
+  }
+
+  /* Cigar photos (plan 39): leader uploads into the private 'cigars' bucket (supabase/cigar-photos.sql).
+     The slot list is humidor-photos.js. A file whose name is not a slot is skipped, not uploaded. JPGs go
+     up as JPEG .85, PNGs stay PNG (they may be transparent); both at most 1200px on the long side. */
+  const CPH = window.HumidorPhotos;
+  let phBusy = false;
+  const phShrink = async (file, png) => {
+    let src, w, h;
+    try { src = await createImageBitmap(file); w = src.width; h = src.height; }
+    catch (e) {
+      src = await new Promise((res, rej) => { const u = URL.createObjectURL(file), im = new Image();
+        im.onload = () => { URL.revokeObjectURL(u); res(im); }; im.onerror = () => { URL.revokeObjectURL(u); rej(new Error(file.name + ': that picture format is not supported.')); }; im.src = u; });
+      w = src.naturalWidth; h = src.naturalHeight;
+    }
+    const k = Math.min(1, 1200 / Math.max(w, h)), c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+    c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+    return new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error(file.name + ': could not be read.')), png ? 'image/png' : 'image/jpeg', .85));
+  };
+  async function drawPhotos() {
+    const list = $('ha-phlist'); if (!list || !CPH) return;
+    const { data, error } = await FY.sb.storage.from(CPH.BUCKET).list('', { limit: 200 });
+    const have = new Set((data || []).map(o => o.name)), slots = Object.entries(CPH.FILES);
+    const n = slots.filter(([, fl]) => have.has(fl)).length;
+    $('ha-phn').textContent = error ? 'Could not read the store: ' + error.message : n + ' of ' + slots.length + ' uploaded';
+    list.innerHTML = slots.map(([nm, fl]) => `<li title="${esc(fl)}" style="${have.has(fl) ? 'border-color:var(--neon-green-text);color:var(--neon-green-text)' : ''}">${have.has(fl) ? '✓ ' : ''}${esc(nm)}</li>`).join('')
+      + CPH.MISSING.map(([nm]) => `<li style="opacity:.5" title="No photo in the catalogue">${esc(nm)} · no photo</li>`).join('');
+  }
+  function wirePhotos() {
+    const inp = $('ha-phfile'); if (!inp || !CPH) return;
+    const slots = new Set(Object.values(CPH.FILES));
+    inp.addEventListener('change', async () => {
+      const files = [...(inp.files || [])]; inp.value = ''; if (!files.length) return;
+      if (phBusy) return FY.toast('Upload still running.');
+      phBusy = true; inp.disabled = true;
+      const st = $('ha-phstat'); let ok = 0; const skipped = [], failed = [];
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const f = files[i];
+          if (!slots.has(f.name)) { skipped.push(f.name); continue; }
+          st.textContent = 'Uploading ' + (i + 1) + ' of ' + files.length + '…';
+          try {
+            const png = /\.png$/i.test(f.name), blob = await phShrink(f, png);
+            const { error } = await FY.sb.storage.from(CPH.BUCKET).upload(f.name, blob, { contentType: png ? 'image/png' : 'image/jpeg', upsert: true, cacheControl: '3600' });
+            if (error) throw new Error(error.message);
+            ok++;
+          } catch (e) { failed.push(f.name + ' (' + e.message + ')'); }
+        }
+        st.textContent = ok + ' uploaded' + (skipped.length ? ' · ' + skipped.length + ' skipped (not a slot name)' : '') + (failed.length ? ' · ' + failed.length + ' failed' : '') + '.';
+        if (failed.length) FY.toast('Failed: ' + failed.join(', '));
+      } finally { phBusy = false; inp.disabled = false; drawPhotos().catch(e => FY.toast(e.message)); }
+    });
+    drawPhotos().catch(e => FY.toast(e.message));
   }
 
   (async function () {
@@ -553,7 +612,7 @@
     me = H.me; body = H.main; members = H.members || []; data = H.data || { stage: null, round: null };
     shell();
     draft = draftFrom(data); buildForms(); formSig = sig(data);
-    wire(); drawAll();
+    wire(); drawAll(); wirePhotos();
     Humidor.poll(onPoll);   // synchronous onChange
   })().catch(e => FY.toast(e.message));
 })();

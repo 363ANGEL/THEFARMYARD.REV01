@@ -6,7 +6,8 @@
    Six panels on one track: Sizes · Shapes · Wrapper · Filler · Anatomy · Burn time.
    Overview only: it auto-scrolls across the panels, pauses while the pointer is over it, and lights and
    zooms an item on rollover, focus or tap. Swipe on touch; the dots jump to a panel.
-   API: const c = HumidorChart.mount(el, { sizes, onHover }); c.show(true | false) starts or stops it.
+   API: const c = HumidorChart.mount(el, { sizes, onHover, onPick }); c.show(true | false) starts or stops it;
+        c.hold(true | false) holds the loop (photo window open). onPick(sizeRow) fires on a size's click, tap or Enter.
    Every panel's viewBox is its pixel size, so SVG text sits at the true --fs-* token size. */
 (function () {
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -59,7 +60,7 @@
     const panels = [...root.querySelectorAll('.hc-p')], dots = [...root.querySelectorAll('.hc-dot')];
     const FACTS = {};
     const S = { on: null, pin: null };
-    let cur = 0, live = false, paused = false, ovT = 0, W0 = 0, H0 = 0;
+    let cur = 0, live = false, paused = false, hold = false, ovT = 0, W0 = 0, H0 = 0;   // hold: the photo window is open
 
     // ---- Drawing ----
     const item = (id, facts, inner, o) => { o = o || {}; FACTS[id] = facts;
@@ -167,7 +168,7 @@
     const setOn = id => { if (id === S.on) return; S.on = id; apply(); if (opt.onHover) opt.onHover(id); };
 
     // ---- Motion: the overview loop, one panel every 3.2s (none under reduced motion) ----
-    function tickOv() { clearTimeout(ovT); if (!live || RM()) return; ovT = setTimeout(() => { if (live && !paused && !S.on) go((cur + 1) % PANELS.length); tickOv(); }, 3200); }
+    function tickOv() { clearTimeout(ovT); if (!live || RM()) return; ovT = setTimeout(() => { if (live && !paused && !hold && !S.on) go((cur + 1) % PANELS.length); tickOv(); }, 3200); }
     const stopOv = () => clearTimeout(ovT), armIdle = tickOv;   // a swipe or dot click restarts the wait
 
     // ---- Pointer, focus, touch ----
@@ -186,8 +187,10 @@
     const endDrag = () => { if (!drag) return; const d = drag; drag = null; if (!d.moved) return; track.classList.remove('drag'); swallow = true; setTimeout(() => { swallow = false; }, 50);
       go(cur + (d.dx < -40 ? 1 : d.dx > 40 ? -1 : 0)); armIdle(); };
     view.addEventListener('pointerup', endDrag); view.addEventListener('pointercancel', endDrag);
-    track.addEventListener('click', e => { if (swallow) return; const g = itemOf(e.target), id = g ? g.dataset.id : null; S.pin = id && S.pin !== id ? id : null; setOn(S.pin); });
-    track.addEventListener('keydown', e => { const g = itemOf(e.target); if (!g || (e.key !== 'Enter' && e.key !== ' ')) return; e.preventDefault(); S.pin = S.pin === g.dataset.id ? null : g.dataset.id; setOn(S.pin || g.dataset.id); });
+    // A size (Sizes or Burn panel) also hands its row to opt.onPick: the photo window (plan 39).
+    const pick = g => { const sz = g && g.dataset.size, row = sz && sizes.find(c => c.size === sz); if (row && opt.onPick) opt.onPick(row); };
+    track.addEventListener('click', e => { if (swallow) return; const g = itemOf(e.target), id = g ? g.dataset.id : null; S.pin = id && S.pin !== id ? id : null; setOn(S.pin); pick(g); });
+    track.addEventListener('keydown', e => { const g = itemOf(e.target); if (!g || (e.key !== 'Enter' && e.key !== ' ')) return; e.preventDefault(); S.pin = S.pin === g.dataset.id ? null : g.dataset.id; setOn(S.pin || g.dataset.id); pick(g); });
     root.querySelector('.hc-dots').addEventListener('click', e => { const d = e.target.closest('.hc-dot'); if (!d) return; stopOv(); go(+d.dataset.p); armIdle(); });
 
     root.classList.toggle('rm', RM());
@@ -195,6 +198,7 @@
     build();
 
     return {
+      hold(on) { hold = !!on; },
       show(on) { on = !!on; if (on === live) return; live = on;
         if (on) { build(); tickOv(); } else { stopOv(); S.pin = null; S.on = null; paused = false; apply(); } }
     };
