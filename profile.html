@@ -6,9 +6,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-<link rel="stylesheet" href="app.css?v=20261123d">
-<link rel="stylesheet" href="farmyard.css?v=20261123e">
-<link rel="stylesheet" href="barn.css?v=20261119b">
+<link rel="stylesheet" href="app.css?v=20261125t">
+<link rel="stylesheet" href="farmyard.css?v=20261125t">
+<link rel="stylesheet" href="barn.css?v=20261125t">
 <script src="fy-clucks.js?v=20261119b"></script>
 <style>
 .pcard{display:flex;flex-direction:column;gap:10px;padding:16px 14px;border:1px solid rgba(95,211,207,.55);border-radius:10px;box-shadow:0 0 4px rgba(95,211,207,.4);background:var(--fy-bg);min-width:0}
@@ -19,9 +19,9 @@
 .ledcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;padding:6px 0 12px}
 .ledbox{display:flex;flex-direction:column;gap:4px;padding:12px;border:1px solid rgba(95,211,207,.55);border-radius:9px;min-width:0}
 .ledrow{display:grid;grid-template-columns:28px minmax(0,1fr) max-content minmax(84px,max-content);gap:10px;align-items:center;padding:6px 0;border-top:1px solid rgba(95,211,207,.22)}
-.ledrow .ini{width:1.75rem;height:1.75rem;border-radius:50%;border:1.5px solid var(--neon-teal);display:grid;place-items:center;font-size:0.625rem;font-weight:800;color:#c8f4f2;background-size:cover;background-position:center}
+.ledrow .ini{width:1.75rem;height:1.75rem;border-radius:50%;border:1.5px solid var(--neon-teal);display:grid;place-items:center;font-size:var(--fs-xs);font-weight:800;color:#c8f4f2;background-size:cover;background-position:center}
 .ledrow .who{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pmbtn{width:1.625rem;height:1.625rem;display:grid;place-items:center;padding:0;background:transparent;border:1.5px solid var(--neon-teal);border-radius:6px;color:#c8f4f2;cursor:pointer;font-family:inherit;font-size:0.9375rem;line-height:1}
+.pmbtn{width:1.625rem;height:1.625rem;display:grid;place-items:center;padding:0;background:transparent;border:1.5px solid var(--neon-teal);border-radius:6px;color:#c8f4f2;cursor:pointer;font-family:inherit;font-size:var(--fs-body);line-height:1}
 .pmbtn:hover{box-shadow:0 0 8px rgba(95,211,207,.6)}
 .rcv{justify-self:center;min-height:32px;padding:0 10px;background:transparent;border:1.5px solid var(--neon-teal);border-radius:6px;color:#c8f4f2;font-family:inherit;font-size:var(--fs-xs);font-weight:800;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
 .paybtn{min-height:32px;padding:0 14px;display:inline-flex;align-items:center;box-sizing:border-box;background:transparent;border:1.5px solid var(--neon-pink-tube);border-radius:6px;color:var(--neon-pink-text);font-size:var(--fs-xs);font-weight:800;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;white-space:nowrap}
@@ -292,16 +292,16 @@ const MCOLS = 'id,nickname,avatar,avatar_url,role,tagline,revolut_url,birth_day,
     const rev = subject.revolut_url || '';
     return `<span class="t-module">Linked accounts</span>
       <div style="display:flex;flex-direction:column;gap:10px">
-        <div class="linked" style="display:flex;gap:12px;align-items:center"><i class="ph ph-discord-logo" style="font-size:1.375rem;color:var(--neon-teal)"></i><div style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:0.875rem">Discord</span><span style="font-size:0.75rem;color:var(--fy-text-label)">The key to the door · Lounge voice</span></div><span class="neon-teal" style="font-size:0.75rem">Connected</span></div>
+        <div class="linked" style="display:flex;gap:12px;align-items:center"><i class="ph ph-discord-logo" style="font-size:1.375rem;color:var(--neon-teal)"></i><div style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:var(--fs-body)">Discord</span><span style="font-size:var(--fs-sm);color:var(--fy-text-label)">The key to the door · Lounge voice</span></div><span class="neon-teal" style="font-size:var(--fs-sm)">Connected</span></div>
         <div class="rule-teal"></div>
         <form id="revform" style="display:flex;flex-direction:column;gap:8px">
-          <label style="display:flex;flex-direction:column;gap:6px;font-size:0.75rem;color:var(--fy-text-label)"><span style="display:flex;gap:8px;align-items:center;font-size:0.875rem;color:var(--fy-text)"><i class="ph ph-hand-coins" style="font-size:1.25rem;color:var(--neon-teal)"></i>Revolut pay-me link</span>
-          <input class="input" id="rv" type="url" value="${esc(rev)}" maxlength="120" placeholder="https://revolut.me/yourname" style="min-height:44px;font-size:0.875rem"></label>
-          <span style="font-size:0.75rem;color:var(--fy-text-label)">When you win, anyone who owes you gets a Pay button that opens this link. 1 tk = £1. The Farmyard never holds money.</span>
+          <label style="display:flex;flex-direction:column;gap:6px;font-size:var(--fs-sm);color:var(--fy-text-label)"><span style="display:flex;gap:8px;align-items:center;font-size:var(--fs-body);color:var(--fy-text)"><i class="ph ph-hand-coins" style="font-size:1.25rem;color:var(--neon-teal)"></i>Revolut pay-me link</span>
+          <input class="input" id="rv" type="url" value="${esc(rev)}" maxlength="120" placeholder="https://revolut.me/yourname" style="min-height:44px;font-size:var(--fs-body)"></label>
+          <span style="font-size:var(--fs-sm);color:var(--fy-text-label)">When you win, anyone who owes you gets a Pay button that opens this link. 1 tk = £1. The Farmyard never holds money.</span>
           <div><button class="btn btn-ghost" type="submit" style="min-height:2.5rem">Save link</button></div>
         </form>
-        <div style="display:flex;gap:12px;align-items:center;opacity:.55"><i class="ph ph-game-controller" style="font-size:1.375rem;color:var(--neon-teal)"></i><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:0.875rem">Steam ID</span><span style="font-size:0.75rem;color:var(--fy-text-label)">For Worms and other Steam lobbies in the Arcade.</span></div><span class="kicker">Coming soon</span></div>
-        <div style="display:flex;gap:12px;align-items:center;opacity:.55"><i class="ph ph-strategy" style="font-size:1.375rem;color:var(--neon-teal)"></i><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:0.875rem">Chess.com username</span><span style="font-size:0.75rem;color:var(--fy-text-label)">Your games count towards the chess league.</span></div><span class="kicker">Coming soon</span></div>
+        <div style="display:flex;gap:12px;align-items:center;opacity:.55"><i class="ph ph-game-controller" style="font-size:1.375rem;color:var(--neon-teal)"></i><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:var(--fs-body)">Steam ID</span><span style="font-size:var(--fs-sm);color:var(--fy-text-label)">For Worms and other Steam lobbies in the Arcade.</span></div><span class="kicker">Coming soon</span></div>
+        <div style="display:flex;gap:12px;align-items:center;opacity:.55"><i class="ph ph-strategy" style="font-size:1.375rem;color:var(--neon-teal)"></i><div style="flex:1;display:flex;flex-direction:column"><span style="font-size:var(--fs-body)">Chess.com username</span><span style="font-size:var(--fs-sm);color:var(--fy-text-label)">Your games count towards the chess league.</span></div><span class="kicker">Coming soon</span></div>
       </div>`;
   };
 

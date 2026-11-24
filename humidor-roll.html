@@ -5,9 +5,9 @@
 <title>The Farmyard · The Humidor · Roll your own</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="app.css?v=20261123d">
-<link rel="stylesheet" href="farmyard.css?v=20261123e">
-<link rel="stylesheet" href="barn.css?v=20261119b">
+<link rel="stylesheet" href="app.css?v=20261125t">
+<link rel="stylesheet" href="farmyard.css?v=20261125t">
+<link rel="stylesheet" href="barn.css?v=20261125t">
 <style>
 /* 4.x The Humidor · Roll your own v2.0 (RAY, 24 Nov), ported from the Claude Design handoff
    "Humidor Concept C - Roll your own.dc.html". Every DS token it reads already exists in the site, so
@@ -91,7 +91,7 @@
 /* Flavour step: the overview's flavour wheel to the left of the cigar (RAY, 24 Nov) */
 #hr-wheel{position:absolute;left:0;top:10%;bottom:10%;width:min(34.5%,265px);z-index:1}   /* wheel 15% bigger than the last cut (RAY, 24 Nov) */
 #hr-wheel{container-type:inline-size}
-#hr-wheel text{font-size:clamp(5.5px,3.4cqw,10px) !important}   /* wheel text scales with the wheel's width (RAY, 24 Nov) */
+#hr-wheel text{font-size:var(--fs-fine) !important}   /* plan 41: on the scale; cqw still reads the wheel's own container */   /* wheel text scales with the wheel's width (RAY, 24 Nov) */
 /* Below tablet width: wheel on top, cigar underneath */
 .hroll.mob[data-step="6"] #hr-gap{min-height:560px !important}
 .hroll.mob[data-step="6"] #hr-wheel{left:0;right:0;top:0;bottom:auto;width:100%;height:300px}
@@ -205,6 +205,9 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 .hc-it.on{filter:drop-shadow(0 0 3px var(--neon-pink-tube))}
 .hc-p.hov .hc-it:not(.on){opacity:.4}
 .hc-bar{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;padding-bottom:10px;margin-bottom:30px;border-bottom:1px solid var(--rule-teal)}   /* air between the dots and the answers (RAY, 24 Nov) */
+.hc.notag .hc-detail{display:none}   /* landing chart: tagline hidden; the tooltips still carry the facts (RAY, 24 Nov) */
+#hr-chart .hc-bar{margin-top:18px}   /* air between the Sizes key and the slide markers (RAY, 24 Nov) */
+.hroll.s0 .hr-body{padding-left:clamp(16px,3vw,32px);padding-right:clamp(16px,3vw,32px)}   /* landing: same side inset as the header, so the slide title lines up under THE HUMIDOR (RAY, 24 Nov) */
 .hc-detail{position:absolute;left:12px;right:12px;top:26px;z-index:1;pointer-events:none;min-height:1.4em;font-size:var(--fs-sm);color:var(--fy-text-secondary);text-align:left;overflow-wrap:anywhere}   /* tagline under the panel title (RAY, 24 Nov) */
 .hc-dots{flex:none;display:flex}
 .hc-dot{all:unset;box-sizing:border-box;width:40px;height:32px;display:grid;place-items:center;cursor:pointer}
@@ -217,7 +220,7 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 .hc.rm .hc-track,.hc.rm .hc-z,.hc.rm .hc-it,.hc.rm .hc-ln{transition:none}
 #hr-key{grid-column:1;grid-row:1;justify-self:start;position:relative;z-index:2;flex-shrink:0}
 .hr-keybox{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 18px;font-size:var(--fs-sm);color:var(--fy-text-label);text-align:left;width:max-content;max-width:100%;box-sizing:border-box;margin:6px 0;border:.5px solid color-mix(in srgb,var(--neon-teal) 60%,transparent);border-radius:var(--radius-module);box-shadow:none;background:rgba(22,24,38,.7)}   /* thin, no glow (RAY, 24 Nov) */
-.hr-keybox,.hr-keybox *{font-size:calc(var(--fs-fine) * .85) !important}
+.hr-keybox,.hr-keybox *{font-size:var(--fs-fine) !important}   /* snapped to the scale (plan 41) */
 .hr-kscale{display:grid;gap:3px}   /* symbolic draw scales, always two rows (RAY, 24 Nov) */
 .hr-kscale > span{display:flex;align-items:center;gap:5px;white-space:nowrap;letter-spacing:.06em}
 .hr-fan{flex:none;width:18px;height:12px;overflow:visible}
@@ -260,7 +263,8 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 .hr-opt:hover .hr-emb,.hr-opt:focus-visible .hr-emb{animation:none;opacity:1 !important;filter:drop-shadow(0 0 5px var(--gc,var(--neon-teal))) drop-shadow(0 0 10px var(--gc,var(--neon-teal)))}   /* lights up on mouse-over (RAY, 24 Nov) */
 .hroll.s0 .hr-emb{zoom:1.25}
 .hroll:not(.s0) .hr-emb{zoom:.6}
-#hr-opts:has(.hr-sil) .hr-sil,#hr-opts:has(.hr-sil) .hr-olabel,#hr-opts:has(.hr-sil) .hr-ocount{zoom:.75}   /* shape step: outlines and their text 25% smaller (RAY, 24 Nov) */   /* level icons 40% smaller on the question steps (RAY, 24 Nov) */   /* landing-step level icons 25% bigger (RAY, 24 Nov) */
+#hr-opts:has(.hr-sil) .hr-sil{zoom:.75}   /* shape step: outlines 25% smaller (RAY, 24 Nov) */
+#hr-opts:has(.hr-sil) .hr-olabel{font-size:var(--fs-h3)}.hroll.ws #hr-opts:has(.hr-sil) .hr-olabel{font-size:var(--fs-body)}#hr-opts:has(.hr-sil) .hr-ocount{font-size:var(--fs-xs)}   /* shape step text: one token down instead of zoom (plan 41) */   /* level icons 40% smaller on the question steps (RAY, 24 Nov) */   /* landing-step level icons 25% bigger (RAY, 24 Nov) */
 .hr-emb{flex:none;box-sizing:border-box;border-radius:50%;display:flex;align-items:flex-end;justify-content:center;gap:2px}
 .hr-sil{display:block;overflow:visible}
 .hr-sil path{fill:transparent;stroke:var(--sc,var(--neon-teal))}
@@ -357,7 +361,7 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261125o"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261125n"></script><script src="humidor-roll.js?v=20261125n"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261125o"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261125u"></script><script src="humidor-roll.js?v=20261125u"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */

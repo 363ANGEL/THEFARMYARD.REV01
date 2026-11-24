@@ -57,7 +57,7 @@
     : `<span style="color:var(--fy-text-label)">Invited · ${m.invite_email ? 'matches on email' : m.discord_username ? 'matches on Discord username' : 'invite link'}</span>`;
   // Role is a plain text column; Member and Admin (stored as 'leader') are the two the page offers, any other stored role still shows.
   const roleLabel = r => r === 'leader' ? 'Admin' : r ? r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g, ' ') : 'Member';
-  const roleTag = r => `<span style="font-size:0.625rem;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:999px;border:1px solid ${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'};color:${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'}">${esc(roleLabel(r))}</span>`;
+  const roleTag = r => `<span style="font-size:var(--fs-xs);letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:999px;border:1px solid ${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'};color:${r === 'leader' ? 'var(--neon-teal)' : 'var(--fy-text-label)'}">${esc(roleLabel(r))}</span>`;
   const roleOpts = cur => [...new Set(['member', 'leader', cur || 'member'])].map(r => `<option value="${esc(r)}" ${r === (cur || 'member') ? 'selected' : ''}>${esc(roleLabel(r))}</option>`).join('');
   /* Page headers card (RAY, 23 Nov): the five pages that can show a header picture, keyed by page id.
      Upload resizes to at most 1600px wide (JPEG .85), stores headers/<id>.jpg and records it with
@@ -137,7 +137,7 @@
     // Per-row Character dropdown: every animal is listed; one held by someone else is shown with the holder and disabled.
     const charCell = m => !chars0
       ? '<span style="color:var(--fy-text-label)">—</span>'
-      : `<select class="input" data-char="${m.id}" aria-label="Character for ${esc(m.nickname)}" style="min-height:32px;font-size:0.75rem;width:7em;max-width:7em;padding-left:6px;padding-right:2px">
+      : `<select class="input" data-char="${m.id}" aria-label="Character for ${esc(m.nickname)}" style="min-height:32px;font-size:var(--fs-sm);width:7em;max-width:7em;padding-left:6px;padding-right:2px">
           <option value="">None</option>
           ${chars0.map(c => { const by = held0[c.id], mine = c.id === m.character_id, gone = by && !mine;
             return `<option value="${c.id}" ${mine ? 'selected' : ''} ${gone ? 'disabled' : ''}>${esc(c.name)}${gone ? ' · ' + esc(by) : ''}</option>`; }).join('')}
@@ -148,15 +148,15 @@
     const contactCell = m => m.user_id
       ? `<span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${esc(m.invite_email || m.discord_username || '')}</span>`
       : `<span style="display:flex;gap:6px;flex-wrap:wrap">
-          <input class="input" data-inv="invite_email" data-m="${m.id}" type="email" placeholder="Invite email" maxlength="254" value="${esc(m.invite_email || '')}" style="flex:1 1 7em;width:7em;min-width:0;min-height:32px;font-size:0.75rem">
-          <input class="input" data-inv="discord_username" data-m="${m.id}" placeholder="Discord username" maxlength="40" value="${esc(m.discord_username || '')}" style="flex:1 1 6em;width:6em;min-width:0;min-height:32px;font-size:0.75rem">
-          <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="flex:1 1 5em;width:5em;min-width:0;min-height:32px;font-size:0.75rem"></span>`;
+          <input class="input" data-inv="invite_email" data-m="${m.id}" type="email" placeholder="Invite email" maxlength="254" value="${esc(m.invite_email || '')}" style="flex:1 1 7em;width:7em;min-width:0;min-height:32px;font-size:var(--fs-sm)">
+          <input class="input" data-inv="discord_username" data-m="${m.id}" placeholder="Discord username" maxlength="40" value="${esc(m.discord_username || '')}" style="flex:1 1 6em;width:6em;min-width:0;min-height:32px;font-size:var(--fs-sm)">
+          <input class="input" data-inv="mobile" data-m="${m.id}" type="tel" placeholder="Mobile" maxlength="20" value="${esc(m.mobile || '')}" style="flex:1 1 5em;width:5em;min-width:0;min-height:32px;font-size:var(--fs-sm)"></span>`;
     const live = (Presence && Presence.map) ? Presence.map() : {};   // paint the current state, don't wait for the next sync
     pane.innerHTML = `<div class="acard"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <span class="t-module">Members</span></div>
       <div class="tscroll"><table><thead><tr><th>Member</th><th>Role</th><th>Online</th><th>Character</th><th class="wrap">Last login</th><th>Status</th><th>Email</th><th><span style="position:absolute;left:-9999px">Delete</span></th></tr></thead><tbody>
       ${A.members.map(m => `<tr class="clickable" data-open="${esc(m.nickname)}" data-mid="${m.id}"><td data-nmcell="${m.id}" style="display:flex;align-items:center;gap:8px;white-space:nowrap">${FY.faceRing(m, 28, m.nickname)}<span data-nm>${esc(m.nickname)}</span><button type="button" class="rowbtn" data-rename="${m.id}" aria-label="Rename ${esc(m.nickname)}" style="min-height:26px;padding:0 8px;margin-left:auto">Edit</button></td>
-        <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:0.75rem;width:auto">${roleOpts(m.role)}</select></td>
+        <td><select class="input" data-role="${m.id}" aria-label="Role for ${esc(m.nickname)}" style="min-height:34px;font-size:var(--fs-sm);width:auto">${roleOpts(m.role)}</select></td>
         <td data-online="${m.id}">${onlineCell(live[m.id])}</td>
         <td>${charCell(m)}</td>
         <td style="white-space:normal">${lastLoginCell(m)}</td>
@@ -184,7 +184,7 @@
       <div class="acard" id="chars"><span class="t-module">Characters</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">One farmyard animal per member. Members pick theirs on their profile. Rename, free a taken animal, or remove one; names are unique.</span>
       <div id="charlist" style="display:flex;flex-direction:column;gap:8px"></div>
-      <form id="charadd" class="charrow"><input class="input" id="char-new" placeholder="New animal" maxlength="24" required style="min-height:34px;font-size:0.75rem;min-width:0;width:100%"><button class="btn btn-primary" style="min-height:2.125rem;padding:0 0.75rem;font-size:var(--fs-xs);white-space:nowrap">Add animal</button><span></span><span></span><span></span></form></div>`;
+      <form id="charadd" class="charrow"><input class="input" id="char-new" placeholder="New animal" maxlength="24" required style="min-height:34px;font-size:var(--fs-sm);min-width:0;width:100%"><button class="btn btn-primary" style="min-height:2.125rem;padding:0 0.75rem;font-size:var(--fs-xs);white-space:nowrap">Add animal</button><span></span><span></span><span></span></form></div>`;
     // A row opens that member's details below the table (RAY, 12 Nov): the full profile page
     // is still a click away, but the admin stays on this page.
     pane.addEventListener('click', ev => {
@@ -210,7 +210,7 @@
       ev.stopPropagation();
       const m = A.members.find(x => x.id === b.dataset.rename), td = b.closest('td'); if (!m || !td) return;
       const original = td.innerHTML;
-      td.innerHTML = `${FY.faceRing(m, 28, m.nickname)}<input class="input" data-nmin maxlength="24" value="${esc(m.nickname)}" aria-label="New name for ${esc(m.nickname)}" style="min-height:32px;font-size:0.75rem;width:9em;min-width:0">
+      td.innerHTML = `${FY.faceRing(m, 28, m.nickname)}<input class="input" data-nmin maxlength="24" value="${esc(m.nickname)}" aria-label="New name for ${esc(m.nickname)}" style="min-height:32px;font-size:var(--fs-sm);width:9em;min-width:0">
         <button type="button" class="rowbtn" data-nmsave style="min-height:30px">Save</button><button type="button" class="rowbtn" data-nmcancel style="min-height:30px">Cancel</button>`;
       const inp = td.querySelector('[data-nmin]'), stop = e => e.stopPropagation();
       td.addEventListener('click', stop);
@@ -396,7 +396,7 @@
         // Green ring = the icon in use; dashed bright teal ring = picked, waiting for Save selection.
         return `<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:4px">
           <button type="button" data-ipick="${n}" aria-label="Pick icon ${n}" aria-pressed="${chosen ? 'true' : 'false'}" style="width:4rem;height:4rem;border-radius:50%;padding:0.1875rem;box-sizing:border-box;cursor:pointer;border:${chosen ? '3px dashed var(--neon-teal)' : '2px solid ' + (on ? 'var(--neon-green-tube)' : 'rgba(95,211,207,.45)')};box-shadow:${chosen ? 'var(--glow-teal)' : on ? 'var(--glow-green)' : 'none'};background:#0a1a1a url('${esc(r.url)}') center/contain no-repeat;background-origin:content-box"></button>
-          <button type="button" data-irm="${n}" aria-label="Remove icon ${n}" style="position:absolute;top:-4px;right:-4px;width:1.375rem;height:1.375rem;border-radius:50%;padding:0;cursor:pointer;border:1px solid var(--neon-pink-tube);background:#0a1a1a;color:var(--neon-pink-text);font-size:0.75rem;line-height:1">&#10005;</button>
+          <button type="button" data-irm="${n}" aria-label="Remove icon ${n}" style="position:absolute;top:-4px;right:-4px;width:1.375rem;height:1.375rem;border-radius:50%;padding:0;cursor:pointer;border:1px solid var(--neon-pink-tube);background:#0a1a1a;color:var(--neon-pink-text);font-size:var(--fs-sm);line-height:1">&#10005;</button>
           <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">${n}</span></div>`;
       };
       // The 20 slots fill the module, five to a line; Upload sits under them (RAY, 12 Nov).
@@ -421,7 +421,7 @@
       ((await FY.q('member').select('nickname,character_id').not('character_id', 'is', null)).data || []).forEach(m => { holders[m.character_id] = m.nickname; });
       // One grid for every row, so the columns line up down the list.
       box.innerHTML = chars.length ? chars.map(c => `<div class="charrow" data-c="${c.id}">
-          <input class="input" data-cname="${c.id}" value="${esc(c.name)}" maxlength="24" aria-label="Animal name" style="min-height:34px;font-size:0.75rem;min-width:0;width:100%">
+          <input class="input" data-cname="${c.id}" value="${esc(c.name)}" maxlength="24" aria-label="Animal name" style="min-height:34px;font-size:var(--fs-sm);min-width:0;width:100%">
           <button class="rowbtn" data-crename="${c.id}">Rename</button>
           <span style="font-size:var(--fs-xs);color:var(--fy-text-label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${holders[c.id] ? 'Taken by ' + esc(holders[c.id]) : 'Free'}</span>
           ${holders[c.id] ? `<button class="rowbtn" data-cfree="${c.id}">Free</button>` : '<span></span>'}

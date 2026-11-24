@@ -5,9 +5,9 @@
 <title>The Farmyard · About</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="app.css?v=20261123d">
-<link rel="stylesheet" href="farmyard.css?v=20261123e">
-<link rel="stylesheet" href="barn.css?v=20261119b">
+<link rel="stylesheet" href="app.css?v=20261125t">
+<link rel="stylesheet" href="farmyard.css?v=20261125t">
+<link rel="stylesheet" href="barn.css?v=20261125t">
 <script src="fy-clucks.js?v=20261119b"></script>
 </head>
 <body>
@@ -44,7 +44,7 @@ const block = esc => `
   // Public view: no sidebar, no session required. (The Under Construction sign came off this page, RAY 23 Nov.)
   document.getElementById('app').innerHTML = `
     <main style="min-height:100vh; box-sizing:border-box; padding:24px 16px; display:flex; flex-direction:column; gap:18px; max-width:980px; margin:0 auto; position:relative;">
-      <a href="index.html" style="display:flex; align-items:center; gap:6px; color:var(--fy-text); text-decoration:none;"><img src="assets/hank-oink.png" alt="" style="width:4rem; height:4rem; object-fit:contain; filter:drop-shadow(0 0 10px rgba(224,21,127,.7));"><span style="font-family:var(--font-heading); font-size:1.25rem;">The Farmyard</span></a>
+      <a href="index.html" style="display:flex; align-items:center; gap:6px; color:var(--fy-text); text-decoration:none;"><img src="assets/hank-oink.png" alt="" style="width:4rem; height:4rem; object-fit:contain; filter:drop-shadow(0 0 10px rgba(224,21,127,.7));"><span style="font-family:var(--font-heading); font-size:var(--fs-h3);">The Farmyard</span></a>
       ${block(esc)}
     </main>`;
 })().catch(e => FY.toast(e.message));

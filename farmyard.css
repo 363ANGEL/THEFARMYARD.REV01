@@ -90,6 +90,57 @@
 /* Page ground with the two hazes */
 html, body { margin: 0; min-height: 100%; }
 #dc-root, .fy-page { container-type: inline-size; }
+
+/* Plan 41 (RAY, 24 Nov): every text size on the type scale. The design system (components.css, imported above)
+   sets fixed px; these put each one on its nearest --fs-* token. They sit up here so every site rule below still
+   wins. Outside a size container (the sidebar, body) cqw falls back to the small-viewport unit, so these scale
+   with the screen there too. */
+body { font-size: var(--fs-body); }   /* was 15px */
+h1 { font-size: var(--fs-h1); }   /* was 42px */
+h2 { font-size: var(--fs-h1); }   /* was 32px */
+h3 { font-size: var(--fs-h2); }   /* was 25px */
+h4 { font-size: var(--fs-h3); }   /* was 20px */
+h5 { font-size: var(--fs-h3); }   /* was 16px */
+h6 { font-size: var(--fs-sm); }   /* was 13px */
+figcaption { font-size: var(--fs-xs); }   /* was 11px */
+.btn { font-size: var(--fs-body); }   /* was 14px */
+.field > label { font-size: var(--fs-sm); }   /* was 12px */
+.input { font-size: var(--fs-body); }   /* was 14px */
+.radio { font-size: var(--fs-body); }   /* was 14px */
+.seg-opt { font-size: var(--fs-sm); }   /* was 13px */
+.card-kicker { font-size: var(--fs-xs); }   /* was 10px */
+.card-title { font-size: var(--fs-h3); }   /* was 17px */
+.card-body { font-size: var(--fs-sm); }   /* was 13px */
+.card-meta { font-size: var(--fs-xs); }   /* was 11px */
+.tag { font-size: var(--fs-xs); }   /* was 11px */
+.nav-brand { font-size: var(--fs-h3); }   /* was 18px */
+.nav a { font-size: var(--fs-body); }   /* was 14px */
+.table { font-size: var(--fs-body); }   /* was 14px */
+.table th { font-size: var(--fs-xs); }   /* was 11px */
+.dialog-title { font-size: var(--fs-h3); }   /* was 20px */
+.dialog-body { font-size: var(--fs-body); }   /* was 14px */
+.neon-btn-block { font-size: var(--fs-sm); }   /* was 13px */
+.fy-stepper-btn { font-size: var(--fs-body); }   /* was 15px */
+.fy-stepper-value { font-size: var(--fs-h3); }   /* was 16px */
+.fy-hint { font-size: var(--fs-sm); }   /* was 12px */
+.fy-popover-label { font-size: var(--fs-xs); }   /* was 11px */
+.fy-popover-field { font-size: var(--fs-body); }   /* was 14px */
+.fy-paper-meta { font-size: var(--fs-xs); }   /* was 11px */
+.fy-paper-rows { font-size: var(--fs-body); }   /* was 14px */
+.fy-paper-rows th { font-size: var(--fs-xs); }   /* was 11px */
+.fy-paper-rows .pos { font-size: var(--fs-sm); }   /* was 12px */
+.fy-link-teal { font-size: var(--fs-sm); }   /* was 12px */
+.fy-league { font-size: var(--fs-sm); }   /* was 13px */
+.fy-league th { font-size: var(--fs-xs); }   /* was 10px */
+.fy-league .pos { font-size: var(--fs-sm); }   /* was 12px */
+.fy-brand { font-size: var(--fs-h3); }   /* was 20px */
+.fy-nav-group { font-size: var(--fs-xs); }   /* was 11px */
+.fy-nav-item { font-size: var(--fs-body); }   /* was 14px */
+.fy-nav-item .count { font-size: var(--fs-sm); }   /* was 12px */
+.fy-voice small { font-size: var(--fs-xs); }   /* was .625rem */
+.fy-voice-head { font-size: var(--fs-xs); }   /* was .6875rem */
+.fy-page-head h2 { font-size: var(--fs-h2); }   /* was 28px */
+
 body {
   background:
     radial-gradient(900px 600px at 80% 10%, var(--haze-pink), transparent 60%),
@@ -132,7 +183,7 @@ a:hover { color: var(--neon-pink-hover); }
 .t-module-sub { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #8fd9d5; text-shadow: 0 0 4px rgba(95,211,207,.35); }
 .t-title-b { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: var(--fs-h2); letter-spacing: -.01em; line-height: 1.1; color: var(--neon-pink-text); text-shadow: var(--text-glow-pink); margin: 0; }
 .t-tagline { font-size: var(--fs-sm); color: color-mix(in srgb, var(--neon-teal) 60%, transparent); }   /* translucent (RAY, 17 Nov) */
-@media (max-width: 640px) { .t-tagline { font-size: .6875rem; } }   /* a notch smaller on phones (RAY, 17 Nov) */
+@media (max-width: 640px) { .t-tagline { font-size: var(--fs-xs); } }   /* a notch smaller on phones (RAY, 17 Nov) */
 /* One page head everywhere: title (.t-title-b) + tagline (.t-tagline) */
 .fy-pagehead { display: flex; flex-direction: column; gap: 2px; padding: 4px 2px 8px; }
 /* Tighter under every title: less line height, and the gap the card puts beneath it pulled in by 4px (RAY, 17 Nov). */
@@ -153,7 +204,7 @@ a:hover { color: var(--neon-pink-hover); }
 .btn-primary { border-color: var(--neon-pink-tube) !important; color: var(--neon-pink-text); box-shadow: var(--glow-pink); text-shadow: var(--text-glow-pink); white-space: nowrap; }
 .btn-primary:hover { background: rgba(224,21,127,.12); }
 /* Neon pill buttons */
-.neon-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 6.875rem; height: 2.375rem; padding: 0 1rem; box-sizing: border-box; border-radius: 19px; background: transparent; font: inherit; font-size: 0.75rem; font-weight: 700; letter-spacing: .1em; text-decoration: none; cursor: pointer; transition: box-shadow .2s; border: 2px solid var(--neon-pink-tube); color: var(--neon-pink-text); text-shadow: var(--text-glow-pink); box-shadow: var(--glow-pink); }
+.neon-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 6.875rem; height: 2.375rem; padding: 0 1rem; box-sizing: border-box; border-radius: 19px; background: transparent; font: inherit; font-size: var(--fs-sm); font-weight: 700; letter-spacing: .1em; text-decoration: none; cursor: pointer; transition: box-shadow .2s; border: 2px solid var(--neon-pink-tube); color: var(--neon-pink-text); text-shadow: var(--text-glow-pink); box-shadow: var(--glow-pink); }
 .neon-btn:hover { box-shadow: 0 0 6px var(--neon-pink), 0 0 18px var(--neon-pink), 0 0 40px rgba(224,21,127,.65), inset 0 0 10px rgba(224,21,127,.8); }
 .neon-btn-green { border-color: var(--neon-green-tube); color: var(--neon-green-text); text-shadow: var(--text-glow-green); box-shadow: var(--glow-green); }
 .neon-btn-green:hover { animation: buzz 1.4s steps(1, end) infinite; box-shadow: 0 0 6px var(--neon-green), 0 0 18px var(--neon-green), 0 0 40px rgba(10,158,67,.65), inset 0 0 10px rgba(10,158,67,.8); }
@@ -271,7 +322,7 @@ CHARACTER ART SPEC (baked into each PNG)
 .fy-sign-icon.is-ivory { color: #fff8e7; filter: drop-shadow(0 0 3px rgba(255,248,231,.75)) drop-shadow(0 0 8px rgba(255,248,231,.35)); }   /* ivory line-work calendar (RAY, 18 Nov) */
 .fy-sign-icon.is-white { filter: drop-shadow(0 0 3px #fff2f4) drop-shadow(0 0 8px rgba(255,242,244,.55)); }
 .fy-sign-icon svg { display: block; width: 100%; overflow: visible; }   /* placed like the Poker sign's spade (RAY, 23 Nov) */
-.fy-sign-title { margin: 0; font-family: var(--font-heading); font-weight: 600; font-size: 1.1875rem; line-height: 1.12; white-space: nowrap; letter-spacing: .26em; color: var(--sg-text); text-shadow: 0 0 4px var(--sg-tube), 0 0 12px var(--sg-glow), 0 0 28px rgba(var(--sg-rgb), .6); }
+.fy-sign-title { margin: 0; font-family: var(--font-heading); font-weight: 600; font-size: var(--fs-h3); line-height: 1.12; white-space: nowrap; letter-spacing: .26em; color: var(--sg-text); text-shadow: 0 0 4px var(--sg-tube), 0 0 12px var(--sg-glow), 0 0 28px rgba(var(--sg-rgb), .6); }
 .fy-sign-title .is-flick { animation: fyLetter 9s 2s infinite; }
 /* Narrow screens: the sign shrinks (zoom, so the sway transform is untouched) and tucks in from the edge. */
 .fy-compact .fy-sign { zoom: .8; }
@@ -279,15 +330,15 @@ CHARACTER ART SPEC (baked into each PNG)
 
 /* Phone: tighter ledger rows on Profile */
 .fy-phone #balances div[style*="grid-template-columns:28px"] { grid-template-columns: 22px minmax(0,1.2fr) minmax(0,1fr) minmax(72px,auto) !important; gap: 6px !important; font-size: var(--fs-xs) !important; padding-top: 4px !important; padding-bottom: 4px !important; }
-.fy-phone #balances div[style*="grid-template-columns:28px"] > span:first-child { width: 22px !important; height: 22px !important; font-size: 0.5625rem !important; }
-.fy-phone #balances div[style*="grid-template-columns:28px"] button, .fy-phone #balances div[style*="grid-template-columns:28px"] a { min-height: 1.625rem !important; padding: 0 0.375rem !important; font-size: 0.625rem !important; letter-spacing: .06em !important; }
+.fy-phone #balances div[style*="grid-template-columns:28px"] > span:first-child { width: 22px !important; height: 22px !important; font-size: var(--fs-fine) !important; }
+.fy-phone #balances div[style*="grid-template-columns:28px"] button, .fy-phone #balances div[style*="grid-template-columns:28px"] a { min-height: 1.625rem !important; padding: 0 0.375rem !important; font-size: var(--fs-xs) !important; letter-spacing: .06em !important; }
 .fy-phone #balances div[style*="grid-template-columns:28px"] > span { font-size: var(--fs-xs) !important; }
 .fy-phone #balances div[style*="grid-template-columns:28px"] > :nth-child(3) { justify-self: center !important; text-align: center !important; }
 .fy-phone #balances div[style*="grid-template-columns:28px"] > :nth-child(4) { justify-self: end !important; }
 .fy-abbr { display: none; }
 .fy-compact .fy-full, .fy-phone .fy-full { display: none; }
 .fy-compact .fy-abbr, .fy-phone .fy-abbr { display: inline; }
-.fy-phone #balances div[style*="grid-template-columns:28px"] > :nth-child(3), .fy-phone #balances div[style*="grid-template-columns:28px"] > :nth-child(3) span { font-size: 0.6875rem !important; justify-content: center !important; text-align: center !important; }
+.fy-phone #balances div[style*="grid-template-columns:28px"] > :nth-child(3), .fy-phone #balances div[style*="grid-template-columns:28px"] > :nth-child(3) span { font-size: var(--fs-xs) !important; justify-content: center !important; text-align: center !important; }
 /* Phone: profile header text sits beside the icon */
 .fy-phone button[aria-label="Edit your profile"] { flex-wrap: nowrap !important; align-items: center !important; gap: 0.75rem !important; }
 .fy-phone button[aria-label="Edit your profile"] > div[role="img"] { width: 10rem !important; height: 10rem !important; max-width: 48%; flex: none !important; }
@@ -299,7 +350,7 @@ CHARACTER ART SPEC (baked into each PNG)
 .fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > * { min-width: 0 !important; font-size: var(--fs-xs) !important; overflow: hidden; text-overflow: ellipsis; }
 .fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > :nth-child(6) { grid-column: 1 / -1 !important; justify-self: end !important; overflow: visible; }
 .fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > :first-child { width: 24px !important; height: 24px !important; }
-.fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > :nth-child(2) { font-size: 0.625rem !important; line-height: 1.2; white-space: normal !important; }
+.fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > :nth-child(2) { font-size: var(--fs-xs) !important; line-height: 1.2; white-space: normal !important; }
 .fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > :nth-child(4), .fy-phone #settle div[style*="grid-template-columns: 36px 104px"] > :nth-child(5) { overflow: visible !important; white-space: nowrap; }
 
 /* Member face: one pink tube ring + glow on the art's own baked ring; the character breaks out of it (design system .char-ring).
@@ -383,7 +434,7 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 .ystand .amt-green{color:var(--neon-green-text);text-shadow:0 0 6px var(--neon-green-tube)}
 .ystand .amt-red{color:var(--neon-red-text);text-shadow:0 0 6px var(--neon-red-text)}
 .ystand .amt-flat{color:var(--fy-text-label);text-shadow:none;font-weight:600}
-.ystand .trend{font-size:0.9375rem;line-height:1}
+.ystand .trend{font-size:var(--fs-body);line-height:1}
 /* The change column carries the IOU token with its direction, a quarter larger (RAY, 13 Nov). */
 /* Every value in the table reads at one size — name, figure, arrows and positions —
    so no column shouts over another (RAY, 14 Nov). */

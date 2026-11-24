@@ -33,7 +33,7 @@ window.FY_RENDER_CALENDAR = async function (B, card) {
       .cal-dow{text-align:center;font-size:var(--fs-xs);letter-spacing:.04em;text-transform:uppercase;color:var(--fy-text-label);padding:.25rem 0}
       .cal-day{position:relative;min-height:2.5rem;box-sizing:border-box;padding:.15rem .2rem;border:1px solid var(--rule-teal);border-radius:8px;background:transparent;color:var(--fy-text-secondary);font:inherit;font-size:var(--fs-xs);text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:.1rem}
       .cal-day.out{opacity:.35;cursor:default}.cal-day.has{border-color:var(--neon-teal)}.cal-day.today{border-color:var(--neon-pink-tube);box-shadow:var(--glow-pink)}.cal-day.sel{background:rgba(95,211,207,.12)}
-      .cal-ic{display:flex;flex-wrap:wrap;gap:.1rem;font-size:.8rem;line-height:1}
+      .cal-ic{display:flex;flex-wrap:wrap;gap:.1rem;font-size:var(--fs-sm);line-height:1}
       .cal-day.bday{overflow:hidden}.cal-day .cal-bimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none}
       .cal-day.bday>span{position:relative;z-index:1;color:#fff;text-shadow:0 0 3px #000,0 0 6px #000}
       .cal-day.bday .cal-ic{position:absolute;top:.15rem;left:.2rem}.cal-day.bday>span:not(.cal-ic){align-self:flex-end}
@@ -70,9 +70,9 @@ window.FY_RENDER_CALENDAR = async function (B, card) {
         ${canEdit(x) ? `<button type="button" class="rowbtn" data-edit="${x.ev.id}">Edit</button><button type="button" class="rowbtn warn" data-del="${x.ev.id}">Delete</button>` : ''}</div>`).join('') || '<span style="font-size:var(--fs-sm);color:var(--fy-text-label)">Nothing on this day. Use Create event below.</span>'}</div>` : '';
     card.style.maxWidth = 'none';   // stacked: fills the page width; two columns: the grid track caps it at 360px (RAY, 24 Nov)
     card.innerHTML = `<div style="display:flex;align-items:center;gap:8px">
-        <button type="button" class="btn btn-ghost cal-nav" data-nav="-1" aria-label="Previous month"><span aria-hidden="true" style="font-size:1.25rem;line-height:1">&#8249;</span></button>
+        <button type="button" class="btn btn-ghost cal-nav" data-nav="-1" aria-label="Previous month"><span aria-hidden="true" style="font-size:var(--fs-h3);line-height:1">&#8249;</span></button>
         <span class="t-module" style="flex:1;text-align:center">${first.toLocaleString('en-GB', { month: 'long', year: 'numeric' })}</span>
-        <button type="button" class="btn btn-ghost cal-nav" data-nav="1" aria-label="Next month"><span aria-hidden="true" style="font-size:1.25rem;line-height:1">&#8250;</span></button></div>
+        <button type="button" class="btn btn-ghost cal-nav" data-nav="1" aria-label="Next month"><span aria-hidden="true" style="font-size:var(--fs-h3);line-height:1">&#8250;</span></button></div>
       <div class="cal-grid">${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(n => `<span class="cal-dow">${n}</span>`).join('')}${cells.join('')}</div>
       ${detail}
       <div class="cal-lg" style="display:flex;gap:14px;flex-wrap:wrap;font-size:var(--fs-xs);color:var(--fy-text-label)">${Object.entries(KIND).map(([k, v]) => `<span><i class="${v.icon} ${k}" style="margin-right:.3rem;font-size:1rem;vertical-align:-2px"></i>${v.label}</span>`).join('')}</div>`;

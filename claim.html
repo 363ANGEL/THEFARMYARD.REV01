@@ -5,9 +5,9 @@
 <title>The Farmyard · Invite</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="app.css?v=20261123d">
-<link rel="stylesheet" href="farmyard.css?v=20261123e">
-<link rel="stylesheet" href="barn.css?v=20261119b">
+<link rel="stylesheet" href="app.css?v=20261125t">
+<link rel="stylesheet" href="farmyard.css?v=20261125t">
+<link rel="stylesheet" href="barn.css?v=20261125t">
 <script src="fy-clucks.js?v=20261119b"></script>
 </head>
 <body>
@@ -35,7 +35,7 @@
 
   const SIGN = `<div class="hankwrap"><div class="sign-invite"><span class="wire"></span><span class="pin"></span><span class="plate">${[...'INVITE'].map((c, i) => `<span class="${i === 3 ? 'dead' : ''}" style="animation-delay:${(i * .53) % 2.5}s">${c}</span>`).join('')}</span></div><img src="assets/hank-oink.png" alt="Hank"></div>`;
   const page = inner => { app.innerHTML = `<main class="door">${SIGN}${inner}</main>`; };
-  const discordBtn = (id, label) => `<button type="button" id="${id}" class="btn btn-primary" style="min-height:3rem;width:100%;font-size:0.9375rem"><i class="ph ph-discord-logo" style="font-size:1.25rem"></i>${label}</button>`;
+  const discordBtn = (id, label) => `<button type="button" id="${id}" class="btn btn-primary" style="min-height:3rem;width:100%;font-size:var(--fs-body)"><i class="ph ph-discord-logo" style="font-size:1.25rem"></i>${label}</button>`;
 
   const used = (title, body) => page(`
     <div class="centre"><span class="kicker">Door's shut</span><h1>${title}</h1><p>${body}</p></div>
@@ -99,10 +99,10 @@
   if (me) {
     page(`
       <div class="centre"><span class="kicker">Wrong Discord</span>
-        <h1 style="font-size:clamp(1.875rem,6vw,2.75rem)">You're already in as <span class="neon-pink">${esc(me.nickname)}</span></h1>
+        <h1 style="font-size:var(--fs-h1)">You're already in as <span class="neon-pink">${esc(me.nickname)}</span></h1>
         <p>This invite is for <strong style="color:var(--fy-text)">${esc(member)}</strong>. You can't use it while you're signed in as ${esc(me.nickname)}. The link still works.</p></div>
       <div class="card neon-tube-teal">
-        <span style="font-size:0.8125rem;line-height:1.5;color:var(--fy-text-secondary)">If this is ${esc(member)}'s link, send it to them. They need to open it on their own phone or computer.</span>
+        <span style="font-size:var(--fs-sm);line-height:1.5;color:var(--fy-text-secondary)">If this is ${esc(member)}'s link, send it to them. They need to open it on their own phone or computer.</span>
         <button type="button" id="copy" class="btn btn-primary" style="min-height:2.875rem;width:100%"><i class="ph ph-copy" style="font-size:1.125rem"></i>Copy invite link</button>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <a class="btn btn-ghost" href="dashboard.html" style="flex:1 1 140px;min-height:44px">Back to my yard</a>

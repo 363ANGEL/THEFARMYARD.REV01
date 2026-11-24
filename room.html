@@ -5,9 +5,9 @@
 <title>The Farmyard · Room</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
-<link rel="stylesheet" href="app.css?v=20261123d">
-<link rel="stylesheet" href="farmyard.css?v=20261123e">
-<link rel="stylesheet" href="barn.css?v=20261119b">
+<link rel="stylesheet" href="app.css?v=20261125t">
+<link rel="stylesheet" href="farmyard.css?v=20261125t">
+<link rel="stylesheet" href="barn.css?v=20261125t">
 <script src="fy-clucks.js?v=20261119b"></script>
 </head>
 <body>
@@ -57,9 +57,9 @@ window.FY_SUGG_BOX = `
   <div style="display:flex; flex-direction:column; align-items:center; gap:16px; max-width:720px; box-sizing:border-box; padding:22px; border:1px solid var(--neon-teal); border-radius:12px; box-shadow:var(--glow-teal); background:var(--fy-bg);">
     <span style="align-self:flex-start; color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal), 0 0 14px rgba(95,211,207,.45);" class="lot-label">Site Suggestion Box - What should we add next?</span>
     <form id="sugg" style="display:flex; flex-direction:column; align-items:center; gap:12px; width:100%;">
-      <span style="align-self:flex-start; margin-bottom:-8px; font-size:0.8125rem; line-height:1.5; font-style:italic; color:var(--color-neutral-400);">Submit your comments below.</span>
+      <span style="align-self:flex-start; margin-bottom:-8px; font-size:var(--fs-sm); line-height:1.5; font-style:italic; color:var(--color-neutral-400);">Submit your comments below.</span>
       <textarea class="input" id="sugg-text" rows="4" required maxlength="280" placeholder="Games, rooms, rules, anything..." aria-label="Your suggestion" style="width:100%; box-sizing:border-box; resize:vertical; border-color:var(--neon-teal); font-family:inherit;"></textarea>
-      <button type="submit" class="btn btn-primary" style="min-height:2.25rem; align-self:flex-start; font-size:0.8125rem;">Send it</button>
+      <button type="submit" class="btn btn-primary" style="min-height:2.25rem; align-self:flex-start; font-size:var(--fs-sm);">Send it</button>
     </form>
   </div>`;
 window.FY_WIRE_SUGG = (main, roomKey) => {
@@ -71,7 +71,7 @@ window.FY_WIRE_SUGG = (main, roomKey) => {
     if (!text) return;
     try { await FY.rpc('suggest', { p_room: roomKey, p_body: text }); }
     catch (e) { FY.toast(e.message); return; }
-    form.outerHTML = '<span style="display:flex; align-items:center; gap:8px; font-size:0.8125rem; min-height:60px; color:var(--neon-teal);"><i class="ph ph-check-circle" style="font-size:1.25rem; text-shadow:0 0 6px var(--neon-teal);"></i>Thanks. Hank has it.</span>';
+    form.outerHTML = '<span style="display:flex; align-items:center; gap:8px; font-size:var(--fs-sm); min-height:60px; color:var(--neon-teal);"><i class="ph ph-check-circle" style="font-size:1.25rem; text-shadow:0 0 6px var(--neon-teal);"></i>Thanks. Hank has it.</span>';
   });
 };
 
