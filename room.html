@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="app.css?v=20261123d">
-<link rel="stylesheet" href="farmyard.css?v=20261123c">
+<link rel="stylesheet" href="farmyard.css?v=20261123d">
 <link rel="stylesheet" href="barn.css?v=20261119b">
 <script src="fy-clucks.js?v=20261119b"></script>
 </head>
@@ -78,6 +78,7 @@ window.FY_WIRE_SUGG = (main, roomKey) => {
 (async function () {
   const key = new URLSearchParams(location.search).get('room') || 'new';
   if (key === 'calendar') { location.replace('wall.html#calendar'); return; }   // the Calendar lives on the Yard wall now (RAY, 23 Nov)
+  if (key === 'football') { location.replace('football.html'); return; }      // Football has its own built page (RAY, 24 Nov)
   const R = window.FY_ROOMS[key] || window.FY_ROOMS.new;
   const B = await Barn.open(window.FY_ROOMS[key] ? key : 'new'); if (!B) return;
   Presence.join(B.me).catch(() => {});
