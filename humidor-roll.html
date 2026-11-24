@@ -90,7 +90,12 @@
 .hroll[data-step="6"] .hr-canvas{left:min(37%,285px)}   /* cigar starts where the wheel ends: no overlap */   /* cigar moves right of the wheel */
 /* Flavour step: the overview's flavour wheel to the left of the cigar (RAY, 24 Nov) */
 #hr-wheel{position:absolute;left:0;top:10%;bottom:10%;width:min(34.5%,265px);z-index:1}   /* wheel 15% bigger than the last cut (RAY, 24 Nov) */
-#hr-wheel text{font-size:calc(var(--fs-fine) * .9) !important}   /* wheel text 10% smaller */
+#hr-wheel{container-type:inline-size}
+#hr-wheel text{font-size:clamp(5.5px,3.4cqw,10px) !important}   /* wheel text scales with the wheel's width (RAY, 24 Nov) */
+/* Below tablet width: wheel on top, cigar underneath */
+.hroll.mob[data-step="6"] #hr-gap{min-height:560px !important}
+.hroll.mob[data-step="6"] #hr-wheel{left:0;right:0;top:0;bottom:auto;width:100%;height:300px}
+.hroll.mob[data-step="6"] .hr-canvas{left:0 !important;top:300px !important}
 #hr-wheel .hc,#hr-wheel .hc-view{height:100%}
 #hr-wheel .hc.only .hc-bar,#hr-wheel .hc.only .hc-detail,#hr-wheel .hc.only .hc-title{display:none}
 #hr-wheel .hc.marking .hc-it.flv:not(.lit),#hr-wheel .hc.marking .hc-it:not(.flv){opacity:.35}
