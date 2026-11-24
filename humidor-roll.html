@@ -212,6 +212,14 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 .hr-opt:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
 .hr-opt.dis{opacity:.35;cursor:default}
 .hr-marks{display:flex;align-items:center;justify-content:center;gap:6px}
+/* Landing step: the four level icons glow in turn, left to right (RAY, 24 Nov) */
+@keyframes hrSeq{0%,30%,100%{opacity:.5;filter:none}10%,20%{opacity:1;filter:drop-shadow(0 0 5px var(--gc)) drop-shadow(0 0 10px var(--gc))}}
+.hroll.s0 .hr-opt .hr-emb{animation:hrSeq 4.8s ease-in-out infinite}
+.hroll.s0 .hr-opt:nth-child(1) .hr-emb{--gc:var(--art-cream);animation-delay:0s}
+.hroll.s0 .hr-opt:nth-child(2) .hr-emb{--gc:var(--neon-green-tube);animation-delay:1.2s}
+.hroll.s0 .hr-opt:nth-child(3) .hr-emb{--gc:var(--neon-amber);animation-delay:2.4s}
+.hroll.s0 .hr-opt:nth-child(4) .hr-emb{--gc:var(--neon-red-tube);animation-delay:3.6s}
+.hroll.s0 .hr-opt.sel .hr-emb{animation:none}
 .hroll.s0 .hr-emb{zoom:1.25}   /* landing-step level icons 25% bigger (RAY, 24 Nov) */
 .hr-emb{flex:none;box-sizing:border-box;border-radius:50%;display:flex;align-items:flex-end;justify-content:center;gap:2px}
 .hr-sil{display:block;overflow:visible}
