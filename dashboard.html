@@ -71,7 +71,7 @@
     .map(id => rooms.find(r => r.id === id)).filter(Boolean)
     .filter(r => B.leader || Barn.vis(r.id, r) === 'members')   // launch scope: members see Poker only
     .map(r => `<a href="${esc(r.path)}" class="card" style="padding:0; overflow:hidden; display:flex; flex-direction:column; text-align:left; color:inherit; text-decoration:none; min-width:0;">
-      <div class="fy-leagueimg"${HEADER[r.id] ? ` style="background-image:url('${esc(HEADER[r.id])}');background-size:cover;background-position:center"` : ''}>${HEADER[r.id] ? '' : `<span class="lbl">${esc(r.label)} header image</span>`}
+      <div class="fy-leagueimg"${HEADER[r.id] ? ' style="display:block;height:auto;min-height:0;aspect-ratio:auto;background:none"' : ''}>${HEADER[r.id] ? `<img src="${esc(HEADER[r.id])}" alt="" style="display:block;width:100%;height:auto;max-height:14rem;object-fit:cover;object-position:top center">` : `<span class="lbl">${esc(r.label)} header image</span>`}
         <span style="position:absolute; left:12px; bottom:-18px; width:2.25rem; height:2.25rem; border-radius:50%; display:grid; place-items:center; background:var(--fy-surface); border:2px solid var(--neon-teal); box-shadow:var(--glow-teal);"><i class="${esc(r.icon)}" style="font-size:var(--ic-lg); color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal);"></i></span>
       </div>
       <div style="display:flex; flex-direction:column; gap:2px; padding:24px 12px 12px;">
