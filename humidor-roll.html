@@ -83,6 +83,15 @@
 .hr-dlgf{margin:0;font-size:var(--fs-body);color:var(--fy-text-secondary);font-variant-numeric:tabular-nums}
 .hr-dlgn{margin:0;font-size:var(--fs-sm);color:var(--neon-amber-text)}
 .hr-dlgc{margin:0;font-size:var(--fs-xs);color:var(--fy-text-label)}
+/* Time-band window (RAY, 24 Nov): the sizes in the band, then two notes */
+.hr-bandwrap{width:100%;max-height:34vh;overflow:auto;border:1px solid var(--rule-teal);border-radius:var(--radius-row,6px)}
+.hr-band{width:100%;border-collapse:collapse;font-size:var(--fs-sm);font-variant-numeric:tabular-nums;text-align:left;color:var(--fy-text)}
+.hr-band th{position:sticky;top:0;background:var(--fy-bg);font-size:var(--fs-xs);font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label);padding:6px 10px;border-bottom:1px solid var(--rule-teal)}
+.hr-band td{padding:5px 10px;border-bottom:1px solid rgba(95,211,207,.12);white-space:nowrap}
+.hr-bandnotes{width:100%;text-align:left;display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.hr-bandnotes p{margin:0;font-size:var(--fs-sm);line-height:1.5;color:var(--neon-teal)}
+.hr-bandnotes strong{color:var(--neon-pink-text);font-weight:500}
+#hr-dlg .hr-dlgbox{max-height:90vh;overflow:auto}
 .hc{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
 .hc-view{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:pan-y}
 .hc-track{display:flex;width:600%;height:100%;transition:transform .8s ease}
@@ -237,7 +246,7 @@
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261124r"></script><script src="humidor-roll.js?v=20261124q"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261124s"></script><script src="humidor-roll.js?v=20261124s"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */

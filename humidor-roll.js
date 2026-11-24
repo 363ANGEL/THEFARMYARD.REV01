@@ -242,6 +242,24 @@
   const SHAPE_COL = { parejo: 'var(--neon-teal)', belicoso: 'var(--neon-green-tube)', torpedo: 'var(--neon-amber)', pyramid: 'var(--neon-red-tube)', perfecto: 'var(--art-cream)', chisel: 'var(--color-accent-2,#a7a1db)', culebra: 'var(--neon-teal)' };   // the chart's shape colours
   const inch = n => { const w = Math.floor(n), r = Math.round((n - w) * 8); return w + (['', '⅛', '¼', '⅜', '½', '⅝', '¾', '⅞'][r] || ''); };
   let photoSeq = 0;
+  // A time band from the chart's Burn time panel (RAY, 24 Nov): its sizes, plus how ring and length change the smoke.
+  function openBand(B) {
+    const d = $('hr-dlg'); if (!d || !B) return;
+    ++photoSeq;
+    const rows = B.rows || [], span = B.hi === Infinity ? 'over ' + B.lo + ' min' : (B.lo ? B.lo + 1 : 0) + '–' + B.hi + ' min';
+    const nm = c => c.shape[0].toUpperCase() + c.shape.slice(1);
+    $('hr-dlg-h').textContent = B.name;
+    $('hr-dlg-f').textContent = rows.length + (rows.length === 1 ? ' size' : ' sizes') + ' · ' + span;
+    $('hr-dlg-n').hidden = true; $('hr-dlg-c').hidden = true;
+    $('hr-dlg-img').innerHTML = `<div class="hr-bandwrap"><table class="hr-band"><thead><tr><th>Size</th><th>Length</th><th>Ring</th><th>Shape</th><th>Time</th></tr></thead><tbody>${rows.map(c =>
+        `<tr><td>${esc(c.size)}</td><td>${inch(c.len)}″</td><td>${c.ring}</td><td style="color:${SHAPE_COL[c.shape] || 'inherit'}">${esc(nm(c))}</td><td>${c.mins} min</td></tr>`).join('')}</tbody></table></div>
+      <div class="hr-bandnotes">
+        <p><strong>Ring gauge and the draw.</strong> Ring gauge is the width in 64ths of an inch. A wider ring packs in more filler, so it draws looser, burns cooler and lasts longer. A narrow ring draws tighter and hotter, and lets the wrapper's flavour lead.</p>
+        <p><strong>Length and strength, by shape.</strong> Length mostly buys time. On a straight parejo the smoke stays much the same from foot to head. On a tapered head (belicoso, torpedo, pyramid) the smoke concentrates as you near the head, so the last third tastes stronger, and a longer one gives that build more time. A perfecto starts narrow and mild, opens up in the middle, then narrows again. A chisel's flat wedge keeps the draw open to the end.</p>
+      </div>`;
+    if (!d.open) d.showModal();
+    if (chart) chart.hold(true);
+  }
   async function openPhoto(c) {
     const d = $('hr-dlg'), P = window.HumidorPhotos; if (!d || !c) return;
     const seq = ++photoSeq, box = $('hr-dlg-img'), near = P && P.NEAR[c.size];
@@ -302,7 +320,7 @@
     mount(main) {
       main.innerHTML = document.getElementById('hr-tpl').innerHTML;
       root = main.querySelector('#hr');
-      if (window.HumidorChart) chart = window.HumidorChart.mount($('hr-chart'), { sizes: sizes(), onPick: openPhoto });
+      if (window.HumidorChart) chart = window.HumidorChart.mount($('hr-chart'), { sizes: sizes(), onPick: openPhoto, onBand: openBand });
       wire(); wirePhoto();
       const m = /step=(\d)/.exec(location.hash);
       if (m) prefill(+m[1]); else render();

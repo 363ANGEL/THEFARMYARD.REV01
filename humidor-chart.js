@@ -197,8 +197,11 @@
     view.addEventListener('pointerup', endDrag); view.addEventListener('pointercancel', endDrag);
     // A size (Sizes or Burn panel) also hands its row to opt.onPick: the photo window (plan 39).
     const pick = g => { const sz = g && g.dataset.size, row = sz && sizes.find(c => c.size === sz); if (row && opt.onPick) opt.onPick(row); };
-    track.addEventListener('click', e => { if (swallow) return; const g = itemOf(e.target), id = g ? g.dataset.id : null; S.pin = id && S.pin !== id ? id : null; setOn(S.pin); pick(g); });
-    track.addEventListener('keydown', e => { const g = itemOf(e.target); if (!g || (e.key !== 'Enter' && e.key !== ' ')) return; e.preventDefault(); S.pin = S.pin === g.dataset.id ? null : g.dataset.id; setOn(S.pin || g.dataset.id); pick(g); });
+    const pickBand = g => { const id = g && g.dataset.id; if (!id || id.indexOf('burn:') !== 0 || !opt.onBand) return;   // a time band opens its sizes (RAY, 24 Nov)
+      const B = BANDS.find(b => 'burn:' + b[0] === id); if (!B) return;
+      opt.onBand({ name: B[0], lo: B[2], hi: B[3], rows: sizes.filter(c => c.mins > B[2] && c.mins <= B[3]).sort((x, y) => x.len - y.len || x.ring - y.ring) }); };
+    track.addEventListener('click', e => { if (swallow) return; const g = itemOf(e.target), id = g ? g.dataset.id : null; S.pin = id && S.pin !== id ? id : null; setOn(S.pin); pick(g); pickBand(g); });
+    track.addEventListener('keydown', e => { const g = itemOf(e.target); if (!g || (e.key !== 'Enter' && e.key !== ' ')) return; e.preventDefault(); S.pin = S.pin === g.dataset.id ? null : g.dataset.id; setOn(S.pin || g.dataset.id); pick(g); pickBand(g); });
     root.querySelector('.hc-dots').addEventListener('click', e => { const d = e.target.closest('.hc-dot'); if (!d) return; stopOv(); go(+d.dataset.p); armIdle(); });
 
     root.classList.toggle('rm', RM());
