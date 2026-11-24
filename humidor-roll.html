@@ -154,11 +154,11 @@
 .hc-it.on .hc-t{fill:var(--neon-pink-text)}
 .hc-it.on{filter:drop-shadow(0 0 3px var(--neon-pink-tube))}
 .hc-p.hov .hc-it:not(.on){opacity:.4}
-.hc-bar{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;padding-bottom:20px}   /* air between the dots and the answers (RAY, 24 Nov) */
+.hc-bar{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;padding-bottom:10px;margin-bottom:14px;border-bottom:1px solid var(--rule-teal)}   /* air between the dots and the answers (RAY, 24 Nov) */
 .hc-detail{position:absolute;left:12px;right:12px;top:26px;z-index:1;pointer-events:none;min-height:1.4em;font-size:var(--fs-sm);color:var(--fy-text-secondary);text-align:left;overflow-wrap:anywhere}   /* tagline under the panel title (RAY, 24 Nov) */
 .hc-dots{flex:none;display:flex}
 .hc-dot{all:unset;box-sizing:border-box;width:40px;height:32px;display:grid;place-items:center;cursor:pointer}
-.hc-dot::after{content:"";width:14px;height:14px;box-sizing:border-box;border-radius:50%;border:2px solid rgba(95,211,207,.5)}
+.hc-dot::after{content:"";width:26px;height:8px;box-sizing:border-box;border-radius:2px;border:2px solid rgba(95,211,207,.5)}
 .hc-dot.cur::after{background:var(--neon-pink-tube);border-color:var(--neon-pink-tube);box-shadow:var(--glow-pink)}
 .hc-dot:focus-visible{outline:2px solid var(--color-accent);outline-offset:-2px}
 .hc.rm .hc-track,.hc.rm .hc-z,.hc.rm .hc-it,.hc.rm .hc-ln{transition:none}
