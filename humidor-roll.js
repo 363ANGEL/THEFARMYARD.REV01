@@ -149,6 +149,10 @@
     gap.querySelector('.hr-canvas').hidden = landing; $('hr-notes').hidden = landing; $('hr-chart').hidden = !landing;
     if (chart) chart.show(landing);
     drawNotes(q.key === 'flavour' ? fShow : [], flav);
+    // Strength step (plan 40): what each lit floor does, in the Filler slide's words. Hover previews, click commits.
+    { const HS = window.HumidorStrength, sn = $('hr-strnote'), lit = HS && q.key === 'strength' ? HS.LIT[window.__cigarSpec.plant || ''] : null;
+      if (mob ? sn.parentNode === gap : sn.parentNode !== gap) { if (mob) gap.after(sn); else gap.insertBefore(sn, $('hr-spec')); }   // phones: under the stage, in flow, clear of the plant
+      sn.hidden = !lit; put(sn, lit ? lit.map(k => { const f = HS.FLOORS.find(x => x.key === k); return `<p><b style="color:${f.text}">${esc(f.key)}</b> · ${esc(f.does)}</p>`; }).join('') : ''); }
     const spec = [];
     if (sz) spec.push(String(sz[0]).replace('.2', '⅛').replace('.6', '⅝') + '" × ' + sz[1] + ' ring');
     if (answers.shape && !/^Any/.test(answers.shape)) spec.push(answers.shape.toLowerCase());
@@ -163,12 +167,14 @@
     if (step === 3) {
       key.style.alignSelf = twoCol ? 'start' : 'center'; key.style.height = twoCol ? '0px' : 'auto';   // in the grid the key floats over the cigar's top-left
       const stages = (wideShort ? ['Start', 'Middle', 'End'] : ['First third', 'Middle', 'Last third']).map((l, i) => ({ l, col: i === S.stage ? 'var(--fy-text)' : 'var(--fy-text-label)', bg: i === S.stage ? 'var(--neon-teal)' : 'rgba(95,211,207,.2)' }));
-      const swW = wideShort ? '10px' : '20px', sw = (rgb, l) => `<span class="hr-sw"><span style="width:${swW};background:${rgb};box-shadow:0 0 6px ${rgb}"></span><span style="color:var(--fy-text-secondary)">${l}</span></span>`;
+      // symbolic draw scales (RAY, 24 Nov): n trail lines fanning from a point on the left, ±s px at the open end
+      const fan = (n, s) => `<svg class="hr-fan" viewBox="0 0 18 12" width="18" height="12" aria-hidden="true">${Array.from({ length: n }, (_, i) => `<line x1="1" y1="6" x2="17" y2="${(6 + (n === 1 ? 0 : -s + 2 * s * i / (n - 1))).toFixed(2)}"/>`).join('')}</svg>`;
+      const swW = wideShort ? '10px' : '20px', sw =(rgb, l) => `<span class="hr-sw"><span style="width:${swW};background:${rgb};box-shadow:0 0 6px ${rgb}"></span><span style="color:var(--fy-text-secondary)">${l}</span></span>`;
       put(key, `<div role="group" aria-label="Draw lines key" class="hr-keybox" style="flex-direction:${wideShort ? 'column' : 'row'};padding:${wideShort ? '6px 8px' : '6px 10px'}">
         <span class="hr-cap" style="display:${wideShort ? 'none' : 'block'}">Draw lines</span>
         <span style="display:flex;gap:6px">${stages.map(g => `<span style="display:flex;flex-direction:column;gap:3px"><span style="height:3px;border-radius:2px;background:${g.bg}"></span><span style="font-size:var(--fs-xs);white-space:nowrap;color:${g.col}">${g.l}</span></span>`).join('')}</span>
         <span style="display:flex;flex-wrap:wrap;justify-content:flex-start;gap:${wideShort ? '4px 8px' : '4px 14px'}">${sw('rgb(64,224,128)', 'Cool')}${sw('rgb(255,217,74)', 'Warm')}${sw('rgb(255,8,13)', 'Hot')}</span>
-        <span style="display:grid;grid-template-columns:${wideShort ? 'auto' : 'auto auto'};gap:3px 14px"><span>Few Lines = Light Draw</span><span>Many Lines = Full Draw</span><span>Narrow = Tight Draw</span><span>Wide = Open Draw</span></span>
+        <span class="hr-kscale"><span>${fan(2, 3)}LIGHT ⟷ FULL${fan(6, 5)}</span><span>${fan(4, 0.8)}TIGHT ⟷ OPEN${fan(4, 5.5)}</span></span>
       </div>`);
     }
 
@@ -301,7 +307,14 @@
     optBox.addEventListener('mouseout', e => { const a = optOf(e.target), b = optOf(e.relatedTarget); if (a && a !== b) hoverTo(b ? b.o.v : null); });
     optBox.addEventListener('focusin', e => { const x = optOf(e.target); if (x) hoverTo(x.o.v); });
     optBox.addEventListener('focusout', e => { if (!optOf(e.relatedTarget)) hoverTo(null); });
-    optBox.addEventListener('click', e => { const x = optOf(e.target); if (x && !x.dis && S.step < 7) pick(qs()[Math.min(S.step, 6)], x.o.v, Math.min(S.step, 6)); });
+    // A greyed-out answer explains itself instead of doing nothing (RAY, 24 Nov): a small bubble above it for ~2s,
+    // gone on the next click. Enter on the button fires the same click. The bubble is an aria-live region.
+    const disTip = $('hr-distip'); let disT = 0;
+    const hideDis = () => { clearTimeout(disT); disTip.classList.remove('on'); };
+    document.addEventListener('click', hideDis, true);   // capture: any next click clears it before a new one shows
+    const showDis = btn => { disTip.textContent = 'Outside your current preferences'; disTip.classList.add('on'); const r = btn.getBoundingClientRect(), w = disTip.offsetWidth;
+      disTip.style.left = Math.max(w / 2 + 6, Math.min(innerWidth - w / 2 - 6, r.left + r.width / 2)) + 'px'; disTip.style.top = (r.top - 6) + 'px'; disT = setTimeout(hideDis, 2000); };
+    optBox.addEventListener('click', e => { const x = optOf(e.target); if (x && x.dis) { showDis(e.target.closest('.hr-opt')); return; } if (x && S.step < 7) pick(qs()[Math.min(S.step, 6)], x.o.v, Math.min(S.step, 6)); });
     $('hr-rail').addEventListener('click', e => { const b = e.target.closest('.hr-rstep'); if (!b) return; const i = +b.dataset.i; if (i <= reach) set({ step: i, hover: null }); });
     $('hr-back').addEventListener('click', () => set(s => ({ step: Math.max(0, s.step - 1), hover: null })));
     $('hr-next').addEventListener('click', () => { if (!nextOff) set(s => ({ step: s.step + 1, hover: null })); });

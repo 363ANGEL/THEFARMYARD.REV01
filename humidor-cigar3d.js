@@ -18,6 +18,16 @@
   const Z = { hR: 0, hIn: 0, hL: 0, tip: 0, k: 0, footT: 0, flat: 0 };
   const SH = { Parejo: { hR: 0.7 }, Belicoso: { hIn: 0.9, tip: 0.5, k: 0.8 }, Torpedo: { hIn: 1.6, tip: 0.42, k: 0.9 }, Pyramid: { hL: 0.8, tip: 0.42, k: 1 }, Perfecto: { hIn: 1.5, tip: 0.5, k: 0.5, footT: 1 }, Chisel: { hIn: 1.5, tip: 1, k: 1, flat: 1 } };
   const M = 64, TAU = Math.PI * 2;
+  // Strength step (plan 40, RAY 24 Nov): the plant's four floors, top to bottom, in the Filler slide's colours and
+  // its exact wording (humidor-chart.js pFiller). LIT = the two floors that make each strength. humidor-roll.js
+  // reads this for the note under the stage.
+  const FLOORS = [
+    { key: 'Ligero', hex: 0xe8263a, css: '#e8263a', text: 'var(--neon-red-text)', at: 'Top of the plant · most sun', does: 'Thick, oily, slow-burning. The punch. A little goes in the middle of the filler.' },
+    { key: 'Viso', hex: 0xa7a1db, css: '#a7a1db', text: '#cfcbee', at: 'Upper middle', does: 'Flavour and some strength. The bit that makes it taste of something.' },
+    { key: 'Seco', hex: 0x3fe07f, css: '#3fe07f', text: 'var(--neon-green-text)', at: 'Lower middle · shade', does: 'Mild, aromatic, burns easily. Most of a mild cigar is seco.' },
+    { key: 'Volado', hex: 0xe4ecf0, css: '#e4ecf0', text: '#e4ecf0', at: 'Bottom · least sun', does: 'Barely any strength. It is there to make the thing burn.' }];
+  const LIT = { Mild: ['Seco', 'Volado'], Medium: ['Viso', 'Seco'], Full: ['Ligero', 'Viso'] };
+  window.HumidorStrength = { FLOORS, LIT };
   // flat 2D silhouette of a shape (same maths as the 3D profile, wedge side for Chisel) → SVG path, head on the left
   window.HumidorCigarProfile = (shape, W, H) => { const c0 = Object.assign({}, Z, SH[shape] || SH.Parejo), L = 6, R = 0.45, h = Math.min(c0.hR * R + c0.hIn + c0.hL * L, L * 0.86), c = c0.tip * R * 0.5 * (1 - c0.flat * 0.75), N = 60, pts = [];
     for (let i = 0; i <= N; i++) { const d = i / N * L; let rr; if (d >= h) rr = 1; else if (d < c) { const q = d / c; rr = c0.tip * Math.sqrt(Math.max(0, 1 - (1 - q) * (1 - q))); } else { const q = (d - c) / Math.max(h - c, 1e-4), dome = Math.sqrt(Math.max(0, 1 - (1 - q) * (1 - q))); rr = c0.tip + (1 - c0.tip) * (dome * (1 - c0.k) + q * c0.k); }
@@ -90,6 +100,13 @@
       const ribMat = new T.MeshStandardMaterial({ color: 0x8a5a32, roughness: 0.74, metalness: 0, map: leafTex, bumpMap: leafTex, bumpScale: 0.6, side: T.DoubleSide });
       const ribbon = new T.Mesh(ribGeo, ribMat); ribbon.frustumCulled = false; ribbon.visible = false;
       const binder = new T.Mesh(mkStrip(NB), binderMat); binder.frustumCulled = false; binder.visible = false; root.add(binder); root.add(ribbon);
+      // strength step (plan 40): the binder turns to a translucent teal shell, and inside it the filler shows as four
+      // leaf bunches, Ligero at the core out to Volado. Each outer bunch stops short, so from head to foot the open
+      // part reads Volado · Seco · Viso · Ligero, like a stripped cable.
+      const glassMat = new T.MeshStandardMaterial({ color: 0x5fd3cf, emissive: 0x5fd3cf, emissiveIntensity: 0.25, roughness: 0.4, metalness: 0, transparent: true, opacity: 0, depthWrite: false, side: T.DoubleSide });
+      const bunches = FLOORS.map((f, i) => { const col = new T.Color(f.hex), m = new T.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0, roughness: 0.8, metalness: 0, map: leafTex, transparent: true, opacity: 0 });
+        const g = new T.CylinderGeometry(1, 1, 1, 40, 1, false); g.rotateZ(-Math.PI / 2); const me = new T.Mesh(g, m); me.visible = false; me.renderOrder = 1; root.add(me);
+        return { key: f.key, m, me, frac: [0.3, 0.52, 0.74, 0.94][i], k: 0.55, mid: 0 }; });
       const footMat = new T.MeshStandardMaterial({ color: 0x8a8580, map: ashTex, roughness: 1, emissive: 0xff5a1a, emissiveMap: ashTex, emissiveIntensity: 0 });
       const foot = new T.Mesh(new T.CircleGeometry(1, 48), footMat); foot.rotation.y = Math.PI / 2; root.add(foot);
       const ember = new T.PointLight(0xff7a2a, 0, 2.2); root.add(ember);
@@ -115,23 +132,27 @@
       const puffs = []; for (let i = 0; i < 46; i++) { const s = new T.Sprite(new T.SpriteMaterial({ map: smokeTex, transparent: true, opacity: 0, depthWrite: false, color: 0xcfd3e5 })); s.userData = { life: Math.random(), speed: 0.25 + Math.random() * 0.35, drift: (Math.random() - 0.5) * 0.8, ph: Math.random() * 6 }; scene.add(s); puffs.push(s); }
       const draws = []; for (let i = 0; i < 20; i++) { const s = new T.Sprite(new T.SpriteMaterial({ map: smokeTex, transparent: true, opacity: 0, depthWrite: false, color: 0xeef7f7 })); s.userData = { life: Math.random(), speed: 0.7 + Math.random() * 0.5 }; scene.add(s); draws.push(s); }
 
-      // tobacco plant behind the cigar (strength step): Ligero top · Seco middle · Volado bottom
+      // tobacco plant behind the cigar (strength step): four floors, Ligero top · Viso · Seco · Volado bottom (plan 40)
       const plant = new T.Group(); plant.position.set(-1.2, -0.1, -3); plant.scale.setScalar(0.85); plant.visible = false; scene.add(plant);
-      const PT = [['Full', [2.3, 2.75], 1.25, 0.32], ['Medium', [0.85, 1.4], 1.95, 0.5], ['Mild', [-0.75, -0.2], 2.6, 0.66]];
+      const PT = [['Ligero', [2.55, 2.95], 1.15, 0.3], ['Viso', [1.6, 2.05], 1.6, 0.42], ['Seco', [0.55, 1.05], 2.1, 0.55], ['Volado', [-0.6, -0.1], 2.6, 0.66]];
       const stalkM = new T.LineBasicMaterial({ color: 0x5fd3cf, transparent: true, opacity: 0 });
       plant.add(new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(0, -1.9, 0), new T.Vector3(0, 3.5, 0)]), stalkM));
       const labels = new T.Group(); scene.add(labels);
-      const tiers = PT.map(([key, ys, l, w], ti) => { const fillM = new T.MeshBasicMaterial({ color: 0x5fd3cf, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending }), edgeM = new T.LineBasicMaterial({ color: 0x5fd3cf, transparent: true, opacity: 0 });
+      const tiers = PT.map(([key, ys, l, w], ti) => { const fc = new T.Color(FLOORS[ti].hex), fillM = new T.MeshBasicMaterial({ color: fc, transparent: true, opacity: 0, side: T.DoubleSide, depthWrite: false, blending: T.AdditiveBlending }), edgeM = new T.LineBasicMaterial({ color: fc, transparent: true, opacity: 0 });
         let n = 0; ys.forEach(y => [0, 1].forEach(sd => { const N = 24, top = [], bot = [], rib = [], P = [];
-          for (let i = 0; i <= N; i++) { const u = i / N, hw = w * Math.pow(Math.sin(Math.PI * Math.min(1, u * 1.08)), 0.75) * (1 - 0.35 * u), x = u * l, yy = u * l * (0.55 - ti * 0.18) - u * u * l * 0.45;
+          for (let i = 0; i <= N; i++) { const u = i / N, hw = w * Math.pow(Math.sin(Math.PI * Math.min(1, u * 1.08)), 0.75) * (1 - 0.35 * u), x = u * l, yy = u * l * (0.55 - ti * 0.14) - u * u * l * 0.45;
             top.push(new T.Vector3(x, yy, hw)); bot.push(new T.Vector3(x, yy, -hw)); rib.push(new T.Vector3(x, yy + 0.01, 0)); P.push(x, yy, hw, x, yy, -hw); }
           const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(P, 3)); const ix = []; for (let i = 0; i < N; i++) { const a = i * 2; ix.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); } g.setIndex(ix);
           const leafG = new T.Group(); leafG.add(new T.Mesh(g, fillM)); leafG.add(new T.Line(new T.BufferGeometry().setFromPoints(top.concat(bot.slice().reverse())), edgeM)); leafG.add(new T.Line(new T.BufferGeometry().setFromPoints(rib), edgeM));
           leafG.position.y = y; leafG.rotation.y = (n++ * 2.4 + ti * 0.9) + sd * Math.PI; plant.add(leafG); }));
-        const lc = document.createElement('canvas'); lc.width = 512; lc.height = 128; const lx = lc.getContext('2d'), name = ['LIGERO', 'SECO', 'VOLADO'][ti], sub = ['Top · full', 'Middle · medium', 'Bottom · mild'][ti];
-        const drawL = col => { lx.clearRect(0, 0, 512, 128); lx.textBaseline = 'middle'; lx.shadowColor = col; lx.shadowBlur = 14; lx.fillStyle = col; lx.font = '500 50px Inter, sans-serif'; lx.fillText(name, 8, 40); lx.shadowBlur = 0; lx.fillStyle = '#e4e8f0'; lx.font = '500 40px Inter, sans-serif'; lx.fillText(sub, 8, 96); lt.needsUpdate = true; };
-        const lt = new T.CanvasTexture(lc); lt.colorSpace = T.SRGBColorSpace; const lm = new T.SpriteMaterial({ map: lt, transparent: true, opacity: 0, depthWrite: false, depthTest: false }), lab = new T.Sprite(lm); lab.scale.set(4.2, 1.05, 1); lab.center.set(0, 0.5); lab.position.set(0, (ys[0] + ys[1]) / 2 + 0.2, 0); labels.add(lab); drawL('#bdf3f0');
-        return { key, fillM, edgeM, lm, drawL, lit: false }; });
+        const lc = document.createElement('canvas'); lc.width = 512; lc.height = 128; const lx = lc.getContext('2d'), name = FLOORS[ti].key.toUpperCase(), sub = FLOORS[ti].at, col = FLOORS[ti].css;
+        // two lines, both in the floor's colour: the name, then where it sits on the plant. Lit floors glow.
+        const drawL = lit => { lx.clearRect(0, 0, 512, 128); lx.textBaseline = 'middle'; lx.fillStyle = col; lx.shadowColor = col; lx.shadowBlur = lit ? 14 : 0; lx.font = '500 50px Inter, sans-serif'; lx.fillText(name, 8, 40); lx.shadowBlur = 0;
+          let fs = 40; lx.font = '500 ' + fs + 'px Inter, sans-serif'; while (fs > 24 && lx.measureText(sub).width > 496) { fs -= 2; lx.font = '500 ' + fs + 'px Inter, sans-serif'; } lx.fillText(sub, 8, 96); lt.needsUpdate = true; };
+        const lt = new T.CanvasTexture(lc); lt.colorSpace = T.SRGBColorSpace; const lm = new T.SpriteMaterial({ map: lt, transparent: true, opacity: 0, depthWrite: false, depthTest: false }), lab = new T.Sprite(lm); lab.scale.set(4.2, 1.05, 1); lab.center.set(0, 0.5); lab.position.set(0, (ys[0] + ys[1]) / 2 + 0.2, 0); labels.add(lab); drawL(false);
+        // dashed link from the label to this floor's bunch in the cigar ("this leaf goes here")
+        const link = new T.Line(new T.BufferGeometry().setFromPoints([new T.Vector3(), new T.Vector3()]), new T.LineDashedMaterial({ color: fc, dashSize: 0.12, gapSize: 0.09, transparent: true, opacity: 0, depthTest: false, depthWrite: false })); link.renderOrder = 6; link.frustumCulled = false; link.visible = false; scene.add(link);
+        return { key, fillM, edgeM, lm, lab, link, drawL, lit: false, k: 0.55 }; });
       const NLN = 14, NPT = 30, flow = []; for (let i = 0; i < NLN; i++) { const g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(new Float32Array(NPT * 3), 3)); g.setAttribute('color', new T.BufferAttribute(new Float32Array(NPT * 3), 3)); const l = new T.Points(g, new T.PointsMaterial({ size: 7 * Math.min(devicePixelRatio, 2), sizeAttenuation: false, map: smokeTex, vertexColors: true, transparent: true, blending: T.NormalBlending, depthWrite: false })); l.frustumCulled = false; l.visible = false; scene.add(l); flow.push(l); /* normal blending keeps the key's colours (RAY, 24 Nov) */ }
       // Thirds as dimension lines on the model (RAY, 24 Nov): foot to head, the current third lit.
       const dimG = new T.Group(); dimG.visible = false; scene.add(dimG);
@@ -212,15 +233,23 @@
         this._raf = requestAnimationFrame(loop); fit();
         const nowT = performance.now(), dt = Math.min((nowT - last) / 1000, 0.05), t = (nowT - t0) / 1000; last = nowT; const e = 1 - Math.exp(-dt * 5);
         for (const k in cur) cur[k] += (tgt[k] - cur[k]) * e;
+        if (still) cur.peel = tgt.peel;   /* reduced motion: no peel animation, the end state at once (plan 40) */
         leaf.color.lerp(leaf.userData.target, e); camFit(cur.tilt); mixU.value.lerp(mixT, e); mixOn.value = cur.mix; plant.position.x = -1.2 * (1 - cur.mix) + 0.9 * cur.mix; /* strength step: plant sits further from the cigar (RAY, 24 Nov) */
-        binder.visible = ribbon.visible = cur.peel > 0.01; peelU.value.x = cur.peel > 0.005 ? cur.len / 2 + 0.4 - cur.peel * (cur.len * (0.55 + 0.25 * cur.mix) + 0.4) : 1e3;
+        binder.visible = ribbon.visible = cur.peel > 0.01; { const gl = cur.mix > 0.5; binder.material = gl ? glassMat : binderMat; binder.renderOrder = gl ? 2 : 0; glassMat.opacity = 0.22 * cur.mix; } peelU.value.x = cur.peel > 0.005 ? cur.len / 2 + 0.4 - cur.peel * (cur.len * (0.55 + 0.25 * cur.mix) + 0.4) : 1e3;
         if (ribbon.visible) { ribMat.color.copy(leaf.color); const X = peelU.value.x, p = peelU.value.y, P = ribGeo.attributes.position.array, cl = cur.peel;
-          for (let i = 0; i <= RU; i++) { const u = i / RU, a = Math.PI + u * 2.4 * Math.PI, xc = X + (a / TAU) * p, lift = 1.015 + cl * 1.5 * Math.pow(u, 1.6), sway = still ? 0 : Math.sin(t * 1.3 + u * 3) * 0.04 * u;
+          for (let i = 0; i <= RU; i++) { const u = i / RU, a = Math.PI + u * 2.4 * Math.PI, xc = X + (a / TAU) * p, lift = 1.015 + cl * (1.5 + 1.3 * cur.mix) * Math.pow(u, 1.6), sway = still ? 0 : Math.sin(t * 1.3 + u * 3) * 0.04 * u;
             for (let k = 0; k < 2; k++) { const x = xc + (k ? 0.5 : -0.5) * p * (1 - 0.35 * u) + u * u * 0.5 * cl, d = Math.max(0, Math.min(cur.len, x + cur.len / 2)), pr = prof(d), o = (i * 2 + k) * 3;
               P[o] = x; P[o + 1] = Math.cos(a) * pr[0] * lift + sway; P[o + 2] = Math.sin(a) * pr[1] * lift; } }
           ribGeo.attributes.position.needsUpdate = true; ribGeo.computeVertexNormals(); }
         rebuild();
         const L = cur.len;
+        // filler bunches (strength step): each runs from just past the head's taper to its own stop in the open part
+        { const pv = sp.plant || '', ls = LIT[pv], on = cur.mix > 0.01 && cur.peel > 0.01;
+          if (on) { const d0 = headLen() + 0.08, xs = -L / 2 + d0, X0 = Math.min(L / 2 - 0.2, Math.max(peelU.value.x, xs + 0.2)), E = L / 2 - X0;
+            bunches.forEach((b, i) => { const xe = i === 0 ? L / 2 - 0.01 : X0 + E * (4 - i) / 4, pe = prof(Math.min(L, xe + L / 2)), ps = prof(d0), rad = b.frac * 0.95 * Math.min(ps[0], ps[1], pe[0], pe[1]);
+              b.mid = X0 + E * (3.5 - i) / 4; b.me.visible = xe > xs + 0.02; b.me.scale.set(Math.max(xe - xs, 0.01), rad, rad); b.me.position.x = (xs + xe) / 2;
+              const kt = ls ? (ls.includes(b.key) ? 1 : 0.25) : 0.55; b.k += (kt - b.k) * Math.min(1, dt * 8); b.m.opacity = b.k * cur.mix; b.m.depthWrite = b.m.opacity > 0.95; b.m.emissiveIntensity = Math.max(0, b.k - 0.25) * 0.7; });
+          } else bunches.forEach(b => { b.me.visible = false; }); }
         if (cur.burn > 0.02) { const bp = still ? 0.5 : Math.min(((nowT - burnT0) / 1000 % (burnDur * (sp.lines ? BURN_SLOW / 2 : BURN_SLOW) + 2.5)) / (burnDur * (sp.lines ? BURN_SLOW / 2 : BURN_SLOW)), 1), smokeTo = Math.max(L - (Math.min(cur.hR * cur.r + cur.hIn + 0.3 + cur.hL * L * 0.4 + cur.bandW / 2, L - 0.7 - cur.bandW / 2) + cur.bandW / 2 + 0.15), L * 0.3), bl = Math.max(bp * smokeTo, 0.02), al2 = Math.min(0.6, bl), bd = []; bpCur = bp; for (let i = 0; i < 8; i++) bd.push(L - bl + al2 * i / 7); fill(ash.geometry, bd, 1.012, true); const fp = prof(L - bl); front.scale.set(1, fp[0] * 1.02, fp[1] * 1.02); front.position.x = L / 2 - bl; footX = L / 2 - bl + al2; clipX = L / 2 - bl + 0.01; } else { footX = L / 2; clipX = 1e3; }
         foot.position.x = footX + 0.002; ember.position.x = footX + 0.25; { const fq = prof(Math.min(L, footX + L / 2)); foot.scale.set(fq[1] * 0.99, fq[0] * 0.99, 1); }
         ash.visible = front.visible = cur.burn > 0.02; { const bq = bpCur, dR = sp.drawR || [4, 3], hR = sp.heatR || [2, 4], sm = (a, b, x) => { x = Math.max(0, Math.min(1, (x - a) / (b - a))); return x * x * (3 - 2 * x); }; let vol = dR[0] + (dR[1] - dR[0]) * bq, heat = hR[0] + (hR[1] - hR[0]) * bq;
@@ -261,9 +290,14 @@
               const pq = (ts * (0.35 + angNow * 0.4) + i * 0.23) % 1, dq = Math.min(Math.abs(q - pq), 1 - Math.abs(q - pq)), hl = Math.exp(-dq * dq / 0.003) * al * 1.8, fd = Math.pow(Math.sin(Math.PI * q), 0.7) * al * 1.9; C[j * 3] = cr * fd + hl; C[j * 3 + 1] = cg * fd + hl; C[j * 3 + 2] = cb * fd + hl; }
             l.geometry.attributes.position.needsUpdate = l.geometry.attributes.color.needsUpdate = true; });
         } else flow.forEach(l => { l.visible = false; });
-        plant.visible = cur.plant > 0.01; if (plant.visible) { if (!still) plant.rotation.y += dt * 0.25; const pv = sp.plant || '', any = !pv || /^No /.test(pv), pc = new T.Color(0xe0157f), tc = new T.Color(0x5fd3cf);
-          stalkM.opacity = 0.5 * cur.plant; tiers.forEach(tr => { const on = tr.key === pv, k = (on ? 1 : any ? 0.55 : 0.22) * cur.plant; tr.edgeM.color.lerp(on ? pc : tc, Math.min(1, dt * 8)); tr.fillM.color.copy(tr.edgeM.color); tr.edgeM.opacity = 0.9 * k; tr.fillM.opacity = 0.26 * k; tr.lm.opacity = Math.min(1, k * 1.6); if (tr.lit !== on) { tr.lit = on; tr.drawL(on ? '#ffc4e1' : '#bdf3f0'); } });
-          labels.visible = true; labels.position.set(plant.position.x + (1.6 - 0.1 * cur.mix) * plant.scale.x, plant.position.y, plant.position.z); labels.scale.setScalar(plant.scale.x); } else labels.visible = false;
+        plant.visible = cur.plant > 0.01; if (plant.visible) { if (!still) plant.rotation.y += dt * 0.25; const ls = LIT[sp.plant || ''];   // nothing picked or No preference: all four at medium brightness
+          stalkM.opacity = 0.5 * cur.plant; labels.visible = true; labels.position.set(plant.position.x + (1.6 - 0.1 * cur.mix) * plant.scale.x, plant.position.y, plant.position.z); labels.scale.setScalar(plant.scale.x); labels.updateMatrixWorld();
+          tiers.forEach((tr, ti) => { const on = !!ls && ls.includes(tr.key), kt = on ? 1 : ls ? 0.25 : 0.55; tr.k += (kt - tr.k) * Math.min(1, dt * 8); const k = tr.k * cur.plant;
+            tr.edgeM.opacity = k; tr.fillM.opacity = 0.3 * k; tr.lm.opacity = Math.min(1, 0.15 + k) * cur.plant; if (tr.lit !== on) { tr.lit = on; tr.drawL(on); }
+            const ln = tr.link, lo = on ? 0.9 * cur.plant * cur.mix : 0; ln.visible = lo > 0.02 && bunches[ti].me.visible;
+            if (ln.visible) { const P = ln.geometry.attributes.position.array; tmp.copy(tr.lab.position).applyMatrix4(labels.matrixWorld); P[0] = tmp.x - 0.08; P[1] = tmp.y; P[2] = tmp.z; tmp.set(bunches[ti].mid, 0, 0).applyMatrix4(root.matrixWorld); P[3] = tmp.x; P[4] = tmp.y; P[5] = tmp.z;
+              ln.geometry.attributes.position.needsUpdate = true; ln.geometry.computeBoundingSphere(); ln.computeLineDistances(); ln.material.opacity = lo; } });
+        } else { labels.visible = false; tiers.forEach(tr => { tr.link.visible = false; }); }
         renderer.render(scene, cam);
       };
       loop();

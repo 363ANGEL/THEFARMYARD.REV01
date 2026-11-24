@@ -73,6 +73,12 @@
 #hr-notes{position:absolute;inset:0;pointer-events:none;z-index:1}
 .hr-note{position:absolute;transform:translate(-50%,-50%);font-size:var(--fs-h3);font-weight:500;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;color:var(--hint-text);text-shadow:0 0 6px var(--neon-teal);opacity:.7}
 .hr-note.on{color:var(--neon-pink-text);text-shadow:var(--text-glow-pink);opacity:1}
+/* Strength step (plan 40): what the lit floors do, under the stage, in the .hc-tip look without the glow. */
+#hr-strnote{position:absolute;right:0;bottom:0;z-index:2;width:min(320px,42%);box-sizing:border-box;pointer-events:none;padding:6px 10px;background:var(--fy-bg);border:1px solid var(--neon-teal);border-radius:var(--radius-module,10px);text-align:left}
+#hr-strnote p{margin:0;font-size:var(--fs-xs);line-height:1.4;color:var(--neon-teal)}
+#hr-strnote p+p{margin-top:4px}
+#hr-strnote b{font-weight:500}
+.hroll.mob #hr-strnote{position:static;width:auto;align-self:stretch;margin:6px 0 0}   /* phones: below the stage, not over it */
 #hr-spec{position:absolute;left:0;right:0;bottom:0;font-size:var(--fs-sm);color:var(--fy-text-label);font-variant-numeric:tabular-nums}
 /* Landing step only (plan 38 CORRECTION): the cigar knowledge chart, humidor-chart.js. Six neon line-art
    panels on one track that auto-scrolls, pauses under the pointer, swipes on touch. An item lights pink
@@ -196,6 +202,13 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 #hr-key{grid-column:1;grid-row:1;justify-self:start;position:relative;z-index:2;flex-shrink:0}
 .hr-keybox{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 18px;font-size:var(--fs-sm);color:var(--fy-text-label);text-align:left;width:max-content;max-width:100%;box-sizing:border-box;margin:6px 0;border:.5px solid color-mix(in srgb,var(--neon-teal) 60%,transparent);border-radius:var(--radius-module);box-shadow:none;background:rgba(22,24,38,.7)}   /* thin, no glow (RAY, 24 Nov) */
 .hr-keybox,.hr-keybox *{font-size:calc(var(--fs-fine) * .85) !important}
+.hr-kscale{display:grid;gap:3px}   /* symbolic draw scales, always two rows (RAY, 24 Nov) */
+.hr-kscale > span{display:flex;align-items:center;gap:5px;white-space:nowrap;letter-spacing:.06em}
+.hr-fan{flex:none;width:18px;height:12px;overflow:visible}
+.hr-fan line{stroke:var(--neon-teal);stroke-width:1;stroke-linecap:round}
+/* greyed-out answer, clicked: "Outside your current preferences" (RAY, 24 Nov). The .hc-tip look, no glow. */
+#hr-distip{position:fixed;left:0;top:0;z-index:30;transform:translate(-50%,-100%);pointer-events:none;white-space:nowrap;padding:4px 9px;font-size:var(--fs-xs);color:var(--neon-teal);background:var(--fy-bg);border:1px solid var(--neon-teal);border-radius:var(--radius-module,10px);opacity:0;visibility:hidden;transition:opacity .15s}
+#hr-distip.on{opacity:1;visibility:visible}
 .hr-keybox > span:nth-child(2){display:none !important}   /* thirds now drawn on the 3D cigar (RAY, 24 Nov) */   /* smaller key text (RAY, 24 Nov) */
 .hr-sw{display:inline-flex;align-items:center;gap:4px}
 .hr-sw>span:first-child{height:2px;border-radius:1px}
@@ -297,6 +310,8 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
           <div class="hr-canvas" data-cigar-pad="150"><cigar-3d></cigar-3d></div>
           <div id="hr-notes" aria-hidden="true"></div>
           <div id="hr-chart" hidden></div>
+          <div id="hr-strnote" hidden></div>
+          <div id="hr-distip" role="status" aria-live="polite"></div>
           <div id="hr-spec"></div>
         </div>
         <div id="hr-key" hidden></div>
@@ -326,7 +341,7 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261125h"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261125c"></script><script src="humidor-roll.js?v=20261125h"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261125i"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261125c"></script><script src="humidor-roll.js?v=20261125j"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */
