@@ -337,7 +337,7 @@
     mount(main) {
       main.innerHTML = document.getElementById('hr-tpl').innerHTML;
       root = main.querySelector('#hr');
-      if (window.HumidorChart) chart = window.HumidorChart.mount($('hr-chart'), { sizes: sizes(), onPick: openPhoto, onBand: openBand });
+      if (window.HumidorChart) chart = window.HumidorChart.mount($('hr-chart'), { sizes: sizes(), onPick: openPhoto, onBand: openBand, tag: false, titleX: 0 });   // landing: no tagline, title flush left under the sign (RAY, 24 Nov)
       if (window.HumidorChart && $('hr-wheel')) wheel = window.HumidorChart.mount($('hr-wheel'), { sizes: sizes(), only: 4, onNote: w => { const c = noteCat(w); if (c && S.step === 6) pick(qs()[6], c, 6); } });   // the overview's flavour wheel beside the cigar on the flavour step (RAY, 24 Nov)
       wire(); wirePhoto();
       const m = /step=(\d)/.exec(location.hash);
