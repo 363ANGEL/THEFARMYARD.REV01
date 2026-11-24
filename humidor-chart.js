@@ -99,7 +99,7 @@
           { nz: true, cls: 'sh-' + nm.toLowerCase(), hit: `<rect class="hc-hit" x="${f(cx - cellW / 2)}" y="${f(cy - cellH * 0.42)}" width="${f(cellW)}" height="${f(cellH)}"/>` }); }).join('');
     }
     function pWrapper(W, H) {   // a wheel (RAY, 24 Nov): inner ring Light / Medium / Dark, outer ring the seven wrapper shades
-      const cx = W / 2, R2 = Math.max(40, Math.min(W / 2 - pad, (H - top - 10) / 2)), cy = top + 4 + R2, R = R2 * 0.66, r0 = R2 * 0.18, r1 = R2 * 0.38, n = WRAPS.length, step = 2 * Math.PI / n, A0 = -Math.PI / 2;
+      const cx = W / 2, R2 = Math.max(40, Math.min(W / 2 - pad, (H - 8) / 2)), cy = 4 + R2,   /* the wheel is centred, so it can use the full height beside the title (RAY, 24 Nov) */ R = R2 * 0.66, r0 = R2 * 0.18, r1 = R2 * 0.38, n = WRAPS.length, step = 2 * Math.PI / n, A0 = -Math.PI / 2;
       const pt = (r, a) => f(cx + r * Math.cos(a)) + ' ' + f(cy + r * Math.sin(a));
       const wedge = (ri, ro, a0, a1) => { const big = a1 - a0 > Math.PI ? 1 : 0; return `M${pt(ri, a0)}L${pt(ro, a0)}A${f(ro)} ${f(ro)} 0 ${big} 1 ${pt(ro, a1)}L${pt(ri, a1)}A${f(ri)} ${f(ri)} 0 ${big} 0 ${pt(ri, a0)}Z`; };
       // Each label is sized to fit its own cell (RAY, 24 Nov): long along the cell, thin across it.
