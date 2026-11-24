@@ -37,7 +37,7 @@
     { t: 'Burn time', cap: 'Every size by how long it lasts.' },
     { t: 'Filler', cap: 'One plant, four floors. The higher the leaf, the more sun it got and the harder it hits. Roll over a leaf.' },
     { t: 'Wrapper', cap: 'The outside leaf, from light to dark.' },
-    { t: 'Anatomy', cap: 'The parts of a cigar, and the flavours you may find.' }
+    { t: 'Anatomy', cap: 'The parts of a cigar, how it is measured, and how the head is cut.' }
   ];
   const SHAPES = [['Parejo', 'straight sides and a rounded head'], ['Belicoso', 'a short taper at the head'], ['Torpedo', 'a long pointed head'], ['Pyramid', 'narrows all the way from foot to head'], ['Perfecto', 'tapered at both ends, fat in the middle'], ['Chisel', 'a flattened wedge at the head']];
   const SHMAP = { parejo: 'Parejo', belicoso: 'Belicoso', torpedo: 'Torpedo', pyramid: 'Pyramid', perfecto: 'Perfecto', chisel: 'Chisel', culebra: 'Parejo' };
@@ -151,7 +151,7 @@
       return out;
     }
     function pAnatomy(W, H) {
-      const len = Math.min(W - pad * 2 - 24, 560), x0 = (W - len) / 2, t = Math.max(12, Math.min((H - top) * 0.18, len * 0.14, 46)), cy = top + (H - top) * 0.4;
+      const len = Math.min(W - pad * 2 - 70, 560), x0 = Math.max(pad + 12, (W - len) / 2 - 20), t = Math.max(12, Math.min((H - top) * 0.18, len * 0.14, 46)), cy = top + (H - top) * 0.3;
       const up1 = cy - t / 2 - 14, up2 = cy - t / 2 - 30, dn = cy + t / 2 + 24;
       const call = (x, y0, y1, ty, s, anchor) => `<path class="hc-ln hc-thin" d="M${f(x)} ${f(y0)}V${f(y1)}"/>` + txt(x, ty, s, 'hc-t hc-tb', anchor);
       let out = `<g transform="translate(${f(x0)} ${f(cy - t / 2)})"><path class="hc-ln" d="${profile('Parejo', len, t)}"/></g>`;
@@ -161,9 +161,24 @@
       out += item('part:band', PARTS.band, `<rect class="hc-ln hc-occ" x="${f(x0 + len * 0.16)}" y="${f(cy - t / 2 - 2)}" width="${f(len * 0.07)}" height="${f(t + 4)}" rx="2"/><path class="hc-ln hc-thin" d="M${f(x0 + len * 0.17)} ${f(cy)}H${f(x0 + len * 0.22)}"/>` + call(x0 + len * 0.195, cy - t / 2 - 2, up2 + 4, up2, 'Band', 'middle'));
       out += item('part:body', PARTS.body, `<path class="hc-ln hc-thin" d="M${f(x0 + len * 0.3)} ${f(cy + t / 2 + 6)}H${f(x0 + len * 0.9)}"/>` + call(x0 + len * 0.6, cy + t / 2 + 6, dn - 12, dn, 'Body', 'middle'));
       out += item('part:foot', PARTS.foot, `<ellipse class="hc-ln" cx="${f(x0 + len - 1)}" cy="${f(cy)}" rx="${f(t * 0.16)}" ry="${f(t / 2 - 1)}"/>` + call(x0 + len - 1, cy - t / 2, up1 + 4, up1, 'Foot', 'end'));
-      const per = W >= 520 ? 6 : 3, pw = 64, ph = 20, g = 6, rowW = per * pw + (per - 1) * g, tx0 = Math.max(pad, Math.min(x0 + len - rowW, W - pad - rowW)), ty0 = dn + 16;
-      out += FLAVS.map(([nm, d], i) => { const x = tx0 + (i % per) * (pw + g), y = ty0 + Math.floor(i / per) * (ph + 6);
-        return item('flav:' + nm, nm + ' · ' + d, `<rect class="hc-ln" x="${f(x)}" y="${f(y)}" width="${pw}" height="${ph}" rx="10"/>` + txt(x + pw / 2, y + ph / 2, nm, 'hc-t', 'middle', ' dominant-baseline="middle"')); }).join('');
+      // Measurements and cuts (RAY, 24 Nov), in place of the flavour tags.
+      const rx = x0 + len + 16, ly = dn + 20;
+      out += item('dim:ring', 'Ring gauge · the thickness, in 64ths of an inch. A 50 ring is 50/64″, about 20 mm across. Wider draws looser and cooler',
+        `<path class="hc-ln hc-thin" d="M${f(rx)} ${f(cy - t / 2)}V${f(cy + t / 2)}M${f(rx - 4)} ${f(cy - t / 2)}h8M${f(rx - 4)} ${f(cy + t / 2)}h8"/>` + `<text class="hc-t hc-tb" text-anchor="middle" transform="translate(${f(rx + 14)} ${f(cy)}) rotate(90)">Ring gauge</text>`,
+        { nz: true, hit: `<rect class="hc-hit" x="${f(rx - 8)}" y="${f(cy - t / 2 - 30)}" width="34" height="${f(t + 60)}"/>` });
+      out += item('dim:length', 'Length · measured in inches, head to foot. Most sit between 4″ and 7½″. Longer means a longer smoke',
+        `<path class="hc-ln hc-thin" d="M${f(x0)} ${f(ly)}H${f(x0 + len)}M${f(x0)} ${f(ly - 4)}v8M${f(x0 + len)} ${f(ly - 4)}v8"/>` + txt(x0 + len / 2, ly + 14, 'Length', 'hc-t hc-tb', 'middle'),
+        { nz: true, hit: `<rect class="hc-hit" x="${f(x0)}" y="${f(ly - 8)}" width="${f(len)}" height="28"/>` });
+      const CUTS = [
+        ['Straight cut', 'the whole cap comes off with a guillotine. The most open draw; suits any shape', r0 => `<circle class="hc-ln" cx="0" cy="0" r="${f(r0 * 0.72)}"/>`],
+        ['V-cut', 'a wedge notched across the cap. A focused draw that keeps the head together', r0 => `<path class="hc-ln" d="M${f(-r0 * 0.8)} 0Q0 ${f(-r0 * 0.5)} ${f(r0 * 0.8)} 0Q0 ${f(r0 * 0.5)} ${f(-r0 * 0.8)} 0Z"/>`],
+        ['Punch', 'a small round hole in the cap. A tighter draw; not for pointed heads', r0 => `<circle class="hc-ln" cx="0" cy="0" r="${f(r0 * 0.32)}"/>`]
+      ];
+      const cyq = ly + 34, avail = H - cyq - 26, cr = Math.max(9, Math.min(20, avail / 2)), cyc = cyq + cr + 4, cell = Math.min(150, (W - pad * 2) / 3), cx0 = W / 2 - cell;
+      out += txt(pad, cyq - 6, 'CUTS · HOW THE HEAD IS OPENED', 'hc-title');
+      out += CUTS.map(([nm, d, draw], i) => { const cx = cx0 + cell * i;
+        return item('cut:' + nm, nm + ' · ' + d, `<g transform="translate(${f(cx)} ${f(cyc)})"><circle class="hc-ln hc-thin" cx="0" cy="0" r="${f(cr)}"/>${draw(cr)}</g>` + txt(cx, cyc + cr + 14, nm, 'hc-t hc-tb', 'middle'),
+          { hit: `<rect class="hc-hit" x="${f(cx - cell / 2)}" y="${f(cyc - cr - 4)}" width="${f(cell)}" height="${f(cr * 2 + 24)}"/>` }); }).join('');
       return out;
     }
     function pBurn(W, H) {
