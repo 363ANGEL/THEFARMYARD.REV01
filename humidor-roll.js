@@ -115,10 +115,9 @@
     window.__cigarSpec = { vertical: q.key === 'strength', plant: q.key === 'strength' ? ((hv && hv.step === step ? hv.v : answers.strength) || '') : null, unwrap: q.key === 'wrapper', progress: (Q.slice(1, 6).filter(x => answers[x.key]).length + (flav.length ? 1 : 0)) / 6, flavour: fShow, profile: q.key === 'shape', preview: !!pv, lines: step === 3, heatR: tt ? tt.heat : null, drawR: tt ? tt.draw : null, burn: step === 2 && A.time ? ({ 'Half an hour': 2.2, 'About an hour': 3.6, 'An hour and a half': 5.5, 'All night': 8 }[A.time] || 0) : step === 3 && so ? 5 : 0, draw: 0, focus: 0, len: szP && szP[0], ring: szP && szP[1], budget: A.budget ? Q[1].options.findIndex(o => o.v === A.budget) : -1, shape: A.shape || '', wrapper: np(A.wrapper), strength: np(A.strength), spin: true, smoke: true };
     const firstOpen = Q.findIndex((x, i) => i < 6 && !answers[x.key]); reach = firstOpen === -1 ? 7 : firstOpen;
 
-    // Header: round label and pips
-    const roundCur = step >= 8 ? 1 : 0;
-    $('hr-round').textContent = mob ? '' : H.ROUND[roundCur];
-    put($('hr-pips'), H.ROUND.map((l, i) => `<span style="${css({ background: i === roundCur ? 'var(--neon-pink-tube)' : i < roundCur ? 'var(--neon-teal)' : 'rgba(95,211,207,.2)', 'box-shadow': i === roundCur ? 'var(--glow-pink)' : 'none' })}"></span>`).join(''));
+    // Header: step progress (RAY, 24 Nov): short, and it moves with the steps. 7 questions, then last look and done.
+    $('hr-round').textContent = mob ? '' : step >= 8 ? 'Done' : step === 7 ? 'Last look' : (step + 1) + ' of 7';
+    put($('hr-pips'), [0, 1, 2, 3, 4, 5, 6].map(i => `<span style="${css({ background: i === step ? 'var(--neon-pink-tube)' : i < step ? 'var(--neon-teal)' : 'rgba(95,211,207,.2)', 'box-shadow': i === step ? 'var(--glow-pink)' : 'none' })}"></span>`).join(''));
 
     // Question block
     $('hr-inner').style.display = twoCol ? 'grid' : 'flex';

@@ -35,8 +35,8 @@
 .hr-sign{grid-column:1;grid-row:1;justify-self:start;font-size:.9375rem;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--hint-text);text-shadow:0 0 6px var(--neon-teal),0 0 14px rgba(95,211,207,.45);white-space:nowrap}
 .hr-headr{display:flex;align-items:center;justify-content:flex-end;gap:10px}
 #hr-round{font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label);white-space:nowrap}
-#hr-pips{display:flex;gap:4px}
-#hr-pips span{width:18px;height:3px;border-radius:2px}
+#hr-pips{display:flex;gap:3px}
+#hr-pips span{width:8px;height:3px;border-radius:2px}
 
 .hr-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;text-align:center;padding:clamp(8px,2vh,24px) clamp(16px,4vw,56px) 0}
 .hr-inner{flex:1;min-height:0;width:100%;box-sizing:border-box;padding-bottom:12px;grid-template-columns:minmax(0,1fr) minmax(0,2.2fr);grid-template-rows:auto auto minmax(0,1fr);column-gap:24px;flex-direction:column;align-items:center}
@@ -159,7 +159,7 @@
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-roll.js?v=20261124b"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-roll.js?v=20261124c"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */
