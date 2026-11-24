@@ -347,7 +347,7 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 .phdr-img.has{border-style:solid;border-color:var(--neon-teal);background-size:cover;background-position:center}
 /* Page header picture (RAY, 23 Nov): only on pages that have one uploaded; Barn.pageHeader inserts it after the heading. */
 .fy-pagehdr{flex:none;width:100%;box-sizing:border-box;border:1px solid var(--neon-teal);border-radius:10px;box-shadow:var(--glow-teal);overflow:hidden;background:var(--fy-bg)}
-.fy-pagehdr img{display:block;width:100%;height:auto;max-height:min(28rem,45vh);object-fit:cover}   /* scales with the page; crops only past the cap (RAY, 24 Nov) */
+.fy-pagehdr img{display:block;width:100%;height:auto;max-height:min(28rem,45vh);object-fit:cover;object-position:top center}   /* scales with the page; crops only past the cap (RAY, 24 Nov) */
 
 /* The IOU coin artwork (RAY's own art, real transparency, so it sits on any background and needs no
    blending). Four files in assets/: iou.coin.pink (neutral, watermark), .green (credit / won),
