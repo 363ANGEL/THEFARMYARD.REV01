@@ -193,7 +193,8 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 .hc.rm .hc-track,.hc.rm .hc-z,.hc.rm .hc-it,.hc.rm .hc-ln{transition:none}
 #hr-key{grid-column:1;grid-row:1;justify-self:start;position:relative;z-index:2;flex-shrink:0}
 .hr-keybox{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 18px;font-size:var(--fs-sm);color:var(--fy-text-label);text-align:left;width:max-content;max-width:100%;box-sizing:border-box;margin:6px 0;border:.5px solid color-mix(in srgb,var(--neon-teal) 60%,transparent);border-radius:var(--radius-module);box-shadow:none;background:rgba(22,24,38,.7)}   /* thin, no glow (RAY, 24 Nov) */
-.hr-keybox,.hr-keybox *{font-size:calc(var(--fs-fine) * .85) !important}   /* smaller key text (RAY, 24 Nov) */
+.hr-keybox,.hr-keybox *{font-size:calc(var(--fs-fine) * .85) !important}
+.hr-keybox > span:nth-child(2){display:none}   /* thirds now drawn on the 3D cigar (RAY, 24 Nov) */   /* smaller key text (RAY, 24 Nov) */
 .hr-sw{display:inline-flex;align-items:center;gap:4px}
 .hr-sw>span:first-child{height:2px;border-radius:1px}
 
@@ -226,7 +227,8 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 .hroll.s0 .hr-opt:nth-child(4) .hr-emb{--gc:var(--neon-red-tube);animation-delay:3.6s}
 .hroll.s0 .hr-opt.sel .hr-emb{animation:none}
 .hr-opt:hover .hr-emb,.hr-opt:focus-visible .hr-emb{animation:none;opacity:1 !important;filter:drop-shadow(0 0 5px var(--gc,var(--neon-teal))) drop-shadow(0 0 10px var(--gc,var(--neon-teal)))}   /* lights up on mouse-over (RAY, 24 Nov) */
-.hroll.s0 .hr-emb{zoom:1.25}   /* landing-step level icons 25% bigger (RAY, 24 Nov) */
+.hroll.s0 .hr-emb{zoom:1.25}
+.hroll:not(.s0) .hr-emb{zoom:.6}   /* level icons 40% smaller on the question steps (RAY, 24 Nov) */   /* landing-step level icons 25% bigger (RAY, 24 Nov) */
 .hr-emb{flex:none;box-sizing:border-box;border-radius:50%;display:flex;align-items:flex-end;justify-content:center;gap:2px}
 .hr-sil{display:block;overflow:visible}
 .hr-sil path{fill:transparent;stroke:var(--sc,var(--neon-teal))}
@@ -321,7 +323,7 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261125c"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261125c"></script><script src="humidor-roll.js?v=20261124s"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261125d"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261125c"></script><script src="humidor-roll.js?v=20261124s"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */
