@@ -42,6 +42,16 @@
   const SHAPES = [['Parejo', 'straight sides and a rounded head'], ['Belicoso', 'a short taper at the head'], ['Torpedo', 'a long pointed head'], ['Pyramid', 'narrows all the way from foot to head'], ['Perfecto', 'tapered at both ends, fat in the middle'], ['Chisel', 'a flattened wedge at the head']];
   const SHMAP = { parejo: 'Parejo', belicoso: 'Belicoso', torpedo: 'Torpedo', pyramid: 'Pyramid', perfecto: 'Perfecto', chisel: 'Chisel', culebra: 'Parejo' };
   // Seven shades. The five leaf tones are humidor-cigar3d.js's TONE; Candela and Colorado Claro are added stops.
+  // Flavours each wrapper shade is commonly known for (RAY, 24 Nov). General guidance for the club to check.
+  const WFLAV = {
+    'Double Claro (Candela)': ['Grass', 'Green tea', 'Hay'],
+    'Claro': ['Cream', 'Cedar', 'Almond'],
+    'Colorado Claro': ['Nuts', 'Toast', 'Honey'],
+    'Colorado': ['Cedar', 'Leather', 'Spice'],
+    'Colorado Maduro': ['Cocoa', 'Coffee', 'Dried fruit'],
+    'Maduro': ['Dark chocolate', 'Molasses', 'Espresso'],
+    'Oscuro': ['Black pepper', 'Earth', 'Charcoal']
+  };
   const WRAPS = [['Double Claro (Candela)', '#7f8f4e', 'Light', 'green, picked early and dried fast'], ['Claro', '#d8b07a', 'Light', 'pale tan'], ['Colorado Claro', '#c4965f', 'Light', 'light reddish tan'],
     ['Colorado', '#b07c48', 'Medium', 'reddish brown'], ['Colorado Maduro', '#7a4c2a', 'Medium', 'dark reddish brown'], ['Maduro', '#4a2c18', 'Dark', 'dark brown, aged longer'], ['Oscuro', '#2c1a10', 'Dark', 'near black, aged longest']];
   const LEAVES = [['Ligero', 'top', 'full', 'the top leaves get the most sun: thick, oily, the strongest'], ['Seco', 'middle', 'medium', 'the middle leaves: lighter, carry most of the aroma'], ['Volado', 'bottom', 'mild', 'the bottom leaves: thin and mild, they help it burn']];
@@ -89,19 +99,24 @@
           { nz: true, cls: 'sh-' + nm.toLowerCase(), hit: `<rect class="hc-hit" x="${f(cx - cellW / 2)}" y="${f(cy - cellH * 0.42)}" width="${f(cellW)}" height="${f(cellH)}"/>` }); }).join('');
     }
     function pWrapper(W, H) {   // a wheel (RAY, 24 Nov): inner ring Light / Medium / Dark, outer ring the seven wrapper shades
-      const cx = W / 2, R = Math.max(40, Math.min(W / 2 - pad, (H - top - 10) / 2)), cy = top + 4 + R, r0 = R * 0.3, r1 = R * 0.58, n = WRAPS.length, step = 2 * Math.PI / n, A0 = -Math.PI / 2;
+      const cx = W / 2, R2 = Math.max(40, Math.min(W / 2 - pad, (H - top - 10) / 2)), cy = top + 4 + R2, R = R2 * 0.66, r0 = R2 * 0.18, r1 = R2 * 0.38, n = WRAPS.length, step = 2 * Math.PI / n, A0 = -Math.PI / 2;
       const pt = (r, a) => f(cx + r * Math.cos(a)) + ' ' + f(cy + r * Math.sin(a));
       const wedge = (ri, ro, a0, a1) => { const big = a1 - a0 > Math.PI ? 1 : 0; return `M${pt(ri, a0)}L${pt(ro, a0)}A${f(ro)} ${f(ro)} 0 ${big} 1 ${pt(ro, a1)}L${pt(ri, a1)}A${f(ri)} ${f(ri)} 0 ${big} 0 ${pt(ri, a0)}Z`; };
       const lab = (r, a, s, cls) => { let deg = a * 180 / Math.PI; const flip = Math.cos(a) < 0; if (flip) deg += 180;
         return `<text class="${cls}" text-anchor="middle" dominant-baseline="middle" transform="translate(${pt(r, a)}) rotate(${f(deg)})">${esc(s)}</text>`; };
-      const push = a => `--dx:${f(Math.cos(a) * R * 0.06)}px;--dy:${f(Math.sin(a) * R * 0.06)}px`;
-      const fine = R < 150 ? ' hc-tf' : '';
+      const push = a => `--dx:${f(Math.cos(a) * R2 * 0.04)}px;--dy:${f(Math.sin(a) * R2 * 0.04)}px`;
+      const radial = (r, a, s2, cls) => { let deg = a * 180 / Math.PI; if (Math.cos(a) < 0) deg += 180; return `<text class="${cls}" text-anchor="middle" dominant-baseline="middle" transform="translate(${pt(r, a)}) rotate(${f(deg)})">${esc(s2)}</text>`; };
+      const fine = R < 110 ? ' hc-tf' : '';
       let k = 0;
       const groups = ['Light', 'Medium', 'Dark'].map(g => { const ix = WRAPS.map((w, i) => w[2] === g ? i : -1).filter(i => i >= 0), a0 = A0 + step * ix[0], a1 = A0 + step * (ix[ix.length - 1] + 1), am = (a0 + a1) / 2;
         return item('wgrp:' + g, g + ' leaf · ' + ix.map(i => WRAPS[i][0]).join(', '), `<path class="hc-ln hc-band" d="${wedge(r0, r1, a0, a1)}"/>` + lab((r0 + r1) / 2, am, g.toUpperCase(), 'hc-t hc-tb' + fine), { cls: 'wedge', style: push(am) }); }).join('');
       const shades = WRAPS.map(([nm, hex, g, d], i) => { const a0 = A0 + step * i, a1 = a0 + step, am = (a0 + a1) / 2, short = nm.replace(' (Candela)', '');
         return item('wrap:' + i, nm + ' · ' + d + ' · in our ' + g.toLowerCase() + ' answer', `<path class="hc-sw" d="${wedge(r1, R, a0, a1)}" fill="${hex}"/>` + lab((r1 + R) / 2, am, short, 'hc-t hc-wl' + fine), { cls: 'wedge', style: push(am) }); }).join('');
-      return groups + shades + `<circle class="hc-ln" cx="${f(cx)}" cy="${f(cy)}" r="${f(r0)}"/>` + txt(cx, cy, 'LEAF', 'hc-title', 'middle', ' dominant-baseline="middle"');
+      // Outer ring (RAY, 24 Nov): the flavours each shade is known for, like a flavour wheel. General guidance, not a promise.
+      const notes = WRAPS.map(([nm, hex], i) => { const list = WFLAV[nm] || [], a0 = A0 + step * i, sub = step / Math.max(1, list.length);
+        return list.map((fl, k) => { const b0 = a0 + sub * k, b1 = b0 + sub, bm = (b0 + b1) / 2;
+          return item('wflav:' + i + ':' + k, nm + ' · ' + fl, `<path class="hc-sw hc-fl" d="${wedge(R, R2, b0, b1)}" fill="${hex}"/>` + radial((R + R2) / 2, bm, fl, 'hc-t hc-fll' + (R2 - R < 70 ? ' hc-tf' : '')), { cls: 'wedge', style: push(bm) }); }).join(''); }).join('');
+      return groups + shades + notes + `<circle class="hc-ln" cx="${f(cx)}" cy="${f(cy)}" r="${f(r0)}"/>` + txt(cx, cy, 'LEAF', 'hc-title', 'middle', ' dominant-baseline="middle"');
     }
     function pFiller(W, H) {
       const lw = Math.min(W * 0.55, Math.max(W * 0.45, 190)), sx = pad + lw * 0.3, pt = top + 8, pb = H - 10, span = pb - pt;

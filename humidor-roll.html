@@ -123,6 +123,9 @@
 /* Wrapper wheel (RAY, 24 Nov): a lit wedge slides outward instead of zooming; labels readable on dark leaf */
 .hc-it.wedge.on .hc-z{transform:translate(var(--dx),var(--dy))}
 .hc-wl{fill:var(--fy-text);paint-order:stroke;stroke:rgba(0,0,0,.55);stroke-width:3px;stroke-linejoin:round}
+.hc-fl{fill-opacity:.35}   /* flavour ring: the shade's colour, lighter (RAY, 24 Nov) */
+.hc-fll{fill:var(--fy-text-secondary);paint-order:stroke;stroke:rgba(0,0,0,.5);stroke-width:3px;stroke-linejoin:round}
+.hc-it.on .hc-fll{fill:var(--neon-pink-text)}
 .hc-it.wedge.on .hc-band{fill:rgba(224,21,127,.12)}
 /* Shape colour groups, DS colours (RAY, 24 Nov): one colour per shape in Sizes, Shapes, Burn and the key */
 .sh-parejo .hc-ln,.hc-leg.sh-parejo{stroke:var(--neon-teal);fill:var(--neon-teal)}
@@ -253,7 +256,7 @@
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261119b"></script><script src="barn.js?v=20261123c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261124v"></script><script src="humidor-roll.js?v=20261124s"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261124a"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261124w"></script><script src="humidor-roll.js?v=20261124s"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */
