@@ -28,7 +28,7 @@
     'Knowledgeable': { budget: ['Up to £30', 'No ceiling'], time: ['An hour and a half', 'All night'], shape: ['Torpedo', 'Pyramid', 'Perfecto', 'Chisel'], strength: ['Full'], wrapper: ['Dark'] }
   };
   const TONES = [['var(--neon-green-tube)', 'rgba(63,224,127,.6)'], ['var(--neon-green)', 'rgba(10,158,67,.6)'],   // Beginner light green, Fairly new darker green (RAY, 24 Nov)
-    ['var(--medal-silver)', 'var(--medal-silver-glow)'], ['var(--medal-gold)', 'var(--medal-gold-glow)']];
+    ['var(--neon-amber)', 'rgba(255,154,31,.6)'], ['var(--neon-red-tube)', 'rgba(232,38,58,.6)']];   // Some experience amber, Knowledgeable red (RAY, 24 Nov)
   const NOTE_POS = { Creamy: [14, 18], Nutty: [70, 10], Woody: [84, 46], Spicy: [8, 58], Sweet: [56, 80], Earthy: [24, 86] };
 
   let _sz, _qs, small = false;
