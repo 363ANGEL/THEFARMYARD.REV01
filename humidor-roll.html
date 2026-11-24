@@ -101,7 +101,7 @@
 .hc-track.drag{transition:none}
 .hc-p{position:relative;flex:0 0 calc(100% / 6);height:100%}
 .hc-svg{display:block;width:100%;height:100%;overflow:visible}
-.hc-title{fill:var(--neon-teal);font-size:var(--fs-xs);letter-spacing:.08em}
+.hc-title{fill:var(--fy-text);font-size:var(--fs-sm);letter-spacing:.08em}   /* slide titles whiter and a size up (RAY, 24 Nov) */
 /* Shape tooltip (RAY, 24 Nov): side-on cigar with dimension lines, and the three thirds */
 .hc-tip{position:absolute;left:50%;top:48px;transform:translateX(-50%);width:min(440px,94%);box-sizing:border-box;z-index:2;pointer-events:none;padding:10px 14px 12px;background:var(--fy-bg);border:1px solid var(--neon-teal);border-radius:var(--radius-module,10px);box-shadow:var(--glow-teal);text-align:left}
 .hc-tip[hidden]{display:none}
@@ -157,7 +157,7 @@
 .hc-it.on .hc-t{fill:var(--neon-pink-text)}
 .hc-it.on{filter:drop-shadow(0 0 3px var(--neon-pink-tube))}
 .hc-p.hov .hc-it:not(.on){opacity:.4}
-.hc-bar{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;padding-bottom:10px;margin-bottom:14px;border-bottom:1px solid var(--rule-teal)}   /* air between the dots and the answers (RAY, 24 Nov) */
+.hc-bar{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;padding-bottom:10px;margin-bottom:30px;border-bottom:1px solid var(--rule-teal)}   /* air between the dots and the answers (RAY, 24 Nov) */
 .hc-detail{position:absolute;left:12px;right:12px;top:26px;z-index:1;pointer-events:none;min-height:1.4em;font-size:var(--fs-sm);color:var(--fy-text-secondary);text-align:left;overflow-wrap:anywhere}   /* tagline under the panel title (RAY, 24 Nov) */
 .hc-dots{flex:none;display:flex}
 .hc-dot{all:unset;box-sizing:border-box;width:40px;height:32px;display:grid;place-items:center;cursor:pointer}
