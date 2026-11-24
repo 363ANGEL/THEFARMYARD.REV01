@@ -148,7 +148,7 @@
     // Landing step only: the knowledge chart stands in for the cigar (plan 38 CORRECTION, RAY 24 Nov). The
     // cigar is hidden, not torn down, so its three.js scene is ready when step 1 opens.
     const landing = step === 0;
-    gap.style.minHeight = landing ? (twoCol ? '400px' : mob ? '340px' : '380px') : twoCol ? '0px' : step === 2 || step === 3 ? '150px' : '60px';
+    gap.style.minHeight = landing ? (twoCol ? '400px' : mob ? '340px' : '380px') : twoCol ? '0px' : step >= 1 && step <= 6 ? (mob ? '260px' : '340px') : '60px';   // every question step gets the same stage size (RAY, 24 Nov)
     gap.querySelector('.hr-canvas').hidden = landing; $('hr-notes').hidden = landing; $('hr-chart').hidden = !landing;
     if (chart) chart.show(landing);
     { const fl = S.step === 6, w = $('hr-wheel'); if (w) w.hidden = !fl; if (wheel) { wheel.show(fl); if (fl) wheel.mark(FLAV_WHEEL.flatMap(([k, v]) => (S.flav || []).includes(k) ? v : [])); } }
