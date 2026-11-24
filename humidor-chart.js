@@ -65,9 +65,9 @@
     opt = opt || {};
     const sizes = (opt.sizes || []).slice().sort((a, b) => a.len - b.len || a.ring - b.ring);
     const RM = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-    el.innerHTML = `<div class="hc"><div class="hc-view"><div class="hc-track">${PANELS.map((p, i) => `<div class="hc-p" data-p="${i}"><svg class="hc-svg" role="group" aria-label="${esc(p.t)}"></svg></div>`).join('')}</div><div class="hc-detail" aria-live="polite"></div><div class="hc-tip" hidden></div></div>
+    el.innerHTML = `<div class="hc"><div class="hc-view"><div class="hc-track">${PANELS.map((p, i) => `<div class="hc-p" data-p="${i}"><svg class="hc-svg" role="group" aria-label="${esc(p.t)}"></svg><div class="hc-detail" aria-live="polite">${esc(p.cap)}</div></div>`).join('')}</div><div class="hc-tip" hidden></div></div>
       <div class="hc-bar"><div class="hc-dots">${PANELS.map((p, i) => `<button type="button" class="hc-dot" data-p="${i}" aria-label="${esc(p.t)}"></button>`).join('')}</div></div></div>`;
-    const root = el.firstElementChild, tipEl = root.querySelector('.hc-tip'), view = root.querySelector('.hc-view'), track = root.querySelector('.hc-track'), detail = root.querySelector('.hc-detail');
+    const root = el.firstElementChild, tipEl = root.querySelector('.hc-tip'), view = root.querySelector('.hc-view'), track = root.querySelector('.hc-track'), details = [...root.querySelectorAll('.hc-detail')], setDetail = () => details.forEach((d, k) => { d.textContent = k === cur && S.on && FACTS[S.on] ? FACTS[S.on] : PANELS[k].cap; });   // each panel carries its own tagline, so it slides with the title
     const panels = [...root.querySelectorAll('.hc-p')], dots = [...root.querySelectorAll('.hc-dot')];
     const FACTS = {};
     const S = { on: null, pin: null };
@@ -229,7 +229,7 @@
     function apply() {
       root.querySelectorAll('.hc-it').forEach(g => g.classList.toggle('on', g.dataset.id === S.on));
       panels.forEach(p => p.classList.toggle('hov', !!p.querySelector('.hc-it.on')));
-      detail.textContent = S.on && FACTS[S.on] ? FACTS[S.on] : PANELS[cur].cap;
+      setDetail();
       if (S.on && S.on.indexOf('shape:') === 0) shapeTip(S.on.slice(6)); else tipEl.hidden = true;
     }
     function go(i, instant) {
@@ -240,7 +240,7 @@
       panels.forEach((p, k) => { p.setAttribute('aria-hidden', k === cur ? 'false' : 'true'); p.querySelectorAll('.hc-it').forEach(g => g.setAttribute('tabindex', k === cur ? '0' : '-1')); });
       dots.forEach((d, k) => { d.classList.toggle('cur', k === cur); d.setAttribute('aria-current', k === cur ? 'true' : 'false'); });
       if (S.on && !panels[cur].querySelector(`[data-id="${CSS.escape(S.on)}"]`)) { S.on = null; S.pin = null; apply(); }   // a lit item on another panel must not caption this one
-      if (!S.on) detail.textContent = PANELS[cur].cap;
+      if (!S.on) setDetail();
     }
     const setOn = id => { if (id === S.on) return; S.on = id; apply(); if (opt.onHover) opt.onHover(id); };
 
