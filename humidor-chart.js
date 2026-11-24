@@ -53,8 +53,8 @@
     opt = opt || {};
     const sizes = (opt.sizes || []).slice().sort((a, b) => a.len - b.len || a.ring - b.ring);
     const RM = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-    el.innerHTML = `<div class="hc"><div class="hc-view"><div class="hc-track">${PANELS.map((p, i) => `<div class="hc-p" data-p="${i}"><svg class="hc-svg" role="group" aria-label="${esc(p.t)}"></svg></div>`).join('')}</div></div>
-      <div class="hc-bar"><div class="hc-detail" aria-live="polite"></div><div class="hc-dots">${PANELS.map((p, i) => `<button type="button" class="hc-dot" data-p="${i}" aria-label="${esc(p.t)}"></button>`).join('')}</div></div></div>`;
+    el.innerHTML = `<div class="hc"><div class="hc-view"><div class="hc-track">${PANELS.map((p, i) => `<div class="hc-p" data-p="${i}"><svg class="hc-svg" role="group" aria-label="${esc(p.t)}"></svg></div>`).join('')}</div><div class="hc-detail" aria-live="polite"></div></div>
+      <div class="hc-bar"><div class="hc-dots">${PANELS.map((p, i) => `<button type="button" class="hc-dot" data-p="${i}" aria-label="${esc(p.t)}"></button>`).join('')}</div></div></div>`;
     const root = el.firstElementChild, view = root.querySelector('.hc-view'), track = root.querySelector('.hc-track'), detail = root.querySelector('.hc-detail');
     const panels = [...root.querySelectorAll('.hc-p')], dots = [...root.querySelectorAll('.hc-dot')];
     const FACTS = {};
@@ -65,7 +65,7 @@
     const item = (id, facts, inner, o) => { o = o || {}; FACTS[id] = facts;
       return `<g class="hc-it${o.nz ? ' nz' : ''}" data-id="${esc(id)}"${o.size ? ` data-size="${esc(o.size)}"` : ''} tabindex="-1" role="img" aria-label="${esc(facts)}">${o.hit || ''}<g class="hc-z">${inner}</g></g>`; };
     const txt = (x, y, s, cls, anchor, extra) => `<text class="${cls || 'hc-t'}" x="${f(x)}" y="${f(y)}"${anchor ? ` text-anchor="${anchor}"` : ''}${extra || ''}>${esc(s)}</text>`;
-    const pad = 12, top = 32;
+    const pad = 12, top = 32, TAG = 22;
     const upright = (c, cx, yb, s) => { const lp = c.len * s, rp = Math.max(1.5, c.ring / 64 * s);
       return `<g transform="translate(${f(cx + rp / 2)} ${f(yb - lp)}) rotate(90)"><path class="hc-ln" d="${profile(SHMAP[c.shape] || 'Parejo', lp, rp)}"/></g>`; };
     const sizeFacts = c => `${c.size} · ${frac(c.len)}″ × ${c.ring} · ${c.shape === 'culebra' ? 'Culebra' : SHMAP[c.shape] || c.shape} · about ${c.mins} min`;
@@ -142,7 +142,7 @@
       const W = Math.round(view.clientWidth), H = Math.round(view.clientHeight);
       if (W < 60 || H < 60 || (W === W0 && H === H0)) return; W0 = W; H0 = H;
       panels.forEach((p, i) => { const svg = p.firstElementChild; svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-        svg.innerHTML = txt(pad, 20, PANELS[i].t.toUpperCase(), 'hc-title') + DRAW[i](W, H); });
+        svg.innerHTML = txt(pad, 20, PANELS[i].t.toUpperCase(), 'hc-title') + `<g transform="translate(0 ${TAG})">` + DRAW[i](W, H - TAG) + '</g>'; });   // room under the title for the tagline (RAY, 24 Nov)
       apply(); go(cur, true);
     }
 
