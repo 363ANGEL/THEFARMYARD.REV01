@@ -41,13 +41,13 @@
 .hr-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;text-align:center;padding:clamp(8px,2vh,24px) clamp(16px,4vw,56px) 0}
 .hr-inner{flex:1;min-height:0;width:100%;box-sizing:border-box;padding-bottom:12px;grid-template-columns:minmax(0,1fr) minmax(0,2.2fr);grid-template-rows:auto auto minmax(0,1fr);column-gap:24px;flex-direction:column;align-items:center}
 
-.hr-q{grid-column:2;grid-row:1;justify-self:center;display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:820px;flex-shrink:0}
+.hr-q{grid-column:2;grid-row:1;justify-self:center;display:flex;flex-direction:column;align-items:flex-start;gap:12px;width:100%;max-width:820px;flex-shrink:0}
 #hr-hank:empty{display:none}
 #hr-kicker{display:none;width:100%;font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--fy-text-label)}
 #hr-headline{width:100%}
 .hr-h1{width:100%;margin:0;text-align:left;font-size:var(--fs-h1);line-height:var(--text-hero-lh);font-weight:500;letter-spacing:var(--text-hero-ls);text-wrap:balance;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink);animation:hcRise .5s ease-out both}   /* neon pink as the DS draws it: pink text plus the pink glow (RAY, 24 Nov) */
 .hroll.ws .hr-h1{font-size:var(--fs-h2)}
-#hr-tip{width:100%;max-width:720px;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:4px}
+#hr-tip{width:100%;max-width:720px;margin-top:-9px;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:3px}   /* sits under the title as its tagline (RAY, 25 Nov) */
 .hr-tiptitle{align-self:stretch;text-align:left;margin-bottom:-2px;font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--hint-text);min-height:14px}
 .hroll.s0 #hr-headline{display:none}   /* landing step: the question goes; "Overview" sits under THE HUMIDOR as its tagline (RAY, 24 Nov) */
 .hroll.s0 .hr-sign{text-align:left}
@@ -60,7 +60,7 @@
 .hr-s0q h2{margin:0;font-size:var(--fs-h3);font-weight:500;color:var(--neon-pink-text);text-shadow:var(--text-glow-pink)}
 .hr-s0q p{margin:3px 0 0;font-size:var(--fs-sm);color:color-mix(in srgb,var(--neon-teal) 60%,transparent)}
 .hroll.s0 #hr-tip{display:none}   /* no tip line or Hank's steer on the landing step (RAY, 24 Nov) */
-.hr-tiptext{align-self:stretch;text-align:left;margin:0;font-size:var(--fs-sm);line-height:1.5;text-wrap:pretty}
+.hr-tiptext{align-self:stretch;text-align:left;margin:0;font-size:var(--fs-sm);line-height:1.4;color:color-mix(in srgb,var(--neon-teal) 75%,transparent) !important;text-wrap:pretty}
 .hr-unsaved{margin:6px 0 0;font-size:var(--fs-sm);color:var(--fy-text-label)}
 .hr-meters{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 28px;margin-top:6px}
 .hr-meter{display:flex;align-items:center;gap:8px}
@@ -207,7 +207,7 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 .hc-bar{flex:none;display:flex;align-items:center;justify-content:center;gap:12px;padding-bottom:10px;margin-bottom:30px;border-bottom:1px solid var(--rule-teal)}   /* air between the dots and the answers (RAY, 24 Nov) */
 .hc.notag .hc-detail{display:none}   /* landing chart: tagline hidden; the tooltips still carry the facts (RAY, 24 Nov) */
 #hr-chart .hc-bar{margin-top:18px}   /* air between the Sizes key and the slide markers (RAY, 24 Nov) */
-.hroll.s0 .hr-body{padding-left:clamp(16px,3vw,32px);padding-right:clamp(16px,3vw,32px)}   /* landing: same side inset as the header, so the slide title lines up under THE HUMIDOR (RAY, 24 Nov) */
+.hroll .hr-body{padding-left:clamp(16px,3vw,32px);padding-right:clamp(16px,3vw,32px)}   /* landing: same side inset as the header, so the slide title lines up under THE HUMIDOR (RAY, 24 Nov) */
 .hc-detail{position:absolute;left:12px;right:12px;top:26px;z-index:1;pointer-events:none;min-height:1.4em;font-size:var(--fs-sm);color:var(--fy-text-secondary);text-align:left;overflow-wrap:anywhere}   /* tagline under the panel title (RAY, 24 Nov) */
 .hc-dots{flex:none;display:flex}
 .hc-dot{all:unset;box-sizing:border-box;width:40px;height:32px;display:grid;place-items:center;cursor:pointer}
