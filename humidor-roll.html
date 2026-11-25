@@ -87,7 +87,12 @@
 #hr-chart{position:absolute;left:0;right:0;top:0;bottom:1.6em;display:flex}
 .hroll.s0 #hr-chart{bottom:0}
 #hr-wheel .hc-p:not([data-p="4"]){visibility:hidden}   /* only the wheel panel, no neighbours peeking */
-.hroll[data-step="6"] .hr-canvas{left:min(37%,285px)}   /* cigar starts where the wheel ends: no overlap */   /* cigar moves right of the wheel */
+.hroll[data-step="6"] .hr-canvas{left:min(37%,285px)}
+@media (min-width:1100px){   /* full-width screens: the flavour wheel and NEXT 15% bigger than before (RAY, 25 Nov) */
+  #hr-wheel{min-width:305px}
+  .hroll[data-step="6"] .hr-canvas{left:max(min(37%,285px),330px)}
+  #hr-next{min-width:112px}
+}   /* cigar starts where the wheel ends: no overlap */   /* cigar moves right of the wheel */
 /* Flavour step: the overview's flavour wheel to the left of the cigar (RAY, 24 Nov) */
 #hr-wheel{position:absolute;left:0;top:10%;bottom:10%;width:min(34.5%,265px);z-index:1}   /* wheel 15% bigger than the last cut (RAY, 24 Nov) */
 #hr-wheel{container-type:inline-size}
