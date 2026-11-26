@@ -62,7 +62,7 @@
   /* Page headers card (RAY, 23 Nov): the five pages that can show a header picture, keyed by page id.
      Upload resizes to at most 1600px wide (JPEG .85), stores headers/<id>.jpg and records it with
      fy.admin_set_page_header; Remove clears the row first, then deletes the file (page-headers.sql). */
-  const HDR_PAGES = [['dashboard', 'Home'], ['poker', 'Poker'], ['humidor', 'Humidor'], ['wall', 'Yard wall'], ['profile', 'Profile']];
+  const HDR_PAGES = [['dashboard', 'Home'], ['poker', 'Poker'], ['humidor', 'Humidor'], ['humidor-roll', 'Humidor v2.0'], ['wall', 'Yard wall'], ['profile', 'Profile']];
   const HDR_BUCKET = 'headers';
   async function pageHeadersCard() {
     let rows = [];
