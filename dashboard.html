@@ -12,9 +12,10 @@
 <style>
 /* Yard neon sign: a dim unlit-tube base with each region's lit tubes stacked on top (lighten).
    Each region flickers on its own clock, like a real sign with tired transformers. */
-.yard-sign{position:relative;width:200px;aspect-ratio:1;margin:0 auto 4px;isolation:isolate;flex:none}
+.yard-sign{position:relative;width:218px;aspect-ratio:1;margin:0 auto 4px;isolation:isolate;flex:none}
 .yard-sign img{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:lighten;pointer-events:none;user-select:none}
 .yard-sign img.base{mix-blend-mode:normal}
+.yard-sign img.ring{filter:drop-shadow(0 0 2px #ff5ec8) drop-shadow(0 0 7px rgba(255,40,170,.85)) drop-shadow(0 0 16px rgba(224,21,127,.55))}
 .yard-sign .cap{animation:ysBuzz 7s 1.2s infinite}
 .yard-sign .fork{animation:ysDrop 11s 3s infinite}
 .yard-sign .ring{animation:ysBlink 13s 5s infinite}
@@ -25,7 +26,7 @@
 @keyframes ysDrop{0%,60%,79%,100%{opacity:1}61%{opacity:.08}62%{opacity:.8}63%{opacity:.05}75%{opacity:.05}76%{opacity:.7}77%{opacity:.15}78%{opacity:1}}
 @keyframes ysBlink{0%,70%,76%,100%{opacity:1}71%{opacity:.1}72%{opacity:1}73.5%{opacity:.15}74.5%{opacity:1}}
 @keyframes ysHum{0%,88%,93%,100%{opacity:1}89%{opacity:.55}90%{opacity:1}91.5%{opacity:.7}}
-@media (max-width:520px){.yard-sign{width:150px}}
+@media (max-width:520px){.yard-sign{width:164px}}
 @media (prefers-reduced-motion:reduce){.yard-sign img{animation:none!important}}
 </style>
 </head>
@@ -99,7 +100,7 @@
       </div></a>`).join('');
 
   const SIGN = '<div class="yard-sign" role="img" aria-label="The Farmyard neon sign">' +
-    ['base', 'body', 'ring', 'snout', 'overall', 'fork', 'cap'].map(n => `<img class="${n}" src="assets/yard-sign/${n}.webp?v=20261126a" alt="" decoding="async">`).join('') + '</div>';
+    ['base', 'body', 'ring', 'snout', 'overall', 'fork', 'cap'].map(n => `<img class="${n}" src="assets/yard-sign/${n}.webp?v=20261126b" alt="" decoding="async">`).join('') + '</div>';
   main.innerHTML = `${SIGN}
     <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
       <div class="fy-pagehead"><h2 class="t-title-b">The Yard</h2><span class="t-tagline">Home of The Farmyard. Everything on in the yard tonight starts here.</span></div>
