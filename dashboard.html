@@ -9,6 +9,25 @@
 <link rel="stylesheet" href="farmyard.css?v=20261125t">
 <link rel="stylesheet" href="barn.css?v=20261125t">
 <script src="fy-clucks.js?v=20261119b"></script>
+<style>
+/* Yard neon sign: a dim unlit-tube base with each region's lit tubes stacked on top (lighten).
+   Each region flickers on its own clock, like a real sign with tired transformers. */
+.yard-sign{position:relative;width:200px;aspect-ratio:1;margin:0 auto 4px;isolation:isolate;flex:none}
+.yard-sign img{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:lighten;pointer-events:none;user-select:none}
+.yard-sign img.base{mix-blend-mode:normal}
+.yard-sign .cap{animation:ysBuzz 7s 1.2s infinite}
+.yard-sign .fork{animation:ysDrop 11s 3s infinite}
+.yard-sign .ring{animation:ysBlink 13s 5s infinite}
+.yard-sign .snout{animation:ysBlink 9s 6.5s infinite}
+.yard-sign .overall{animation:ysDrop 17s 9s infinite}
+.yard-sign .body{animation:ysHum 23s infinite}
+@keyframes ysBuzz{0%,40%,58%,100%{opacity:1}41%{opacity:.1}42%{opacity:.9}43%{opacity:.05}44.5%{opacity:1}46%{opacity:.2}47%{opacity:1}52%{opacity:.6}53%{opacity:1}}
+@keyframes ysDrop{0%,60%,79%,100%{opacity:1}61%{opacity:.08}62%{opacity:.8}63%{opacity:.05}75%{opacity:.05}76%{opacity:.7}77%{opacity:.15}78%{opacity:1}}
+@keyframes ysBlink{0%,70%,76%,100%{opacity:1}71%{opacity:.1}72%{opacity:1}73.5%{opacity:.15}74.5%{opacity:1}}
+@keyframes ysHum{0%,88%,93%,100%{opacity:1}89%{opacity:.55}90%{opacity:1}91.5%{opacity:.7}}
+@media (max-width:520px){.yard-sign{width:150px}}
+@media (prefers-reduced-motion:reduce){.yard-sign img{animation:none!important}}
+</style>
 </head>
 <body>
 <div id="app"><main class="door"><p class="muted">Loading…</p></main></div>
@@ -79,7 +98,9 @@
         <span style="font-size:var(--fs-sm); color:var(--color-neutral-300);">${esc(NOTES[r.id] || '')}</span>
       </div></a>`).join('');
 
-  main.innerHTML = `
+  const SIGN = '<div class="yard-sign" role="img" aria-label="The Farmyard neon sign">' +
+    ['base', 'body', 'ring', 'snout', 'overall', 'fork', 'cap'].map(n => `<img class="${n}" src="assets/yard-sign/${n}.webp?v=20261126a" alt="" decoding="async">`).join('') + '</div>';
+  main.innerHTML = `${SIGN}
     <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
       <div class="fy-pagehead"><h2 class="t-title-b">The Yard</h2><span class="t-tagline">Home of The Farmyard. Everything on in the yard tonight starts here.</span></div>
     </div>
