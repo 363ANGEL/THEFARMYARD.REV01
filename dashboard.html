@@ -12,8 +12,8 @@
 <style>
 /* Yard neon sign: a dim unlit-tube base with each region's lit tubes stacked on top (lighten).
    Each region flickers on its own clock, like a real sign with tired transformers. */
-.yard-sign{position:relative;width:clamp(220px,55%,520px);max-width:100%;aspect-ratio:1;margin:0 auto 4px;isolation:isolate;flex:none}
-.yard-sign img{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:lighten;pointer-events:none;user-select:none}
+.yard-sign{position:relative;width:clamp(220px,55%,520px);max-width:100%;aspect-ratio:1/.93;margin:0 auto -6px;isolation:isolate;flex:none}
+.yard-sign img{position:absolute;top:0;left:0;width:100%;height:auto;aspect-ratio:1;mix-blend-mode:lighten;pointer-events:none;user-select:none}
 .yard-sign img.base{mix-blend-mode:normal}
 .yard-sign .ring,.yard-sign .script,.yard-sign .rooster,.yard-sign .body,.yard-sign .snout{filter:drop-shadow(0 0 5px rgba(255,40,170,.55))}
 .yard-sign .cap,.yard-sign .overall,.yard-sign .underline{filter:drop-shadow(0 0 5px rgba(40,240,230,.5))}
@@ -31,6 +31,9 @@
 @keyframes ysDrop{0%,60%,79%,100%{opacity:1}61%{opacity:.08}62%{opacity:.8}63%{opacity:.05}75%{opacity:.05}76%{opacity:.7}77%{opacity:.15}78%{opacity:1}}
 @keyframes ysBlink{0%,70%,76%,100%{opacity:1}71%{opacity:.1}72%{opacity:1}73.5%{opacity:.15}74.5%{opacity:1}}
 @keyframes ysHum{0%,88%,93%,100%{opacity:1}89%{opacity:.55}90%{opacity:1}91.5%{opacity:.7}}
+/* Yard tagline only: bigger and in the sign's cyan (RAY, 27 Nov) */
+.fy-pagehead .t-tagline.yard-tag{font-size:var(--fs-body);color:#4ff0e8;text-shadow:0 0 6px rgba(40,240,230,.45)}
+@media (max-width:640px){.fy-pagehead .t-tagline.yard-tag{font-size:var(--fs-sm)}}
 @media (prefers-reduced-motion:reduce){.yard-sign img{animation:none!important}}
 </style>
 <link rel="icon" href="favicon.ico?v=20261127a" sizes="48x48"><link rel="icon" type="image/png" href="icon-192.png?v=20261127a" sizes="192x192"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261127a">
@@ -108,7 +111,7 @@
     ['base', 'body', 'ring', 'script', 'rooster', 'underline', 'snout', 'overall', 'fork', 'cap'].map(n => `<img class="${n}" src="assets/yard-logo/${n}.webp?v=20261127b" alt="" decoding="async">`).join('') + '</div>';
   main.innerHTML = `${SIGN}
     <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-      <div class="fy-pagehead"><h2 class="t-title-b">The Yard</h2><span class="t-tagline">Home of The Horseplay Ledger</span></div>
+      <div class="fy-pagehead"><h2 class="t-title-b">The Yard</h2><span class="t-tagline yard-tag">Home of The Horseplay Ledger</span></div>
     </div>
     <div id="wall-box" ${B.leader || Barn.vis('wall', rooms.find(r => r.id === 'wall')) === 'members' ? '' : 'hidden'} style="flex:none; display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;"></div>
     <div id="stand-box" class="ystandbox" style="flex:none; display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;">
