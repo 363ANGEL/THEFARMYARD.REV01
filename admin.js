@@ -175,7 +175,7 @@
         <input class="input" id="nm-mob" type="tel" placeholder="Mobile (contact only)" maxlength="20" style="min-height:40px;flex:1 1 150px;min-width:0;max-width:100%;box-sizing:border-box">
         <button class="btn btn-primary" style="min-height:2.5rem">Add member</button></form>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Email and Discord username are optional. Copy the invite link from the member's row and send it on WhatsApp or Messenger. Mobile is contact only, never used for login.</span>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An invite link works once and lasts 72 hours. Copy in the member's row reuses the live one, or makes a fresh one when it has run out. New link voids it and makes a fresh one.</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An invite link works once and lasts 4 weeks. Copy in the member's row reuses the live one, or makes a fresh one when it has run out. New link voids it and makes a fresh one.</span>
       <div id="linkbox" hidden style="display:flex;gap:8px"><input class="input" id="linkout" readonly style="flex:1;min-height:40px"><button class="rowbtn" id="copylink">Copy</button></div></div>
       <div class="acard"><span class="t-module">Icon palette</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Each animal has its own 20 slots: pick a character, then upload an image (it takes that animal's lowest free number). Click a picture to set it as the icon of whoever holds the animal; the cross removes it.</span>
@@ -192,16 +192,16 @@
       const tr = ev.target.closest('tr[data-mid]');
       if (tr && !ev.target.closest('button,input,select')) showDetail(tr.dataset.mid);
     });
-    // Invite link from the row (RAY, 24 Nov): one per member, good for 72 hours. Copy reuses the live link;
-    // once it has expired or been used, the next Copy issues a fresh one, so links renew every 72 hours.
+    // Invite link from the row (RAY, 24 Nov): one per member, good for 4 weeks (RAY, 27 Nov; was 72 hours). Copy reuses the live link;
+    // once it has expired or been used, the next Copy issues a fresh one, so links renew every 4 weeks.
     pane.addEventListener('click', async ev => {
       const b = ev.target.closest('[data-invcopy]'); if (!b) return;
       ev.stopPropagation();
       try {
-        const tok = await FY.rpc('issue_claim_link', { p_member_id: b.dataset.invcopy, p_new: false, p_days: 3 });
+        const tok = await FY.rpc('issue_claim_link', { p_member_id: b.dataset.invcopy, p_new: false, p_days: 28 });
         const url = `${location.origin}/claim.html?claim=${tok}`;
         try { await navigator.clipboard.writeText(url); b.textContent = 'Copied'; setTimeout(() => { b.textContent = 'Copy'; }, 2000); }
-        catch (e) { window.prompt('Copy this invite link (valid 72 hours):', url); }
+        catch (e) { window.prompt('Copy this invite link (valid 4 weeks):', url); }
       } catch (e) { FY.toast(e.message); }
     });
     // Delete from the row: only unclaimed non-admins get the button; the server still refuses anyone with history.
@@ -355,7 +355,7 @@
       // Invite link and delete live here now, so they are wired here.
       box.querySelectorAll('button[data-link]').forEach(b => b.onclick = async () => {
         try {
-          const tok = await FY.rpc('issue_claim_link', { p_member_id: b.dataset.link, p_new: !!b.dataset.new, p_days: 3 });
+          const tok = await FY.rpc('issue_claim_link', { p_member_id: b.dataset.link, p_new: !!b.dataset.new, p_days: 28 });
           const url = `${location.origin}/claim.html?claim=${tok}`;
           const lab = b.textContent;
           try { await navigator.clipboard.writeText(url); b.textContent = 'Link copied'; setTimeout(() => { b.textContent = lab; }, 2000); }
