@@ -488,7 +488,7 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
    The 860px break is the same one barn.css uses, so everything changes shape together.
 --------------------------------------------------------------------------------------- */
 .fy-shell{width:100%;min-height:100vh;box-sizing:border-box;padding:16px;overflow-x:auto}
-.fy-frame{position:relative;min-height:calc(100vh - 32px);display:grid;grid-template-columns:232px minmax(0,1fr);align-items:start;min-width:860px}
+.fy-frame{position:relative;min-height:calc(100vh - 32px);display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:start;min-width:860px}   /* menu as wide as its widest item, was 232px (RAY, 27 Nov) */
 .fy-frame>.fy-side{position:relative;align-self:stretch;height:auto;min-height:calc(100vh - 32px);box-sizing:border-box}   /* RAY, 18 Nov: the menu grows to its full length and scrolls with the page, no scroll bar of its own */
 .fy-frame>.main{padding:18px 22px;display:flex;flex-direction:column;gap:14px;min-width:0;min-height:calc(100vh - 34px);box-sizing:border-box}
 /* Stacking, bottom to top: page, scrim (28), this tab (29), drawer (30). The tab sits behind the
