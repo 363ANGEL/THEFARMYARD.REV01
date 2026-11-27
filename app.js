@@ -5,16 +5,39 @@
   /* Login storage. Some phones block website storage (iPhone "Block All Cookies", some in-app browsers).
      The login then lives only on the page it landed on and is gone on the next page: sign in, move on,
      asked to sign in again, round and round (Dan, 27 Nov). When storage is blocked the login rides in
-     window.name instead, which lasts from page to page in the same tab. Untouched when storage works. */
+     window.name instead, which lasts from page to page in the same tab. Untouched when storage works.
+     Where first-party cookies still work, the login goes in cookies first (30 days), so it also outlasts
+     closing the app's browser, with window.name kept as a mirror in case a cookie is dropped mid-tab (27 Nov). */
   const tabStore = (function () {
     try { localStorage.setItem('fy_probe', '1'); const ok = localStorage.getItem('fy_probe') === '1'; localStorage.removeItem('fy_probe'); if (ok) return null; } catch (e) {}
     const P = 'fy1:';
     const read = () => { try { return String(window.name).indexOf(P) === 0 ? JSON.parse(window.name.slice(P.length)) || {} : {}; } catch (e) { return {}; } };
     const write = o => { try { window.name = P + JSON.stringify(o); } catch (e) {} };
-    return {
+    const nameStore = {
       getItem(k) { const o = read(); return Object.prototype.hasOwnProperty.call(o, k) ? o[k] : null; },
       setItem(k, v) { const o = read(); o[k] = v; write(o); },
       removeItem(k) { const o = read(); delete o[k]; write(o); }
+    };
+    // Cookie tier: probe with a throwaway cookie, the same attributes the login cookies use.
+    const ATTR = '; Path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
+    const ckGet = n => { const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)')); return m ? m[1] : null; };
+    const ckSet = (n, v) => { document.cookie = n + '=' + v + ATTR + '; Max-Age=2592000'; };
+    const ckDel = n => { document.cookie = n + '=' + ATTR + '; Max-Age=0'; };
+    let cookies = false;
+    try { ckSet('fy_ck', '1'); cookies = ckGet('fy_ck') === '1'; ckDel('fy_ck'); } catch (e) {}
+    if (!cookies) return nameStore;
+    // Each key is stored as <key>.n (how many chunks) and <key>.0 … <key>.N, at most 3,000 characters each.
+    const CH = 3000, nm = k => encodeURIComponent(k);
+    const ckRemove = k => { const n = +ckGet(nm(k) + '.n') || 0; for (let i = 0; i < Math.max(n, 1); i++) ckDel(nm(k) + '.' + i); ckDel(nm(k) + '.n'); };
+    const cookieStore = {
+      getItem(k) { try { const n = +ckGet(nm(k) + '.n'); if (!n) return null; let s = ''; for (let i = 0; i < n; i++) { const c = ckGet(nm(k) + '.' + i); if (c == null) return null; s += c; } return decodeURIComponent(s); } catch (e) { return null; } },
+      setItem(k, v) { try { ckRemove(k); const e = encodeURIComponent(v), n = Math.max(1, Math.ceil(e.length / CH)); for (let i = 0; i < n; i++) ckSet(nm(k) + '.' + i, e.slice(i * CH, (i + 1) * CH)); ckSet(nm(k) + '.n', String(n)); } catch (e) {} },
+      removeItem(k) { try { ckRemove(k); } catch (e) {} }
+    };
+    return {
+      getItem(k) { const v = cookieStore.getItem(k); return v != null ? v : nameStore.getItem(k); },
+      setItem(k, v) { cookieStore.setItem(k, v); nameStore.setItem(k, v); },
+      removeItem(k) { cookieStore.removeItem(k); nameStore.removeItem(k); }
     };
   })();
   const sb = wired ? supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, Object.assign({ db: { schema: 'fy' } }, tabStore ? { auth: { storage: tabStore } } : {})) : null;

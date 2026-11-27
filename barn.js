@@ -118,7 +118,9 @@
     /* Signed in but no members row: the invite door explains it. Never the public holding page. */
     noProfile(root) {
       root.innerHTML = '<main class="door"><p class="muted">One moment…</p></main>';
-      location.replace('claim.html');
+      // An invite still on this device goes with them, so claim.html binds it with no second sign-in (27 Nov).
+      let t = null; try { t = localStorage.getItem('fy_claim_token'); } catch (e) {} if (!t) try { t = sessionStorage.getItem('fy_claim_token'); } catch (e) {}
+      location.replace(t && /^[0-9a-f]{32}$/.test(t) ? 'claim.html?claim=' + t : 'claim.html');
     },
 
     /* Viewport classes the design's phone/tablet overrides key off. */

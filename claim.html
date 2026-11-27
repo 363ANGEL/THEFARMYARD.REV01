@@ -14,7 +14,7 @@
 <body>
 <div id="app"><main class="door"><p class="muted">Checking your link…</p></main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=20261119b"></script><script src="app.js?v=20261127b"></script><script src="barn.js?v=20261123c"></script>
+<script src="config.js?v=20261119b"></script><script src="app.js?v=20261127c"></script><script src="barn.js?v=20261127c"></script>
 <script>
 /* 0.1 Invite Door. RAY sends claim.html?t=<token>. States: invite (sign in with Discord, then claim),
    wrongAccount (this Discord already has a profile), used (link used or unknown). Discord is the only sign-in.
@@ -41,25 +41,20 @@
   const used = (title, body) => page(`
     <div class="centre"><span class="kicker">Door's shut</span><h1>${title}</h1><p>${body}</p></div>
     <div class="card neon-tube-teal">${discordBtn('in', 'Sign in')}<span class="small">Not joined yet? Ask ${INVITER} for a new link.</span></div>`);
-  const doorShut = () => page('<div class="centre"><span class="kicker">Door\'s shut</span><h1>Members only.</h1><p>Hank checks the door.</p></div>');
-
-  // Signing out below reloads the page (app.js watches SIGNED_OUT), so the door
-  // message rides a sessionStorage flag across that reload.
-  let shut = false;
-  try { shut = sessionStorage.getItem('fy_doorshut') === '1'; if (shut) sessionStorage.removeItem('fy_doorshut'); } catch (e) {}
-  if (shut) { doorShut(); return; }
+  try { sessionStorage.removeItem('fy_doorshut'); } catch (e) {}   // left over from the old sign-out dance
 
   if (!ok) {
-    // Signed in but no members row (guarded pages land here): members only, no sign-up path.
-    // Sign them out and show the plain door.
+    // Signed in but no members row and no invite on this device (guarded pages land here). They stay signed in:
+    // signing them out sent them round a loop of sign in, no profile, signed out (27 Nov). The invite link is the
+    // way in; tapped while signed in, it carries ?claim= and the claim path below binds it with no new sign-in.
     const s = await FY.session();
     if (s) {
       const me = await FY.me().catch(() => null);
       if (me) { location.replace('dashboard.html'); return; }
-      try { sessionStorage.setItem('fy_doorshut', '1'); } catch (e) {}
-      doorShut();
-      Barn.voice.set(null);
-      await FY.sb.auth.signOut().catch(() => {});
+      page(`<div class="centre"><span class="kicker">Members only</span><h1>No Farmyard profile on this Discord yet</h1>
+        <p>Tap the invite link ${INVITER} sent you, on this phone. It opens straight to your spot.</p></div>
+        <div class="card neon-tube-teal"><button type="button" id="out" class="btn btn-ghost" style="min-height:2.75rem;width:100%">Sign out</button></div>`);
+      document.getElementById('out').addEventListener('click', () => Barn.signOut());
       return;
     }
     used('No invite here', `This link has no invite on it. If you've already joined, just sign in. Otherwise ask ${INVITER} for your own link.`);
