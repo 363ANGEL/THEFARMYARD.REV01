@@ -133,7 +133,8 @@ figcaption { font-size: var(--fs-xs); }   /* was 11px */
 .fy-league { font-size: var(--fs-sm); }   /* was 13px */
 .fy-league th { font-size: var(--fs-xs); }   /* was 10px */
 .fy-league .pos { font-size: var(--fs-sm); }   /* was 12px */
-.fy-brand { font-size: var(--fs-h3); }   /* was 20px */
+.fy-brand { font-size: calc(var(--fs-h3) * .85); }   /* was 20px; -15% RAY 27 Nov */
+.fy-brand img { width: calc(var(--char-host) * .85); height: calc(var(--char-host) * .85); }
 .fy-nav-group { font-size: var(--fs-xs); }   /* was 11px */
 .fy-nav-item { font-size: var(--fs-body); }   /* was 14px */
 .fy-nav-item .count { font-size: var(--fs-sm); }   /* was 12px */
