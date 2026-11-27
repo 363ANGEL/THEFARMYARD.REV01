@@ -93,6 +93,35 @@
     set({ answers: a });
   };
 
+  // New answer wins (RAY, 27 Nov, after Dan's first test): an answer that leaves no size under the earlier limits
+  // can still be picked; the earlier limits loosen to fit. Earlier limit questions are tried latest first, each
+  // moved to the option nearest its current one that leaves a size (a tie goes to the looser, higher option); a
+  // question that cannot fix it alone goes to its widest option and the walk carries on. A second pass re-tightens
+  // nothing but re-picks the nearest fit once the others have moved. Returns the answers and [{short, from, to}].
+  const loosen = (a0, qi, o) => {
+    const Q = qs(), a = Object.assign({}, a0), fits = x => filt(x, qi).filter(o.t).length > 0;
+    const earlier = Q.slice(0, qi).map((q, i) => ({ q, i })).filter(({ q }) => q.options.some(x => x.t) && a[q.key]).reverse();
+    const widest = q => q.options.reduce((b, x) => (x.t ? sizes().filter(x.t).length : 0) >= (b.t ? sizes().filter(b.t).length : 0) ? x : b, q.options[0]);
+    const nearest = q => { const cur = q.options.findIndex(x => x.v === a[q.key]); let best = null, bd = 1e9;
+      q.options.forEach((x, k) => { if (!x.t || !fits(Object.assign({}, a, { [q.key]: x.v }))) return; const d = Math.abs(k - cur); if (d < bd || (d === bd && k > cur)) { bd = d; best = x; } });
+      return best; };
+    for (let pass = 0; pass < 2 && !fits(a); pass++) {
+      for (const { q } of earlier) { const n = nearest(q); if (n) { a[q.key] = n.v; break; } if (pass === 0) a[q.key] = widest(q).v; }
+    }
+    // Move no further than needed: each moved answer steps back toward the member's own while a size still fits.
+    if (fits(a)) earlier.slice().reverse().forEach(({ q }) => { const o0 = q.options.findIndex(x => x.v === a0[q.key]), now = q.options.findIndex(x => x.v === a[q.key]);
+      if (o0 < 0 || now === o0) return; const step = now > o0 ? -1 : 1;
+      for (let k = o0; k !== now; k -= step) { const x = q.options[k]; if (x.t && fits(Object.assign({}, a, { [q.key]: x.v }))) { a[q.key] = x.v; break; } } });
+    const changes = earlier.slice().reverse().filter(({ q }) => a[q.key] !== a0[q.key]).map(({ q }) => ({ short: q.short, from: a0[q.key], to: a[q.key] }));
+    return { a, changes, ok: fits(a) };
+  };
+  // Dev check (?devcheck in the URL): every earlier-answer combination × every out option ends with a size.
+  const devCheck = () => { const Q = qs(), bad = []; let n = 0;
+    const walk = (i, a, upto) => { if (i === upto) { const q = Q[upto], before = filt(a, upto); q.options.forEach(o => { if (!o.t || before.filter(o.t).length) return; n++; const r = loosen(a, upto, o); if (!r.ok) bad.push({ a: Object.assign({}, a), q: q.key, o: o.v }); }); return; }
+      const q = Q[i]; if (!q.options.some(x => x.t)) return walk(i + 1, a, upto); q.options.forEach(x => walk(i + 1, Object.assign({}, a, { [q.key]: x.v }), upto)); };
+    Q.forEach((q, qi) => { if (q.options.some(x => x.t)) walk(0, {}, qi); });
+    console.log('[humidor devcheck] out options tried:', n, '· failures:', bad.length, bad.slice(0, 5)); return { n, bad }; };
+
   // Write a region only when its markup changed (keeps hover, focus and running animations intact).
   const put = (el, html) => { if (el && el._h !== html) { el._h = html; el.innerHTML = html; } };
 
@@ -192,8 +221,8 @@
 
     // Options (steps 0 to 6)
     opts = step < 7 ? q.options.map(o => {
-      const c = o.t ? before.filter(o.t).length : -1, sel = q.multi ? flav.includes(o.v) : answers[q.key] === o.v, dis = c === 0;
-      return { o, sel, dis, c, mk: marks(q, qi, o.v, answers.level), rec: suits(q, qi, o.v, answers.level) && !wideShort ? 'Suits you' : '',
+      const c = o.t ? before.filter(o.t).length : -1, sel = q.multi ? flav.includes(o.v) : answers[q.key] === o.v, out = c === 0;   // outside an earlier limit: still pickable, it moves that limit (RAY, 27 Nov)
+      return { o, sel, out, c, mk: marks(q, qi, o.v, answers.level), rec: suits(q, qi, o.v, answers.level) && !wideShort ? 'Suits you' : '',
         sil: q.key === 'shape' && !/^Any/.test(o.v) && window.HumidorCigarProfile ? window.HumidorCigarProfile(o.v, 96, 22) : '' };
     }) : [];
     const anyMark = opts.some(x => x.mk.length);
@@ -202,9 +231,9 @@
     optBox.style.gridTemplateColumns = 'repeat(' + (opts.length === 7 ? 4 : opts.length === 6 ? 3 : opts.length) + ', minmax(0,1fr))';
     optBox.style.gap = wideShort ? '6px 10px' : '6px clamp(14px,3vw,44px)';
     put(optBox, opts.map((x, i) => {
-      const o = x.o, count = x.c < 0 ? (o.sub || ' ') : x.c === 0 ? 'none fit' : 'keeps ' + x.c + (x.c === 1 ? ' size' : ' sizes');
+      const o = x.o, count = x.c < 0 ? (o.sub || ' ') : x.c === 0 ? 'moves a limit' : 'keeps ' + x.c + (x.c === 1 ? ' size' : ' sizes');
       const basis = opts.length === 7 && !mob ? (wideShort ? 'calc(25% - 34px)' : 'calc(25% - 44px)') : 'auto';
-      return `<button type="button" class="hr-opt${x.sel ? ' sel' : ''}${x.dis ? ' dis' : ''}" data-i="${i}" aria-pressed="${x.sel}"${x.dis ? ' aria-disabled="true"' : ''} style="flex:0 0 ${basis}">
+      return `<button type="button" class="hr-opt${x.sel ? ' sel' : ''}${x.out ? ' out' : ''}" data-i="${i}" aria-pressed="${x.sel}"${x.out ? ' aria-describedby="hr-outnote"' : ''} style="flex:0 0 ${basis}">${x.out ? '<svg class="hr-outmk" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 22 20H2Z"/><path d="M12 9.5v5M12 17.4v.1"/></svg>' : ''}
         <span class="hr-marks" style="min-height:${anyMark ? (wideShort ? '22px' : '32px') : '0px'}">${x.mk.join('')}<span class="hr-cap">${x.rec}</span></span>
         ${x.sil ? `<svg viewBox="0 0 96 22" width="96" height="22" class="hr-sil" aria-hidden="true"><path d="${x.sil}" stroke-width="1.5" stroke-linejoin="round"></path></svg>` : ''}
         <span class="hr-olabel">${esc(qi === 0 ? LEVEL_SHOW[o.v] || o.v : o.v)}</span>
@@ -311,14 +340,20 @@
     optBox.addEventListener('mouseout', e => { const a = optOf(e.target), b = optOf(e.relatedTarget); if (a && a !== b) hoverTo(b ? b.o.v : null); });
     optBox.addEventListener('focusin', e => { const x = optOf(e.target); if (x) hoverTo(x.o.v); });
     optBox.addEventListener('focusout', e => { if (!optOf(e.relatedTarget)) hoverTo(null); });
-    // A greyed-out answer explains itself instead of doing nothing (RAY, 24 Nov): a small bubble above it for ~2s,
-    // gone on the next click. Enter on the button fires the same click. The bubble is an aria-live region.
-    const disTip = $('hr-distip'); let disT = 0;
-    const hideDis = () => { clearTimeout(disT); disTip.classList.remove('on'); };
-    document.addEventListener('click', hideDis, true);   // capture: any next click clears it before a new one shows
-    const showDis = btn => { disTip.textContent = 'Outside your current preferences'; disTip.classList.add('on'); const r = btn.getBoundingClientRect(), w = disTip.offsetWidth;
-      disTip.style.left = Math.max(w / 2 + 6, Math.min(innerWidth - w / 2 - 6, r.left + r.width / 2)) + 'px'; disTip.style.top = (r.top - 6) + 'px'; disT = setTimeout(hideDis, 2000); };
-    optBox.addEventListener('click', e => { const x = optOf(e.target); if (x && x.dis) { showDis(e.target.closest('.hr-opt')); return; } if (x && S.step < 7) pick(qs()[Math.min(S.step, 6)], x.o.v, Math.min(S.step, 6)); });
+    // The warning sign (RAY, 27 Nov): an answer outside an earlier limit is taken, the limit moves, and an amber
+    // sign drops in over the question saying what moved. It flashes twice, holds, and goes after ~4s or on the
+    // next tap. Dismissing it changes nothing. Enter on a button fires the same click. aria-live region.
+    const warn = $('hr-warn'), warnTx = $('hr-warntext'); let warnT = 0;
+    const hideWarn = () => { clearTimeout(warnT); warn.classList.remove('on'); };
+    document.addEventListener('click', hideWarn, true);   // capture: any next tap clears it before a new one shows
+    const showWarn = ch => { warnTx.innerHTML = ch.map(c => `<p>Outside your <b>${esc(c.short)}</b>. Moved to <b>${esc(c.to)}</b>.</p>`).join('');
+      warn.classList.remove('on'); void warn.offsetWidth; warn.classList.add('on'); warnT = setTimeout(hideWarn, 4000); };
+    optBox.addEventListener('click', e => { const x = optOf(e.target); if (!x || S.step >= 7) return; const qi = Math.min(S.step, 6), q = qs()[qi];
+      if (x.out && !q.multi && q.key !== 'level') {   // new answer wins: earlier limits loosen, later answers drop, as pick does
+        const r = loosen(S.answers, qi, x.o), a = {}; qs().slice(0, qi).forEach(y => { if (r.a[y.key]) a[y.key] = r.a[y.key]; }); a[q.key] = x.o.v;
+        set({ answers: a }); if (r.changes.length) showWarn(r.changes); return; }
+      pick(q, x.o.v, qi); });
+    if (/[?&]devcheck\b/.test(location.search)) window.__humidorDevCheck = devCheck();
     $('hr-rail').addEventListener('click', e => { const b = e.target.closest('.hr-rstep'); if (!b) return; const i = +b.dataset.i; if (i <= reach) set({ step: i, hover: null }); });
     $('hr-back').addEventListener('click', () => set(s => ({ step: Math.max(0, s.step - 1), hover: null })));
     $('hr-next').addEventListener('click', () => { if (!nextOff) set(s => ({ step: s.step + 1, hover: null })); });

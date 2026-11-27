@@ -230,9 +230,26 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 .hr-kscale > span{display:flex;align-items:center;gap:5px;white-space:nowrap;letter-spacing:.06em}
 .hr-fan{flex:none;width:18px;height:12px;overflow:visible}
 .hr-fan line{stroke:var(--neon-teal);stroke-width:1;stroke-linecap:round}
-/* greyed-out answer, clicked: "Outside your current preferences" (RAY, 24 Nov). The .hc-tip look, no glow. */
-#hr-distip{position:fixed;left:0;top:0;z-index:30;transform:translate(-50%,-100%);pointer-events:none;white-space:nowrap;padding:4px 9px;font-size:var(--fs-xs);color:var(--neon-teal);background:var(--fy-bg);border:1px solid var(--neon-teal);border-radius:var(--radius-module,10px);opacity:0;visibility:hidden;transition:opacity .15s}
-#hr-distip.on{opacity:1;visibility:visible}
+/* New answer wins (RAY, 27 Nov). An answer outside an earlier limit keeps full strength and carries a small amber
+   warning mark; picking it moves the limit and drops the warning sign below. */
+.hr-opt.out{position:relative}
+.hr-outmk{position:absolute;top:2px;right:2px;width:16px;height:16px;fill:none;stroke:#ffb400;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 0 3px rgba(255,180,0,.6));pointer-events:none}
+.hr-vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* The warning sign: the Under Construction plate (farmyard.css .fy-sign-plate/.fy-sign-edge) in amber, dropped in
+   at the top centre of the question, flashing twice. It only shows while .on; the region stays for aria-live. */
+.hr-q{position:relative}
+#hr-warn{position:absolute;left:50%;top:-6px;z-index:20;width:max-content;max-width:min(94%,460px);transform:translateX(-50%);pointer-events:none;visibility:hidden;opacity:0;
+  --sg-tube:#ffb400;--sg-glow:#ffb400;--sg-rgb:255,180,0;--sg-text:#ffe3a3}
+#hr-warn.on{visibility:visible;opacity:1;animation:hrWarnIn .35s ease-out both}
+#hr-warn.on .fy-sign-plate{animation:hrWarnFlash 1.1s .3s linear both}
+#hr-warn .fy-sign-plate{margin:0;padding:10px 16px 10px 50px;gap:0;display:block}
+.hr-warnic{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:24px;height:24px;fill:none;stroke:#ffb400;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 0 3px #ffb400) drop-shadow(0 0 8px rgba(255,180,0,.6))}
+#hr-warntext p{margin:0;font-size:var(--fs-sm);line-height:1.35;color:var(--sg-text);text-shadow:0 0 4px rgba(255,180,0,.55);text-align:left}
+#hr-warntext p+p{margin-top:3px}
+#hr-warntext b{font-weight:600;color:#fff2cc}
+@keyframes hrWarnIn{from{opacity:0;transform:translate(-50%,-14px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes hrWarnFlash{0%,18%,36%,100%{opacity:1}9%,27%{opacity:.15}}
+@media (prefers-reduced-motion:reduce){#hr-warn.on,#hr-warn.on .fy-sign-plate,#hr-warn .fy-sign-edge{animation:none}}
 .hr-keybox > span:nth-child(2){display:none !important}   /* thirds now drawn on the 3D cigar (RAY, 24 Nov) */   /* smaller key text (RAY, 24 Nov) */
 .hr-sw{display:inline-flex;align-items:center;gap:4px}
 .hr-sw>span:first-child{height:2px;border-radius:1px}
@@ -255,7 +272,6 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 .hr-opt{all:unset;min-width:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;align-self:stretch;gap:6px;min-height:56px;padding:4px 6px}
 .hr-opt:hover{background:rgba(95,211,207,.08);border-radius:var(--radius-row)}
 .hr-opt:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
-.hr-opt.dis{opacity:.35;cursor:default}
 .hr-marks{display:flex;align-items:center;justify-content:center;gap:6px}
 /* Landing step: the four level icons glow in turn, left to right (RAY, 24 Nov) */
 @keyframes hrSeq{0%,30%,100%{opacity:.5;filter:none}10%,20%{opacity:1;filter:drop-shadow(0 0 5px var(--gc)) drop-shadow(0 0 10px var(--gc))}}
@@ -331,13 +347,14 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
           <div id="hr-kicker"></div>
           <div id="hr-headline"></div>
           <div id="hr-tip"></div>
+          <div id="hr-warn" role="status" aria-live="polite"><div class="fy-sign-plate"><span class="fy-sign-edge" aria-hidden="true"></span><svg class="hr-warnic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 22 20H2Z"/><path d="M12 9.5v5M12 17.4v.1"/></svg><div id="hr-warntext"></div></div></div>
+          <span id="hr-outnote" class="hr-vh">Outside an earlier answer. Picking it moves that answer to fit.</span>
         </section>
         <div id="hr-gap">
           <div class="hr-canvas" data-cigar-pad="150"><cigar-3d></cigar-3d></div>
           <div id="hr-notes" aria-hidden="true"></div><div id="hr-wheel" hidden></div>
           <div id="hr-chart" hidden></div>
           <div id="hr-strnote" hidden></div>
-          <div id="hr-distip" role="status" aria-live="polite"></div>
           <div id="hr-spec"></div>
         </div>
         <div id="hr-key" hidden></div>
@@ -367,7 +384,7 @@ svg[aria-label="Anatomy"]>g>g:first-child .hc-ln{stroke:var(--art-cream);stroke-
 </template>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js?v=20261119b"></script><script src="app.js?v=20261127c"></script><script src="barn.js?v=20261127c"></script>
-<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261125o"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261125r"></script><script src="humidor-roll.js?v=20261125s"></script>
+<script src="humidor-shelf.js?v=20261124a"></script><script src="humidor-cigar3d.js?v=20261125o"></script><script src="humidor-photos.js?v=20261124p"></script><script src="humidor-chart.js?v=20261125r"></script><script src="humidor-roll.js?v=20261127y"></script>
 <script>
 /* Its own Barn page (not Humidor.start: humidor.js opens the shell as 'humidor' and would light the
    parent). Admin only until RAY flips The Humidor to members, which cascades to this child too. */
