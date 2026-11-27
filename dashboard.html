@@ -12,7 +12,7 @@
 <style>
 /* Yard neon sign: a dim unlit-tube base with each region's lit tubes stacked on top (lighten).
    Each region flickers on its own clock, like a real sign with tired transformers. */
-.yard-sign{position:relative;width:320px;max-width:100%;aspect-ratio:1;margin:0 auto 4px;isolation:isolate;flex:none}
+.yard-sign{position:relative;width:clamp(220px,55%,520px);max-width:100%;aspect-ratio:1;margin:0 auto 4px;isolation:isolate;flex:none}
 .yard-sign img{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:lighten;pointer-events:none;user-select:none}
 .yard-sign img.base{mix-blend-mode:normal}
 .yard-sign .ring,.yard-sign .script,.yard-sign .rooster,.yard-sign .body,.yard-sign .snout{filter:drop-shadow(0 0 5px rgba(255,40,170,.55))}
@@ -31,7 +31,6 @@
 @keyframes ysDrop{0%,60%,79%,100%{opacity:1}61%{opacity:.08}62%{opacity:.8}63%{opacity:.05}75%{opacity:.05}76%{opacity:.7}77%{opacity:.15}78%{opacity:1}}
 @keyframes ysBlink{0%,70%,76%,100%{opacity:1}71%{opacity:.1}72%{opacity:1}73.5%{opacity:.15}74.5%{opacity:1}}
 @keyframes ysHum{0%,88%,93%,100%{opacity:1}89%{opacity:.55}90%{opacity:1}91.5%{opacity:.7}}
-@media (max-width:520px){.yard-sign{width:240px}}
 @media (prefers-reduced-motion:reduce){.yard-sign img{animation:none!important}}
 </style>
 <link rel="icon" href="favicon.ico?v=20261127a" sizes="48x48"><link rel="icon" type="image/png" href="icon-192.png?v=20261127a" sizes="192x192"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=20261127a">
