@@ -175,7 +175,7 @@
         <input class="input" id="nm-mob" type="tel" placeholder="Mobile (contact only)" maxlength="20" style="min-height:40px;flex:1 1 150px;min-width:0;max-width:100%;box-sizing:border-box">
         <button class="btn btn-primary" style="min-height:2.5rem">Add member</button></form>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Email and Discord username are optional. Copy the invite link from the member's row and send it on WhatsApp or Messenger. Mobile is contact only, never used for login.</span>
-      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An invite link works once and lasts 4 weeks. Copy in the member's row reuses the live one, or makes a fresh one when it has run out. New link voids it and makes a fresh one.</span>
+      <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">An invite link is the member's way in for good: the first Discord to use it becomes that member, and after that it just signs them in. An unclaimed link lasts 4 weeks. Copy in the member's row reuses the live one, or makes a fresh one when it has run out. New link adds a fresh one and the old ones keep working.</span>
       <div id="linkbox" hidden style="display:flex;gap:8px"><input class="input" id="linkout" readonly style="flex:1;min-height:40px"><button class="rowbtn" id="copylink">Copy</button></div></div>
       <div class="acard"><span class="t-module">Icon palette</span>
       <span style="font-size:var(--fs-xs);color:var(--fy-text-label)">Each animal has its own 20 slots: pick a character, then upload an image (it takes that animal's lowest free number). Click a picture to set it as the icon of whoever holds the animal; the cross removes it.</span>
@@ -339,7 +339,7 @@
           ${fact('Revolut', m.revolut_url ? esc(m.revolut_url) : dash)}
         </div>
         ${m.user_id ? '' : `<div style="display:flex;flex-direction:column;gap:8px;padding-top:4px;border-top:1px solid rgba(95,211,207,.22)">
-          <span class="kicker" style="font-size:var(--fs-xs);color:var(--fy-text-label)">Invite · contacts save as you leave each box, and the link works once and expires after 7 days</span>
+          <span class="kicker" style="font-size:var(--fs-xs);color:var(--fy-text-label)">Invite · contacts save as you leave each box. The link is theirs to keep, and lasts 4 weeks until it is claimed</span>
           ${contactCell(m)}
           <span style="display:flex;gap:6px;flex-wrap:wrap"><button class="rowbtn" data-link="${m.id}">Copy invite link</button><button class="rowbtn" data-link="${m.id}" data-new="1">New link</button>${m.role === 'leader' ? '' : `<button class="rowbtn warn" data-del="${m.id}">Delete member</button>`}</span></div>`}
         <span class="kicker" style="font-size:var(--fs-xs);color:var(--fy-text-label)">Icon ${charName ? '· ' + esc(charName.name) + "'s 20 slots · click one to make it theirs" : '· no animal yet, so no slots'}</span>

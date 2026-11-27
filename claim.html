@@ -42,33 +42,54 @@
     <div class="centre"><span class="kicker">Door's shut</span><h1>${title}</h1><p>${body}</p></div>
     <div class="card neon-tube-teal">${discordBtn('in', 'Sign in')}<span class="small">Not joined yet? Ask ${INVITER} for a new link.</span></div>`);
   try { sessionStorage.removeItem('fy_doorshut'); } catch (e) {}   // left over from the old sign-out dance
+  const toYard = () => FY.signIn(`${location.origin}${location.pathname.replace(/claim\.html$/, 'dashboard.html')}`);
+  // Signed in with no members row. They stay signed in: signing them out sent them round a loop of sign in, no
+  // profile, signed out (27 Nov). Their own invite link is the way in; tapped while signed in, it binds with no new sign-in.
+  const noProfile = () => {
+    page(`<div class="centre"><span class="kicker">Members only</span><h1>No Farmyard profile on this Discord yet</h1>
+      <p>Tap the invite link ${INVITER} sent you, on this phone. It opens straight to your spot.</p></div>
+      <div class="card neon-tube-teal"><button type="button" id="out" class="btn btn-ghost" style="min-height:2.75rem;width:100%">Sign out</button></div>`);
+    document.getElementById('out').addEventListener('click', () => Barn.signOut());
+  };
+  const noInvite = () => { used('No invite here', `This link has no invite on it. If you've already joined, just sign in. Otherwise ask ${INVITER} for your own link.`); document.getElementById('in').addEventListener('click', toYard); };
 
-  if (!ok) {
-    // Signed in but no members row and no invite on this device (guarded pages land here). They stay signed in:
-    // signing them out sent them round a loop of sign in, no profile, signed out (27 Nov). The invite link is the
-    // way in; tapped while signed in, it carries ?claim= and the claim path below binds it with no new sign-in.
+  if (!ok) {   // no invite on this link or this device (guarded pages land here)
     const s = await FY.session();
     if (s) {
       const me = await FY.me().catch(() => null);
       if (me) { location.replace('dashboard.html'); return; }
-      page(`<div class="centre"><span class="kicker">Members only</span><h1>No Farmyard profile on this Discord yet</h1>
-        <p>Tap the invite link ${INVITER} sent you, on this phone. It opens straight to your spot.</p></div>
-        <div class="card neon-tube-teal"><button type="button" id="out" class="btn btn-ghost" style="min-height:2.75rem;width:100%">Sign out</button></div>`);
-      document.getElementById('out').addEventListener('click', () => Barn.signOut());
-      return;
+      noProfile(); return;
     }
-    used('No invite here', `This link has no invite on it. If you've already joined, just sign in. Otherwise ask ${INVITER} for your own link.`);
-    document.getElementById('in').addEventListener('click', () => FY.signIn(`${location.origin}${location.pathname.replace(/claim\.html$/, 'dashboard.html')}`));
-    return;
+    noInvite(); return;
   }
-  const member = await FY.rpc('claim_peek', { p_token: token }).catch(() => null);
+  // A link is a member's permanent door (RAY, 27 Nov): open = not claimed yet; member = its member is claimed, so
+  // the link just signs them in; expired = unclaimed past 4 weeks; unknown = no such link.
+  let st = null;
+  try { st = await FY.rpc('claim_status', { p_token: token }); }
+  catch (e) {   // claim_status not in the database yet: the old lookup, so open links keep working whichever lands first
+    const n = await FY.rpc('claim_peek', { p_token: token }).catch(() => null);
+    st = n ? { state: 'open', nickname: n } : { state: 'expired' };
+  }
+  st = st || { state: 'unknown' };
+  const member = st.nickname || '';
   const session = await FY.session();
 
-  if (!member) {       // used, burnt by a newer link, or unknown
-    drop();
-    used('This link has expired', 'Ask Hank for a new one.');
-    document.getElementById('in').addEventListener('click', () => FY.signIn(`${location.origin}${location.pathname.replace(/claim\.html$/, 'dashboard.html')}`));
-    return;
+  if (st.state === 'unknown') { drop(); noInvite(); return; }
+  if (st.state === 'expired') { drop(); used('This link has expired', 'Ask Hank for a new one.'); document.getElementById('in').addEventListener('click', toYard); return; }
+  if (st.state === 'member') {
+    drop();   // the token is in the URL for the round trip; a stored copy would only bounce a different Discord back here
+    if (!session) {
+      if (oauthErr) FY.toast(oauthErr);
+      page(`<div class="centre"><span class="kicker">Your way back in</span>
+          <h1 style="text-transform:uppercase">Welcome back, <span class="neon-pink">${esc(member)}</span></h1>
+          <p style="max-width:38ch">Sign in with the same Discord as before and you're straight into the yard.</p></div>
+        <div class="card neon-tube-teal">${discordBtn('in', 'Sign in with Discord')}</div>`);
+      document.getElementById('in').addEventListener('click', () => FY.signIn(`${location.origin}${location.pathname}?claim=${token}`));
+      return;
+    }
+    const me = await FY.me().catch(() => null);
+    if (!me) { noProfile(); return; }   // a Discord with no profile can never take a claimed member's link
+    if (String(me.nickname).toLowerCase() === member.toLowerCase()) { location.replace(me.setup_at ? 'dashboard.html' : 'setup.html'); return; }
   }
   if (!session) {
     if (oauthErr) FY.toast(oauthErr);
@@ -82,7 +103,7 @@
         ${discordBtn('in', 'Sign in with Discord')}
         <div class="notes">
           <span><i class="ph ph-user-circle"></i><span>Use your own Discord. Whatever account you sign in with becomes ${esc(member)}.</span></span>
-          <span><i class="ph ph-key"></i>This link works once. Don't forward it.</span>
+          <span><i class="ph ph-key"></i>Keep this link. It's your way back in.</span>
         </div>
       </div>
       <span class="small">Not ${esc(member)}? Tell ${INVITER}. They'll send you your own link.</span>`);
@@ -96,7 +117,7 @@
     page(`
       <div class="centre"><span class="kicker">Wrong Discord</span>
         <h1 style="font-size:var(--fs-h1)">You're already in as <span class="neon-pink">${esc(me.nickname)}</span></h1>
-        <p>This invite is for <strong style="color:var(--fy-text)">${esc(member)}</strong>. You can't use it while you're signed in as ${esc(me.nickname)}. The link still works.</p></div>
+        <p>${st.state === 'member' ? `This was <strong style="color:var(--fy-text)">${esc(member)}</strong>'s invite` : `This invite is for <strong style="color:var(--fy-text)">${esc(member)}</strong>`}. You can't use it while you're signed in as ${esc(me.nickname)}. The link still works.</p></div>
       <div class="card neon-tube-teal">
         <span style="font-size:var(--fs-sm);line-height:1.5;color:var(--fy-text-secondary)">If this is ${esc(member)}'s link, send it to them. They need to open it on their own phone or computer.</span>
         <button type="button" id="copy" class="btn btn-primary" style="min-height:2.875rem;width:100%"><i class="ph ph-copy" style="font-size:1.125rem"></i>Copy invite link</button>
