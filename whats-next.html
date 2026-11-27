@@ -53,11 +53,18 @@ const SIGN = `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--ne
       <div><span style="font-size:var(--fs-body); font-weight:600;">${esc(COPY.head)}</span>
       <p style="margin:4px 0 0; max-width:64ch; font-size:var(--fs-body); line-height:1.5; color:var(--fy-text-secondary);">${esc(COPY.body)}</p></div>
     </div>
-    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-top:14px;">
-      ${next.map(r => `<a href="${esc(Barn.stubPath(r))}" style="display:flex; flex-direction:column; gap:8px; padding:14px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); text-decoration:none; color:var(--fy-text);">
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); align-items:start; gap:10px; margin-top:14px;">
+      ${next.map(r => `<div class="wn-card" data-room="${esc(r.id)}" style="display:flex; flex-direction:column; gap:8px; padding:14px; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); color:var(--fy-text); min-width:0;">
         <span style="display:flex; align-items:center; gap:10px;"><i class="${esc(r.icon)}" aria-hidden="true" style="font-size:var(--ic-lg); color:var(--neon-teal);"></i><span style="font-size:var(--fs-h3); font-weight:500;">${esc(r.label)}</span></span>
         <span style="font-size:var(--fs-sm); color:var(--fy-text-secondary); text-wrap:pretty;">${esc(TAGS[r.id] || '')}</span>
-        <span class="kicker" style="margin-top:auto;">See the concept →</span></a>`).join('')}
+        <button type="button" class="kicker wn-toggle" aria-expanded="false" style="margin-top:auto; align-self:flex-start; padding:0; border:0; background:none; cursor:pointer; font:inherit;">Add comment <span class="wn-n"></span> ▾</button>
+        <div class="wn-drop" style="display:none; flex-direction:column; gap:10px; padding-top:10px; border-top:1px solid var(--rule-teal);">
+          <div class="wn-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+          <form class="wn-form" style="display:flex; flex-direction:column; gap:8px;">
+            <textarea class="input" rows="2" required maxlength="280" placeholder="What would you want in here?" aria-label="Your comment on ${esc(r.label)}" style="width:100%; box-sizing:border-box; resize:vertical; border-color:var(--neon-teal); font-family:inherit;"></textarea>
+            <button type="submit" class="btn btn-primary" style="min-height:2rem; align-self:flex-start; font-size:var(--fs-sm);">Post</button>
+          </form>
+        </div></div>`).join('')}
     </div>
     <div style="display:flex; flex-direction:column; align-items:center; gap:16px; max-width:720px; box-sizing:border-box; padding:22px; border:1px solid var(--neon-teal); border-radius:12px; box-shadow:var(--glow-teal); background:var(--fy-bg); margin-top:14px;">
       <span style="align-self:flex-start; color:var(--neon-teal); text-shadow:0 0 6px var(--neon-teal), 0 0 14px rgba(95,211,207,.45);" class="lot-label">Site Suggestion Box - What should we add next?</span>
@@ -68,6 +75,36 @@ const SIGN = `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--ne
       </form>
     </div>`;
   Barn.hangSign(B.main, SIGN);
+
+  /* Room cards roll down to show members' comments (RAY, 27 Nov), instead of opening a holding page.
+     Comments are fy.suggestion rows keyed 'c:<room>', readable by every member. */
+  const dir = Object.fromEntries(((await FY.q('member').select('id, nickname, avatar, avatar_url')).data || []).map(m => [m.id, m]));
+  const ago = iso => { const d = (Date.now() - new Date(iso)) / 1000;
+    return d < 60 ? 'just now' : d < 3600 ? Math.floor(d / 60) + 'm ago' : d < 86400 ? Math.floor(d / 3600) + 'h ago' : new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); };
+  let comments = [];
+  async function loadComments() {
+    comments = (await FY.q('suggestion').select('id, member_id, room_key, body, created_at').like('room_key', 'c:%').order('created_at', { ascending: true })).data || [];
+    B.main.querySelectorAll('.wn-card').forEach(card => {
+      const mine = comments.filter(c => c.room_key === 'c:' + card.dataset.room);
+      card.querySelector('.wn-n').textContent = mine.length ? '· ' + mine.length : '';
+      card.querySelector('.wn-list').innerHTML = mine.map(c => { const m = dir[c.member_id] || { id: c.member_id, nickname: '?' };
+        return `<div style="display:flex; gap:8px; min-width:0;">${FY.faceRing(m, 28, m.nickname)}<div style="flex:1; min-width:0;"><div style="display:flex; gap:6px; align-items:baseline; flex-wrap:wrap;"><span style="font-size:var(--fs-sm); font-weight:700;">${esc(m.nickname)}</span><span style="font-size:var(--fs-xs); color:var(--fy-text-label);">${ago(c.created_at)}</span></div><p style="margin:2px 0 0; font-size:var(--fs-sm); line-height:1.45; color:var(--fy-text-secondary); overflow-wrap:anywhere; white-space:pre-wrap;">${esc(c.body)}</p></div></div>`; }).join('')
+        || '<span style="font-size:var(--fs-sm); font-style:italic; color:var(--color-neutral-400);">No comments yet. Be the first.</span>';
+    });
+  }
+  await loadComments().catch(() => {});
+  B.main.querySelectorAll('.wn-card').forEach(card => {
+    const tog = card.querySelector('.wn-toggle'), drop = card.querySelector('.wn-drop');
+    tog.addEventListener('click', () => { const open = drop.style.display === 'none'; drop.style.display = open ? 'flex' : 'none'; tog.setAttribute('aria-expanded', open);
+      tog.lastChild.textContent = open ? ' ▴' : ' ▾'; if (open) drop.querySelector('textarea').focus(); });
+    card.querySelector('.wn-form').addEventListener('submit', async ev => {
+      ev.preventDefault(); const ta = ev.target.querySelector('textarea'), btn = ev.target.querySelector('button'), text = ta.value.trim();
+      if (!text) return; btn.disabled = true;
+      try { await FY.rpc('suggest', { p_room: 'c:' + card.dataset.room, p_body: text }); ta.value = ''; await loadComments(); }
+      catch (e) { FY.toast(e.message); }
+      btn.disabled = false;
+    });
+  });
   B.main.querySelector('#sugg').addEventListener('submit', async ev => {
     ev.preventDefault();
     const text = B.main.querySelector('#sugg-text').value.trim();
