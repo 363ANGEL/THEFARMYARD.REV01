@@ -31,7 +31,7 @@ window.FY_ROOMS = {
 };
 /* The swinging "UNDER CONSTRUCTION" sign, static copy of the 0.0 design's sign (fy-sign classes in farmyard.css). */
 window.FY_SIGN = (() => {
-  const svg = '<svg viewBox="0 0 100 110" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="22" width="76" height="76" rx="10"/><path d="M12 46h76M32 10v22M68 10v22"/></g></svg>';   /* simple ivory line calendar (RAY, 18 Nov) */
+  const svg = '<svg viewBox="0 0 100 110" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><g transform="rotate(-35 50 58) translate(7.5 8.7) scale(.85)"><rect x="44" y="40" width="12" height="62" rx="5"/><rect x="18" y="18" width="52" height="22" rx="4"/><path d="M70 22c12 0 20 6 22 18M70 36c8 0 13 3 15 8"/></g></g></svg>';   /* simple ivory line calendar (RAY, 18 Nov) */
   return `<div class="fy-sign" aria-hidden="false" style="--sg-tube:var(--neon-teal);--sg-glow:var(--neon-teal);--sg-rgb:95,211,207;--sg-text:#c8f4f2">
     <span class="fy-sign-wire is-l"></span><span class="fy-sign-wire is-r"></span>
     <div class="fy-sign-plate"><span class="fy-sign-edge" aria-hidden="true"></span>
