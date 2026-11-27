@@ -109,7 +109,7 @@
     ['base', 'body', 'ring', 'script', 'rooster', 'underline', 'snout', 'overall', 'fork', 'cap'].map(n => `<img class="${n}" src="assets/yard-logo/${n}.webp?v=20261127b" alt="" decoding="async">`).join('') + '</div>';
   main.innerHTML = `${SIGN}
     <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-      <div class="fy-pagehead"><h2 class="t-title-b">The Yard</h2><span class="t-tagline">Home of The Farmyard. Everything on in the yard tonight starts here.</span></div>
+      <div class="fy-pagehead"><h2 class="t-title-b">The Yard</h2><span class="t-tagline">Home of The Horseplay Ledger</span></div>
     </div>
     <div id="wall-box" ${B.leader || Barn.vis('wall', rooms.find(r => r.id === 'wall')) === 'members' ? '' : 'hidden'} style="flex:none; display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;"></div>
     <div id="stand-box" class="ystandbox" style="flex:none; display:flex; flex-direction:column; border:1px solid var(--neon-teal); border-radius:10px; box-shadow:var(--glow-teal); background:var(--fy-bg); overflow:hidden;">
