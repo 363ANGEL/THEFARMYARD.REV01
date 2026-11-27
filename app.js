@@ -34,7 +34,7 @@
       let { data, error } = await sb.rpc('me');
       if (error) throw error;
       if (!(data && data.id)) {   // not linked yet: bind a row that matches their Discord id or email (fy.link_me), then look again
-        await sb.rpc('link_me').catch(() => {});
+        await sb.rpc('link_me').then(() => {}, () => {});   // rpc builders have no .catch
         ({ data, error } = await sb.rpc('me'));
         if (error) throw error;
       }
@@ -107,7 +107,7 @@
     // listener attaches - so any authenticated load stamps if this browser session has not.
     function stampLogin() {
       try { if (sessionStorage.getItem('fy_login_stamped')) return; sessionStorage.setItem('fy_login_stamped', '1'); } catch (e) {}
-      sb.rpc('touch_login').catch(() => {});
+      sb.rpc('touch_login').then(() => {}, () => {});
     }
     sb.auth.getSession().then(({ data }) => { if (data.session) stampLogin(); });
   }
