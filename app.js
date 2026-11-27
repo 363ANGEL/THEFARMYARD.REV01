@@ -2,7 +2,22 @@
 (function () {
   const C = window.FY_CONFIG;
   const wired = C && !/REPLACE/.test(C.SUPABASE_URL + C.SUPABASE_ANON_KEY);
-  const sb = wired ? supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, { db: { schema: 'fy' } }) : null;
+  /* Login storage. Some phones block website storage (iPhone "Block All Cookies", some in-app browsers).
+     The login then lives only on the page it landed on and is gone on the next page: sign in, move on,
+     asked to sign in again, round and round (Dan, 27 Nov). When storage is blocked the login rides in
+     window.name instead, which lasts from page to page in the same tab. Untouched when storage works. */
+  const tabStore = (function () {
+    try { localStorage.setItem('fy_probe', '1'); const ok = localStorage.getItem('fy_probe') === '1'; localStorage.removeItem('fy_probe'); if (ok) return null; } catch (e) {}
+    const P = 'fy1:';
+    const read = () => { try { return String(window.name).indexOf(P) === 0 ? JSON.parse(window.name.slice(P.length)) || {} : {}; } catch (e) { return {}; } };
+    const write = o => { try { window.name = P + JSON.stringify(o); } catch (e) {} };
+    return {
+      getItem(k) { const o = read(); return Object.prototype.hasOwnProperty.call(o, k) ? o[k] : null; },
+      setItem(k, v) { const o = read(); o[k] = v; write(o); },
+      removeItem(k) { const o = read(); delete o[k]; write(o); }
+    };
+  })();
+  const sb = wired ? supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY, Object.assign({ db: { schema: 'fy' } }, tabStore ? { auth: { storage: tabStore } } : {})) : null;
 
   const FY = {
     sb,
