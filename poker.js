@@ -282,15 +282,26 @@
   }
   document.addEventListener('input', ev => { if (ev.target.id === 'tname') S.seat.name = ev.target.value; });
   document.addEventListener('click', ev => { if (ev.target.closest && ev.target.closest('#take')) takeSeat(); });
+  // Tapping OPEN POKERNOW ends the seat card, so the link box is waiting when they come back.
+  document.addEventListener('click', ev => { if (ev.target.closest && ev.target.closest('.pk-pop a.pk-btn')) setTimeout(() => { if (S.seat.phase === 'done') endSeatFlow(); }, 800); });
+  // If this page goes behind the PokerNow window mid-countdown, its clock may stop: send the window on at once.
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden || S.seat.phase !== 'count' || !S.seat.win || S.seat.win.closed) return;
+    try { S.seat.win.location.href = S.seat.url || START_URL; S.seat.early = true; } catch (e) { /* left as it was */ }
+  });
   function takeSeat() {
     if (S.seat.phase !== 'idle' || !popOn()) return;
     const name = (S.seat.name || '').trim() || me.nickname, seatNo = selIdx() + 1, table = S.cur.id;
     copyText(name);                                // inside the click: browsers only allow it here
     // Open the PokerNow window now, inside the click (allowed); it is pointed at the game when the clock hits zero.
+    // On a phone a new tab takes the whole screen and this page's clock stops behind it, so the blank tab stayed
+    // blank for good (iPhone, RAY 28 Nov). Phones get no blank tab: the OPEN POKERNOW button shows instead, and
+    // their own tap opens it.
+    const touch = matchMedia('(pointer: coarse)').matches || !matchMedia('(hover: hover)').matches;
     let w = null;
-    try { w = window.open('about:blank', 'pokernow', winFeatures()); } catch (e) { w = null; }
+    if (!touch) { try { w = window.open('about:blank', 'pokernow', winFeatures()); } catch (e) { w = null; } }
     if (w) { try { w.opener = null; } catch (e) { /* cross-origin */ } }
-    S.seat.win = w; S.seat.hint = !w;
+    S.seat.win = w; S.seat.hint = !w && !touch; S.seat.early = false;
     S.seat.phase = 'count'; S.seat.count = 10; S.seat.blocked = false; S.seat.url = START_URL;
     const p = FY.rpc('poker_take_seat', { p_table: table, p_seat: seatNo, p_table_name: name });   // renames the initiator's seat
     S.seat.p = p;
@@ -298,6 +309,11 @@
       clearInterval(S.seat.tick); try { S.seat.win && S.seat.win.close(); } catch (x) { /* gone */ } S.seat.win = null; S.seat.hint = false; S.seat.phase = 'idle'; S.seat.p = null; FY.toast(e.message); renderPop();
     });
     renderPop();
+    if (touch) {
+      p.then(() => { setTaken(); midSig = ''; S.seat.count = 0; S.seat.blocked = true; S.seat.phase = 'done'; renderPop();
+        setTimeout(() => { if (S.seat.phase === 'done') endSeatFlow(); }, 300000); }, () => {});
+      return;
+    }
     S.seat.tick = setInterval(async () => {
       S.seat.count = Math.max(0, S.seat.count - 1);
       const el = $('count'); if (el) el.textContent = S.seat.count;
@@ -305,7 +321,8 @@
       clearInterval(S.seat.tick);
       try { await S.seat.p; } catch (e) { return; }
       if (S.cur && S.cur.pokernow_url) S.seat.url = S.cur.pokernow_url;
-      if (S.seat.win && !S.seat.win.closed) { try { S.seat.win.location.href = S.seat.url; S.seat.blocked = false; } catch (e) { S.seat.blocked = !openPokerNow(S.seat.url); } }
+      if (S.seat.early) S.seat.blocked = false;   // already sent to PokerNow when this page went behind it
+      else if (S.seat.win && !S.seat.win.closed) { try { S.seat.win.location.href = S.seat.url; S.seat.blocked = false; } catch (e) { S.seat.blocked = !openPokerNow(S.seat.url); } }
       else S.seat.blocked = !openPokerNow(S.seat.url);   // popups were blocked: new tab at zero
       setTaken(); midSig = '';
       if (S.seat.blocked) { S.seat.phase = 'done'; renderPop(); setTimeout(() => { if (S.seat.phase === 'done') endSeatFlow(); }, 30000); return; }
