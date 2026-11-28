@@ -65,8 +65,8 @@
   main.innerHTML = `<div class="fy-pagehead pk-head"><h2 class="t-title-b">Poker Room</h2><span class="t-tagline">Tonight's table, the league board, and who owes who.</span><div class="pk-signwrap" id="pksign"></div></div>
   <div class="pk">
     <section class="pk-steps" id="steps"></section>
-    <div class="pk-row2"><div class="pk-board pk-thin" id="board"><p class="pk-empty">Loading the board…</p></div></div>
     <div class="pk-row solo" id="tablerow" hidden><div id="tablecol" hidden></div><div class="pk-docketcol" id="docketcol" hidden></div></div>
+    <div class="pk-row2"><div class="pk-board pk-thin" id="board"><p class="pk-empty">Loading the board…</p></div></div>
     <div class="pk-row2"><div class="pk-debts pk-thin" id="debts"></div></div>
   </div>`;
   /* No Admin header picture here: the video and finishing screen already carry it (RAY, 26 Nov). */
