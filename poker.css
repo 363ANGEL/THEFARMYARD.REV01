@@ -93,6 +93,7 @@
 .pk-replay[hidden]{display:none}
 .pk-play{display:flex;align-items:center;justify-content:center;width:4rem;height:4rem;border-radius:50%;border:2px solid var(--neon-teal);background:rgba(7,9,10,.82);color:#fff;padding-left:3px;opacity:0;transform:scale(.9);transition:opacity .2s ease,transform .2s ease;box-shadow:0 0 10px var(--neon-teal),0 0 24px rgba(95,211,207,.6)}
 .pk-replay:hover .pk-play,.pk-replay:focus-visible .pk-play{opacity:1;transform:none}
+.pk-tutwrap.first .pk-play{opacity:1;transform:none}   /* before the first play the button always shows (RAY, 28 Nov) */
 @media (hover:none){.pk-play{opacity:.85;transform:none}}   /* no roll over on touch: keep it showing */
 .pk-tutwrap.ended:not(.pk-pfs) .pk-fs{display:none}
 /* The header image is 4:1, the video box 64:27. A box 20% wider for its height shows 20% more of the image (RAY, 18 Nov). */

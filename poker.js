@@ -78,36 +78,8 @@
     <svg viewBox="0 0 100 110">${FLAME} fill="#07090a" stroke="#07090a" stroke-width="15" stroke-linejoin="round"></path>${FLAME} fill="none" stroke="var(--neon-red-tube)" stroke-width="2.6" stroke-linejoin="round" style="filter:drop-shadow(0 0 3px var(--neon-red-tube)) drop-shadow(0 0 8px var(--neon-red))"></path></svg>
     <h2>POKER R<span>O</span>OM</h2></div></div>`;
   $('pksign').innerHTML = SIGN;   // once: the sign is the page's title and must outlive any re-render
-  // The tutorial starts itself two seconds in (RAY, 16 Nov). It has to be muted: every
-  // browser blocks a video that makes noise without a click, and a blocked play() would
-  // leave a stopped video looking broken. Controls are there to turn the sound on.
-  // It gives up quietly if the member has already pressed play, scrolled it out of sight,
-  // or if the browser refuses anyway.
-  function startTutorial(v) {
-    if (!v) return;
-    // Straight away, not after a pause: RAY asked for it to start on page load.
-    // `autoplay` on the tag does the work in most browsers; this is the fallback for the
-    // ones that ignore it, and it retries once the first frame is actually decodable.
-    // Sound on (RAY, 17 Nov). Browsers only allow that without a tap when the visitor has already
-    // used the site (Chrome, desktop). Where it is refused it starts muted instead, and the first
-    // tap or key press anywhere on the page switches the sound on, since that tap is allowed to.
-    v.volume = 0.2;   // starts at 20% (RAY, 18 Nov; was 60%); touch browsers ignore this and use the phone's own volume
-    const go = () => {
-      if (v.ended || !v.paused) return;
-      v.muted = false;
-      const p = v.play();
-      if (p && p.catch) p.catch(() => {
-        v.muted = true;
-        const q = v.play();
-        if (q && q.catch) q.catch(() => { /* blocked: the first frame and the controls remain */ });
-        const unmute = () => { v.muted = false; if (v.paused && !v.ended) { const r = v.play(); if (r && r.catch) r.catch(() => {}); } };
-        document.addEventListener('pointerdown', unmute, { once: true });
-        document.addEventListener('keydown', unmute, { once: true });
-      });
-    };
-    go();
-    v.addEventListener('loadeddata', go, { once: true });
-  }
+  // The tutorial never starts itself (RAY, 28 Nov): the header picture and a play button show until it is
+  // tapped, and it plays muted until the member turns the sound on with the video's own controls.
 
   let stepsSig = '';
   function renderSteps(force) {
@@ -124,10 +96,10 @@
       $('steps').innerHTML =
         '<div class="pk-howto">How it works...</div>' +
         '<div class="pk-tutwrap">' +
-        '<video class="pk-tut" controls playsinline preload="auto" src="assets/poker.tutorial.mp4?v=20261119b">' +
+        '<video class="pk-tut" controls muted playsinline preload="metadata" src="assets/poker.tutorial.mp4?v=20261119b">' +
         '<a href="assets/poker.tutorial.mp4?v=20261119b">Download the tutorial</a></video>' +
         // After one full play the header image fills the module; a play button shows on roll over to run it again (RAY, 18 Nov).
-        '<button type="button" class="pk-replay" id="pkreplay" aria-label="Play the tutorial again" hidden>' +
+        '<button type="button" class="pk-replay" id="pkreplay" aria-label="Play the tutorial">' +
         '<span class="pk-play"><svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span></button>' +
         // Big centred full screen button, shown on small screens where the native one is tiny (RAY, 16 Nov).
         '<button type="button" class="pk-fs" id="pkfs" aria-label="Full screen">' +
@@ -170,11 +142,12 @@
         rep.hidden = false; wrap.classList.add('ended');
       });
       rep.addEventListener('click', () => {
-        rep.hidden = true; wrap.classList.remove('ended');
-        tv.currentTime = 0; tv.muted = false;
+        rep.hidden = true; wrap.classList.remove('ended', 'first'); rep.setAttribute('aria-label', 'Play the tutorial again');
+        tv.currentTime = 0;   // sound stays as the member left it: muted until they turn it on
         const p = tv.play(); if (p && p.catch) p.catch(() => {});
       });
-      startTutorial(tv);
+      tv.muted = true; tv.volume = 0.2;   // 20% once they unmute (RAY, 18 Nov)
+      wrap.classList.add('ended', 'first');   // the cover and its play button, from the start
     }
   }
   $('tablecol').addEventListener('click', async ev => {

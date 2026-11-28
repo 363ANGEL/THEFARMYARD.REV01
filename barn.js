@@ -207,7 +207,7 @@
         <div class="fy-shell" id="shell">
           <div class="fy-frame">
             <button type="button" class="fy-burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="side">
-              <svg viewBox="0 0 46 120" aria-hidden="true" focusable="false"><polygon class="tri" points="0.00,1.00 37.50,50.17 37.50,69.83 0.00,119.00"/><polyline class="edge" points="0.00,1.00 37.50,50.17 37.50,69.83 0.00,119.00"/><polyline class="ring" points="0.00,10.89 31.50,52.19 31.50,67.81 0.00,109.11" stroke-width="2.6"/><polyline class="ring" points="0.00,25.73 22.50,55.23 22.50,64.77 0.00,94.27" stroke-width="1.7"/><polyline class="ring" points="0.00,40.57 13.50,58.27 13.50,61.73 0.00,79.43" stroke-width="0.9"/></svg></button>
+              <svg viewBox="0 0 46 120" aria-hidden="true" focusable="false"><polygon class="tri" points="0.00,1.00 37.50,50.17 37.50,69.83 0.00,119.00"/><polyline class="edge" points="0.00,1.00 37.50,50.17 37.50,69.83 0.00,119.00"/><polyline class="ring" points="0.00,10.89 31.50,52.19 31.50,67.81 0.00,109.11" stroke-width="2.6"/><polyline class="ring" points="0.00,25.73 22.50,55.23 22.50,64.77 0.00,94.27" stroke-width="1.7"/><polyline class="ring" points="0.00,40.57 13.50,58.27 13.50,61.73 0.00,79.43" stroke-width="0.9"/><text class="lbl" x="17.5" y="63.4" text-anchor="middle">TAB</text></svg></button>
             <nav class="fy-side fy-sidebar" id="side" aria-label="The Barn"></nav>
             <button type="button" class="fy-scrim" id="scrim" aria-label="Close the menu" tabindex="-1"></button>
             <div class="main" id="main"></div>

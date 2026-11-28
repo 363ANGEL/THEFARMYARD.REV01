@@ -501,6 +501,7 @@ td .fy-face::after { box-shadow: none; border-color: color-mix(in srgb, var(--ne
 .fy-burger .tri{fill:none;stroke:none}
 .fy-burger .edge{fill:none;stroke:var(--neon-pink);stroke-width:1.5;stroke-linejoin:round}
 .fy-burger .ring{fill:none;stroke:currentColor;stroke-linejoin:round;filter:drop-shadow(0 0 2px var(--neon-teal)) drop-shadow(0 0 5px color-mix(in srgb,var(--neon-teal) 70%,transparent))}   /* neon glow (RAY, 17 Nov) */
+.fy-burger .lbl{font:700 9.5px/1 var(--font-heading,Inter,system-ui,sans-serif);letter-spacing:.05em;fill:#fff;paint-order:stroke;stroke:var(--fy-bg,#12141c);stroke-width:3.2px;stroke-linejoin:round}   /* the word TAB across the middle (RAY, 28 Nov) */
 .fy-burger:focus-visible .edge{stroke:var(--neon-pink);stroke-width:2.5}
 /* With a mouse the tab stays tucked into the screen edge, a sliver showing, and rolls out when
    the pointer reaches it, when it takes keyboard focus, or while the drawer is open. A phone has
