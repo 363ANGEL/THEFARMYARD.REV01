@@ -181,8 +181,9 @@
     const t = ev.target.closest('a,button'); if (!t) return;
     if (t.id === 'close') {
       if (!S.cur) return;
-      if (!isHost() && !isLeader) return;   // Admin can close anyone's table, so an accidental Start never blocks the room (RAY, 28 Nov)
-      if (isHost() && S.cur.seats.length > 1 && !filed()) {   // rule 6: two or more sat → the docket must be filed first; a lone player may just close (RAY, 17 Nov)
+      const setup = S.cur.status === 'starting';   // no link saved yet: anyone may close it, so an abandoned Start never blocks the room (RAY, 28 Nov)
+      if (!isHost() && !isLeader && !setup) return;
+      if (isHost() && !setup && S.cur.seats.length > 1 && !filed()) {   // rule 6: two or more sat → the docket must be filed first; a lone player may just close (RAY, 17 Nov)
         S.closeTip = true; renderTableBtns(); clearTimeout(S.closeTipT); S.closeTipT = setTimeout(() => { S.closeTip = false; renderTableBtns(); }, 5000); return;
       }
       if (!arm(t, 'Tap again to close')) return;
@@ -212,8 +213,9 @@
     const live = !!S.cur, host = isHost();
     const note = S.closeTip ? tip('Complete the <strong>Table Docket</strong> card and press <strong>FILE DOCKET</strong> before closing the game.') : '';
     // Only the player who started the game sees CLOSE, and it stays dead until the docket is filed (a lone player may just close). RAY, 18 Nov.
-    const canClose = live && (filed() || S.cur.seats.length <= 1 || (isLeader && !host));
-    el.innerHTML = (live && (host || isLeader) ? `<button type="button" id="close" class="pk-btn red" ${canClose ? '' : 'disabled title="File the docket first"'}>CLOSE</button>` : '') + note;
+    const setup = live && S.cur.status === 'starting';
+    const canClose = live && (setup || filed() || S.cur.seats.length <= 1 || (isLeader && !host));
+    el.innerHTML = (live && (host || isLeader || setup) ? `<button type="button" id="close" class="pk-btn red" ${canClose ? '' : 'disabled title="File the docket first"'}>CLOSE</button>` : '') + note;
   }
   let midSig = '';
   function renderMid() {
